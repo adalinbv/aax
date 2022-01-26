@@ -292,7 +292,7 @@ else(MSVC)
          "Flags used by al build types."
          FORCE)
 
-     set(RELEASE_FLAGS "-O2 -fprefetch-loop-arrays -DRELEASE=1")
+     set(RELEASE_FLAGS "-O2 -DRELEASE=1")
 
      # Note: CMAKE_C_FLAGS_RELWITHDEBINFO adds profiler flags
      set(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g ${RELEASE_FLAGS} -DNDEBUG" CACHE STRING
@@ -327,19 +327,19 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -Ofast"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse"
+                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -Os"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -Ofast"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse"
+                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -Os"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -Ofast"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse "
+                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -Os"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse4.c APPENDZ
                     PROPERTY COMPILE_FLAGS "-msse4.1 -mfpmath=sse -march=silvermont -Ofast"
@@ -348,19 +348,19 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -Ofast -march=sandybridge"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -Os"
        )
        set_property(SOURCE src/software/cpu/arch2d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -Ofast -march=sandybridge"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -Ofast -march=sandybridge -Os"
        )
        set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -Os"
        )
        set_property(SOURCE src/software/cpu/arch2d_avx2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -Ofast -march=haswell"
+                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -Ofast -march=haswell -Os"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -Ofast -mfma -march=haswell"
+                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -Ofast -mfma -march=haswell -Os"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma4.c APPEND
                    PROPERTY COMPILE_FLAGS "-mxop -mfpmath=sse -Ofast -mfma4 -march=bdver1"
@@ -375,25 +375,25 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -Ofast -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -Os -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -Ofast -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -Os -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -Ofast -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -Os -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse4.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse4.1 -mfpmath=sse -Ofast -march=silvermont -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE 3rdparty/pffft.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -Ofast -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -Os -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
      elseif(ARM)
        message("Build environment: ARM")
