@@ -211,7 +211,7 @@ _aaxStreamDriverNewHandle(enum aaxRenderMode mode)
    {
       handle->mode = mode;
       handle->rawBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
-      handle->ioBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
+      handle->ioBuffer = _aaxDataCreate(IOBUF_THRESHOLD, 1);
 #if USE_CAPTURE_THREAD
       handle->captureBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
 #endif

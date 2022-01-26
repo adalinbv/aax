@@ -145,12 +145,12 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
 
             tv.tv_sec = timeout_us / 1000000;
             tv.tv_usec = timeout_us % 1000000;
-            setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
+            setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 #ifdef SO_NOSIGPIPE
             setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
 #endif
-            setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&on,sizeof(on));
-            setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(size));
+            setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &on,sizeof(on));
+            setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
 #if 0
  unsigned int m;
  int n;
