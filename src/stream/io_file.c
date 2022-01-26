@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2021 by Erik Hofman.
- * Copyright 2009-2021 by Adalin B.V.
+ * Copyright 2005-2020 by Erik Hofman.
+ * Copyright 2009-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -46,11 +46,15 @@
 # define O_BINARY	0
 #endif
 
+#define IOBUF_SIZE	(1024*1024)
+#define THRESHOLD	(IOBUF_SIZE/16)
+
 int
-_file_open(_io_t *io, UNUSED(_data_t *buf), const char* pathname, UNUSED(const char *path))
+_file_open(_io_t *io, const char* pathname, UNUSED(const char*path))
 {
    io->fds.fd = open(pathname, io->param[_IO_FILE_FLAGS], io->param[_IO_FILE_MODE]);
    io->timer = _aaxTimerCreate();
+   io->dataBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
 
    return io->fds.fd;
 }
@@ -59,61 +63,66 @@ int
 _file_close(_io_t *io)
 {
    int rv = 0;
+
+   void *data = _aaxDataGetData(io->dataBuffer);
    if (io->fds.fd >= 0)
    {
+      ssize_t res = 0;
+      do {
+         ssize_t avail = _aaxDataGetDataAvail(io->dataBuffer);
+         res = write(io->fds.fd, data, avail);
+         if (res > 0) {
+            res = _aaxDataMove(io->dataBuffer, NULL, res);
+         }
+      }
+      while (res == EINTR);
       close(io->fds.fd);
       io->fds.fd = -1;
    }
 
+   _aaxDataDestroy(io->dataBuffer);
    _aaxTimerDestroy(io->timer);
 
    return rv;
 }
 
 ssize_t
-_file_read(_io_t *io, _data_t* buf, size_t count)
+_file_read(_io_t *io, void* buf, size_t count)
 {
-   size_t size = _MIN(count, _aaxDataGetFreeSpace(buf));
-   void *ptr = _aaxDataGetPtr(buf);
-   ssize_t rv = 0;
+   ssize_t rv;
 
-   if (size)
+   do {
+      rv  = read(io->fds.fd, buf, count);
+   } while (rv < 0 && errno == EINTR);
+   if (rv == 0) rv = -1;
+
+   return rv;
+}
+
+ssize_t
+_file_write(_io_t *io, const void* buf, size_t count)
+{
+   ssize_t  rv = _aaxDataAdd(io->dataBuffer, buf, count);
+
+   if (_aaxDataGetOffset(io->dataBuffer) >= THRESHOLD &&
+       io->fds.fd >= 0)
    {
-      do {
-         rv = read(io->fds.fd, ptr, size);
-      } while (rv < 0 && errno == EINTR);
-
-      if (rv > 0) {
-         _aaxDataIncreaseOffset(buf, rv);
-      } else if (rv == 0) {
-         rv = __F_EOF;
+      void *data = _aaxDataGetData(io->dataBuffer);
+      ssize_t res = write(io->fds.fd, data, THRESHOLD);
+      if (res > 0) {
+         res = _aaxDataMove(io->dataBuffer, NULL, res);
       }
+   }
+
+   if (rv < count) {
+      rv += _aaxDataAdd(io->dataBuffer, (char*)buf+count-rv, rv);
    }
 
    return rv;
 }
 
 ssize_t
-_file_write(_io_t *io, _data_t *buf)
-{
-   ssize_t res = _aaxDataGetDataAvail(buf);
-   ssize_t rv = 0;
-
-   if (io->fds.fd >= 0 && res)
-   {
-      void *data = _aaxDataGetData(buf);
-
-      rv = write(io->fds.fd, data, res);
-      if (rv > 0) {
-         rv = _aaxDataMove(buf, NULL, rv);
-      }
-   }
-
-   return rv;
-}
-
-ssize_t
-_file_update_header(_io_t *io, void *data, size_t size)
+_file_update_header(_io_t *io, const void* buf, size_t count)
 {
    off_t off = _file_get(io,__F_POSITION);
    ssize_t rv = -1;
@@ -121,7 +130,7 @@ _file_update_header(_io_t *io, void *data, size_t size)
    if (io->fds.fd >= 0)
    {
       _file_set(io, __F_POSITION, 0L);
-      rv = write(io->fds.fd, data, size);
+      rv = write(io->fds.fd, buf, count);
       _file_set(io, __F_POSITION, off);
    }
 

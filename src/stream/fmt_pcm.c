@@ -306,7 +306,7 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
       if (*num)
       {
          no_blocks = *num/block_samps;
-//       if (*num % block_samps) no_blocks++;
+         if (*num % block_samps) no_blocks++;
 
          bytes = no_blocks*block_size;
          if (bytes > bufsize)
@@ -370,7 +370,7 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
             size_t bytes, no_blocks;
 
             no_blocks = *num/block_samps;
-//          if (*num % block_samps) no_blocks++;
+            if (*num % block_samps) no_blocks++;
 
             bytes = no_blocks*block_size;
             if (bytes > bufsize)
