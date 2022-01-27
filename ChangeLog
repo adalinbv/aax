@@ -1,4 +1,4 @@
-* Mon Nov 29 2021 - tech@adalin.org
+* Thu Jan 27 2022 - tech@adalin.org
 - AeonWave (3.11.0) stable; urgency=high
 
  * Add support for AIFF and snd/au files.
@@ -30,7 +30,7 @@
    the state with an unsupported waveform.
  * Fix a segmentation fault at the end of a non threaded stream playback.
 
--- Erik Hofman <tech@adalin.org>  Mon 29 Nov 2021 12:55:43 + 0200
+-- Erik Hofman <tech@adalin.org>  Thu 27 Jan 2022 11:52:23 + 0200
 
 
 * Mon Jun 21 2021 - tech@adalin.org
