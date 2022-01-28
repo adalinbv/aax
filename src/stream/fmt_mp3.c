@@ -308,7 +308,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
       {
          handle->mode = mode;
          handle->info.rate = 44100;
-         handle->info.bitrate = 320;
+         handle->info.bitrate = 320000;
          handle->file_size = fsize;
          handle->capturing = (mode == 0) ? 1 : 0;
          handle->blocksize = sizeof(int16_t);
@@ -432,8 +432,8 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
 
                   if (pmp3_info(handle->id,&handle->info) == MP3_OK)
                   {
-                     int bitrate = (handle->info.bitrate > 0) ? handle->info.bitrate : 320;
-                     double q = (double)rate/(bitrate/8.0) * fsize;
+                     int bitrate = (handle->info.bitrate > 0) ? handle->info.bitrate : 320000;
+                     double q = (double)rate*1000/(bitrate/8.0) * fsize;
                      handle->max_samples = q;
                   }
                }
@@ -714,8 +714,8 @@ _mp3_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
          if (pmp3_info(handle->id,&handle->info) == MP3_OK)
          {
-            int bitrate = (handle->info.bitrate > 0) ? handle->info.bitrate : 320;
-            double q = (double)rate/(bitrate/8.0) * handle->file_size;
+            int bitrate = (handle->info.bitrate > 0) ? handle->info.bitrate : 320000;
+            double q = (double)rate*1000/(bitrate/8.0) * handle->file_size;
             handle->max_samples = q;
          }
       }
@@ -784,8 +784,8 @@ _mp3_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
 
          if (pmp3_info(handle->id,&handle->info) == MP3_OK)
          {
-            int bitrate = (handle->info.bitrate > 0) ? handle->info.bitrate : 320;
-            double q = (double)rate/(bitrate/8.0) * handle->file_size;
+            int bitrate = (handle->info.bitrate > 0) ? handle->info.bitrate : 320000;
+            double q = (double)rate*1000/(bitrate/8.0) * handle->file_size;
             handle->max_samples = q;
          }
       }

@@ -1265,7 +1265,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             handle->info->no_tracks = config->node[0].no_speakers;
          }
 
-         if (config->node[0].bitrate >= 0 && config->node[0].bitrate <= 320) {
+         if (config->node[0].bitrate >= 0 && config->node[0].bitrate <= 320000) {
             handle->info->bitrate = config->node[0].bitrate;
          }
 

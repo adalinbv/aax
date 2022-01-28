@@ -987,7 +987,7 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       handle->info.no_tracks = read16le(&ch, &bufsize);
       handle->info.rate = read32le(&ch, &bufsize);
 
-      handle->bitrate = read32le(&ch, &bufsize);
+      handle->bitrate = 8*read32le(&ch, &bufsize);
       handle->info.blocksize = read16le(&ch, &bufsize);
       handle->bits_sample = read16le(&ch, &bufsize);
 
