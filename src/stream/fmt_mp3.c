@@ -588,13 +588,13 @@ _mp3_setup(_fmt_t *fmt, UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_f
    {
       if (handle->info.bitrate > 0)
       {
-          plame_set_brate(handle->id, handle->info.bitrate);
           plame_set_VBR(handle->id, vbr_off);
+          plame_set_brate(handle->id, handle->info.bitrate/1000);
       }
       else
       {
-          plame_set_brate(handle->id, 320);
           plame_set_VBR(handle->id, vbr_default);
+          plame_set_brate(handle->id, 320);
       }
       plame_set_quality(handle->id, 2); // 2=high  5 = medium  7=low
 
@@ -634,10 +634,12 @@ _mp3_update(_fmt_t *fmt, size_t *offs, ssize_t *size, char close)
    if (close && !handle->capturing)
    {
       unsigned char *buf = _aaxDataGetPtr(handle->mp3Buffer);
-      size_t avail = _aaxDataGetFreeSpace(handle->mp3Buffer);
-      size_t res;
+      size_t avail = _aaxDataGetDataAvail(handle->mp3Buffer);
+      size_t res = 0;
 
-      res = plame_encode_flush_nogap(handle->id, buf, avail);
+      if (avail >= 7200) {
+         res = plame_encode_flush_nogap(handle->id, buf, avail);
+      }
       if (res > 0)
       {
          _aaxDataIncreaseOffset(handle->mp3Buffer, res);
