@@ -699,7 +699,7 @@ off_t
 _aiff_get(_ext_t *ext, int type)
 {
    _driver_t *handle = ext->id;
-   off_t rv = 0;
+   off_t rv;
 
    switch (type)
    {
@@ -755,9 +755,7 @@ _aiff_get(_ext_t *ext, int type)
       rv = handle->info.vibrato_sweep*(1 << 24);
       break;
    default:
-      if (handle->fmt) {
-         rv = handle->fmt->get(handle->fmt, type);
-      }
+      rv = handle->fmt->get(handle->fmt, type);
       break;
    }
    return rv;

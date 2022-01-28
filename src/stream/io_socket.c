@@ -58,7 +58,7 @@
 #include <base/timer.h>
 #include <base/dlsym.h>
 
-#include "io.h"
+#include "audio.h"
 
 DECL_FUNCTION(OPENSSL_init_ssl);
 DECL_FUNCTION(SSL_new);
@@ -70,24 +70,19 @@ DECL_FUNCTION(SSL_connect);
 DECL_FUNCTION(SSL_shutdown);
 DECL_FUNCTION(SSL_read);
 DECL_FUNCTION(SSL_write);
-DECL_FUNCTION(SSL_read_ex);
-DECL_FUNCTION(SSL_write_ex);
 DECL_FUNCTION(TLS_client_method);
 DECL_FUNCTION(SSL_CIPHER_get_name);
 DECL_FUNCTION(SSL_get_current_cipher);
 DECL_FUNCTION(SSL_get_error);
 
 int
-_socket_open(_io_t *io, const char *remote, const char *pathname)
+_socket_open(_io_t *io, const char *server)
 {
-   static int recursive = 0;
    static void *audio = NULL;
    int size = io->param[_IO_SOCKET_SIZE];
    int port = io->param[_IO_SOCKET_PORT];
    int timeout_ms = io->param[_IO_SOCKET_TIMEOUT];
    int res, fd = -1;
-
-   recursive++;
 
 #ifdef WIN32
 // The WSAStartup function initiates use of the Winsock DLL by a process.
@@ -117,8 +112,6 @@ _socket_open(_io_t *io, const char *remote, const char *pathname)
          TIE_FUNCTION(SSL_shutdown);
          TIE_FUNCTION(SSL_read);
          TIE_FUNCTION(SSL_write);
-         TIE_FUNCTION(SSL_read_ex);
-         TIE_FUNCTION(SSL_write_ex);
          TIE_FUNCTION(TLS_client_method);
          TIE_FUNCTION(SSL_CIPHER_get_name);
          TIE_FUNCTION(SSL_get_current_cipher);
@@ -131,9 +124,9 @@ _socket_open(_io_t *io, const char *remote, const char *pathname)
    }
    io->error_max = (unsigned)(3000.0f/timeout_ms); // 3.0 sec.
 
-   if (remote && (size > 4000) && (port > 0))
+   if (server && (size > 4000) && (port > 0))
    {
-      int slen = strlen(remote);
+      int slen = strlen(server);
       if (slen < 256)
       {
          // Two tries, first a secure connection, then a plain text connection
@@ -149,9 +142,9 @@ _socket_open(_io_t *io, const char *remote, const char *pathname)
             {
                struct timeval tv;
                int on = 1;
-
+               
                tv.tv_sec = timeout_ms / 1000;
-               tv.tv_usec = (timeout_ms * 1000) % 1000000;
+               tv.tv_usec = (timeout_ms * 1000) % 1000000;              
 #ifdef SO_NOSIGPIPE
                setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
 #endif
@@ -173,7 +166,7 @@ _socket_open(_io_t *io, const char *remote, const char *pathname)
  printf("socket receive buffer size: %u\n", n);
 #endif
 
-               host = gethostbyname(remote);
+               host = gethostbyname(server);
                if (host)
                {
                   struct sockaddr_in dest_addr;
@@ -230,59 +223,14 @@ _socket_open(_io_t *io, const char *remote, const char *pathname)
             msecSleep(200);
          }
          while (--tries);
-
-         if (fd != -1 && recursive < 5)
-         {
-            const char *agent = aaxGetVersionString(NULL);
-            char *protname, *server, *extension;
-            char *path = (char*)pathname;
-            char *s = (char*)remote;
-
-            res = io->prot->connect(io->prot, io, &s, path, agent);
-            if (res == -300)
-            {
-               _protocol_t protocol;
-
-               io->prot = _prot_free(io->prot);
-               _socket_close(io);
-
-               protocol = _url_split(s, &protname, &server, &path,
-                                        &extension, &port);
-#if 0
- printf("\nredirect name: '%s'\n", remote);
- printf("protocol: '%s'\n", protname);
- printf("server: '%s'\n", server);
- printf("path: '%s'\n", path);
- printf("ext: '%s'\n", extension);
- printf("port: %i\n", port);
-#endif
-               io->prot = _prot_create(protocol);
-               if (io->prot) {
-                  fd = _socket_open(io, server, path);
-               }
-            }
-            else if (res < 0)
-            {
-               closesocket(fd);
-               fd = -1;
-            }
-         }
-         else if (recursive == 5) {
-            errno = EMLINK;
-         }
-         else {
-            errno = EFAULT;
-         }
       }
       else {
          errno = ENAMETOOLONG;
       }
    }
    else {
-      errno = EFAULT;
+      errno = EACCES;
    }
-
-   recursive--;
 
    return fd;
 }
@@ -310,33 +258,11 @@ _socket_read(_io_t *io, void *buf, size_t count)
 {
    ssize_t rv = 0;
 
-   if (io->ssl)
-   {
-      size_t read = 0;
-      int res = pSSL_read_ex(io->ssl, buf, count, &read);
-      if (res) {
-         rv = read;
-      }
-      else
-      {
-         int err = pSSL_get_error(io->ssl, res);
-         switch (err)
-         {
-         case SSL_ERROR_NONE:
-            rv = read;
-            break;
-         case SSL_ERROR_SYSCALL:
-            break;
-         case SSL_ERROR_WANT_READ:
-         case SSL_ERROR_WANT_WRITE:
-            errno = EAGAIN;
-            break;
-         case SSL_ERROR_SSL:
-         default:
-            errno = EIO;
-            break;
-         }
-      }
+   assert(buf);
+   assert(count);
+
+   if (io->ssl) {
+      rv = pSSL_read(io->ssl, buf, count);
    }
    else
    {
@@ -354,53 +280,16 @@ _socket_read(_io_t *io, void *buf, size_t count)
       io->error_ctr = 0;
    }
 
-   if (rv > 0 && io->prot)
-   {
-      int res;
-      res = io->prot->process(io->prot, buf, count);
-      if (res > 0)
-      {
-         count -= res;
-
-         memmove(buf, (char*)buf+res, count);
-      }
-   }
-
    return rv;
 }
 
 ssize_t
 _socket_write(_io_t *io, const void *buf, size_t size)
 {
-   ssize_t rv = 0;
+   ssize_t rv;
 
-   if (io->ssl)
-   {
-      size_t written = 0;
-      int res = pSSL_write_ex(io->ssl, buf, size, &written);
-      if (res) {
-         rv = written;
-      }
-      else
-      {
-         int err = pSSL_get_error(io->ssl, res);
-         switch (err)
-         {
-         case SSL_ERROR_NONE:
-            rv = written;
-            break;
-         case SSL_ERROR_SYSCALL:
-            break;
-         case SSL_ERROR_WANT_READ:
-         case SSL_ERROR_WANT_WRITE:
-            errno = EAGAIN;
-            break;
-         case SSL_ERROR_SSL:
-         default:
-            errno = EIO;
-            break;
-         }
-      }
+   if (io->ssl) {
+      rv = pSSL_write(io->ssl, buf, size);
    }
    else
    {
@@ -456,22 +345,8 @@ _socket_get(UNUSED(_io_t *io), enum _aaxStreamParam ptype)
       rv = -1;
       break;
    case __F_NO_BYTES:
-      break;
    default:
-      if (io->prot) {
-         rv = io->prot->get_param(io->prot, ptype);
-      }
       break;
-   }
-   return rv;
-}
-
-char*
-_socket_name(_io_t *io, enum _aaxStreamParam ptype)
-{
-   char *rv = NULL;
-   if (io->prot) {
-      rv = io->prot->name(io->prot, ptype);
    }
    return rv;
 }

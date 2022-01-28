@@ -339,7 +339,6 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                   {
                      rv = aaxGetBitsPerSample(info->format);
                      rv *= info->frequency*info->no_tracks;
-                     rv /= 1000;
                   }
                   break;
                case AAX_LATENCY:

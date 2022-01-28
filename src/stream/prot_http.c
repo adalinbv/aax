@@ -40,7 +40,6 @@
 #include "device.h"
 #include "audio.h"
 #include "arch.h"
-#include "io.h"
 
 #define MAX_HEADER	512
 #define STREAMTITLE	"StreamTitle='"
@@ -72,6 +71,12 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
       char buf[4096];
 
       res = _http_get_response(io, buf, &max);
+      if (res >= 300 && res < 400) // Moved
+      {
+           *server = (char*)_get_yaml(buf, "Location", max);
+           return -300;
+      }
+
       if (res >= 200 && res < 300)
       {
          const char *s;
@@ -126,27 +131,6 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
                }
             }
          }
-      }
-      else
-      {
-         res = -res;
-         if (res <= -300 && res >= -400) // Moved
-         {
-            *server = (char*)_get_yaml(buf, "Location", max);
-            errno = EREMCHG;
-            res = -300;
-         }
-         else if (res == -400) errno = EINVAL;		// Bad Request
-         else if (res == -403) errno = ECONNREFUSED;	// Forbidden
-         else if (res == -404) errno = ENOENT;		// Not Found
-         else if (res == -406) errno = EINVAL;		// Not Acceptable
-         else if (res == -408) errno = ETIMEDOUT;	// Request Timeout
-         else if (res == -410) errno = ENODATA;		// Gone
-         else if (res == -414) errno = ENAMETOOLONG;	// URI Too Long
-         else if (res == -500) errno = EREMOTEIO;	// Internal Server Error
-         else if (res == -503) errno = EUSERS;		// Service Unavailable
-         else if (res == -504) errno = ETIME;		// Gateway Timeout
-         else errno = EPROTO;
       }
 #if 0
  printf("server: %s\n", *server);
@@ -294,7 +278,7 @@ _http_set(_prot_t *prot, enum _aaxStreamParam ptype, ssize_t param)
 int
 _http_get(_prot_t *prot, enum _aaxStreamParam ptype)
 {
-   int rv = 0;
+   int rv = -1;
    if (prot && prot->content_type)
    {
       char *end = strchr(prot->content_type, ';');
@@ -320,24 +304,9 @@ _http_get(_prot_t *prot, enum _aaxStreamParam ptype)
             else if (!strncasecmp(prot->content_type, "audio/speex", len)) {
                rv = _FMT_SPEEX;
             }
-            else if (!strncasecmp(prot->content_type, "audio/wav", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-wav", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-pn-wav", len)) {
-               rv = _EXT_WAV;
-            }
-            else if (!strncasecmp(prot->content_type, "audio/aiff", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-aiff", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-pn-aiff", len)) {
-               rv = _EXT_AIFF;
-            }
-            else if (!strncasecmp(prot->content_type, "audio/basic", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-basic", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-pn-au", len)) {
-               rv = _EXT_SND;
-            }
             else if (!strncasecmp(prot->content_type, "audio/x-scpls", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-mpegurl", len) ||
-                     !strncasecmp(prot->content_type, "audio/mpegurl", len) ||
+               !strncasecmp(prot->content_type, "audio/x-mpegurl", len) ||
+               !strncasecmp(prot->content_type, "audio/mpegurl", len) ||
                !strncasecmp(prot->content_type, "application/x-mpegurl", len) ||
                !strncasecmp(prot->content_type, "application/mpegurl", len) ||
                !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl", len) ||
@@ -466,7 +435,7 @@ _http_get_response_data(_io_t *io, char *response, int size)
    {
       i++;
 
-      j = 50;
+      j = 10;
       do
       {
          res = io->read(io, buf, 1);

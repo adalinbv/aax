@@ -526,7 +526,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                }
 
                i = xmlNodeGetInt(xiid, "bitrate");
-               if (i) config->node[0].bitrate = i;
+               if (i) config->node[0].bitrate = i*1000;
 
                f = (float)xmlNodeGetDouble(xiid, "frequency-hz");
                if (f) config->node[0].frequency = f;

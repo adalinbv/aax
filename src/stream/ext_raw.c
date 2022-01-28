@@ -247,12 +247,7 @@ off_t
 _raw_get(_ext_t *ext, int type)
 {
    _driver_t *handle = ext->id;
-   off_t rv = 0;
-
-   if (handle->fmt) {
-      rv = handle->fmt->get(handle->fmt, type);
-   }
-   return rv;
+   return handle->fmt->get(handle->fmt, type);
 }
 
 off_t
