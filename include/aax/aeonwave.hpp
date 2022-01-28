@@ -285,7 +285,7 @@ public:
     bool close() {
         if (!!stopfn) stopfn(ptr,AAX_PROCESSED);
         bool rv = (!!closefn) ? closefn(ptr) : false;
-        closefn = stopfn = nullptr;
+        closefn = nullptr; stopfn = nullptr;
         return rv;
     }
 
