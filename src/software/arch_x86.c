@@ -626,7 +626,31 @@ _aaxGetNoCores()
       mib[1] = HW_NCPU;
       sysctl(mib, 2, &cores, &len, NULL, 0);
    }
-# elif defined(__linux__) || (__linux) || (defined (__SVR4) && defined (__sun))
+# elif defined(__linux__) || (__linux)
+   uint32_t lcores = 0, tsibs = 0;
+   char buff[32];
+   char path[64];
+
+   for (lcores=0; ; ++lcores)
+   {
+      FILE *cpu;
+
+      snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpu%u/topology/thread_siblings_list", lcores);
+
+      cpu = fopen(path, "r");
+      if (!cpu) break;
+
+      while (fscanf(cpu, "%[0-9]", buff))
+      {
+         tsibs++;
+         if (fgetc(cpu) != ',') break;
+      }
+      fclose(cpu);
+    }
+
+    cores = lcores/(tsibs/lcores);
+
+#elif (defined (__SVR4) && defined (__sun))
    // also for AIX
    cores = sysconf( _SC_NPROCESSORS_ONLN );
 
