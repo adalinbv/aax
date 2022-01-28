@@ -40,7 +40,7 @@
 #include <aax/aax.h>
 
 #include <base/timer.h>
-#include "io.h"
+#include "audio.h"
 
 #ifndef O_BINARY
 # define O_BINARY	0
@@ -50,7 +50,7 @@
 #define THRESHOLD	(IOBUF_SIZE/16)
 
 int
-_file_open(_io_t *io, const char* pathname, UNUSED(const char*path))
+_file_open(_io_t *io, const char* pathname)
 {
    io->fds.fd = open(pathname, io->param[_IO_FILE_FLAGS], io->param[_IO_FILE_MODE]);
    io->timer = _aaxTimerCreate();
@@ -64,23 +64,26 @@ _file_close(_io_t *io)
 {
    int rv = 0;
 
-   void *data = _aaxDataGetData(io->dataBuffer);
-   if (io->fds.fd >= 0)
+   if (io->dataBuffer)
    {
-      ssize_t res = 0;
-      do {
-         ssize_t avail = _aaxDataGetDataAvail(io->dataBuffer);
-         res = write(io->fds.fd, data, avail);
-         if (res > 0) {
-            res = _aaxDataMove(io->dataBuffer, NULL, res);
+      void *data = _aaxDataGetData(io->dataBuffer);
+      if (io->fds.fd >= 0)
+      {
+         ssize_t res = 0;
+         do {
+            ssize_t avail = _aaxDataGetDataAvail(io->dataBuffer);
+            res = write(io->fds.fd, data, avail);
+            if (res > 0) {
+               res = _aaxDataMove(io->dataBuffer, NULL, res);
+            }
          }
+         while (res == EINTR);
+         close(io->fds.fd);
+         io->fds.fd = -1;
       }
-      while (res == EINTR);
-      close(io->fds.fd);
-      io->fds.fd = -1;
-   }
 
-   _aaxDataDestroy(io->dataBuffer);
+      _aaxDataDestroy(io->dataBuffer);
+   }
    _aaxTimerDestroy(io->timer);
 
    return rv;
@@ -192,10 +195,3 @@ _file_get(_io_t *io, enum _aaxStreamParam ptype)
    }
    return rv;
 }
-
-char*
-_file_name(_io_t *io, enum _aaxStreamParam ptype)
-{
-   return NULL;
-}
-
