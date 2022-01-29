@@ -896,13 +896,13 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
    }
    stmp = (size_t)s & MEMMASK16;
 
-   step = sizeof(__m128)/sizeof(float);
+   step = 2*sizeof(__m128)/sizeof(float);
    i = num/step;
    if (i)
    {
       __m128* sptr = (__m128*)s;
       __m128 *dptr = (__m128*)d;
-      __m128 xmm0, xmm2;
+      __m128 xmm0, xmm2, xmm1, xmm3;
 
       num -= i*step;
       s += i*step;
@@ -914,7 +914,13 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
             xmm0 = _mm_loadu_ps((const float*)sptr++);
             xmm2 = _mm_load_ps((const float*)(dptr+0));
             xmm0 = _mm_add_ps(xmm0, xmm2);
+
+            xmm1 = _mm_loadu_ps((const float*)sptr++);
+            xmm3 = _mm_load_ps((const float*)(dptr+1));
+            xmm1 = _mm_add_ps(xmm1, xmm3);
+
             _mm_store_ps((float*)dptr++, xmm0);
+            _mm_store_ps((float*)dptr++, xmm1);
          }
          while(--i);
       }
@@ -925,7 +931,13 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
             xmm0 = _mm_load_ps((const float*)sptr++);
             xmm2 = _mm_load_ps((const float*)(dptr+0));
             xmm0 = _mm_add_ps(xmm0, xmm2);
+
+            xmm1 = _mm_load_ps((const float*)sptr++);
+            xmm3 = _mm_load_ps((const float*)(dptr+1));
+            xmm1 = _mm_add_ps(xmm1, xmm3);
+
             _mm_store_ps((float*)dptr++, xmm0);
+            _mm_store_ps((float*)dptr++, xmm1);
          }
          while(--i);
       }
