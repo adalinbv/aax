@@ -461,7 +461,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    _driver_t *handle = (_driver_t *)id;
    char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
    char *s, *protname, *server, *path, *extension, *patch;
-   int res, port, rate, size, safe, safe_path;
+   int res, port, rate, size, safe_path;
    int level = 0, rv = AAX_FALSE;
    _protocol_t protocol;
    size_t headerSize;
@@ -490,12 +490,11 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    if (patch) level = atoi(patch);
 
    protocol = _url_split(s, &protname, &server, &path, &extension, &port);
-
-   safe_path = isSafeDir(path);
-   if (!m || (m && !protocol && safe_path)) {
-      safe = AAX_TRUE;
+   if (m && !protocol)
+   {
+      safe_path = isSafeDir(path);
    } else {
-      safe = AAX_FALSE;
+      safe_path = AAX_TRUE;
    }
 
 #if 0
@@ -510,7 +509,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
  printf("buffer size: %i bytes\n", size);
  printf("patch level: %u\n", level);
  printf("stream mode: %s\n", m ? "write" : "read");
- printf("safe dir: %s\n\n", safe ? "yes" : "no");
+ printf("safe dir: %s\n\n", safe_path ? "yes" : "no");
 #endif
 
    handle->io = _io_create(protocol);
@@ -524,7 +523,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    res = AAX_FALSE;
    buf = handle->ioBuffer;
-   if (safe)
+   if (safe_path)
    {
       switch (protocol)
       {
