@@ -490,9 +490,8 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    if (patch) level = atoi(patch);
 
    protocol = _url_split(s, &protname, &server, &path, &extension, &port);
-   if (m && !protocol)
-   {
-      safe_path = isSafeDir(path);
+   if (!protocol) {
+      safe_path = isSafeDir(path, m);
    } else {
       safe_path = AAX_TRUE;
    }
@@ -600,7 +599,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          break;
       }
    }
-   else if (m && !protocol && !safe_path)
+   else
    {
       char err[256];
       snprintf(err, 255, "Security alert: unsafe path '%s'", path);
@@ -777,9 +776,6 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             handle->io = _io_free(handle->io);
          }
       }
-   }
-   else {
-//    _aaxStreamDriverLog(id, 0, 0, "Unable to intialize the file format");
    }
    free(s);
 
