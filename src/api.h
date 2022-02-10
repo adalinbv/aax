@@ -466,7 +466,7 @@ char *_aaxURLConstruct(char*, char*);
 int mkDir(const char*);
 size_t getFileSize(const char*);
 
-int isSafeDir(const char*);
+int isSafeDir(const char*, char);
 
 char* systemLanguage(char**);
 

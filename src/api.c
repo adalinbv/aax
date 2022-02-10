@@ -247,13 +247,15 @@ createDACL(SECURITY_ATTRIBUTES * pSA)
 #endif
 
 /*
- * Consider paths within the users home directory and the temp directory safe.
+ * Consider paths within the users home directory, except the AeonWave config
+ * directory, and the temp directory safe for writing.
+ *
+ * @mode directory for testing
+ * @mode 0 for reading, 1 for writing
  */
 int
-isSafeDir(const char *directory)
+isSafeDir(const char *directory, char mode)
 {
-   const char *temp = TEMP_DIR;
-   const char *home = USER_DIR;
    char abspath[PATH_MAX+1];
    const char *path = abspath;
    int rv = AAX_FALSE;
@@ -269,10 +271,24 @@ isSafeDir(const char *directory)
    }
 #endif
 
-   if (!strncmp(path, home, strlen(home))) {
-      rv = AAX_TRUE;
-   } else if (!strncmp(path, temp, strlen(temp))) {
-      rv = AAX_TRUE;
+   if (mode) // writing
+   {
+      if (!strncmp(path, USER_DIR, strlen(USER_DIR)))
+      {
+         path += strlen(USER_DIR);
+         if (strncmp(path, USER_AAX_DIR, strlen(USER_AAX_DIR)) != 0) {
+            rv = AAX_TRUE;
+         }
+      }
+      else if (!strncmp(path, TEMP_DIR, strlen(TEMP_DIR))) {
+         rv = AAX_TRUE;
+      }
+   }
+   else // reading
+   {
+      if (strncmp(path, SYSTEM_DIR, strlen(SYSTEM_DIR)) != 0) {
+         rv = AAX_TRUE;
+      }
    }
 
    return rv;
