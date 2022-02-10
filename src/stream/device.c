@@ -211,7 +211,7 @@ _aaxStreamDriverNewHandle(enum aaxRenderMode mode)
    {
       handle->mode = mode;
       handle->rawBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
-      handle->ioBuffer = _aaxDataCreate(IOBUF_THRESHOLD, 1);
+      handle->ioBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
 #if USE_CAPTURE_THREAD
       handle->captureBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
 #endif
@@ -481,9 +481,6 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    if (period_ms < 4.0f) period_ms = 4.0f;
    period_rate = 1000.0f / period_ms;
 
-   handle->refresh_rate = period_rate;
-   handle->dt = 1.0f/handle->refresh_rate;
-
    s = strdup(handle->name);
 
    patch = _url_get_param(s, "patch", NULL);
@@ -531,7 +528,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->io->set_param(handle->io, __F_NO_BYTES, size);
          handle->io->set_param(handle->io, __F_RATE, *refresh_rate);
          handle->io->set_param(handle->io, __F_PORT, port);
-         handle->io->set_param(handle->io, __F_TIMEOUT, handle->dt*1e6f);
+         handle->io->set_param(handle->io, __F_TIMEOUT, (int)period_ms);
          if (handle->io->open(handle->io, buf, server, path) >= 0)
          {
             int fmt = handle->io->get_param(handle->io, __F_EXTENSION);
@@ -599,7 +596,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          break;
       }
    }
-   else
+   else // if (m && !protocol && !safe_path)
    {
       char err[256];
       snprintf(err, 255, "Security alert: unsafe path '%s'", path);
@@ -704,18 +701,20 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             *tracks = handle->no_channels;
             *refresh_rate = period_rate;
 
+            handle->refresh_rate = period_rate;
+            handle->dt = 0.5f*handle->refresh_rate;
             handle->no_samples = no_samples;
             if (handle->no_channels && handle->bits_sample && handle->frequency)
             {
                handle->latency = (float)_MAX(no_samples,(PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;
             }
 
-            handle->ioBufLock = _aaxMutexCreate(handle->ioBufLock);
             if (handle->mode == AAX_MODE_READ) {
 #if USE_CAPTURE_THREAD
                handle->thread.ptr = _aaxThreadCreate();
                handle->thread.signal.mutex = _aaxMutexCreate(handle->thread.signal.mutex);
                _aaxSignalInit(&handle->thread.signal);
+               handle->ioBufLock = _aaxMutexCreate(handle->ioBufLock);
                res = _aaxThreadStart(handle->thread.ptr,
                                      _aaxStreamDriverReadThread, handle, 20);
 #else
@@ -776,6 +775,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             handle->io = _io_free(handle->io);
          }
       }
+   }
+   else {
+//    _aaxStreamDriverLog(id, 0, 0, "Unable to intialize the file format");
    }
    free(s);
 
@@ -969,7 +971,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             }
             else {
 #if USE_CAPTURE_THREAD
-               if (1 || handle->io->protocol == PROTOCOL_DIRECT)
+               if (handle->io->protocol == PROTOCOL_DIRECT)
                {
                   _aaxSignalTrigger(&handle->thread.signal);
                   usecSleep(1);
@@ -1796,8 +1798,9 @@ _aaxStreamDriverReadChunk(const void *id)
    ssize_t res = 0;
    size_t size;
 
-   size = _aaxDataGetFreeSpace(buf);
-   if (size) {
+   if (_aaxDataGetDataAvail(buf) < IOBUF_THRESHOLD)
+   {
+      size = _aaxDataGetFreeSpace(buf);
       res = handle->io->read(handle->io, buf, size);
    }
 
