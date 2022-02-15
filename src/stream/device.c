@@ -529,6 +529,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->io->set_param(handle->io, __F_RATE, *refresh_rate);
          handle->io->set_param(handle->io, __F_PORT, port);
          handle->io->set_param(handle->io, __F_TIMEOUT, (int)period_ms);
+         handle->io->set_param(handle->io, _IO_SOCKET_SIZE, 2*size);
          if (handle->io->open(handle->io, buf, server, path) >= 0)
          {
             int fmt = handle->io->get_param(handle->io, __F_EXTENSION);
@@ -702,7 +703,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             *refresh_rate = period_rate;
 
             handle->refresh_rate = period_rate;
-            handle->dt = 0.5f*handle->refresh_rate;
+            handle->dt = 0.5f/handle->refresh_rate;
             handle->no_samples = no_samples;
             if (handle->no_channels && handle->bits_sample && handle->frequency)
             {
@@ -1011,7 +1012,6 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             }
          }
       }
-//    *offset = _MINMAX(IOBUF_THRESHOLD-(ssize_t)_aaxDataGetDataAvail(handle->ioBuffer), -1, 1);
       *offset = offs-xoffs;
    }
 
@@ -1798,9 +1798,8 @@ _aaxStreamDriverReadChunk(const void *id)
    ssize_t res = 0;
    size_t size;
 
-   if (_aaxDataGetDataAvail(buf) < IOBUF_THRESHOLD)
-   {
-      size = _aaxDataGetFreeSpace(buf);
+   size = _aaxDataGetFreeSpace(buf);
+   if (size) {
       res = handle->io->read(handle->io, buf, size);
    }
 
@@ -1854,6 +1853,7 @@ _aaxStreamDriverReadThread(void *id)
    _aaxMutexLock(handle->thread.signal.mutex);
 
    /* read (clear) all bytes already sent from the server */
+   /* until the threshold is reached                      */
    if (handle->io->protocol != PROTOCOL_DIRECT)
    {
       do
@@ -1870,7 +1870,7 @@ _aaxStreamDriverReadThread(void *id)
 
    do
    {
-      _aaxSignalWaitTimed(&handle->thread.signal, 0.5f/handle->refresh_rate);
+      _aaxSignalWaitTimed(&handle->thread.signal, handle->dt);
       res = _aaxStreamDriverReadChunk(id);
    }
    while(res >= 0 && handle->thread.started);
