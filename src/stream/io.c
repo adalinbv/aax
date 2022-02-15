@@ -48,7 +48,7 @@ _io_create(int protocol)
 
          rv->param[_IO_SOCKET_SIZE] = 2048;
          rv->param[_IO_SOCKET_PORT] = 80;
-         rv->param[_IO_SOCKET_TIMEOUT] = 100;
+         rv->param[_IO_SOCKET_TIMEOUT] = 10000;
          break;
       case PROTOCOL_DIRECT:
          rv->open = _file_open;

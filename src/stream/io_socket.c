@@ -23,7 +23,6 @@
 #include "config.h"
 #endif
 
-#include <fcntl.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <assert.h>
@@ -194,10 +193,21 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
                         io->ssl = pSSL_new(io->ssl_ctx);
                         if (io->ssl)
                         {
+                           int err = SSL_ERROR_NONE;
+                           int ctr = 30;
                            pSSL_set_fd(io->ssl, fd);
-                           res = pSSL_connect(io->ssl);
+                           do {
+                              res = pSSL_connect(io->ssl);
+                              if (res < 0) {
+                                 err = pSSL_get_error(io->ssl, res);
+                                 msecSleep(1);
+                              }
+                           } while (--ctr && (err == SSL_ERROR_WANT_READ ||
+                                              err == SSL_ERROR_WANT_WRITE));
+
                            if (res <= 0)
                            {
+                              int err = pSSL_get_error(io->ssl, res);
                               pSSL_free(io->ssl);
                               io->ssl = NULL;
                            }
