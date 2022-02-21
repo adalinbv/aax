@@ -144,6 +144,7 @@ typedef struct
    float frequency;
    size_t no_samples;
    unsigned int no_bytes;
+   float buffer_fill; // pct
    float refresh_rate;
    float dt;
 
@@ -525,11 +526,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       {
       case PROTOCOL_HTTP:
       case PROTOCOL_HTTPS:
-         handle->io->set_param(handle->io, __F_NO_BYTES, size);
-         handle->io->set_param(handle->io, __F_RATE, *refresh_rate);
+         handle->io->set_param(handle->io, __F_NO_BYTES, 2*size);
+
          handle->io->set_param(handle->io, __F_PORT, port);
-         handle->io->set_param(handle->io, __F_TIMEOUT, (int)period_ms);
-         handle->io->set_param(handle->io, _IO_SOCKET_SIZE, 2*size);
          if (handle->io->open(handle->io, buf, server, path) >= 0)
          {
             int fmt = handle->io->get_param(handle->io, __F_EXTENSION);
@@ -693,6 +692,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             rate = handle->ext->get_param(handle->ext, __F_FREQUENCY);
 
             handle->frequency = (float)rate;
+            handle->fill.aim = IOBUF_THRESHOLD/(float)rate;
             handle->format = handle->ext->get_param(handle->ext, __F_FMT);
             handle->no_channels = handle->ext->get_param(handle->ext, __F_TRACKS);
             handle->channel_mask = handle->ext->get_param(handle->ext, __F_CHANNEL_MASK);
@@ -880,6 +880,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
    _driver_t *handle = (_driver_t *)id;
    int file_tracks = handle->ext->get_param(handle->ext, __F_TRACKS);
    ssize_t offs = *offset, xoffs = *offset;
+// size_t xframes = *frames;
    int num = 5*file_tracks;
    size_t bytes = 0;
 
@@ -985,9 +986,36 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             // Move data from ioBuffer to rawBuffer
             if (!_aaxMutexLockTimed(handle->ioBufLock, handle->dt))
             {
+               float target, input, err, P, I; // , D
+               float freq, delay_sec;
+
                avail = _aaxDataGetDataAvail(handle->ioBuffer);
                res = _aaxDataMoveData(handle->ioBuffer, handle->rawBuffer, avail);
                _aaxMutexUnLock(handle->ioBufLock);
+
+               delay_sec = 1.0f/handle->refresh_rate;
+               freq = handle->frequency;
+
+               /* present error */
+               target = handle->fill.aim*freq/IOBUF_THRESHOLD;
+               input = (float)avail/IOBUF_THRESHOLD;
+               P = err = input - target;
+
+               /* accumulation of past errors */
+               I = _MINMAX(handle->PID.I + err*delay_sec, 0.5f, 1.5f);
+               handle->PID.I = I;
+
+               /* prediction of future errors, from current rate of change */
+//             D = (handle->PID.err - err)/delay_sec;
+//             handle->PID.err = err;
+
+               err = _MINMAX(0.40f*P + 0.97f*I, -1.0, 1.0);
+               handle->buffer_fill = err;
+               xoffs = err;
+# if 0
+ float fact = _MINMAX((1.0f + err), 0.9f, 1.1f);
+ printf("target: %2.1f, avail: %2.1f, err: %2.1f (\033[92;4mP: %2.1f, I: %2.1f\033[0m), fact: %2.1f, xoffs: %li\n", target, input, err, P, I, fact, xoffs);
+# endif
             }
             data = _aaxDataGetData(handle->rawBuffer); // needed above
          }
@@ -1299,6 +1327,9 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
          break;
       case DRIVER_FREQUENCY:
          rv = (float)handle->frequency;
+         break;
+      case DRIVER_BUFFER_FILL:
+         rv = handle->buffer_fill;
          break;
 
       /* int */
@@ -1868,9 +1899,7 @@ _aaxStreamDriverReadThread(void *id)
       res = _aaxStreamDriverReadChunk(id);
    }
 
-   do
-   {
-      _aaxSignalWaitTimed(&handle->thread.signal, handle->dt);
+   do {
       res = _aaxStreamDriverReadChunk(id);
    }
    while(res >= 0 && handle->thread.started);
