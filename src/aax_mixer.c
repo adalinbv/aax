@@ -328,6 +328,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                break;
             case AAX_BITRATE:
             case AAX_LATENCY:
+            case AAX_BUFFER_FILL:
             {
                const _aaxDriverBackend *be = handle->backend.ptr;
                float f;
@@ -344,6 +345,10 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                case AAX_LATENCY:
                   f = be->param(handle->backend.handle, DRIVER_LATENCY);
                   rv = (int)(f*1e6);
+                  break;
+               case AAX_BUFFER_FILL:
+                  f = be->param(handle->backend.handle, DRIVER_BUFFER_FILL);
+                  rv = (int)(f*100.0f);
                   break;
                default:
                   break;
