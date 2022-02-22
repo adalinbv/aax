@@ -1,6 +1,6 @@
 /*
- * Copyright 2011-2019 by Erik Hofman.
- * Copyright 2011-2019 by Adalin B.V.
+ * Copyright 2011-2022 by Erik Hofman.
+ * Copyright 2011-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -110,7 +110,7 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    (_aaxDriverGetDevices *)&_aaxWASAPIDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxWASAPIDriverGetInterfaces,
 
-   (_aaxDriverGetName *)&_aaxWASAPIDriverSetName,
+   (_aaxDriverSetName *)&_aaxWASAPIDriverSetName,
    (_aaxDriverGetName *)&_aaxWASAPIDriverGetName,
    (_aaxDriverRender *)&_aaxWASAPIDriverRender,
    (_aaxDriverThread *)&_aaxWASAPIDriverThread,
@@ -970,6 +970,7 @@ _aaxWASAPIDriverSetName(const void *id, int type, const char *name)
          break;
       }
    }
+   return ret;
 }
 
 static char *

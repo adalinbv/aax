@@ -1,6 +1,6 @@
 /*
- * Copyright 2012-2020 by Erik Hofman.
- * Copyright 2012-2020 by Adalin B.V.
+ * Copyright 2012-2022 by Erik Hofman.
+ * Copyright 2012-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -32,6 +32,7 @@ extern "C" {
 
 #ifdef HAVE_POLL_H
 #include <poll.h>
+#elif HAVE_WINDOWS_H
 #else
 #define POLLIN	0
 struct pollfd {

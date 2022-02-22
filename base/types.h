@@ -165,7 +165,6 @@ uint64_t _aax_bswap64(uint64_t x);
 # ifdef HAVE_POLL_H
 #  include <poll.h>
 # elif HAVE_WINSOCK2_H
-#  include <winsock2.h>
 #  include <ws2tcpip.h>
 # endif
 # define WIN32_LEAN_AND_MEAN

@@ -47,7 +47,7 @@ extern "C" {
 # define CLOCK_REALTIME			0
 # define CLOCK_MONOTONIC		1
 
-enum {
+typedef enum {
     WAITABLE_TIMER_EVENT = 0,
     CONDITION_EVENT = 1
 } _Event_e;

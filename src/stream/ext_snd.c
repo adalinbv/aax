@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2021 by Erik Hofman.
- * Copyright 2009-2021 by Adalin B.V.
+ * Copyright 2005-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -384,7 +384,7 @@ off_t
 _snd_get(_ext_t *ext, int type)
 {
    _driver_t *handle = ext->id;
-   off_t rv;
+   off_t rv = 0;
 
    switch (type)
    {
