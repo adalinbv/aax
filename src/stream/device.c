@@ -1010,7 +1010,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
 //             handle->PID.err = err;
 
                err = _MINMAX(0.40f*P + 0.97f*I, -1.0, 1.0);
-               handle->buffer_fill = err;
+               handle->buffer_fill = 1.0f + err;
                xoffs = err;
 # if 0
  float fact = _MINMAX((1.0f + err), 0.9f, 1.1f);
