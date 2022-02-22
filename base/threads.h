@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -133,10 +133,11 @@ int _aaxProcessSetPriority(int);
  typedef struct _aaxMutex
  {
    char initialized;
-# if defined(NDEBUG)
-   CRITICAL_SECTION mutex;
-# else
+   char waiting;
    HANDLE mutex;
+# if defined(NDEBUG)
+   CRITICAL_SECTION crit;
+# else
    const char *name;
    const char *function;
    const char *last_file;
@@ -144,9 +145,9 @@ int _aaxProcessSetPriority(int);
 # endif
  } _aaxMutex;
 
- AvSetMmThreadCharacteristicsA_proc pAvSetMmThreadCharacteristicsA;
- AvRevertMmThreadCharacteristics_proc pAvRevertMmThreadCharacteristics;
- AvSetMmThreadPriority_proc pAvSetMmThreadPriority;
+extern AvSetMmThreadCharacteristicsA_proc pAvSetMmThreadCharacteristicsA;
+extern AvRevertMmThreadCharacteristics_proc pAvRevertMmThreadCharacteristics;
+extern AvSetMmThreadPriority_proc pAvSetMmThreadPriority;
 
 #endif
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -1000,8 +1000,10 @@ _aaxMutexCreate(void *mutex)
    if (!m)
    {
       m = calloc(1, sizeof(_aaxMutex));
-      if (m) {
-         InitializeCriticalSection(&m->mutex);
+      if (m)
+      {
+	 m->mutex = CreateMutex(NULL, FALSE, NULL);
+         InitializeCriticalSection(&m->crit);
       }
    }
 
@@ -1034,7 +1036,8 @@ _aaxMutexCreateInt(_aaxMutex *m)
    if (m && m->initialized == 0)
    {
 #if defined(NDEBUG)
-      InitializeCriticalSection(&m->mutex);
+      m->mutex = CreateMutex(NULL, FALSE, NULL);
+      InitializeCriticalSection(&m->crit);
       m->initialized = 1;
 #else
       m->mutex = CreateMutex(NULL, FALSE, NULL);
@@ -1053,7 +1056,8 @@ _aaxMutexDestroy(void *mutex)
    if (m)
    {
 #if defined(NDEBUG)
-      DeleteCriticalSection(&m->mutex);
+      CloseHandle(m->mutex);
+      DeleteCriticalSection(&m->crit);
 #else
       CloseHandle(m->mutex);
 #endif
@@ -1077,7 +1081,7 @@ _aaxMutexLock(void *mutex)
       }
 
       if (m->initialized != 0) {
-         EnterCriticalSection(&m->mutex);
+         EnterCriticalSection(&m->crit);
       }
    }
    return r;
@@ -1098,22 +1102,19 @@ _aaxMutexLockTimed(void *mutex, float dt)
 
       if (m->initialized != 0)
       {
+         m->waiting = 1;
          r = WaitForSingleObject(m->mutex, dt*1000);
          switch (r)
          {
          case WAIT_OBJECT_0:
             break;
          case WAIT_TIMEOUT:
-            printf("mutex timed out after %i seconds in %s line %i\n",
-                    DEBUG_TIMEOUT, file, line);
-            abort();
             r = ETIMEDOUT;
             break;
          case WAIT_ABANDONED:
          case WAIT_FAILED:
          default:
-            printf("mutex lock error %i in %s line %i\n", r, file, line);
-            abort();
+	    break;
          }
       }
    }
@@ -1135,7 +1136,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
       if (m->initialized != 0)
       {
 #if defined(NDEBUG)
-         EnterCriticalSection(&m->mutex);
+         EnterCriticalSection(&m->crit);
          r = WAIT_OBJECT_0;
 #else
          r = WaitForSingleObject(m->mutex, DEBUG_TIMEOUT*1000);
@@ -1168,8 +1169,14 @@ _aaxMutexUnLock(void *mutex)
    _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
 
-   if (m) {
-      LeaveCriticalSection(&m->mutex);
+   if (m)
+   {
+      if (m->waiting) {
+         ReleaseMutex(m->mutex);
+      } else {
+         LeaveCriticalSection(&m->crit);
+      }
+      m->waiting = 0;
    }
    return r;
 }

@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -89,11 +89,6 @@ int munmap(void *addr, size_t len);
 #  define _IOWR(g,n,t)	_IOC(IOC_IN | IOC_OUT,  (g), (n), sizeof(t))
 # endif
 typedef int nfds_t;
-struct pollfd {
-   int   fd;
-   short events;
-   short revents;
-};
 #endif
 
 #include "alsa.h"
