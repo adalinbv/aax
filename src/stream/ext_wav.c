@@ -341,14 +341,14 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 
             if (extensible || fact)
             {
-               handle->io.write.fact_chunk_offs = 2 + (uint32_t*)ch - header;
                writestr(&ch, "fact", 4, &size);
                write32le(&ch, 4, &size);
+               handle->io.write.fact_chunk_offs = ch - (uint8_t*)header;
                write32le(&ch, handle->info.no_samples, &size);
             }
 
-            handle->io.write.data_chunk_offs = 1 + (uint32_t*)ch - header;
             writestr(&ch, "data", 4, &size);
+            handle->io.write.data_chunk_offs = ch - (uint8_t*)header;
             write32le(&ch, 0, &size);
 
             _aaxFormatDriverUpdateHeader(handle, bufsize);
@@ -1393,33 +1393,33 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
    if (handle->info.no_samples != 0)
    {
       uint32_t *header = _aaxDataGetData(handle->wavBuffer);
-//    char extensible = (handle->wavBufSize == WAVE_HEADER_SIZE) ? 0 : 1;
-      size_t size;
+      size_t bufferSize = _aaxDataGetDataAvail(handle->wavBuffer);
+      size_t framesize = handle->info.no_tracks*handle->bits_sample/8;
+      size_t datasize, size;
+      uint8_t *ch;
       uint32_t s;
 
-      size = handle->info.no_samples*handle->info.no_tracks*handle->bits_sample;
-      size /= 8;
+      ch = (uint8_t*)header + 4;
+      size = bufferSize - (ch - (uint8_t*)header);
 
-      s = 4*handle->wavBufSize + size - 8;
-      header[1] = s;
+      datasize = handle->info.no_samples*framesize;
+      s = 4*handle->wavBufSize + datasize - 8;
+      write32le(&ch, s, &size);
 
-      if (handle->io.write.fact_chunk_offs) {
-         header[handle->io.write.fact_chunk_offs] = handle->info.no_samples;
-      }
-
-      s = size;
-      header[handle->io.write.data_chunk_offs] = s;
-
-      if (is_bigendian())
+      if (handle->io.write.fact_chunk_offs)
       {
-         header[1] = _aax_bswap32(header[1]);
-         s = handle->io.write.fact_chunk_offs;
-         if (s) {
-            header[s] = _aax_bswap32(header[s]);
-         }
-         s = handle->io.write.data_chunk_offs;
-         header[s] = _aax_bswap32(header[s]);
+         ch = (uint8_t*)header + handle->io.write.fact_chunk_offs;
+         size = bufferSize - (ch - (uint8_t*)header);
+
+         s = handle->info.no_samples;
+         write32le(&ch, s, &size);
       }
+
+      ch = (uint8_t*)header + handle->io.write.data_chunk_offs;
+      size = bufferSize - (ch - (uint8_t*)header);
+
+      s = datasize;
+      write32le(&ch, s, &size);
 
       *bufsize = 4*handle->wavBufSize;
       res = _aaxDataGetData(handle->wavBuffer);
@@ -1428,7 +1428,7 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
 {
    uint32_t *head = header;
    char *h = (char*)header;
-   extensible = ((header[5] & 0xffff) == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
+   char extensible = ((header[5] & 0xffff) == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
    printf("Write %s Header:\n", extensible ? "Extensible" : "Canonical");
    printf(" 0: %08x (ChunkID RIFF: \"%c%c%c%c\")\n", *head, h[0], h[1], h[2], h[3]); head++;
    printf(" 1: %08x (ChunkSize: %i)\n", *head, *head); head++;
