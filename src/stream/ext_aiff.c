@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2021 by Erik Hofman.
- * Copyright 2009-2021 by Adalin B.V.
+ * Copyright 2005-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -82,7 +82,7 @@ typedef struct
       struct
       {
          float update_dt;
-         uint32_t fact_chunk_offs;
+         uint32_t comm_chunk_offs;
          uint32_t data_chunk_offs;
       } write;
 
@@ -232,6 +232,7 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             const char *cmp = _getNameFromAIFFFormat(handle->aiff_format);
             uint8_t clen = strlen(cmp);
             uint32_t *header;
+            char extended;
             uint8_t *ch;
 
             header = (uint32_t*)_aaxDataGetData(handle->aiffBuffer);
@@ -250,23 +251,28 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                write32be(&ch, 2726318400, &size);		// timestamp
             }
             writestr(&ch, "COMM", 4, &size);
-            if (handle->aiff_format == PCM_AIFF_FILE) {		// ckDataSize
-                write32be(&ch, 36, &size);
+            extended = (handle->aiff_format != PCM_AIFF_FILE &&
+                        handle->aiff_format != RAW_AIFF_FILE &&
+                        handle->aiff_format != PCM_AIFF_BYTE_SWAPPED_FILE);
+
+            if (!extended) {
+               write32be(&ch, 18, &size);			// ckDataSize
             } else {
-               write32be(&ch, EVEN(41+clen), &size);
+               write32be(&ch, EVEN(23+clen), &size);
             }
+            handle->io.write.comm_chunk_offs = ch - (uint8_t*)header;
             write16be(&ch, handle->info.no_tracks, &size);
             write32be(&ch, handle->info.no_samples, &size);
             write16be(&ch, handle->bits_sample, &size);
             writefp80be(&ch, handle->info.rate, &size);
-            if (handle->aiff_format != PCM_AIFF_FILE)
+            if (extended)
             {
                write32be(&ch, handle->aiff_format, &size);
                writepstr(&ch, cmp, clen, &size);
             }
 
-            handle->io.write.data_chunk_offs = 3 + (uint32_t*)ch - header;
             writestr(&ch, "SSND", 4, &size);
+            handle->io.write.data_chunk_offs = ch - (uint8_t*)header;
             write32be(&ch, 0, &size);				// ckDataSize
             write32be(&ch, 0, &size);				// offset
             write32be(&ch, 0, &size);				// blockSize
@@ -851,7 +857,7 @@ if (curr == 0x464f524d) // FORM
       PRINT("(SubChunkID \"%c%c%c%c\")\n", h[0], h[1], h[2], h[3]);
       PRINT("(SubchunkSize: %i)\n", _aax_bswap32(*head));
       PRINT("(offset: %i)\n", _aax_bswap32(*head));
-      PRINT("(blockSzie: %i)\n", _aax_bswap32(*head));
+      PRINT("(blockSize: %i)\n", _aax_bswap32(*head));
    }
 }
 #endif
@@ -1106,36 +1112,34 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
 
    if (handle->info.no_samples != 0)
    {
-#if 0
       uint32_t *header = _aaxDataGetData(handle->aiffBuffer);
-      size_t size;
+      size_t bufferSize = _aaxDataGetDataAvail(handle->aiffBuffer);
+      size_t size, framesize = handle->info.no_tracks*handle->bits_sample/8;
+      uint8_t *ch;
       uint32_t s;
 
-      size = handle->info.no_samples*handle->info.no_tracks*handle->bits_sample;
-      size /= 8;
+      ch = (uint8_t*)header + 4;
+      size = bufferSize - (ch - (uint8_t*)header);
 
-      s = 4*handle->aiffBufSize + size - 8;
-      header[1] = s;
+      s = handle->info.no_samples*framesize - 4;
+      write32be(&ch, s, &size);
 
-      if (handle->io.write.fact_chunk_offs) {
-         header[handle->io.write.fact_chunk_offs] = handle->info.no_samples;
-      }
-
-      s = size;
-      header[handle->io.write.data_chunk_offs] = s;
-
-      if (is_bigendian())
+      if (handle->io.write.comm_chunk_offs)
       {
-         header[1] = _aax_bswap32(header[1]);
-         s = handle->io.write.fact_chunk_offs;
-         if (s) {
-            header[s] = _aax_bswap32(header[s]);
-         }
-         s = handle->io.write.data_chunk_offs;
-         header[s] = _aax_bswap32(header[s]);
+         ch = (uint8_t*)header + handle->io.write.comm_chunk_offs+2;
+         size = bufferSize - (ch - (uint8_t*)header);
+
+         s = handle->info.no_samples/framesize;
+         write32be(&ch, s, &size);
       }
-#endif
-      *bufsize = 4*handle->aiffBufSize;
+
+      ch = (uint8_t*)header + handle->io.write.data_chunk_offs;
+      size = bufferSize - (ch - (uint8_t*)header);
+
+      s = handle->info.no_samples*framesize;
+      write32be(&ch, s, &size);
+
+      *bufsize = handle->io.write.data_chunk_offs + 12;
       res = _aaxDataGetData(handle->aiffBuffer);
    }
 
