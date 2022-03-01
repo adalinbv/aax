@@ -1900,10 +1900,10 @@ _aaxStreamDriverReadThread(void *id)
    }
 
    do {
-//    _aaxSignalWaitTimed(&handle->thread.signal, handle->dt);
-      _aaxMutexUnLock(handle->thread.signal.mutex);
+      _aaxSignalWaitTimed(&handle->thread.signal, handle->dt);
+//    _aaxMutexUnLock(handle->thread.signal.mutex);
       res = _aaxStreamDriverReadChunk(id);
-      _aaxMutexLock(handle->thread.signal.mutex);
+//    _aaxMutexLock(handle->thread.signal.mutex);
    }
    while(res >= 0 && handle->thread.started);
 
