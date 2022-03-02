@@ -2,19 +2,35 @@
 #include <stdio.h>
 #include <time.h>
 
-#ifndef __AVX__
-// # include "avxintrin-emu.h"
-#endif
-
 #include <aax/aax.h>
 
-#include <base/timer.h>
+
 #include <base/types.h>
 #include <base/geometry.h>
+#include <base/timer.h>
 #include <base/logging.h>
-#include <src/software/cpu/arch3d_simd.h>
+// #include <src/software/cpu/arch3d_simd.h>
 
-// _aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;
+#define __MKSTR(X)		#X
+#define MKSTR(X)		__MKSTR(X)
+#define __GLUE(FUNC,NAME)	FUNC ## _ ## NAME
+#define GLUE(FUNC,NAME)		__GLUE(FUNC,NAME)
+
+float _vec3fDotProduct_sse(const vec3f_ptr v1, const vec3f_ptr v2);
+float _vec3fDotProduct_sse3(const vec3f_ptr v1, const vec3f_ptr v2);
+float _vec3fDotProduct_sse_vex(const vec3f_ptr v1, const vec3f_ptr v2);
+void _vec3fCrossProduct_sse(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
+void _vec3fCrossProduct_sse_vex(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
+void _mtx4fMulVec4_sse(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
+void _mtx4fMulVec4_sse_vex(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
+void _mtx4fMul_sse(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
+void _mtx4fMul_sse2(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
+void _mtx4fMul_sse_vex(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
+void _mtx4fMul_avx(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
+void _mtx4fMul_fma3(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
+void _mtx4dMul_sse2(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
+void _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
+void _mtx4dMul_fma3(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 
 #if defined(__i386__)
 # define SIMD   sse
@@ -26,7 +42,7 @@ char _aaxArchDetectSSE();
 char _aaxArchDetectSSE2();
 char _aaxArchDetectSSE3();
 #elif defined(__x86_64__)
-# define SIMD   sse_vex
+# define SIMD   sse
 # define SIMD2  sse_vex
 # define SIMD3  sse3
 # define SIMD4	avx
@@ -48,11 +64,6 @@ char check_cpuid_ecx(unsigned int);
 char _aaxArchDetectVFPV3();
 char _aaxArchDetectNeon();
 #endif
-
-#define __MKSTR(X)		#X
-#define MKSTR(X)		__MKSTR(X)
-# define __GLUE(FUNC,NAME)	FUNC ## _ ## NAME
-# define GLUE(FUNC,NAME)	__GLUE(FUNC,NAME)
 
 #define F(a,b)	(fabs((a)-(b))>FLT_EPSILON)
 
