@@ -495,6 +495,11 @@ _aaxGetSIMDSupportLevel()
 #   if RB_FLOAT_DATA
                _batch_freqfilter_float = _batch_freqfilter_float_fma3;
                _batch_resample_float = _batch_resample_float_fma3;
+
+               mtx4fMul = _mtx4fMul_fma3;
+               mtx4fMulVec4 = _mtx4fMulVec4_fma3;
+               mtx4dMul = _mtx4dMul_fma3;
+               mtx4dMulVec4 = _mtx4dMulVec4_fma3;
 #   endif
             }
          }

@@ -215,6 +215,9 @@ if(MSVC)
   set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:AVX2 /fp:fast -D__FMA__"
   )
+  set_property(SOURCE src/software/cpu/arch3d_fma3.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:AVX2 /fp:fast -D__FMA__"
+  )
   set_property(SOURCE src/software/cpu/arch2d_fma4.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:XOP /fp:fast -D__FMA__"
   )
@@ -362,6 +365,9 @@ else(MSVC)
        )
        set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
                     PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -Ofast -mfma -march=haswell -Os"
+       )
+       set_property(SOURCE src/software/cpu/arch3d_fma3.c APPEND
+                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -mfma -march=haswell -Os"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma4.c APPEND
                    PROPERTY COMPILE_FLAGS "-mxop -mfpmath=sse -Ofast -mfma4 -march=bdver1"
