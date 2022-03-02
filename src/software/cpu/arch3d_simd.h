@@ -101,6 +101,7 @@ void _mtx4fMul_fma3(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4fMulVec4_fma3(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
 void _mtx4dMul_fma3(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 void _mtx4dMulVec4_fma3(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr v);
+int _vec3dAltitudeVector_fma3(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_ptr ppos, const vec3d_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec);
 
 /* VFPV3 */
 void _vec3fNegate_vfpv3(vec3f_ptr d, const vec3f_ptr v);

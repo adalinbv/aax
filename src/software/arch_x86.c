@@ -500,6 +500,7 @@ _aaxGetSIMDSupportLevel()
                mtx4fMulVec4 = _mtx4fMulVec4_fma3;
                mtx4dMul = _mtx4dMul_fma3;
                mtx4dMulVec4 = _mtx4dMulVec4_fma3;
+               vec3dAltitudeVector = _vec3dAltitudeVector_fma3;
 #   endif
             }
          }

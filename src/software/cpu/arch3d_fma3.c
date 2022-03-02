@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2005-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -40,7 +40,7 @@ load_vec3d(const vec3d_ptr v)
 
 // http://berenger.eu/blog/sseavxsimd-horizontal-sum-sum-simd-vector-intrinsic/
 static inline FN_PREALIGN double
-hsum_pdfma3(__m256d v) {
+hsum_pd_fma3(__m256d v) {
     const __m128d valupper = _mm256_extractf128_pd(v, 1);
     const __m128d vallower = _mm256_castpd256_pd128(v);
     _mm256_zeroupper();
@@ -51,23 +51,23 @@ hsum_pdfma3(__m256d v) {
 
 #if 0
 static inline FN_PREALIGN void
-_vec3dCopyfma3(vec3d_ptr d, const vec3d_ptr v) {
+_vec3dCopy_fma3(vec3d_ptr d, const vec3d_ptr v) {
    d->s4.avx = v->s4.avx;
 }
 #endif
 
 static inline FN_PREALIGN void
-_vec3dNegatefma3(vec3d_ptr d, const vec3d_ptr v) {
+_vec3dNegate_fma3(vec3d_ptr d, const vec3d_ptr v) {
    d->s4.avx = _mm256_xor_pd(v->s4.avx, _mm256_set1_pd(-0.0));
 }
 
 static inline FN_PREALIGN void
-_vec3dAddfma3(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2) {
+_vec3dAdd_fma3(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2) {
    d->s4.avx = _mm256_add_pd(v1->s4.avx, v2->s4.avx);
 }
 
 static inline FN_PREALIGN void
-_vec3dSubfma3(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2) {
+_vec3dSub_fma3(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2) {
    d->s4.avx = _mm256_sub_pd(v1->s4.avx, v2->s4.avx);
 }
 
@@ -81,31 +81,31 @@ _vec3dAbsolute_sse2(vec3d_ptr d, const vec3d_ptr v) {
 
 #else
 static inline FN_PREALIGN void
-_vec3dAbsolutefma3(vec3d_ptr d, const vec3d_ptr v) {
+_vec3dAbsolute_fma3(vec3d_ptr d, const vec3d_ptr v) {
    d->s4.avx = _mm256_andnot_pd(v->s4.avx, _mm256_set1_pd(-0.0));
 }
 #endif
 
 static inline FN_PREALIGN void
-_vec3dScalarMulfma3(vec3d_ptr d, const vec3d_ptr r, float f) {
+_vec3dScalarMul_fma3(vec3d_ptr d, const vec3d_ptr r, float f) {
    d->s4.avx = _mm256_mul_pd(r->s4.avx, _mm256_set1_pd(f));
 }
 
 static inline FN_PREALIGN double
-_vec3dMagnitudeSquaredfma3(const vec3d_ptr v) {
+_vec3dMagnitudeSquared_fma3(const vec3d_ptr v) {
    __m256d v3 = load_vec3d(v);
-   return hsum_pdfma3(_mm256_mul_pd(v3, v3));
+   return hsum_pd_fma3(_mm256_mul_pd(v3, v3));
 }
 
 static inline FN_PREALIGN double
-_vec3dMagnitudefma3(const vec3d_ptr v) {
-   return sqrt(_vec3dMagnitudeSquaredfma3(v));
+_vec3dMagnitude_fma3(const vec3d_ptr v) {
+   return sqrt(_vec3dMagnitudeSquared_fma3(v));
 }
 
 double
-_vec3dNormalizefma3(vec3d_ptr d, const vec3d_ptr v)
+_vec3dNormalize_fma3(vec3d_ptr d, const vec3d_ptr v)
 {
-   double mag = _vec3dMagnitudefma3(v);
+   double mag = _vec3dMagnitude_fma3(v);
    if (mag) {
       d->s4.avx = _mm256_mul_pd(v->s4.avx, _mm256_set1_pd(1.0/mag));
    } else {
@@ -115,9 +115,9 @@ _vec3dNormalizefma3(vec3d_ptr d, const vec3d_ptr v)
 }
 
 FN_PREALIGN float
-_vec3dDotProductfma3(const vec3d_ptr v1, const vec3d_ptr v2)
+_vec3dDotProduct_fma3(const vec3d_ptr v1, const vec3d_ptr v2)
 {
-   return hsum_pdfma3(_mm256_mul_pd(load_vec3d(v1), load_vec3d(v2)));
+   return hsum_pd_fma3(_mm256_mul_pd(load_vec3d(v1), load_vec3d(v2)));
 }
 
 FN_PREALIGN void
@@ -179,7 +179,7 @@ _mtx4dMulVec4_fma3(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr vi)
 }
 
 FN_PREALIGN int
-_vec3dAltitudeVectorfma3(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_ptr ppos, const vec3d_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
+_vec3dAltitudeVector_fma3(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_ptr ppos, const vec3d_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
 {
    vec4d_t pevec, fevec;
    vec3d_t npevec, fpevec;
@@ -188,25 +188,25 @@ _vec3dAltitudeVectorfma3(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_pt
 
    fevec.s4.avx = load_vec3d(epos);		// sets fevec.v4[3] to 0.0
    if (!ppos) {
-      _vec3dNegatefma3(&pevec.v3, &fevec.v3);
+      _vec3dNegate_fma3(&pevec.v3, &fevec.v3);
    }
    else
    {
       pevec.s4.avx = load_vec3d(ppos);
-      _vec3dSubfma3(&pevec.v3, &pevec.v3, &fevec.v3);
+      _vec3dSub_fma3(&pevec.v3, &pevec.v3, &fevec.v3);
    }
    _mtx4dMulVec4_fma3(&pevec, ifmtx, &pevec);
 
    fevec.v4[3] = 1.0;
    _mtx4dMulVec4_fma3(&fevec, ifmtx, &fevec);
 
-   mag_pe = _vec3dNormalizefma3(&npevec, &pevec.v3);
-   dot_fpe = _vec3dDotProductfma3(&fevec.v3, &npevec);
+   mag_pe = _vec3dNormalize_fma3(&npevec, &pevec.v3);
+   dot_fpe = _vec3dDotProduct_fma3(&fevec.v3, &npevec);
 
-   _vec3dScalarMulfma3(&fpevec, &npevec, dot_fpe);
+   _vec3dScalarMul_fma3(&fpevec, &npevec, dot_fpe);
 
-   _vec3dSubfma3(&fpevec, &fevec.v3, &fpevec);
-   _vec3dAddfma3(&npevec, &fevec.v3, &pevec.v3);
+   _vec3dSub_fma3(&fpevec, &fevec.v3, &fpevec);
+   _vec3dAdd_fma3(&npevec, &fevec.v3, &pevec.v3);
    _mm256_zeroupper();
 
    _vec3dAbsolute_sse2(&fpevec, &fpevec);
