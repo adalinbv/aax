@@ -168,7 +168,7 @@ int main()
 
     if (simd2) {
         _mtx4fMulVec4_cpu(&c4, &m, &a4);
-        GLUE(_mtx4fMulVec4, SIMD)(&z4, &m, &x4);
+        GLUE(_mtx4fMulVec4, SIMD2)(&z4, &m, &x4);
         TEST4(c4,z4);
     }
 
@@ -215,18 +215,17 @@ int main()
         TESTM4(k,l);
 #endif
 
-        if (simd4)
+        if (simd2)
         {
-            m4fMul = GLUE(_mtx4fMul, SIMD);
+            m4fMul = GLUE(_mtx4fMul, SIMD2);
             t = clock();
             for (i=0; i<1000; ++i) {
                 m4fMul(&l, &m, &n);
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("mtx4fMul "MKSTR(SIMD)":\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("mtx4fMul "MKSTR(SIMD2)":\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TESTM4(k,l);
         }
-        TESTM4(k,l);
 
         if (fma)
         {
