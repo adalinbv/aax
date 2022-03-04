@@ -9,7 +9,9 @@
 #include <base/geometry.h>
 #include <base/timer.h>
 #include <base/logging.h>
-// #include <src/software/cpu/arch3d_simd.h>
+
+// Depends on the timer resolution for an acurate comparison
+#define MAXNUM			(CLOCKS_PER_SEC/100)
 
 #define __MKSTR(X)		#X
 #define MKSTR(X)		__MKSTR(X)
@@ -189,7 +191,7 @@ int main()
         mtx4fMul_proc m4fMul = _mtx4fMul_cpu;
 
         t = clock();
-        for (i=0; i<1000; ++i) {
+        for (i=0; i<MAXNUM; ++i) {
             m4fMul(&k, &m, &n);
         }
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
@@ -198,7 +200,7 @@ int main()
 #if defined(__arm__) || defined(_M_ARM)
         m4fMul = _mtx4fMul_vfpv3;
         t = clock();
-        for (i=0; i<1000; ++i) {
+        for (i=0; i<MAXNUM; ++i) {
             m4fMul(&l, &m, &n);
         }
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
@@ -207,7 +209,7 @@ int main()
 #else
         m4fMul = _mtx4fMul_sse;
         t = clock();
-        for (i=0; i<1000; ++i) {
+        for (i=0; i<MAXNUM; ++i) {
             m4fMul(&l, &m, &n);
         }
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
@@ -219,7 +221,7 @@ int main()
         {
             m4fMul = GLUE(_mtx4fMul, SIMD2);
             t = clock();
-            for (i=0; i<1000; ++i) {
+            for (i=0; i<MAXNUM; ++i) {
                 m4fMul(&l, &m, &n);
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
@@ -231,7 +233,7 @@ int main()
         {
             m4fMul = GLUE(_mtx4fMul, FMA3);
             t = clock();
-            for (i=0; i<1000; ++i) {
+            for (i=0; i<MAXNUM; ++i) {
                 m4fMul(&l, &m, &n);
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
@@ -248,7 +250,7 @@ int main()
         aaxMatrixToMatrix64(n64.m4, n.m4);
 
         t = clock();
-        for (i=0; i<1000; ++i) {
+        for (i=0; i<MAXNUM; ++i) {
             m4dMul(&k64, &m64, &n64);
         }
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
@@ -276,7 +278,7 @@ int main()
         {
             m4dMul = GLUE(_mtx4dMul, SIMD4);
             t = clock();
-            for (i=0; i<1000; ++i) {
+            for (i=0; i<MAXNUM; ++i) {
                 m4dMul(&l64, &m64, &n64);
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
@@ -288,7 +290,7 @@ int main()
         {
             m4dMul = GLUE(_mtx4dMul, FMA3);
             t = clock();
-            for (i=0; i<1000; ++i) {
+            for (i=0; i<MAXNUM; ++i) {
                 m4dMul(&l64, &m64, &n64);
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
