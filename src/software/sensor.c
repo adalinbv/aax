@@ -414,6 +414,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
       *nsamps = nframes;
    }
 
+printf("rv: %i, nsamps: %i, delay: %f\n", rv, *nsamps, *delay);
    return rv;
 }
 

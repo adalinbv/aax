@@ -137,12 +137,12 @@ _aiff_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int fo
       {
          handle->mode = mode;
          handle->capturing = (mode > 0) ? 0 : 1;
-         handle->aiff_format = PCM_AIFF_FILE;
+         handle->aiff_format =  PCM_AIFF_BYTE_SWAPPED_FILE;
          handle->bits_sample = bits_sample;
          handle->info.blocksize = tracks*bits_sample/8;
          handle->info.rate = freq;
          handle->info.no_tracks = tracks;
-         handle->info.fmt = format;
+         handle->info.fmt = format|AAX_FORMAT_BE;
          handle->info.no_samples = no_samples;
          handle->bitrate = bitrate;
          handle->max_samples = 0;
