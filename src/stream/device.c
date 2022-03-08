@@ -1749,6 +1749,9 @@ _aaxStreamDriverThread(void* config)
          res = _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
 
 #if USE_PID
+// Warning: enabling this code makes writing to audio files
+//          as if it where batched mode (dt becomes 0.0f)
+# if 0
          do
          {
             float target, input, err, P, I;
@@ -1771,6 +1774,7 @@ _aaxStreamDriverThread(void* config)
 # endif
          }
          while (0);
+# endif
 #endif
 
          if (handle->finished) {
