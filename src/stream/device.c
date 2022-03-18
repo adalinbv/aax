@@ -131,6 +131,7 @@ typedef struct
 
    struct _meta_t meta;
 
+   char use_iothread;
    char copy_to_buffer; // true if Capture has to copy the data unmodified
    char start_with_fill;
    char end_of_file;
@@ -215,7 +216,10 @@ _aaxStreamDriverNewHandle(enum aaxRenderMode mode)
       handle->rawBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
       handle->ioBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
 #if USE_CAPTURE_THREAD
+      handle->use_iothread = 1;
       handle->captureBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
+#elif USE_PLAYBACK_THREAD
+      handle->use_iothread = 1;
 #endif
    }
 
@@ -711,42 +715,32 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                handle->latency = (float)_MAX(no_samples,(PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;
             }
 
-            if (handle->mode == AAX_MODE_READ) {
-#if USE_CAPTURE_THREAD
-                handle->ioBufLock = _aaxMutexCreate(handle->ioBufLock);
+            if (handle->use_iothread)
+            {
+               _aaxSignalInit(&handle->iothread.signal);
+               handle->iothread.signal.mutex = _aaxMutexCreate(handle->iothread.signal.mutex);
 
                handle->iothread.ptr = _aaxThreadCreate();
-               handle->iothread.signal.mutex = _aaxMutexCreate(handle->iothread.signal.mutex);
-               _aaxSignalInit(&handle->iothread.signal);
-               res = _aaxThreadStart(handle->iothread.ptr,
-                                     _aaxStreamDriverReadThread, handle, 20);
-#else
+               if (handle->mode == AAX_MODE_READ) {
+                  handle->ioBufLock = _aaxMutexCreate(handle->ioBufLock);
+
+                  res = _aaxThreadStart(handle->iothread.ptr,
+                                        _aaxStreamDriverReadThread, handle, 20);
+               } else {
+                  res = _aaxThreadStart(handle->iothread.ptr,
+                                       _aaxStreamDriverWriteThread, handle, 20);
+               }
+            }
+            else {
                res = 0;
-#endif
-            } else {
-#if USE_PLAYBACK_THREAD
-               handle->iothread.ptr = _aaxThreadCreate();
-               handle->iothread.signal.mutex = _aaxMutexCreate(handle->iothread.signal.mutex);
-               _aaxSignalInit(&handle->iothread.signal);
-               res = _aaxThreadStart(handle->iothread.ptr,
-                                     _aaxStreamDriverWriteThread, handle, 20);
-#else
-               res = 0;
-#endif
             }
 
             if (res == 0)
             {
-#if USE_CAPTURE_THREAD
-               if (handle->mode == AAX_MODE_READ) {
+               if (handle->use_iothread) {
                   handle->iothread.started = AAX_TRUE;
                }
-#endif
-#if USE_PLAYBACK_THREAD
-               if (handle->mode != AAX_MODE_READ) {
-                  handle->iothread.started = AAX_TRUE;
-               }
-#endif
+
                handle->render = _aaxSoftwareInitRenderer(handle->latency,
                                                       handle->mode, registered);
                if (handle->render)
@@ -966,19 +960,16 @@ _aaxStreamDriverCapture(const void *id, void **dst, ssize_t *offset, size_t *fra
          {
             ssize_t avail;
 
-            if (batched) {
-               _aaxStreamDriverReadChunk(id);
-            }
-            else {
-#if USE_CAPTURE_THREAD
+            if (handle->use_iothread && !batched)
+            {
                if (handle->io->protocol == PROTOCOL_DIRECT)
                {
                   _aaxSignalTrigger(&handle->iothread.signal);
                   usecSleep(1);
                }
-#else
+            }
+            else {
                _aaxStreamDriverReadChunk(id);
-#endif
             }
 
             // Move data from ioBuffer to rawBuffer
