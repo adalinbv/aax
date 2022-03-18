@@ -168,11 +168,9 @@ typedef struct
    _data_t *ioBuffer;
    _data_t *rawBuffer;
 
-#if USE_CAPTURE_THREAD
    // the recv function can block causing ioBufLock to be held for too long.
    // use a separate buffer for recv to circumvent this problem.
    _data_t *captureBuffer;
-#endif
 
 #if USE_PID
    struct {
@@ -188,12 +186,8 @@ typedef struct
 
 static _ext_t* _aaxGetFormat(const char*, enum aaxRenderMode);
 
-#if USE_CAPTURE_THREAD
 static void* _aaxStreamDriverReadThread(void*);
-#endif
-#if USE_PLAYBACK_THREAD
 static void* _aaxStreamDriverWriteThread(void*);
-#endif
 static size_t _aaxStreamDriverWriteChunk(const void*);
 static ssize_t _aaxStreamDriverReadChunk(const void*);
 
@@ -999,7 +993,7 @@ _aaxStreamDriverCapture(const void *id, void **dst, ssize_t *offset, size_t *fra
 //             handle->PID.err = err;
 
                err = _MINMAX(0.40f*P + 0.97f*I, -1.0, 1.0);
-               handle->buffer_fill = 1.0f + err;
+               handle->buffer_fill = err;
                xoffs = err;
 # if 0
  float fact = _MINMAX((1.0f + err), 0.9f, 1.1f);
@@ -1787,7 +1781,6 @@ _aaxStreamDriverThread(void* config)
    return handle;
 }
 
-#if USE_PLAYBACK_THREAD
 static void*
 _aaxStreamDriverWriteThread(void *id)
 {
@@ -1811,11 +1804,9 @@ _aaxStreamDriverWriteThread(void *id)
 
    return handle;
 }
-#endif
 
-#if USE_CAPTURE_THREAD
 static ssize_t
-_aaxStreamDriverReadChunk(const void *id)
+_aaxStreamDriverThreadReadChunk(const void *id)
 {
    _driver_t *handle = (_driver_t*)id;
    _data_t *captureBuffer = handle->captureBuffer;
@@ -1844,7 +1835,7 @@ _aaxStreamDriverReadChunk(const void *id)
 
    return res;
 }
-#else
+
 static ssize_t
 _aaxStreamDriverReadChunk(const void *id)
 {
@@ -1864,9 +1855,7 @@ _aaxStreamDriverReadChunk(const void *id)
 
    return res;
 }
-#endif
 
-#if USE_CAPTURE_THREAD
 static void*
 _aaxStreamDriverReadThread(void *id)
 {
@@ -1880,7 +1869,7 @@ _aaxStreamDriverReadThread(void *id)
       do
       {
          _aaxDataSetOffset(handle->ioBuffer, 0);
-         res = _aaxStreamDriverReadChunk(id);
+         res = _aaxStreamDriverThreadReadChunk(id);
       }
       while (res > IOBUF_THRESHOLD);
    }
@@ -1890,12 +1879,13 @@ _aaxStreamDriverReadThread(void *id)
    }
 
    // wait for our first job
+printf("wait for our first job\n");
    _aaxMutexLock(handle->iothread.signal.mutex);
    do {
-      _aaxSignalWaitTimed(&handle->iothread.signal, handle->dt);
-//    _aaxMutexUnLock(handle->iothread.signal.mutex);
+//    _aaxSignalWaitTimed(&handle->iothread.signal, handle->dt);
+      _aaxMutexUnLock(handle->iothread.signal.mutex);
       res = _aaxStreamDriverReadChunk(id);
-//    _aaxMutexLock(handle->iothread.signal.mutex);
+      _aaxMutexLock(handle->iothread.signal.mutex);
    }
    while(res >= 0 && handle->iothread.started);
 
@@ -1903,4 +1893,3 @@ _aaxStreamDriverReadThread(void *id)
 
    return handle;
 }
-#endif
