@@ -593,7 +593,7 @@ _mp3_setup(_fmt_t *fmt, UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_f
       }
       else
       {
-          plame_set_VBR(handle->id, vbr_default);
+          plame_set_VBR(handle->id, vbr_off); // vbr_default);
           plame_set_brate(handle->id, 320);
       }
       plame_set_quality(handle->id, 2); // 2=high  5 = medium  7=low
