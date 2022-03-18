@@ -1806,6 +1806,26 @@ _aaxStreamDriverWriteThread(void *id)
 }
 
 static ssize_t
+_aaxStreamDriverReadChunk(const void *id)
+{
+   _driver_t *handle = (_driver_t*)id;
+   _data_t *ioBuffer = handle->ioBuffer;
+   size_t size;
+   ssize_t res;
+
+   _aaxMutexLock(handle->ioBufLock);
+   size = _aaxDataGetFreeSpace(ioBuffer);
+   res = handle->io->read(handle->io, ioBuffer, size);
+   _aaxMutexUnLock(handle->ioBufLock);
+
+   if (res == -1) {
+      handle->end_of_file = AAX_TRUE;
+   }
+
+   return res;
+}
+
+static ssize_t
 _aaxStreamDriverThreadReadChunk(const void *id)
 {
    _driver_t *handle = (_driver_t*)id;
@@ -1828,26 +1848,6 @@ _aaxStreamDriverThreadReadChunk(const void *id)
          _aaxMutexUnLock(handle->ioBufLock);
       }
    }
-
-   if (res == -1) {
-      handle->end_of_file = AAX_TRUE;
-   }
-
-   return res;
-}
-
-static ssize_t
-_aaxStreamDriverReadChunk(const void *id)
-{
-   _driver_t *handle = (_driver_t*)id;
-   _data_t *ioBuffer = handle->ioBuffer;
-   size_t size;
-   ssize_t res;
-
-   _aaxMutexLock(handle->ioBufLock);
-   size = _aaxDataGetFreeSpace(ioBuffer);
-   res = handle->io->read(handle->io, ioBuffer, size);
-   _aaxMutexUnLock(handle->ioBufLock);
 
    if (res == -1) {
       handle->end_of_file = AAX_TRUE;
@@ -1879,13 +1879,12 @@ _aaxStreamDriverReadThread(void *id)
    }
 
    // wait for our first job
-printf("wait for our first job\n");
    _aaxMutexLock(handle->iothread.signal.mutex);
    do {
-//    _aaxSignalWaitTimed(&handle->iothread.signal, handle->dt);
-      _aaxMutexUnLock(handle->iothread.signal.mutex);
+      _aaxSignalWaitTimed(&handle->iothread.signal, handle->dt);
+//    _aaxMutexUnLock(handle->iothread.signal.mutex);
       res = _aaxStreamDriverReadChunk(id);
-      _aaxMutexLock(handle->iothread.signal.mutex);
+//    _aaxMutexLock(handle->iothread.signal.mutex);
    }
    while(res >= 0 && handle->iothread.started);
 
