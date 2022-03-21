@@ -1625,7 +1625,7 @@ _aaxALSADriverGetDevices(UNUSED(const void *id), int mode)
                if (comma)
                {
                   if (!STRCMP(comma+1, "DEV=0") &&
-                      (!STRCMP(name, "hw:") /* || !STRCMP(name, "hdmi:") */)
+                      (!STRCMP(name, "hw:") || !STRCMP(name, "hdmi:"))
                      )
                   {
                      char *desc, *iface;
