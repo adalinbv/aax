@@ -18,18 +18,30 @@
 #define __GLUE(FUNC,NAME)	FUNC ## _ ## NAME
 #define GLUE(FUNC,NAME)		__GLUE(FUNC,NAME)
 
+float _vec3fDotProduct_neon(const vec3f_ptr v1, const vec3f_ptr v2);
 float _vec3fDotProduct_sse(const vec3f_ptr v1, const vec3f_ptr v2);
 float _vec3fDotProduct_sse3(const vec3f_ptr v1, const vec3f_ptr v2);
 float _vec3fDotProduct_sse_vex(const vec3f_ptr v1, const vec3f_ptr v2);
+
+void _vec3fCrossProduct_neon(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
 void _vec3fCrossProduct_sse(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
 void _vec3fCrossProduct_sse_vex(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
+
+void _mtx4fMulVec4_neon(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
 void _mtx4fMulVec4_sse(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
 void _mtx4fMulVec4_sse_vex(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
+
+void _mtx4fMul_neon(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
+void _mtx4fMul_vfpv3(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
+void _mtx4fMul_vfpv4(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4fMul_sse(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4fMul_sse2(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4fMul_sse_vex(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4fMul_avx(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4fMul_fma3(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
+
+void _mtx4dMul_vfpv3(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
+void _mtx4dMul_vfpv4(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 void _mtx4dMul_sse2(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 void _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 void _mtx4dMul_fma3(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
@@ -61,9 +73,9 @@ char check_cpuid_ecx(unsigned int);
 # define SIMD2  neon
 # define SIMD3  neon
 # define SIMD4	vfpv3
-# define SIMD4  vfpv4
 # define FMA3   vfpv4
 char _aaxArchDetectVFPV3();
+char _aaxArchDetectVFPV4();
 char _aaxArchDetectNeon();
 #endif
 
@@ -98,9 +110,9 @@ int main()
    char simd3 = 0;      // SSE3
    char simd4 = 0;      // SSE4
 #if defined(__x86_64__)
-// char simd5 = 0;      // AVX2
+//  char simd5 = 0;      // AVX2
 #endif
-   char fma = 0;        // FMA3         VFPV4
+    char fma = 0;        // FMA3         VFPV4
     vec3f_t a3, b3, c3, x3, y3, z3;
     vec4f_t a4, b4, c4, x4, y4, z4;
     mtx4f_t k, l, m, n;
