@@ -35,7 +35,6 @@ void _mtx4fMul_neon(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4fMul_vfpv3(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4fMul_vfpv4(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4fMul_sse(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
-void _mtx4fMul_sse2(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4fMul_sse_vex(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4fMul_avx(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4fMul_fma3(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
@@ -51,7 +50,8 @@ void _mtx4dMul_fma3(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 # define SIMD2  sse2
 # define SIMD3  sse3
 # define SIMD4  sse2
-# define FMA3   sse2
+# define FMA3_1 sse
+# define FMA3_2 sse2
 char _aaxArchDetectSSE();
 char _aaxArchDetectSSE2();
 char _aaxArchDetectSSE3();
@@ -60,7 +60,8 @@ char _aaxArchDetectSSE3();
 # define SIMD2  sse_vex
 # define SIMD3  sse3
 # define SIMD4	avx
-# define FMA3   fma3
+# define FMA3_1 fma3
+# define FMA3_2 fma3
 # define CPUID_FEAT_ECX_FMA3    (1 << 12)
 char _aaxArchDetectSSE();
 char _aaxArchDetectSSE2();
@@ -73,7 +74,8 @@ char check_cpuid_ecx(unsigned int);
 # define SIMD2  neon
 # define SIMD3  neon
 # define SIMD4	vfpv3
-# define FMA3   vfpv4
+# define FMA3_1 vfpv3
+# define FMA3_2 vfpv4
 char _aaxArchDetectVFPV3();
 char _aaxArchDetectVFPV4();
 char _aaxArchDetectNeon();
@@ -180,9 +182,9 @@ int main()
     mtx4fRotate(&m, f, z3.v3[0], z3.v3[1], z3.v3[2]);
     mtx4fTranslate(&m, 3.3f, -1.07f, 0.87f);
 
-    if (simd2) {
+    if (simd) {
         _mtx4fMulVec4_cpu(&c4, &m, &a4);
-        GLUE(_mtx4fMulVec4, SIMD2)(&z4, &m, &x4);
+        GLUE(_mtx4fMulVec4, SIMD)(&z4, &m, &x4);
         TEST4(c4,z4);
     }
 
@@ -229,27 +231,27 @@ int main()
         TESTM4(k,l);
 #endif
 
-        if (simd2)
+        if (simd)
         {
-            m4fMul = GLUE(_mtx4fMul, SIMD2);
+            m4fMul = GLUE(_mtx4fMul, SIMD);
             t = clock();
             for (i=0; i<MAXNUM; ++i) {
                 m4fMul(&l, &m, &n);
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("mtx4fMul "MKSTR(SIMD2)":\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("mtx4fMul "MKSTR(SIMD)":\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TESTM4(k,l);
         }
 
         if (fma)
         {
-            m4fMul = GLUE(_mtx4fMul, FMA3);
+            m4fMul = GLUE(_mtx4fMul, FMA3_1);
             t = clock();
             for (i=0; i<MAXNUM; ++i) {
                 m4fMul(&l, &m, &n);
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("mtx4dMul "MKSTR(FMA3)":\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("mtx4dMul "MKSTR(FMA3_1)":\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TESTM4(k,l);
         }
     }
@@ -300,13 +302,13 @@ int main()
 
         if (fma)
         {
-            m4dMul = GLUE(_mtx4dMul, FMA3);
+            m4dMul = GLUE(_mtx4dMul, FMA3_2);
             t = clock();
             for (i=0; i<MAXNUM; ++i) {
                 m4dMul(&l64, &m64, &n64);
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("mtx4dMul "MKSTR(FMA3)":\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("mtx4dMul "MKSTR(FMA3_2)":\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TESTM4(k64,l64);
         }
     }
