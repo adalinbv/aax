@@ -214,7 +214,7 @@ aaxGetFormatString(enum aaxFormat format)
    int pos = format & AAX_FORMAT_NATIVE;
    const char *rv = "";
 
-   if (format < AAX_FORMAT_MAX)
+   if (pos < AAX_FORMAT_MAX)
    {
       if (format & AAX_FORMAT_UNSIGNED && pos <= AAX_PCM32S) {
          rv = _format_us[pos];
