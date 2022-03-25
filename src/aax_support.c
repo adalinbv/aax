@@ -58,7 +58,7 @@ aaxFree(void *mm)
 }
 
 AAX_API const char* AAX_APIENTRY
-aaxString(enum aaxSetupType type)
+aaxGetString(enum aaxSetupType type)
 {
    const char *rv = NULL;
 
@@ -162,13 +162,13 @@ aaxGetPatchLevel()
 AAX_API const char* AAX_APIENTRY
 aaxGetCopyrightString()
 {
-   return aaxString(AAX_COPYRIGHT_STRING);
+   return aaxGetString(AAX_COPYRIGHT_STRING);
 }
 
 AAX_API const char* AAX_APIENTRY
 aaxGetVersionString(UNUSED(aaxConfig cfg))
 {
-   return aaxString(AAX_RENDERER_STRING);
+   return aaxGetString(AAX_RENDERER_STRING);
 }
 
 AAX_API enum aaxFilterType AAX_APIENTRY
@@ -189,6 +189,42 @@ aaxGetErrorNo()
    return aaxGetByType(AAX_ERROR_NUMBER);
 }
 /* end of deprecated functions list */
+
+AAX_API const char* AAX_APIENTRY
+aaxGetFormatString(enum aaxFormat format)
+{
+   static const char* _format_s[AAX_FORMAT_MAX] = {
+      "signed, 8-bits per sample",
+      "signed, 16-bits per sample",
+      "signed, 24-bits per sample, 32-bit encoded",
+      "signed, 32-bits per sample",
+      "32-bit floating point, range: -1.0 to 1.0",
+      "64-bit floating point, range: -1.0 to 1.0",
+      "mulaw, 16-bit with 2:1 compression",
+      "alaw, 16-bit with 2:1 compression",
+      "IMA4 ADPCM, 16-bit with 4:1 compression",
+      "signed, 24-bits per sample, 24-bit encoded"
+   };
+   static const char* _format_us[] = {
+      "unsigned, 8-bits per sample",
+      "unsigned, 16-bits per sample",
+      "unsigned, 24-bits per sample, 32-bit encoded",
+      "unsigned, 32-bits per sample"
+   };
+   int pos = format & AAX_FORMAT_NATIVE;
+   const char *rv = "";
+
+   if (format < AAX_FORMAT_MAX)
+   {
+      if (format & AAX_FORMAT_UNSIGNED && pos <= AAX_PCM32S) {
+         rv = _format_us[pos];
+      } else {
+         rv = _format_s[pos];
+      }
+   }
+
+   return rv;
+}
 
 int AAX_APIENTRY
 aaxPlaySoundLogo(const char *devname)
