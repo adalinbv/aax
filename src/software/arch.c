@@ -147,7 +147,7 @@ _aax_aligned_alloc(size_t size)
 
 #if defined(__MINGW32__)
 # if defined(_aligned_malloc)
-void _simd_free(void *ptr) { _aligned_free((ptr); }
+void _simd_free(void *ptr) { _aligned_free(ptr); }
 # else
 void _simd_free(void *ptr) { _mm_free(ptr); }
 # endif
