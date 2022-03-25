@@ -2204,6 +2204,7 @@ _alsa_error_handler(const char *file, int line, const char *function, UNUSED(int
    _AAX_DRVLOG(s);
 }
 
+
 static char *
 detect_devname(_driver_t *handle, int m)
 {

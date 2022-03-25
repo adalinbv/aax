@@ -57,47 +57,138 @@ aaxFree(void *mm)
    free(mm);
 }
 
+AAX_API const char* AAX_APIENTRY
+aaxString(enum aaxSetupType type)
+{
+   const char *rv = NULL;
+
+   switch(type)
+   {
+   case AAX_NAME_STRING:
+      rv = AAX_LIBRARY_STR;
+      break;
+   case AAX_VERSION_STRING:
+      rv = AAX_VERSION_STR;
+      break;
+   case AAX_VENDOR_STRING:
+      rv = AAX_VENDOR_STR;
+      break;
+   case AAX_RENDERER_STRING:
+      rv = AAX_LIBRARY_STR" "AAX_VERSION_STR;
+      break;
+   case AAX_COPYRIGHT_STRING:
+      rv = (const char*)COPYING_v3;
+      break;
+   case AAX_WEBSITE_STRING:
+      rv = AAX_WEBSITE_STR;
+      break;
+   case AAX_SHARED_DATA_DIR:
+      rv = APP_DATA_DIR;
+      break;
+   default:
+      break;
+   }
+
+   return rv;
+}
+
+AAX_API unsigned int AAX_APIENTRY
+aaxGetByType(enum aaxSetupType type)
+{
+   unsigned int rv = 0;
+
+   switch (type)
+   {
+   case AAX_VERSION_MAJOR:
+      rv = AAX_MAJOR_VERSION;
+      break;
+   case AAX_VERSION_MINOR:
+      rv = AAX_MINOR_VERSION;
+      break;
+    case AAX_VERSION_MICRO:
+      rv = AAX_MICRO_VERSION;
+      break;
+   case AAX_RELEASE_NUMBER:
+      rv = AAX_PATCH_LEVEL;
+      break;
+   case AAX_ERROR_NUMBER:
+      rv = __aaxErrorSet(AAX_ERROR_NONE, NULL);
+      break;
+   case AAX_MAX_FILTER:
+      rv = AAX_FILTER_MAX;
+      break;
+   case AAX_MAX_EFFECT:
+      rv = AAX_EFFECT_MAX;
+      break;
+   default:
+      break;
+   }
+
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxGetByName(const char* type)
+{
+   int rv = aaxGetTypeByName(type);
+   if (!rv) rv = aaxGetWaveformTypeByName(type);
+   if (!rv) rv = aaxGetFrequencyFilterTypeByName(type);
+   if (!rv) rv = aaxGetDistanceModelByName(type);
+
+   return rv;
+}
+
+
+/* deprecated functions */
+
 AAX_API unsigned AAX_APIENTRY
 aaxGetMajorVersion()
 {
-   return AAX_MAJOR_VERSION;
+   return aaxGetByType(AAX_VERSION_MAJOR);
 }
 
 AAX_API unsigned AAX_APIENTRY
 aaxGetMinorVersion()
 {
-   return AAX_MINOR_VERSION;
+   return aaxGetByType(AAX_VERSION_MINOR);
 }
 
 AAX_API unsigned int AAX_APIENTRY
 aaxGetPatchLevel()
 {
-   return AAX_PATCH_LEVEL;
+   return aaxGetByType(AAX_RELEASE_NUMBER);
 }
 
 AAX_API const char* AAX_APIENTRY
 aaxGetCopyrightString()
 {
-   return (const char*)COPYING_v3;
+   return aaxString(AAX_COPYRIGHT_STRING);
 }
 
 AAX_API const char* AAX_APIENTRY
 aaxGetVersionString(UNUSED(aaxConfig cfg))
 {
-   return AAX_LIBRARY_STR" "AAX_VERSION_STR;
+   return aaxString(AAX_RENDERER_STRING);
 }
 
 AAX_API enum aaxFilterType AAX_APIENTRY
 aaxMaxFilter(void)
 {
-   return AAX_FILTER_MAX;
+   return aaxGetByType(AAX_MAX_FILTER);
 }
 
 AAX_API enum aaxEffectType AAX_APIENTRY
 aaxMaxEffect(void)
 {
-   return AAX_EFFECT_MAX;
+   return aaxGetByType(AAX_MAX_EFFECT);
 }
+
+AAX_API enum aaxErrorType AAX_APIENTRY
+aaxGetErrorNo()
+{
+   return aaxGetByType(AAX_ERROR_NUMBER);
+}
+/* end of deprecated functions list */
 
 int AAX_APIENTRY
 aaxPlaySoundLogo(const char *devname)
@@ -267,12 +358,6 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
-}
-
-AAX_API enum aaxErrorType AAX_APIENTRY
-aaxGetErrorNo()
-{
-   return __aaxErrorSet(AAX_ERROR_NONE, NULL);
 }
 
 AAX_API const char* AAX_APIENTRY

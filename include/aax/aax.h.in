@@ -250,6 +250,13 @@ enum aaxSetupType
    AAX_FRAME_TIMING,
    AAX_SAMPLED_RELEASE,
    AAX_BUFFER_FILL,
+   AAX_VERSION_MAJOR,
+   AAX_VERSION_MINOR,
+   AAX_VERSION_MICRO,
+   AAX_RELEASE_NUMBER,
+   AAX_ERROR_NUMBER,
+   AAX_MAX_FILTER,
+   AAX_MAX_EFFECT,
    AAX_SETUP_TYPE_MAX,
 
    AAX_PEAK_VALUE             = 0x0100,
@@ -280,7 +287,8 @@ enum aaxSetupType
    AAX_TRACK_NUMBER_STRING,
    AAX_ALBUM_NAME_STRING,
    AAX_RELEASE_DATE_STRING,
-   AAX_SONG_COPYRIGHT_STRING,
+   AAX_COPYRIGHT_STRING,
+   AAX_SONG_COPYRIGHT_STRING = AAX_COPYRIGHT_STRING,
    AAX_SONG_COMPOSER_STRING,
    AAX_SONG_COMMENT_STRING,
    AAX_ORIGINAL_PERFORMER_STRING,
@@ -623,26 +631,36 @@ typedef double aaxMtx4d[4][4];
 AAX_API int AAX_APIENTRY aaxPlaySoundLogo(const char*);
 AAX_API void AAX_APIENTRY aaxFree(void*);
 
+
+AAX_API const char* AAX_APIENTRY aaxGetString(enum aaxSetupType);
+AAX_API unsigned int AAX_APIENTRY aaxGetSetup(enum aaxSetupType);
+AAX_API int AAX_APIENTRY aaxGetByName(const char*);
+
+/* deprecated: use aaxGetByType, aaxGetByName and aaxGetString instead */
 AAX_API unsigned AAX_APIENTRY aaxGetMajorVersion(void);
 AAX_API unsigned AAX_APIENTRY aaxGetMinorVersion(void);
 AAX_API unsigned int AAX_APIENTRY aaxGetPatchLevel(void);
-AAX_API const char* AAX_APIENTRY aaxGetCopyrightString(void);
 AAX_API const char* AAX_APIENTRY aaxGetVersionString(aaxConfig);
+AAX_API const char* AAX_APIENTRY aaxGetCopyrightString(void);
+
+AAX_API enum aaxType AAX_APIENTRY aaxGetTypeByName(const char*);
+AAX_API enum aaxWaveformType AAX_APIENTRY aaxGetWaveformTypeByName(const char*);
+AAX_API enum aaxFrequencyFilterType AAX_APIENTRY aaxGetFrequencyFilterTypeByName(const char*);
+AAX_API enum aaxDistanceModel AAX_APIENTRY aaxGetDistanceModelByName(const char*);
+
+AAX_API enum aaxFilterType AAX_APIENTRY aaxMaxFilter(void);
+AAX_API enum aaxEffectType AAX_APIENTRY aaxMaxEffect(void);
+/** end of deprecated section */
+
+AAX_API unsigned AAX_APIENTRY aaxGetBytesPerSample(enum aaxFormat);
+AAX_API unsigned AAX_APIENTRY aaxGetBitsPerSample(enum aaxFormat);
 
 AAX_API enum aaxErrorType AAX_APIENTRY aaxGetErrorNo(void);
 AAX_API const char* AAX_APIENTRY aaxGetErrorString(enum aaxErrorType);
 
 AAX_API unsigned AAX_APIENTRY aaxGetNoCores(aaxConfig);
-AAX_API unsigned AAX_APIENTRY aaxGetBytesPerSample(enum aaxFormat);
-AAX_API unsigned AAX_APIENTRY aaxGetBitsPerSample(enum aaxFormat);
-AAX_API enum aaxType AAX_APIENTRY aaxGetTypeByName(const char*);
-AAX_API enum aaxWaveformType AAX_APIENTRY aaxGetWaveformTypeByName(const char*);
-AAX_API enum aaxDistanceModel AAX_APIENTRY aaxGetDistanceModelByName(const char*);
-AAX_API enum aaxFrequencyFilterType AAX_APIENTRY aaxGetFrequencyFilterTypeByName(const char*);
 AAX_API int AAX_APIENTRY aaxIsValid(const void*, enum aaxHandleType);
 
-AAX_API enum aaxFilterType AAX_APIENTRY aaxMaxFilter(void);
-AAX_API enum aaxEffectType AAX_APIENTRY aaxMaxEffect(void);
 AAX_API int AAX_APIENTRY aaxIsFilterSupported(aaxConfig, const char*);
 AAX_API int AAX_APIENTRY aaxIsEffectSupported(aaxConfig, const char*);
 

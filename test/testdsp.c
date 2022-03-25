@@ -71,6 +71,7 @@ int main()
 
          if (i == AAX_REVERB_EFFECT) continue;
          if (i == AAX_CONVOLUTION_EFFECT) continue;
+         if (i == AAX_DELAY_EFFECT) continue;
 
          printf("emitter effect: %-30s: ", aaxEffectGetNameByType(config, i));
          TRY( effect = aaxEffectCreate(config, i) );
@@ -99,6 +100,7 @@ int main()
 
          if (i == AAX_GRAPHIC_EQUALIZER) continue;
          if (i == AAX_TIMED_GAIN_FILTER) continue;
+         if (i == AAX_DYNAMIC_LAYER_FILTER) continue;
 
          printf("frame filter: %-32s: ", aaxFilterGetNameByType(config, i));
          TRY( filter = aaxFilterCreate(config, i) );
@@ -203,6 +205,7 @@ int main()
          if (i == AAX_DIRECTIONAL_FILTER) continue;
          if (i == AAX_DISTANCE_FILTER) continue;
          if (i == AAX_FREQUENCY_FILTER) continue;
+         if (i == AAX_DYNAMIC_LAYER_FILTER) continue;
 
          printf("mixer filter: %-32s: ", aaxFilterGetNameByType(config, i));
          TRY( filter = aaxFilterCreate(config, i) );
