@@ -166,6 +166,9 @@ typedef struct
    float refresh_rate;
    float latency;
 
+   _batch_cvt_to_intl_proc cvt_to_intl;
+   _batch_cvt_from_intl_proc cvt_from_intl;
+
    _data_t *dataBuffer;
    _aaxMutex *mutex;
 
@@ -401,7 +404,7 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
          handle->mutex = _aaxMutexCreate(handle->mutex);
       }
 
-#if 1
+#if 0
       handle->min_tracks = 1;
       handle->max_tracks = _AAX_MAX_SPEAKERS;
       handle->min_frequency = _AAX_MIN_MIXER_FREQUENCY;
@@ -651,6 +654,37 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
       frame_sz = handle->spec.channels*handle->bits_sample/8;
       handle->samples = period_samples*frame_sz;
       handle->format = _aaxPulseAudioGetFormat(handle->spec.format);
+      handle->bits_sample = aaxGetBitsPerSample(handle->format);
+
+      switch(handle->format & AAX_FORMAT_NATIVE)
+      {
+      case AAX_PCM16S:
+         handle->cvt_to_intl = _batch_cvt16_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_16_intl;
+         break;
+      case AAX_FLOAT:
+         handle->cvt_to_intl = _batch_cvtps_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_ps_intl;
+         break;
+      case AAX_PCM32S:
+         handle->cvt_to_intl = _batch_cvt24_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_24_intl;
+         break;
+      case AAX_PCM24S:
+         handle->cvt_to_intl = _batch_cvt32_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_32_intl;
+         break;
+      case AAX_PCM24S_PACKED:
+         handle->cvt_to_intl = _batch_cvt24_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_24_intl;
+         break;
+      case AAX_PCM8S:
+         handle->cvt_to_intl = _batch_cvt8_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_8_intl;
+         break;
+      default:
+         break;
+      }
 #if 0
  printf("spec:\n");
  printf("   frequency: %i\n", handle->spec.rate);
@@ -819,7 +853,8 @@ _aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t
       void *buf = _aaxDataGetData(handle->dataBuffer);
 
       nframes = len/frame_sz;
-      _batch_cvt24_16_intl((int32_t**)data, buf, offs, tracks, nframes);
+//    _batch_cvt24_16_intl((int32_t**)data, buf, offs, tracks, nframes);
+      handle->cvt_from_intl((int32_t**)data, buf, offs, tracks, nframes);
       _aaxDataMove(handle->dataBuffer, NULL, len);
 
       gain = _pulseaudio_set_volume(handle, NULL, offs, nframes, tracks, gain);
@@ -885,7 +920,8 @@ _aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNU
       _aaxMutexLock(handle->mutex);
       data = _aaxDataGetPtr(handle->dataBuffer);
       sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
-      _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, period_frames);
+//    _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, period_frames);
+      handle->cvt_to_intl(data, sbuf, offs, no_tracks, period_frames);
       rb->release_tracks_ptr(rb);
 
       _aaxDataIncreaseOffset(handle->dataBuffer, size);
