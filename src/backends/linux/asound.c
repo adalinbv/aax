@@ -2212,7 +2212,7 @@ detect_devname(_driver_t *handle, int m)
          "hw:", "front:", "surround40:", "surround51:", "surround71:"
    };
    unsigned int tracks = handle->no_tracks;
-   const char *devname = handle->name;
+   char *devname = strdup(handle->name);
    char vmix = handle->shared;
    char *rv = (char*)handle->default_name[m];
 
@@ -2355,12 +2355,7 @@ detect_devname(_driver_t *handle, int m)
             if (type) _sys_free(type);
          }
          while (*(++lst) != NULL);
-
-         if (ifname)
-         {
-            ifname -= 2;
-            *ifname = ':';
-         }
+         free(devname);
       }
       if (hints) psnd_device_name_free_hint(hints);
    }
