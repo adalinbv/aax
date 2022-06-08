@@ -261,7 +261,6 @@ DECL_FUNCTION(pa_cvolume_set);
 DECL_FUNCTION(pa_context_set_sink_input_volume);
 DECL_FUNCTION(pa_context_set_source_output_volume);
 
-
 static void stream_state_cb(pa_stream*, void*);
 static void stream_latency_update_cb(pa_stream*, void*);
 static void stream_playback_cb(pa_stream*, size_t, void*);
@@ -404,12 +403,10 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
          handle->mutex = _aaxMutexCreate(handle->mutex);
       }
 
-#if 0
       handle->min_tracks = 1;
       handle->max_tracks = _AAX_MAX_SPEAKERS;
       handle->min_frequency = _AAX_MIN_MIXER_FREQUENCY;
       handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
-#endif
 
       _aaxPulseAudioContextConnect(handle);
       if (handle->ctx)
