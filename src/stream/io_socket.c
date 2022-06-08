@@ -221,7 +221,7 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
                         fd = -1;
                      }
                   }
-                  else
+                  else if (io->protocol == PROTOCOL_HTTPS)
                   {
                      errno = ENOPROTOOPT;
                      if (fd != -1)
