@@ -207,7 +207,7 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
 
                            if (res <= 0)
                            {
-                              int err = pSSL_get_error(io->ssl, res);
+                              errno = pSSL_get_error(io->ssl, res);
                               pSSL_free(io->ssl);
                               io->ssl = NULL;
                            }
@@ -217,6 +217,15 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
                      if (!io->ssl)
                      {
                         pSSL_CTX_free(io->ssl_ctx);
+                        closesocket(fd);
+                        fd = -1;
+                     }
+                  }
+                  else
+                  {
+                     errno = ENOPROTOOPT;
+                     if (fd != -1)
+                     {
                         closesocket(fd);
                         fd = -1;
                      }
@@ -267,11 +276,14 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
                fd = -1;
             }
          }
-         else if (recursive == 5) {
+         else if (recursive == 5)
+         {
             errno = EMLINK;
-         }
-         else {
-            errno = EFAULT;
+            if (fd != -1)
+            {
+               closesocket(fd);
+               fd = -1;
+            }
          }
       }
       else {
