@@ -101,7 +101,7 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
       }
 #endif
 
-      audio = _aaxIsLibraryPresent("ssl", "1.1");
+      audio = _aaxIsLibraryPresent("ssl", NULL);
       if (audio)
       {
          _aaxGetSymError(0);
