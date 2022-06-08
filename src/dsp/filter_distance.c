@@ -350,6 +350,9 @@ _aaxDistInvExp(void *data)
 
 
 // http://www.sengpielaudio.com/AirdampingFormula.htm
+// Mars: frequencies above 240Hz travel more than 10m/s faster than low
+// frequencies.
+// https://www.hou.usra.edu/meetings/lpsc2022/pdf/1357.pdf
 static float
 _aaxDistISO9613(void *data)
 {

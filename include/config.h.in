@@ -249,5 +249,9 @@
 /* set the size of size_t */
 #cmakedefine SIZEOF_SIZE_T @SIZEOF_SIZE_T@
 
+/* pipewire */
+#cmakedefine HAVE_PIPEWIRE_H @HAVE_PIPEWIRE_H@
+#cmakedefine PIPEWIRE_LIBRARY @PIPEWIRE_LIBRARY@
+
 /* pulseaudio */
 #cmakedefine HAVE_PULSEAUDIO_H @HAVE_PULSEAUDIO_H@

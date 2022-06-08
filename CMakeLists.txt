@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 2.8.12)
 set(cmake_verbose_makefile TRUE)
 
 set(CMAKE_MAKEFILE_DEPENDS
@@ -135,7 +135,12 @@ set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAX_VERSION}" CACHE 
 
 #$ Required libraries
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(PIPEWIRE3 libpipewire-0.3)
+pkg_check_modules(PKG_PIPEWIRE libpipewire-0.3>=0.3.20)
+if (PKG_PIPEWIRE_FOUND)
+# pkg_check_modules(SPA libspa-0.1)
+  set(HAVE_PIPEWIRE_H 1)
+  set (PIPEWIRE_LIBRARY ${PKG_PIPEWIRE_LIBRARIES})
+endif()
 
 find_package(SSE REQUIRED)
 if((GCC OR CLANG) AND RMALLOC)
