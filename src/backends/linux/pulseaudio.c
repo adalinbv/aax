@@ -680,6 +680,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->cvt_from_intl = _batch_cvt24_8_intl;
          break;
       default:
+         rv = AAX_FALSE;
          break;
       }
 #if 0
