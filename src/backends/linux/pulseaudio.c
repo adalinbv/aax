@@ -1065,9 +1065,11 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
          break;
 
 		/* boolean */
+      case DRIVER_SHARED_MODE:
+         rv = AAX_TRUE;
+         break;
       case DRIVER_TIMER_MODE:
       case DRIVER_BATCHED_MODE:
-      case DRIVER_SHARED_MODE:
       default:
          break;
       }
