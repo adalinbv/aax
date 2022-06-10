@@ -706,29 +706,29 @@ static int hotplug_init_seq_val = 0;
 static char hotplug_init_complete = AAX_FALSE;
 static char hotplug_events_enabled = AAX_FALSE;
 
-static uint32_t pipewire_default_sink_id   = SPA_ID_INVALID;
+static uint32_t pipewire_default_sink_id = SPA_ID_INVALID;
 static uint32_t pipewire_default_source_id = SPA_ID_INVALID;
 
 /* A generic Pipewire node object used for enumeration. */
 struct node_object
 {
-    struct spa_list link;
+   struct spa_list link;
 
-    int32_t id;
-    int seq;
+   int32_t id;
+   int seq;
 
-    /*
-     * NOTE: If used, this is *must* be allocated with SDL_malloc() or similar
-     * as SDL_free() will be called on it when the node_object is destroyed.
-     *
-     * If ownership of the referenced memory is transferred, this must be set
-     * to NULL or the memory will be freed when the node_object is destroyed.
-     */
-    void *userdata;
+   /*
+    * NOTE: If used, this is *must* be allocated with SDL_malloc() or similar
+    * as SDL_free() will be called on it when the node_object is destroyed.
+    *
+    * If ownership of the referenced memory is transferred, this must be set
+    * to NULL or the memory will be freed when the node_object is destroyed.
+    */
+   void *userdata;
 
-    struct pw_proxy *proxy;
-    struct spa_hook  node_listener;
-    struct spa_hook  core_listener;
+   struct pw_proxy *proxy;
+   struct spa_hook  node_listener;
+   struct spa_hook  core_listener;
 };
 
 /* A sink/source node used for stream I/O. */
@@ -750,136 +750,142 @@ struct io_node
 static char
 get_range_param(const struct spa_pod *param, uint32_t key, int *def, int *min, int *max)
 {
-    const struct spa_pod_prop *prop;
-    struct spa_pod            *value;
-    uint32_t                     n_values, choice;
+   const struct spa_pod_prop *prop;
+   struct spa_pod *value;
+   uint32_t n_values, choice;
 
-    prop = spa_pod_find_prop(param, NULL, key);
+   prop = spa_pod_find_prop(param, NULL, key);
 
-    if (prop && prop->value.type == SPA_TYPE_Choice) {
-        value = spa_pod_get_values(&prop->value, &n_values, &choice);
+   if (prop && prop->value.type == SPA_TYPE_Choice)
+   {
+      value = spa_pod_get_values(&prop->value, &n_values, &choice);
 
-        if (n_values == 3 && choice == SPA_CHOICE_Range) {
-            uint32_t *v = SPA_POD_BODY(value);
+      if (n_values == 3 && choice == SPA_CHOICE_Range)
+      {
+         uint32_t *v = SPA_POD_BODY(value);
 
-            if (v) {
-                if (def) {
-                    *def = (int)v[0];
-                }
-                if (min) {
-                    *min = (int)v[1];
-                }
-                if (max) {
-                    *max = (int)v[2];
-                }
-
-                return AAX_TRUE;
+         if (v)
+         {
+             if (def) {
+                 *def = (int)v[0];
+             }
+             if (min) {
+                 *min = (int)v[1];
+             }
+             if (max) {
+                 *max = (int)v[2];
             }
-        }
-    }
 
-    return AAX_FALSE;
+            return AAX_TRUE;
+         }
+      }
+   }
+
+   return AAX_FALSE;
 }
 
 static char
 get_int_param(const struct spa_pod *param, uint32_t key, int *val)
 {
-    const struct spa_pod_prop *prop;
-    int32_t                     v;
+   const struct spa_pod_prop *prop;
+   int32_t v;
 
-    prop = spa_pod_find_prop(param, NULL, key);
+   prop = spa_pod_find_prop(param, NULL, key);
 
-    if (prop && spa_pod_get_int(&prop->value, &v) == 0) {
-        if (val) {
-            *val = (int)v;
-        }
+   if (prop && spa_pod_get_int(&prop->value, &v) == 0)
+   {
+      if (val) {
+         *val = (int)v;
+      }
+      return AAX_TRUE;
+   }
 
-        return AAX_TRUE;
-    }
-
-    return AAX_FALSE;
+   return AAX_FALSE;
 }
 
 /* The active node list */
 static char
 io_list_check_add(struct io_node *node)
 {
-    struct io_node *n;
-    char ret = AAX_TRUE;
+   struct io_node *n;
+   char ret = AAX_TRUE;
 
-    /* See if the node is already in the list */
-    spa_list_for_each (n, &hotplug_io_list, link) {
-        if (n->id == node->id) {
-            ret = AAX_FALSE;
-            goto dup_found;
-        }
-    }
+   /* See if the node is already in the list */
+   spa_list_for_each (n, &hotplug_io_list, link) {
+      if (n->id == node->id)
+      {
+         ret = AAX_FALSE;
+         goto dup_found;
+      }
+   }
 
-    /* Add to the list if the node doesn't already exist */
-    spa_list_append(&hotplug_io_list, &node->link);
+   /* Add to the list if the node doesn't already exist */
+   spa_list_append(&hotplug_io_list, &node->link);
 
-    if (hotplug_events_enabled) {
+   if (hotplug_events_enabled) {
 //      SDL_AddAudioDevice(node->is_capture, node->name, &node->spec, PW_ID_TO_HANDLE(node->id));
-    }
+   }
 
 dup_found:
-
-    return ret;
+   return ret;
 }
 
 static void
 io_list_remove(uint32_t id)
 {
-    struct io_node *n, *temp;
+   struct io_node *n, *temp;
 
-    /* Find and remove the node from the list */
-    spa_list_for_each_safe (n, temp, &hotplug_io_list, link) {
-        if (n->id == id) {
-            spa_list_remove(&n->link);
+   /* Find and remove the node from the list */
+   spa_list_for_each_safe (n, temp, &hotplug_io_list, link) {
+      if (n->id == id)
+      {
+         spa_list_remove(&n->link);
 
-            if (hotplug_events_enabled) {
-//              SDL_RemoveAudioDevice(n->is_capture, PW_ID_TO_HANDLE(id));
-            }
+         if (hotplug_events_enabled) {
+//          SDL_RemoveAudioDevice(n->is_capture, PW_ID_TO_HANDLE(id));
+         }
 
-            _aax_free(n);
-
-            break;
-        }
-    }
+         _aax_free(n);
+         break;
+      }
+   }
 }
 
 static void
 io_list_sort()
 {
-    struct io_node *default_sink = NULL, *default_source = NULL;
-    struct io_node *n, *temp;
+   struct io_node *default_sink = NULL, *default_source = NULL;
+   struct io_node *n, *temp;
 
-    /* Find and move the default nodes to the beginning of the list */
-    spa_list_for_each_safe (n, temp, &hotplug_io_list, link) {
-        if (n->id == pipewire_default_sink_id) {
-            default_sink = n;
-            spa_list_remove(&n->link);
-        } else if (n->id == pipewire_default_source_id) {
-            default_source = n;
-            spa_list_remove(&n->link);
-        }
-    }
+   /* Find and move the default nodes to the beginning of the list */
+   spa_list_for_each_safe (n, temp, &hotplug_io_list, link) {
+      if (n->id == pipewire_default_sink_id)
+      {
+         default_sink = n;
+         spa_list_remove(&n->link);
+      }
+      else if (n->id == pipewire_default_source_id)
+      {
+         default_source = n;
+         spa_list_remove(&n->link);
+      }
+   }
 
-    if (default_source) {
-        spa_list_prepend(&hotplug_io_list, &default_source->link);
-    }
+   if (default_source) {
+      spa_list_prepend(&hotplug_io_list, &default_source->link);
+   }
 
-    if (default_sink) {
-        spa_list_prepend(&hotplug_io_list, &default_sink->link);
-    }
+   if (default_sink) {
+      spa_list_prepend(&hotplug_io_list, &default_sink->link);
+   }
 }
 
 static void
 io_list_clear()
 {
-    struct io_node *n, *temp;
+   struct io_node *n, *temp;
 
-    spa_list_for_each_safe (n, temp, &hotplug_io_list, link) {
+   spa_list_for_each_safe (n, temp, &hotplug_io_list, link) {
         spa_list_remove(&n->link);
         _aax_free(n);
     }
@@ -888,126 +894,128 @@ io_list_clear()
 static void
 node_object_destroy(struct node_object *node)
 {
-    assert(node);
+   assert(node);
 
-    spa_list_remove(&node->link);
-    spa_hook_remove(&node->node_listener);
-    spa_hook_remove(&node->core_listener);
-    _aax_free(node->userdata);
-    ppw_proxy_destroy(node->proxy);
+   spa_list_remove(&node->link);
+   spa_hook_remove(&node->node_listener);
+   spa_hook_remove(&node->core_listener);
+   _aax_free(node->userdata);
+   ppw_proxy_destroy(node->proxy);
 }
 
 /* The pending node list */
 static void
 pending_list_add(struct node_object *node)
 {
-    assert(node);
-    spa_list_append(&hotplug_pending_list, &node->link);
+   assert(node);
+   spa_list_append(&hotplug_pending_list, &node->link);
 }
 
 static void
 pending_list_remove(uint32_t id)
 {
-    struct node_object *node, *temp;
+   struct node_object *node, *temp;
 
-    spa_list_for_each_safe (node, temp, &hotplug_pending_list, link) {
-        if (node->id == id) {
-            node_object_destroy(node);
-        }
-    }
+   spa_list_for_each_safe (node, temp, &hotplug_pending_list, link) {
+      if (node->id == id) {
+         node_object_destroy(node);
+      }
+   }
 }
 
 static void
 pending_list_clear()
 {
-    struct node_object *node, *temp;
+   struct node_object *node, *temp;
 
-    spa_list_for_each_safe (node, temp, &hotplug_pending_list, link) {
-        node_object_destroy(node);
-    }
+   spa_list_for_each_safe (node, temp, &hotplug_pending_list, link) {
+      node_object_destroy(node);
+   }
 }
 
 static void *
 node_object_new(uint32_t id, const char *type, uint32_t version, const void *funcs, const struct pw_core_events *core_events)
 {
-    struct pw_proxy    *proxy;
-    struct node_object *node;
+   struct node_object *node;
+   struct pw_proxy *proxy;
 
-    /* Create the proxy object */
-    proxy = pw_registry_bind(hotplug_registry, id, type, version, sizeof(struct node_object));
-    if (proxy == NULL) {
-        _aaxPipeWireDriverLogVar(NULL, "Pipewire: Failed to create proxy object (%i)", errno);
-        return NULL;
-    }
+   /* Create the proxy object */
+   proxy = pw_registry_bind(hotplug_registry, id, type, version, sizeof(struct node_object));
+   if (proxy == NULL)
+   {
+      _aaxPipeWireDriverLogVar(NULL, "Pipewire: Failed to create proxy object (%i)", errno);
+      return NULL;
+   }
 
-    node = ppw_proxy_get_user_data(proxy);
-    memset(node, 0, sizeof(struct node_object));
+   node = ppw_proxy_get_user_data(proxy);
+   memset(node, 0, sizeof(struct node_object));
 
-    node->id    = id;
-    node->proxy = proxy;
+   node->id = id;
+   node->proxy = proxy;
 
-    /* Add the callbacks */
-    pw_core_add_listener(hotplug_core, &node->core_listener, core_events, node);
-    ppw_proxy_add_object_listener(node->proxy, &node->node_listener, funcs, node);
+   /* Add the callbacks */
+   pw_core_add_listener(hotplug_core, &node->core_listener, core_events, node);
+   ppw_proxy_add_object_listener(node->proxy, &node->node_listener, funcs, node);
 
-    /* Add the node to the active list */
-    pending_list_add(node);
+   /* Add the node to the active list */
+   pending_list_add(node);
 
-    return node;
+   return node;
 }
 
 /* Core sync points */
 static void
 core_events_hotplug_init_callback(void *object, uint32_t id, int seq)
 {
-    if (id == PW_ID_CORE && seq == hotplug_init_seq_val) {
-        /* This core listener is no longer needed. */
-        spa_hook_remove(&hotplug_core_listener);
+   if (id == PW_ID_CORE && seq == hotplug_init_seq_val)
+   {
+      /* This core listener is no longer needed. */
+      spa_hook_remove(&hotplug_core_listener);
 
-        /* Signal that the initial I/O list is populated */
-        hotplug_init_complete = AAX_TRUE;
-        ppw_thread_loop_signal(hotplug_loop, false);
-    }
+      /* Signal that the initial I/O list is populated */
+      hotplug_init_complete = AAX_TRUE;
+      ppw_thread_loop_signal(hotplug_loop, false);
+   }
 }
 
 static void
 core_events_interface_callback(void *object, uint32_t id, int seq)
 {
-    struct node_object *node = object;
-    struct io_node     *io   = node->userdata;
+   struct node_object *node = object;
+   struct io_node *io = node->userdata;
 
-    if (id == PW_ID_CORE && seq == node->seq) {
-        /*
-         * Move the I/O node to the connected list.
-         * On success, the list owns the I/O node object.
-         */
-        if (io_list_check_add(io)) {
-            node->userdata = NULL;
-        }
+   if (id == PW_ID_CORE && seq == node->seq) {
+      /*
+       * Move the I/O node to the connected list.
+       * On success, the list owns the I/O node object.
+       */
+      if (io_list_check_add(io)) {
+         node->userdata = NULL;
+      }
 
-        node_object_destroy(node);
-    }
+      node_object_destroy(node);
+   }
 }
 
 static void
 core_events_metadata_callback(void *object, uint32_t id, int seq)
 {
-    struct node_object *node = object;
+   struct node_object *node = object;
 
-    if (id == PW_ID_CORE && seq == node->seq) {
-        node_object_destroy(node);
-    }
+   if (id == PW_ID_CORE && seq == node->seq) {
+      node_object_destroy(node);
+   }
 }
 
-static const struct pw_core_events hotplug_init_core_events = { 
-  PW_VERSION_CORE_EVENTS, 
+static const struct pw_core_events hotplug_init_core_events = {
+  PW_VERSION_CORE_EVENTS,
   .done = core_events_hotplug_init_callback
 };
-static const struct pw_core_events interface_core_events    = { 
-  PW_VERSION_CORE_EVENTS, 
+static const struct pw_core_events interface_core_events = {
+  PW_VERSION_CORE_EVENTS,
   .done = core_events_interface_callback
 };
-static const struct pw_core_events metadata_core_events     = {
+static const struct pw_core_events metadata_core_events = {
   PW_VERSION_CORE_EVENTS,
   .done = core_events_metadata_callback
 };
@@ -1015,64 +1023,67 @@ static const struct pw_core_events metadata_core_events     = {
 static void
 hotplug_core_sync(struct node_object *node)
 {
-    /*
-     * Node sync events *must* come before the hotplug init sync events or the initial
-     * I/O list will be incomplete when the main hotplug sync point is hit.
-     */
-    if (node) {
-        node->seq = pw_core_sync(hotplug_core, PW_ID_CORE, node->seq);
-    }
+   /*
+    * Node sync events *must* come before the hotplug init sync events or the
+    * initial I/O list will be incomplete when the main hotplug sync point is
+    * hit.
+    */
+   if (node) {
+      node->seq = pw_core_sync(hotplug_core, PW_ID_CORE, node->seq);
+   }
 
-    if (!hotplug_init_complete) {
-        hotplug_init_seq_val = pw_core_sync(hotplug_core, PW_ID_CORE, hotplug_init_seq_val);
-    }
+   if (!hotplug_init_complete) {
+      hotplug_init_seq_val = pw_core_sync(hotplug_core, PW_ID_CORE, hotplug_init_seq_val);
+   }
 }
 
 /* Interface node callbacks */
 static void
 node_event_info(void *object, const struct pw_node_info *info)
 {
-    struct node_object *node = object;
-    struct io_node     *io   = node->userdata;
-    const char         *prop_val;
-    uint32_t              i;
+   struct node_object *node = object;
+   struct io_node *io = node->userdata;
+   const char *prop_val;
+   uint32_t i;
 
-    if (info) {
-        prop_val = spa_dict_lookup(info->props, PW_KEY_AUDIO_CHANNELS);
-        if (prop_val) {
-            io->channels = (uint8_t)atoi(prop_val);
-        }
+   if (info)
+   {
+      prop_val = spa_dict_lookup(info->props, PW_KEY_AUDIO_CHANNELS);
+      if (prop_val) {
+         io->channels = (uint8_t)atoi(prop_val);
+      }
 
-        /* Need to parse the parameters to get the sample rate */
-        for (i = 0; i < info->n_params; ++i) {
-            pw_node_enum_params(node->proxy, 0, info->params[i].id, 0, 0, NULL);
-        }
-        
-        hotplug_core_sync(node);
-    }
+      /* Need to parse the parameters to get the sample rate */
+      for (i = 0; i < info->n_params; ++i) {
+         pw_node_enum_params(node->proxy, 0, info->params[i].id, 0, 0, NULL);
+      }
+
+      hotplug_core_sync(node);
+   }
 }
 
 static void
 node_event_param(void *object, int seq, uint32_t id, uint32_t index, uint32_t next, const struct spa_pod *param)
 {
-    struct node_object *node = object;
-    struct io_node     *io   = node->userdata;
+   struct node_object *node = object;
+   struct io_node *io = node->userdata;
 
-    /* Get the default frequency */
-    if (io->rate == 0) {
-        get_range_param(param, SPA_FORMAT_AUDIO_rate, &io->rate, NULL, NULL);
-    }
+   /* Get the default frequency */
+   if (io->rate == 0) {
+      get_range_param(param, SPA_FORMAT_AUDIO_rate, &io->rate, NULL, NULL);
+   }
 
-    /*
-     * The channel count should have come from the node properties,
-     * but it is stored here as well. If one failed, try the other.
-     */
-    if (io->channels == 0) {
-        int channels;
-        if (get_int_param(param, SPA_FORMAT_AUDIO_channels, &channels)) {
-            io->channels = (uint8_t)channels;
-        }
-    }
+   /*
+    * The channel count should have come from the node properties,
+    * but it is stored here as well. If one failed, try the other.
+    */
+   if (io->channels == 0)
+   {
+      int channels;
+      if (get_int_param(param, SPA_FORMAT_AUDIO_channels, &channels)) {
+         io->channels = (uint8_t)channels;
+      }
+   }
 }
 
 static const struct pw_node_events interface_node_events = {
@@ -1085,101 +1096,106 @@ static const struct pw_node_events interface_node_events = {
 static int
 metadata_property(void *object, uint32_t subject, const char *key, const char *type, const char *value)
 {
-    if (subject == PW_ID_CORE && key != NULL && value != NULL) {
-        uint32_t val = atoi(value);
+   if (subject == PW_ID_CORE && key != NULL && value != NULL)
+   {
+      uint32_t val = atoi(value);
 
-        if (!strcmp(key, "default.audio.sink")) {
-            pipewire_default_sink_id = val;
-        } else if (!strcmp(key, "default.audio.source")) {
-            pipewire_default_source_id = val;
-        }
-    }
+      if (!strcmp(key, "default.audio.sink")) {
+         pipewire_default_sink_id = val;
+      } else if (!strcmp(key, "default.audio.source")) {
+         pipewire_default_source_id = val;
+      }
+   }
 
-    return 0;
+   return 0;
 }
 
 static const struct pw_metadata_events metadata_node_events = {
   PW_VERSION_METADATA_EVENTS,
- .property = metadata_property
+  .property = metadata_property
 };
 
 /* Global registry callbacks */
 static void
-registry_event_global_callback(void *object, uint32_t id, uint32_t permissions, const char *type, uint32_t version,
-                               const struct spa_dict *props)
+registry_event_global_callback(void *object, uint32_t id, uint32_t permissions, const char *type, uint32_t version, const struct spa_dict *props)
 {
-    struct node_object *node;
+   struct node_object *node;
 
-    /* We're only interested in interface and metadata nodes. */
-    if (!strcmp(type, PW_TYPE_INTERFACE_Node)) {
-        const char *media_class = spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
+   /* We're only interested in interface and metadata nodes. */
+   if (!strcmp(type, PW_TYPE_INTERFACE_Node))
+   {
+      const char *media_class = spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
 
-        if (media_class) {
-            const char *node_desc;
-            struct io_node *io;
-            char is_capture;
-            int str_buffer_len;
+      if (media_class)
+      {
+         const char *node_desc;
+         struct io_node *io;
+         char is_capture;
+         int str_buffer_len;
 
-            /* Just want sink and capture */
-            if (!strcasecmp(media_class, "Audio/Sink")) {
-                is_capture = AAX_FALSE;
-            } else if (!strcasecmp(media_class, "Audio/Source")) {
-                is_capture = AAX_TRUE;
-            } else {
-                return;
-            }
-
-            node_desc = spa_dict_lookup(props, PW_KEY_NODE_DESCRIPTION);
-
-            if (node_desc) {
-                node = node_object_new(id, type, version, &interface_node_events, &interface_core_events);
-                if (node == NULL) {
-                    _AAX_SYSLOG("Pipewire: Failed to allocate interface node");
-                    return;
-                }
-
-                /* Allocate and initialize the I/O node information struct */
-                str_buffer_len = strlen(node_desc) + 1;
-                node->userdata = io = calloc(1, sizeof(struct io_node) + str_buffer_len);
-                if (io == NULL) {
-                    node_object_destroy(node);
-                    _AAX_SYSLOG("Pipewire: out of memory");
-                    return;
-                }
-
-                /* Begin setting the node properties */
-                io->id          = id;
-                io->is_capture  = is_capture;
-                io->format = AAX_FLOAT; /* Pipewire uses floats internally, other formats require conversion. */
-                strncpy(io->name, node_desc, str_buffer_len);
-
-                /* Update sync points */
-                hotplug_core_sync(node);
-            }
-        }
-    } else if (!strcmp(type, PW_TYPE_INTERFACE_Metadata)) {
-        node = node_object_new(id, type, version, &metadata_node_events, &metadata_core_events);
-        if (node == NULL) {
-            _AAX_SYSLOG("Pipewire: Failed to allocate metadata node");
+         /* Just want sink and capture */
+         if (!strcasecmp(media_class, "Audio/Sink")) {
+            is_capture = AAX_FALSE;
+         } else if (!strcasecmp(media_class, "Audio/Source")) {
+            is_capture = AAX_TRUE;
+         } else {
             return;
-        }
+         }
 
-        /* Update sync points */
-        hotplug_core_sync(node);
-    }
+         node_desc = spa_dict_lookup(props, PW_KEY_NODE_DESCRIPTION);
+
+         if (node_desc) {
+            node = node_object_new(id, type, version, &interface_node_events, &interface_core_events);
+            if (node == NULL) {
+               _AAX_SYSLOG("Pipewire: Failed to allocate interface node");
+               return;
+            }
+
+            /* Allocate and initialize the I/O node information struct */
+            str_buffer_len = strlen(node_desc) + 1;
+            node->userdata = io = calloc(1, sizeof(struct io_node) + str_buffer_len);
+            if (io == NULL)
+            {
+               node_object_destroy(node);
+               _AAX_SYSLOG("Pipewire: out of memory");
+               return;
+            }
+
+            /* Begin setting the node properties */
+            io->id = id;
+            io->is_capture = is_capture;
+            io->format = AAX_FLOAT; /* Pipewire uses floats internally. */
+            strncpy(io->name, node_desc, str_buffer_len);
+
+            /* Update sync points */
+            hotplug_core_sync(node);
+         }
+      }
+   }
+   else if (!strcmp(type, PW_TYPE_INTERFACE_Metadata))
+   {
+      node = node_object_new(id, type, version, &metadata_node_events, &metadata_core_events);
+      if (node == NULL) {
+         _AAX_SYSLOG("Pipewire: Failed to allocate metadata node");
+         return;
+      }
+
+      /* Update sync points */
+      hotplug_core_sync(node);
+   }
 }
 
 static void
 registry_event_remove_callback(void *object, uint32_t id)
 {
-    io_list_remove(id);
-    pending_list_remove(id);
+   io_list_remove(id);
+   pending_list_remove(id);
 }
 
-static const struct pw_registry_events registry_events = { 
+static const struct pw_registry_events registry_events = {
   PW_VERSION_REGISTRY_EVENTS,
   .global = registry_event_global_callback,
-  .global_remove = registry_event_remove_callback 
+  .global_remove = registry_event_remove_callback
 };
 
 int
@@ -1187,88 +1203,92 @@ hotplug_loop_init()
 {
    int res;
 
-    spa_list_init(&hotplug_pending_list);
-    spa_list_init(&hotplug_io_list);
+   spa_list_init(&hotplug_pending_list);
+   spa_list_init(&hotplug_io_list);
 
-    hotplug_loop = ppw_thread_loop_new("AAXAudioHotplug", NULL);
-    if (hotplug_loop == NULL)
-    {
-       _AAX_SYSLOG("Pipewire: Failed to create hotplug detection loop");
-       return errno;
-    }
+   hotplug_loop = ppw_thread_loop_new("AAXAudioHotplug", NULL);
+   if (hotplug_loop == NULL)
+   {
+      _AAX_SYSLOG("Pipewire: Failed to create hotplug detection loop");
+      return errno;
+   }
 
-    hotplug_context = ppw_context_new(ppw_thread_loop_get_loop(hotplug_loop), NULL, 0);
-    if (hotplug_context == NULL)
-    {
-       _AAX_SYSLOG("Pipewire: Failed to create hotplug detection context");
-       return errno;
-    }
+   hotplug_context = ppw_context_new(ppw_thread_loop_get_loop(hotplug_loop), NULL, 0);
+   if (hotplug_context == NULL)
+   {
+      _AAX_SYSLOG("Pipewire: Failed to create hotplug detection context");
+      return errno;
+   }
 
-    hotplug_core = ppw_context_connect(hotplug_context, NULL, 0);
-    if (hotplug_core == NULL)
-    {
-       _AAX_SYSLOG("Pipewire: Failed to connect hotplug detection context");
-       return errno;
-    }
+   hotplug_core = ppw_context_connect(hotplug_context, NULL, 0);
+   if (hotplug_core == NULL)
+   {
+      _AAX_SYSLOG("Pipewire: Failed to connect hotplug detection context");
+      return errno;
+   }
 
-    hotplug_registry = pw_core_get_registry(hotplug_core, PW_VERSION_REGISTRY, 0);
-    if (hotplug_registry == NULL)
-    {
-       _AAX_SYSLOG("Pipewire: Failed to acquire hotplug detection registry");
-       return errno;
-    }
+   hotplug_registry = pw_core_get_registry(hotplug_core, PW_VERSION_REGISTRY, 0);
+   if (hotplug_registry == NULL)
+   {
+      _AAX_SYSLOG("Pipewire: Failed to acquire hotplug detection registry");
+      return errno;
+   }
 
-    spa_zero(hotplug_registry_listener);
-    pw_registry_add_listener(hotplug_registry, &hotplug_registry_listener, &registry_events, NULL);
+   spa_zero(hotplug_registry_listener);
+   pw_registry_add_listener(hotplug_registry, &hotplug_registry_listener, &registry_events, NULL);
 
-    spa_zero(hotplug_core_listener);
-    pw_core_add_listener(hotplug_core, &hotplug_core_listener, &hotplug_init_core_events, NULL);
+   spa_zero(hotplug_core_listener);
+   pw_core_add_listener(hotplug_core, &hotplug_core_listener, &hotplug_init_core_events, NULL);
 
-    hotplug_init_seq_val = pw_core_sync(hotplug_core, PW_ID_CORE, 0);
+   hotplug_init_seq_val = pw_core_sync(hotplug_core, PW_ID_CORE, 0);
 
-    res = ppw_thread_loop_start(hotplug_loop);
-    if (res != 0) {
-        _AAX_SYSLOG("Pipewire: Failed to start hotplug detection loop");
-    }
+   res = ppw_thread_loop_start(hotplug_loop);
+   if (res != 0) {
+      _AAX_SYSLOG("Pipewire: Failed to start hotplug detection loop");
+   }
 
-    return res;
+   return res;
 }
 
 static void
 hotplug_loop_destroy()
 {
-    if (hotplug_loop) {
-        ppw_thread_loop_stop(hotplug_loop);
-    }
+   if (hotplug_loop) {
+      ppw_thread_loop_stop(hotplug_loop);
+   }
 
-    pending_list_clear();
-    io_list_clear();
+   pending_list_clear();
+   io_list_clear();
 
-    hotplug_init_complete  = AAX_FALSE;
-    hotplug_events_enabled = AAX_FALSE;
+   hotplug_init_complete = AAX_FALSE;
+   hotplug_events_enabled = AAX_FALSE;
 
-    pipewire_default_sink_id   = SPA_ID_INVALID;
-    pipewire_default_source_id = SPA_ID_INVALID;
+   pipewire_default_sink_id = SPA_ID_INVALID;
+   pipewire_default_source_id = SPA_ID_INVALID;
 
-    if (hotplug_registry) {
-        ppw_proxy_destroy((struct pw_proxy *)hotplug_registry);
-        hotplug_registry = NULL;
-    }
+   if (hotplug_registry)
+   {
+      ppw_proxy_destroy((struct pw_proxy *)hotplug_registry);
+      hotplug_registry = NULL;
+   }
 
-    if (hotplug_core) {
-        ppw_core_disconnect(hotplug_core);
-        hotplug_core = NULL;
-    }
+   if (hotplug_core)
+   {
+      ppw_core_disconnect(hotplug_core);
+      hotplug_core = NULL;
+   }
 
-    if (hotplug_context) {
-        ppw_context_destroy(hotplug_context);
-        hotplug_context = NULL;
-    }
+   if (hotplug_context)
+   {
+      ppw_context_destroy(hotplug_context);
+      hotplug_context = NULL;
+   }
 
-    if (hotplug_loop) {
-        ppw_thread_loop_destroy(hotplug_loop);
-        hotplug_loop = NULL;
-    }
+   if (hotplug_loop)
+   {
+      ppw_thread_loop_destroy(hotplug_loop);
+      hotplug_loop = NULL;
+   }
 }
 
 static void
