@@ -58,7 +58,7 @@
 #define MAX_ID_STRLEN		96
 
 #define DEFAULT_OUTPUT_RATE	48000
-#define DEFAULT_DEVNAME		NULL
+#define DEFAULT_DEVNAME		"default"
 #define DEFAULT_REFRESH		25.0
 
 #define USE_PID			AAX_TRUE
@@ -68,7 +68,7 @@
 
 #define PERIODS			2
 #define CAPTURE_BUFFER_SIZE	(PERIODS*1024)
-#define MAX_DEVICES_LIST	4096
+#define MAX_DEVICES_LIST	1024
 
 #define _AAX_DRVLOG(a)         _aaxPipeWireDriverLog(id, 0, 0, a)
 #define HW_VOLUME_SUPPORT(a)	((a->mixfd >= 0) && a->volumeMax)
@@ -176,17 +176,7 @@ typedef struct
    } fill;
 #endif
 
-   char descriptions[2][MAX_DEVICES_LIST];
-   char names[2][MAX_DEVICES_LIST];
-
 } _driver_t;
-
-typedef struct
-{
-   char *names;
-   char *descriptions;
-   struct pw_thread_loop *loop;
-} _sink_info_t;
 
 #undef DECL_FUNCTION
 #define DECL_FUNCTION(f) static __typeof__(f) * p##f
@@ -219,8 +209,11 @@ DECL_FUNCTION(pw_properties_set);
 DECL_FUNCTION(pw_properties_setf);
 
 static int hotplug_loop_init();
+static void hotplug_loop_destroy();
 static char *_aaxPipeWireDriverLogVar(const void *, const char *, ...);
+static void _aaxPipeWireDriverDetectDevices(char[2][MAX_DEVICES_LIST]);
 
+static char pipewire_initialized = AAX_FALSE;
 static const char *_const_pipewire_default_name = DEFAULT_DEVNAME;
 const char *_const_pipewire_default_device = NULL;
 
@@ -293,7 +286,7 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
    if (handle)
    {
       int m = (mode == AAX_MODE_READ) ? 1 : 0;
-      int frame_sz;
+      int err, frame_sz;
 
       handle->driver = (char*)_const_pipewire_default_name;
       handle->mode = mode;
@@ -323,10 +316,17 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
       handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
 #endif
 
-      if (hotplug_loop_init() >= 0) {
-      }
-      else {
-         _aaxPipeWireDriverDisconnect(handle);
+      if (!pipewire_initialized)
+      {
+         ppw_init(NULL, NULL);
+         pipewire_initialized = AAX_TRUE;
+
+         err = hotplug_loop_init();
+         if (err != 0)
+         {
+            _aaxPipeWireDriverLogVar(NULL, "Pipewire: hotplug loop error: %s", strerror(errno));
+            _aaxPipeWireDriverDisconnect(handle);
+         }
       }
    }
 
@@ -436,6 +436,12 @@ static int
 _aaxPipeWireDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
+
+   if (pipewire_initialized)
+   {
+      hotplug_loop_destroy();
+      pipewire_initialized = AAX_FALSE;
+   }
 
    if (handle)
    {
@@ -612,19 +618,20 @@ _aaxPipeWireDriverParam(const void *id, enum _aaxDriverParam param)
 static char *
 _aaxPipeWireDriverGetDevices(const void *id, int mode)
 {
-   static char names[2][1024] = { "\0\0", "\0\0" };
-   static time_t t_previous[2] = { 0, 0 };
+   static char names[2][MAX_DEVICES_LIST] = {
+     DEFAULT_DEVNAME"\0\0", DEFAULT_DEVNAME"\0\0"
+   };
+   static time_t t_previous = 0;
    _driver_t *handle = (_driver_t *)id;
-   int m = (mode == AAX_MODE_READ) ? 1 : 0;
+   int m = (mode == AAX_MODE_READ) ? 0 : 1;
    char *rv = (char*)&names[m];
    time_t t_now;
 
    t_now = time(NULL);
-   if (t_now > (t_previous[m]+5))
+   if (t_now > (t_previous+5))
    {
-      if (id) {
-         rv = handle->descriptions[m];
-      }
+      t_previous = t_now;
+      _aaxPipeWireDriverDetectDevices(names);
    }
 
    return rv;
@@ -687,17 +694,17 @@ _pipewire_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, uint
 }
 
 /* ----------------------------------------------------------------------- */
-static struct pw_core *hotplug_core;
-static struct pw_context *hotplug_context;
-static struct pw_thread_loop *hotplug_loop;
-static struct pw_registry *hotplug_registry;
+static struct pw_core *hotplug_core = NULL;
+static struct pw_thread_loop *hotplug_loop = NULL;
+static struct pw_context *hotplug_context = NULL;
+static struct pw_registry *hotplug_registry = NULL;
 static struct spa_hook hotplug_registry_listener;
 static struct spa_hook hotplug_core_listener;
 static struct spa_list hotplug_pending_list;
 static struct spa_list hotplug_io_list;
-static int hotplug_init_seq_val;
-static char hotplug_init_complete;
-static char hotplug_events_enabled;
+static int hotplug_init_seq_val = 0;
+static char hotplug_init_complete = AAX_FALSE;
+static char hotplug_events_enabled = AAX_FALSE;
 
 static uint32_t pipewire_default_sink_id   = SPA_ID_INVALID;
 static uint32_t pipewire_default_source_id = SPA_ID_INVALID;
@@ -1265,27 +1272,76 @@ hotplug_loop_destroy()
 }
 
 static void
-_aaxPipeWireDriverDetectDevices()
+driver_list_add(char description[MAX_DEVICES_LIST], char *name)
 {
-    struct io_node *io;
+   char *ptr = description;
 
-    ppw_thread_loop_lock(hotplug_loop);
+   if (ptr[0] != 0)
+   {
+      ptr = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
+      if (ptr) ptr++;
+   }
 
-    /* Wait until the initial registry enumeration is complete */
-    if (!hotplug_init_complete) {
-        ppw_thread_loop_wait(hotplug_loop);
-    }
+   if (ptr)
+   {
+      off_t offs = ptr-description;
+      size_t avail = (MAX_DEVICES_LIST-2) - offs;
+      size_t slen = strlen(name);
+      if (avail >= slen)
+      {
+         memcpy(ptr, name, slen);
+         ptr += slen;
+         *ptr++ = '\0';
+         *ptr = '\0';
+      }
+   }
+}
 
-    /* Sort the I/O list so the default source/sink are listed first */
-    io_list_sort();
+static void
+_aaxPipeWireDriverDetectDevices(char description[2][MAX_DEVICES_LIST])
+{
+   if (!pipewire_initialized)
+   {
+      int err;
 
-    spa_list_for_each (io, &hotplug_io_list, link) { 
-//      SDL_AddAudioDevice(io->is_capture, io->name, &io->spec, PW_ID_TO_HANDLE(io->id));
-    }
+      ppw_init(NULL, NULL);
+      pipewire_initialized = AAX_TRUE;
 
-    hotplug_events_enabled = AAX_TRUE;
+      err = hotplug_loop_init();
+      if (err != 0)
+      {
+         _aaxPipeWireDriverLogVar(NULL, "Pipewire: hotplug loop error: %s", strerror(errno));
+         hotplug_loop_destroy();
+         pipewire_initialized = AAX_FALSE;
+      }
+   }
 
-    ppw_thread_loop_unlock(hotplug_loop);
+   if (hotplug_loop)
+   {
+      struct io_node *io;
+
+      ppw_thread_loop_lock(hotplug_loop);
+
+      /* Wait until the initial registry enumeration is complete */
+      if (!hotplug_init_complete) {
+         ppw_thread_loop_wait(hotplug_loop);
+      }
+
+      /* Sort the I/O list so the default source/sink are listed first */
+      io_list_sort();
+
+      memset(description[0], 0, MAX_DEVICES_LIST);
+      memset(description[1], 0, MAX_DEVICES_LIST);
+
+      spa_list_for_each (io, &hotplug_io_list, link) {
+         int m = io->is_capture ? 0 : 1;
+         driver_list_add(description[m], io->name);
+      }
+
+      hotplug_events_enabled = AAX_TRUE;
+
+      ppw_thread_loop_unlock(hotplug_loop);
+   }
 }
 
 #if USE_PIPEWIRE_THREAD

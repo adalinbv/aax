@@ -35,6 +35,7 @@ extern "C" {
 extern const _aaxDriverBackend _aaxLinuxDriverBackend;
 extern const _aaxDriverBackend _aaxALSADriverBackend;
 extern const _aaxDriverBackend _aaxPulseAudioDriverBackend;
+extern const _aaxDriverBackend _aaxPipeWireDriverBackend;
 
 #if defined(__cplusplus)
 }  /* extern "C" */

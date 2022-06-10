@@ -1090,16 +1090,19 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
    t_now = time(NULL);
    if (t_now > (t_previous[m]+5))
    {
+      t_previous[m] = t_now;
       if (id) {
          rv = handle->descriptions[m];
       }
       else
       {
          handle = calloc(1, sizeof(_driver_t));
-         _aaxPulseAudioContextConnect(handle);
+         if (handle) {
+            _aaxPulseAudioContextConnect(handle);
+         }
       }
 
-      if (handle->ctx)
+      if (handle && handle->ctx)
       {
          pa_operation *opr;
          _sink_info_t si;
