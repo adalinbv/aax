@@ -324,7 +324,8 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
          err = hotplug_loop_init();
          if (err != 0)
          {
-            _aaxPipeWireDriverLogVar(NULL, "Pipewire: hotplug loop error: %s", strerror(errno));
+            _aaxPipeWireDriverLogVar(NULL, "Pipewire: hotplug loop error: %s",
+                                     strerror(errno));
             _aaxPipeWireDriverDisconnect(handle);
          }
       }
@@ -604,9 +605,11 @@ _aaxPipeWireDriverParam(const void *id, enum _aaxDriverParam param)
          break;
 
 		/* boolean */
+      case DRIVER_SHARED_MODE:
+         rv = AAX_TRUE;
+         break;
       case DRIVER_TIMER_MODE:
       case DRIVER_BATCHED_MODE:
-      case DRIVER_SHARED_MODE:
       default:
          break;
       }
@@ -614,7 +617,6 @@ _aaxPipeWireDriverParam(const void *id, enum _aaxDriverParam param)
    return rv;
 }
 
-// https://docs.pipewire.org/tutorial2_8c-example.html
 static char *
 _aaxPipeWireDriverGetDevices(const void *id, int mode)
 {
@@ -654,7 +656,7 @@ _aaxPipeWireDriverLogVar(const void *id, const char *fmt, ...)
    va_start(ap, fmt);
    vsnprintf(_errstr, 1024, fmt, ap);
 
-   // Whatever happen in vsnprintf, what i'll do is just to null terminate it
+   // Always null terminate the string
    _errstr[1023] = '\0';
    va_end(ap);
 
@@ -718,8 +720,8 @@ struct node_object
    int seq;
 
    /*
-    * NOTE: If used, this is *must* be allocated with SDL_malloc() or similar
-    * as SDL_free() will be called on it when the node_object is destroyed.
+    * NOTE: If used, this is *must* be allocated with _aax_malloc() or similar
+    * as _aax_free() will be called on it when the node_object is destroyed.
     *
     * If ownership of the referenced memory is transferred, this must be set
     * to NULL or the memory will be freed when the node_object is destroyed.
@@ -727,8 +729,8 @@ struct node_object
    void *userdata;
 
    struct pw_proxy *proxy;
-   struct spa_hook  node_listener;
-   struct spa_hook  core_listener;
+   struct spa_hook node_listener;
+   struct spa_hook core_listener;
 };
 
 /* A sink/source node used for stream I/O. */
@@ -811,7 +813,8 @@ io_list_check_add(struct io_node *node)
    char ret = AAX_TRUE;
 
    /* See if the node is already in the list */
-   spa_list_for_each (n, &hotplug_io_list, link) {
+   spa_list_for_each (n, &hotplug_io_list, link)
+   {
       if (n->id == node->id)
       {
          ret = AAX_FALSE;
@@ -836,7 +839,8 @@ io_list_remove(uint32_t id)
    struct io_node *n, *temp;
 
    /* Find and remove the node from the list */
-   spa_list_for_each_safe (n, temp, &hotplug_io_list, link) {
+   spa_list_for_each_safe (n, temp, &hotplug_io_list, link)
+   {
       if (n->id == id)
       {
          spa_list_remove(&n->link);
@@ -858,7 +862,8 @@ io_list_sort()
    struct io_node *n, *temp;
 
    /* Find and move the default nodes to the beginning of the list */
-   spa_list_for_each_safe (n, temp, &hotplug_io_list, link) {
+   spa_list_for_each_safe (n, temp, &hotplug_io_list, link)
+   {
       if (n->id == pipewire_default_sink_id)
       {
          default_sink = n;
@@ -885,10 +890,11 @@ io_list_clear()
 {
    struct io_node *n, *temp;
 
-   spa_list_for_each_safe (n, temp, &hotplug_io_list, link) {
-        spa_list_remove(&n->link);
-        _aax_free(n);
-    }
+   spa_list_for_each_safe (n, temp, &hotplug_io_list, link)
+   {
+      spa_list_remove(&n->link);
+      _aax_free(n);
+   }
 }
 
 static void
@@ -916,7 +922,8 @@ pending_list_remove(uint32_t id)
 {
    struct node_object *node, *temp;
 
-   spa_list_for_each_safe (node, temp, &hotplug_pending_list, link) {
+   spa_list_for_each_safe (node, temp, &hotplug_pending_list, link)
+   {
       if (node->id == id) {
          node_object_destroy(node);
       }
@@ -943,7 +950,8 @@ node_object_new(uint32_t id, const char *type, uint32_t version, const void *fun
    proxy = pw_registry_bind(hotplug_registry, id, type, version, sizeof(struct node_object));
    if (proxy == NULL)
    {
-      _aaxPipeWireDriverLogVar(NULL, "Pipewire: Failed to create proxy object (%i)", errno);
+      _aaxPipeWireDriverLogVar(NULL, "Pipewire: proxy object error: %s", 
+                               strerror(errno));
       return NULL;
    }
 
@@ -984,7 +992,8 @@ core_events_interface_callback(void *object, uint32_t id, int seq)
    struct node_object *node = object;
    struct io_node *io = node->userdata;
 
-   if (id == PW_ID_CORE && seq == node->seq) {
+   if (id == PW_ID_CORE && seq == node->seq)
+   {
       /*
        * Move the I/O node to the connected list.
        * On success, the list owns the I/O node object.
@@ -992,7 +1001,6 @@ core_events_interface_callback(void *object, uint32_t id, int seq)
       if (io_list_check_add(io)) {
          node->userdata = NULL;
       }
-
       node_object_destroy(node);
    }
 }
@@ -1144,9 +1152,11 @@ registry_event_global_callback(void *object, uint32_t id, uint32_t permissions, 
 
          node_desc = spa_dict_lookup(props, PW_KEY_NODE_DESCRIPTION);
 
-         if (node_desc) {
+         if (node_desc)
+         {
             node = node_object_new(id, type, version, &interface_node_events, &interface_core_events);
-            if (node == NULL) {
+            if (node == NULL)
+            {
                _AAX_SYSLOG("Pipewire: Failed to allocate interface node");
                return;
             }
@@ -1175,7 +1185,8 @@ registry_event_global_callback(void *object, uint32_t id, uint32_t permissions, 
    else if (!strcmp(type, PW_TYPE_INTERFACE_Metadata))
    {
       node = node_object_new(id, type, version, &metadata_node_events, &metadata_core_events);
-      if (node == NULL) {
+      if (node == NULL)
+      {
          _AAX_SYSLOG("Pipewire: Failed to allocate metadata node");
          return;
       }
@@ -1330,7 +1341,8 @@ _aaxPipeWireDriverDetectDevices(char description[2][MAX_DEVICES_LIST])
       err = hotplug_loop_init();
       if (err != 0)
       {
-         _aaxPipeWireDriverLogVar(NULL, "Pipewire: hotplug loop error: %s", strerror(errno));
+         _aaxPipeWireDriverLogVar(NULL, "Pipewire: hotplug loop error: %s",
+                                  strerror(errno));
          hotplug_loop_destroy();
          pipewire_initialized = AAX_FALSE;
       }
@@ -1353,7 +1365,8 @@ _aaxPipeWireDriverDetectDevices(char description[2][MAX_DEVICES_LIST])
       memset(description[0], 0, MAX_DEVICES_LIST);
       memset(description[1], 0, MAX_DEVICES_LIST);
 
-      spa_list_for_each (io, &hotplug_io_list, link) {
+      spa_list_for_each (io, &hotplug_io_list, link)
+      {
          int m = io->is_capture ? 0 : 1;
          driver_list_add(description[m], io->name);
       }

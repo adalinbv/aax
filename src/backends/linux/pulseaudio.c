@@ -1155,7 +1155,7 @@ _aaxPulseAudioDriverLogVar(const void *id, const char *fmt, ...)
    va_start(ap, fmt);
    vsnprintf(_errstr, 1024, fmt, ap);
 
-   // Whatever happen in vsnprintf, what i'll do is just to null terminate it
+   // Always null terminate the string
    _errstr[1023] = '\0';
    va_end(ap);
 
