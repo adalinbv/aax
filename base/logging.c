@@ -28,6 +28,7 @@ extern void free(void*);
 void (*_sys_free)(void*) = free;
 
 
+#include <unistd.h>
 #include <assert.h>
 #if WIN32
 	/* See: http://support.microsoft.com/kb/815661 */
@@ -118,3 +119,30 @@ _aax_getbool(const char *start)
    return rv;
 }
 
+const char*
+_aax_get_binary_name(const char *defname)
+{
+   static char exe[1024];
+   static const char *rv;
+   ssize_t ret;
+#ifdef WIN32
+   ret = GetModuleFileName(NULL, exe, sizeof(exe)-1);
+   if (ret)
+   {
+      exe[ret] = 0;
+      rv = strrchr(exe, '\\');
+      if (!rv) rv = defname;
+      else rv++;
+   }
+#else
+   ret = readlink("/proc/self/exe", exe, sizeof(exe)-1);
+   if(ret != -1)
+   {
+      exe[ret] = 0;
+      rv = strrchr(exe, '/');
+      if (!rv) rv = defname;
+      else rv++;
+   }
+#endif
+   return rv;
+}

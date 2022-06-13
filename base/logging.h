@@ -93,6 +93,7 @@ extern "C" {
 extern void (*_sys_free)(void*);
 
 int _aax_getbool(const char*);
+const char* _aax_get_binary_name(const char*);
 void __aax_log(int level, int id, const char *s, const char *id_s[], int current_level);
 
 #if USE_LOGGING
