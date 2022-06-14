@@ -119,29 +119,49 @@ _aax_getbool(const char *start)
    return rv;
 }
 
+#if defined(__linux__)
+# define PROC_PATH 	"/proc/self/exe"
+#elif defined(__NetBSD__) || defined(__DragonFly__)
+# define PROC_PATH	"/proc/curproc/file"
+#elif defined(__NetBSD__)
+# define PROC_PATH      "/proc/curproc/exe"
+#endif
 const char*
 _aax_get_binary_name(const char *defname)
 {
    static char exe[1024];
-   static const char *rv;
-   ssize_t ret;
-#ifdef WIN32
+   const char *rv = (defname) ? defname : "AeonWave Audio";
+   ssize_t ret = sizeof(exe);
+
+#if defined(__FreeBSD__)
+   int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1 };
+   if (sysctl(mib, 4, exe, &ret, NULL, 0) == 0)
+   {
+      rv = strrchr(exe, '/');
+      if (rv) rv++;
+   }
+#elif defined(PROC_PATH)
+   ret = readlink(PROC_PATH, exe, sizeof(exe)-1);
+   if(ret != -1)
+   {  
+      exe[ret] = 0;
+      rv = strrchr(exe, '/');
+      if (rv) rv++;
+   }
+#elif defined(__APPLE__) && defined(__MACH__)
+   if (_NSGetExecutablePath(exe, &ret) == 0)
+   {
+      exe[ret] = 0;
+      rv = strrchr(exe, '/');
+      if (rv) rv++;
+   }
+#elif defined(WIN32)
    ret = GetModuleFileName(NULL, exe, sizeof(exe)-1);
    if (ret)
    {
       exe[ret] = 0;
       rv = strrchr(exe, '\\');
-      if (!rv) rv = defname;
-      else rv++;
-   }
-#else
-   ret = readlink("/proc/self/exe", exe, sizeof(exe)-1);
-   if(ret != -1)
-   {
-      exe[ret] = 0;
-      rv = strrchr(exe, '/');
-      if (!rv) rv = defname;
-      else rv++;
+      if (rv) rv++;
    }
 #endif
    return rv;
