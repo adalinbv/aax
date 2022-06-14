@@ -223,12 +223,13 @@ DECL_FUNCTION(pw_get_library_version);
 
 static int hotplug_loop_init();
 static void hotplug_loop_destroy();
-static char* _aaxPipeWireDriverLogVar(const void *, const char *, ...);
 static void _pipewire_detect_devices(char[2][MAX_DEVICES_LIST]);
-static enum aaxFormat _aaxPipeWireGetAAXFormat(enum spa_audio_format);
-// static enum spa_audio_format _aaxPipeWireGetFormat(enum aaxFormat);
 static uint32_t _pipewire_get_id_by_name(const char*);
 static int _pipewire_open(_driver_t*);
+
+static char* _aaxPipeWireDriverLogVar(const void *, const char *, ...);
+static enum aaxFormat _aaxPipeWireGetAAXFormat(enum spa_audio_format);
+// static enum spa_audio_format _aaxPipeWireGetFormat(enum aaxFormat);
 
 static char pipewire_initialized = AAX_FALSE;
 static const char *_const_pipewire_default_name = DEFAULT_DEVNAME;
@@ -679,7 +680,7 @@ _aaxPipeWireDriverGetName(const void *id, int mode)
    char *ret = NULL;
 
    /* TODO: distinguish between playback and record */
-   if (handle && handle->devname && (mode < AAX_MODE_WRITE_MAX))
+   if (handle && handle->driver && (mode < AAX_MODE_WRITE_MAX))
       ret = _aax_strdup(handle->driver);
 
    return ret;

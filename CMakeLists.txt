@@ -140,6 +140,7 @@ if (PKG_PIPEWIRE_FOUND)
 # pkg_check_modules(SPA libspa-0.1)
   set(HAVE_PIPEWIRE_H 1)
   set (PIPEWIRE_LIBRARY ${PKG_PIPEWIRE_LIBRARIES})
+  add_compile_options(${PKG_PIPEWIRE_CFLAGS})
 endif()
 
 find_package(SSE REQUIRED)

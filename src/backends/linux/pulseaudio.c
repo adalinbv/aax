@@ -954,7 +954,7 @@ _aaxPulseAudioDriverGetName(const void *id, int mode)
    char *ret = NULL;
 
    /* TODO: distinguish between playback and record */
-   if (handle && handle->devname && (mode < AAX_MODE_WRITE_MAX))
+   if (handle && handle->driver && (mode < AAX_MODE_WRITE_MAX))
       ret = _aax_strdup(handle->driver);
 
    return ret;
