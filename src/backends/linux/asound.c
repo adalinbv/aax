@@ -356,6 +356,15 @@ _aaxALSADriverDetect(int mode)
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
+#if HAVE_PULSEAUDIO_H
+# if RELEASE
+   const char *env = getenv("AAX_SHOW_ALSA_DEVICES");
+   if (!env || !_aax_getbool(env)) {
+      return AAX_FALSE;
+   }
+# endif
+#endif
+
    if (TEST_FOR_FALSE(rv) && !audio) {
       audio = _aaxIsLibraryPresent("asound", "2");
       _aaxGetSymError(0);
@@ -1580,15 +1589,6 @@ _aaxALSADriverGetDevices(UNUSED(const void *id), int mode)
    static time_t t_previous[2] = { 0, 0 };
    int m = (mode > 0) ? 1 : 0;
    time_t t_now;
-
-#if HAVE_PULSEAUDIO_H
-# if RELEASE
-   const char *env = getenv("AAX_SHOW_ALSA_DEVICES");
-   if (!env || !_aax_getbool(env)) {
-      return (char *)&names[m];
-   }
-# endif
-#endif
 
    psnd_lib_error_set_handler(_alsa_error_handler_none);
    t_now = time(NULL);

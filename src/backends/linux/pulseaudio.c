@@ -64,7 +64,7 @@
 #define MAX_ID_STRLEN		96
 
 #define DEFAULT_OUTPUT_RATE	48000
-#define DEFAULT_DEVNAME		NULL
+#define DEFAULT_DEVNAME		"default"
 #define DEFAULT_REFRESH		25.0
 
 #define USE_PID			AAX_TRUE
@@ -286,6 +286,15 @@ _aaxPulseAudioDriverDetect(UNUSED(int mode))
    char *error = NULL;
 
    _AAX_LOG(LOG_DEBUG, __func__);
+
+#if HAVE_PIPEWIRE_H
+# if RELEASE
+   const char *env = getenv("AAX_SHOW_PULSEAUDIO_DEVICES");
+   if (!env || !_aax_getbool(env)) {
+      return AAX_FALSE;
+   }
+# endif
+#endif
 
    if (TEST_FOR_FALSE(rv) && !audio) {
       audio = _aaxIsLibraryPresent("pulse", "0");
@@ -1080,7 +1089,7 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
 static char *
 _aaxPulseAudioDriverGetDevices(const void *id, int mode)
 {
-   static char names[2][1024] = { "\0\0", "\0\0" };
+   static char names[2][1024] = { DEFAULT_DEVNAME"\0\0", DEFAULT_DEVNAME"\0\0" };
    static time_t t_previous[2] = { 0, 0 };
    _driver_t *handle = (_driver_t *)id;
    int m = (mode == AAX_MODE_READ) ? 1 : 0;

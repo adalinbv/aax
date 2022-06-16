@@ -34,6 +34,7 @@ extern "C" {
 #endif
 #endif
 
+int _aaxPipeWireDriverDetect(int);
 int _aaxPulseAudioDriverDetect(int);
 int _aaxALSADriverDetect(int);
 

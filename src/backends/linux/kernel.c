@@ -251,6 +251,12 @@ _aaxLinuxDriverDetect(int mode)
       rv = _aaxPulseAudioDriverDetect(mode);
    }
 # endif
+# if HAVE_PIPEWIRE_H
+   if TEST_FOR_FALSE(rv) {
+      rv = _aaxPipeWireDriverDetect(mode);
+   }
+# endif
+
 #endif
 
    s = getenv("AAX_USE_KERNEL_DRIVER");
