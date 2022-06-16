@@ -59,7 +59,7 @@
 #define DEFAULT_DEVNAME		"default"
 #define DEFAULT_REFRESH		25.0
 
-#define USE_PID			AAX_FALSE
+#define USE_PID			AAX_TRUE
 #define USE_PIPEWIRE_THREAD	AAX_TRUE
 #define CAPTURE_CALLBACK	AAX_TRUE
 #define FILL_FACTOR		4.0f
@@ -230,7 +230,7 @@ DECL_FUNCTION(pw_get_prgname);
 static int hotplug_loop_init();
 static void hotplug_loop_destroy();
 static void _pipewire_detect_devices(char[2][MAX_DEVICES_LIST]);
-static uint32_t _pipewire_get_id_by_name(const char*);
+static uint32_t _pipewire_get_id_by_name(_driver_t*, const char*);
 static int _pipewire_open(_driver_t*);
 static float _pipewire_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, uint32_t, unsigned int, float);
 
@@ -325,7 +325,7 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
       handle->spec.channels = 2;
       handle->spec.format = SPA_AUDIO_FORMAT_F32;
       handle->frame_sz = handle->spec.channels*handle->bits_sample/8;
-      handle->spec.samples = get_pow2(handle->spec.rate*handle->spec.channels/DEFAULT_REFRESH);
+      handle->spec.samples = get_pow2(handle->spec.rate/DEFAULT_REFRESH);
       handle->spec.size = handle->spec.samples*handle->frame_sz;
 #if USE_PID
       handle->fill.aim = FILL_FACTOR*handle->spec.size/handle->spec.rate;
@@ -343,12 +343,10 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
          handle->mutex = _aaxMutexCreate(handle->mutex);
       }
 
-#if 1
       handle->min_tracks = 1;
       handle->max_tracks = _AAX_MAX_SPEAKERS;
       handle->min_frequency = _AAX_MIN_MIXER_FREQUENCY;
       handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
-#endif
 
       if (!pipewire_initialized)
       {
@@ -532,17 +530,16 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       period_samples = get_pow2((size_t)rintf(rate/period_rate));
    }
    handle->frame_sz = channels*handle->bits_sample/8;
-   // TODO: figure out of smaller is possible and how.
-   if (period_samples < 1024) period_samples = 1024;
 
    handle->spec.rate = rate;
    handle->spec.channels = channels;
    handle->spec.size = period_samples*handle->frame_sz;
-   handle->id = _pipewire_get_id_by_name(handle->driver);
+
+   handle->id = _pipewire_get_id_by_name(handle, handle->driver);
    if (_pipewire_open(handle))
    {
       handle->spec.samples = period_samples;
-      handle->spec.size = handle->spec.samples*handle->frame_sz;
+      handle->spec.size = period_samples*handle->frame_sz;
 
       handle->cvt_to_intl = _batch_cvtps_intl_24;
       handle->cvt_from_intl = _batch_cvt24_ps_intl;
@@ -565,11 +562,9 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
          *refresh_rate = period_rate;
       }
       handle->refresh_rate = *refresh_rate;
-
 #if USE_PID
-      handle->fill.aim = FILL_FACTOR*handle->spec.samples/handle->spec.rate;
+      handle->fill.aim = FILL_FACTOR*handle->spec.size/handle->spec.rate;
       handle->latency = (float)handle->fill.aim/(float)handle->frame_sz;
-      handle->latency *= handle->spec.channels/2;
 #else
       handle->latency = (float)handle->spec.samples/(float)handle->spec.rate;
 #endif
@@ -811,7 +806,7 @@ _aaxPipeWireDriverParam(const void *id, enum _aaxDriverParam param)
          rv = AAX_FPINFINITE;
          break;
       case DRIVER_SAMPLE_DELAY:
-         rv = (float)handle->spec.samples/handle->spec.channels;
+         rv = (float)handle->spec.samples;
          break;
 
 		/* boolean */
@@ -1759,10 +1754,14 @@ static const struct pw_stream_events stream_input_events =
 };
 
 static uint32_t
-_pipewire_get_id_by_name(const char *name)
+_pipewire_get_id_by_name(_driver_t *handle, const char *name)
 {
    uint32_t rv = PW_ID_ANY;
    struct io_node *n;
+
+   if (!hotplug_events_enabled) {
+      _aaxPipeWireDriverGetDevices(handle, handle->mode);
+   }
 
    if (hotplug_events_enabled)
    {
