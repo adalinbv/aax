@@ -34,18 +34,16 @@
 #  include <string.h>		/* strstr, strncmp */
 # endif
 
+#include <spa/param/props.h>
+
 #include <aax/aax.h>
 #include <xml.h>
 
-// #include <base/types.h>
-// #include <base/logging.h>
 #include <base/memory.h>
 #include <base/dlsym.h>
-// #include <base/timer.h>
 
 #include <backends/driver.h>
 #include <ringbuffer.h>
-// #include <arch.h>
 #include <api.h>
 
 #include <dsp/effects.h>
@@ -61,7 +59,7 @@
 #define DEFAULT_DEVNAME		"default"
 #define DEFAULT_REFRESH		25.0
 
-#define USE_PID			AAX_TRUE
+#define USE_PID			AAX_FALSE
 #define USE_PIPEWIRE_THREAD	AAX_TRUE
 #define CAPTURE_CALLBACK	AAX_TRUE
 #define FILL_FACTOR		4.0f
@@ -71,7 +69,6 @@
 #define MAX_DEVICES_LIST	1024
 
 #define _AAX_DRVLOG(a)         _aaxPipeWireDriverLog(id, 0, 0, a)
-#define HW_VOLUME_SUPPORT(a)	((a->mixfd >= 0) && a->volumeMax)
 
 #define PW_POD_BUFFER_LENGTH         1024
 #define PW_THREAD_NAME_BUFFER_LENGTH 128
@@ -161,13 +158,16 @@ typedef struct
       size_t size;
    } spec;
 
-// char no_periods;
    int frame_sz;
    char bits_sample;
    unsigned int format;
    enum aaxRenderMode mode;
    float refresh_rate;
    float latency;
+
+    float volumeCur, volumeInit;
+    float volumeMin, volumeMax;
+    float volumeStep, hwgain;
 
    _data_t *dataBuffer;
    _aaxMutex *mutex;
@@ -219,6 +219,7 @@ DECL_FUNCTION(pw_stream_connect);
 DECL_FUNCTION(pw_stream_get_state);
 DECL_FUNCTION(pw_stream_dequeue_buffer);
 DECL_FUNCTION(pw_stream_queue_buffer);
+DECL_FUNCTION(pw_stream_set_control);
 DECL_FUNCTION(pw_properties_new);
 DECL_FUNCTION(pw_properties_set);
 DECL_FUNCTION(pw_properties_setf);
@@ -281,6 +282,7 @@ _aaxPipeWireDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(pw_stream_get_state);
          TIE_FUNCTION(pw_stream_dequeue_buffer);
          TIE_FUNCTION(pw_stream_queue_buffer);
+         TIE_FUNCTION(pw_stream_set_control);
          TIE_FUNCTION(pw_properties_new);
          TIE_FUNCTION(pw_properties_set);
          TIE_FUNCTION(pw_properties_setf);
@@ -331,6 +333,11 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
 #else
       handle->latency = (float)handle->spec.samples/(float)handle->spec.rate;
 #endif
+
+      handle->volumeInit = 1.0f;
+      handle->volumeCur  = 1.0f;
+      handle->volumeMin = 0.0f;
+      handle->volumeMax = 1.0f;
 
       if (!m) {
          handle->mutex = _aaxMutexCreate(handle->mutex);
@@ -525,6 +532,8 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       period_samples = get_pow2((size_t)rintf(rate/period_rate));
    }
    handle->frame_sz = channels*handle->bits_sample/8;
+   // TODO: figure out of smaller is possible and how.
+   if (period_samples < 1024) period_samples = 1024;
 
    handle->spec.rate = rate;
    handle->spec.channels = channels;
@@ -541,11 +550,11 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
 #if 0
  printf("spec:\n");
  printf("   frequency: %i\n", handle->spec.rate);
+ printf("     samples: %i\n", handle->spec.samples);
  printf("      format: %x\n", handle->format);
  printf("    channels: %i\n", handle->spec.channels);
- printf("  frame size: %i\n", handle->frame_sz);
  printf(" bits/sample: %i\n", handle->bits_sample);
- printf("     samples: %i\n", handle->spec.samples);
+ printf("  frame size: %i\n", handle->frame_sz);
 #endif
 
       *speed = handle->spec.rate;
@@ -825,7 +834,6 @@ _aaxPipeWireDriverGetDevices(const void *id, int mode)
      DEFAULT_DEVNAME"\0\0", DEFAULT_DEVNAME"\0\0"
    };
    static time_t t_previous = 0;
-// _driver_t *handle = (_driver_t *)id;
    int m = (mode == AAX_MODE_READ) ? 0 : 1;
    char *rv = (char*)&names[m];
    time_t t_now;
@@ -843,7 +851,6 @@ _aaxPipeWireDriverGetDevices(const void *id, int mode)
 static char *
 _aaxPipeWireDriverGetInterfaces(UNUSED(const void *id), UNUSED(const char *driver), UNUSED(int mode))
 {
-// _driver_t *handle = (_driver_t *)id;
    return NULL;
 }
 
@@ -886,7 +893,36 @@ static float
 _pipewire_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, uint32_t period_frames, unsigned int tracks, float volume)
 {
    float gain = fabsf(volume);
+   float hwgain = gain;
    float rv = 0;
+
+   /*
+    * Slowly adjust volume to dampen volume slider movement.
+    * If the volume step is large, don't dampen it.
+    * volume is negative for auto-gain mode.
+    */
+   if ((volume < 0.0f) && (handle->mode == AAX_MODE_READ))
+   {
+      float dt = period_frames/handle->spec.rate;
+      float rr = _MINMAX(dt/10.0f, 0.0f, 1.0f);      /* 10 sec average */
+
+      /* Quickly adjust for a very large step in volume */
+      if (fabsf(hwgain - handle->volumeCur) > 0.825f) rr = 0.9f;
+
+      hwgain = (1.0f-rr)*handle->hwgain + (rr)*hwgain;
+      handle->hwgain = hwgain;
+   }
+
+   if (ppw_stream_set_control)
+   {
+      if (fabsf(hwgain - handle->volumeCur) >= handle->volumeStep)
+      {
+         if (!ppw_stream_set_control(handle->pw, SPA_PROP_volume, 1, &hwgain,0))
+         {
+            gain /= hwgain;
+         }
+      }
+   }
 
    /* software volume fallback */
    if (rb && fabsf(gain - 1.0f) > LEVEL_32DB) {
@@ -1586,7 +1622,6 @@ stream_playback_cb(void *be_ptr)
    _driver_t *be_handle = (_driver_t *)be_ptr;
    _handle_t *handle = (_handle_t *)be_handle->handle;
     int rv = AAX_FALSE;
-// void *id = be_handle;
 
    if (_IS_PLAYING(handle))
    {
@@ -1601,13 +1636,14 @@ stream_playback_cb(void *be_ptr)
       if (pw_buf)
       {
          struct spa_buffer *spa_buf = pw_buf->buffer;
-         uint64_t len = be_handle->spec.size; // spa_buf->datas[0].maxsize;
          if (spa_buf)
          {
             _data_t *buf = be_handle->dataBuffer;
+            uint64_t len;
 
             // from handle->dataBuffer to PipeWire
-            len = _aaxDataMove(buf, spa_buf->datas[0].data, len);
+            len = _aaxDataMove(buf, spa_buf->datas[0].data,
+                                    be_handle->spec.size);
 
             spa_buf->datas[0].chunk->offset = 0;
             spa_buf->datas[0].chunk->stride = be_handle->frame_sz;
@@ -1617,7 +1653,7 @@ stream_playback_cb(void *be_ptr)
             rv = AAX_TRUE;
          }
          else {
-            memset(spa_buf->datas[0].data, 0, len);
+            memset(spa_buf->datas[0].data, 0, be_handle->spec.size);
          }
          ppw_stream_queue_buffer(be_handle->pw, pw_buf);
       }
