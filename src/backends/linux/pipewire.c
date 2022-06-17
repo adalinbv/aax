@@ -59,7 +59,6 @@
 #define DEFAULT_DEVNAME		"default"
 #define DEFAULT_REFRESH		25.0
 
-#define USE_PID			AAX_FALSE
 #define USE_PIPEWIRE_THREAD	AAX_TRUE
 #define CAPTURE_CALLBACK	AAX_TRUE
 #define FILL_FACTOR		4.0f
@@ -180,16 +179,6 @@ typedef struct
    unsigned int max_frequency;
    unsigned int min_tracks;
    unsigned int max_tracks;
-
-#if USE_PID
-   struct {
-      float I;
-      float err;
-   } PID;
-   struct {
-      float aim;
-   } fill;
-#endif
 
 } _driver_t;
 
@@ -327,12 +316,7 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
       handle->frame_sz = handle->spec.channels*handle->bits_sample/8;
       handle->spec.samples = get_pow2(handle->spec.rate/DEFAULT_REFRESH);
       handle->spec.size = handle->spec.samples*handle->frame_sz;
-#if USE_PID
-      handle->fill.aim = FILL_FACTOR*handle->spec.size/handle->spec.rate;
-      handle->latency = (float)handle->fill.aim/(float)handle->frame_sz;
-#else
       handle->latency = (float)handle->spec.samples/(float)handle->spec.rate;
-#endif
 
       handle->volumeInit = 1.0f;
       handle->volumeCur  = 1.0f;
@@ -562,12 +546,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
          *refresh_rate = period_rate;
       }
       handle->refresh_rate = *refresh_rate;
-#if USE_PID
-      handle->fill.aim = FILL_FACTOR*handle->spec.size/handle->spec.rate;
-      handle->latency = (float)handle->fill.aim/(float)handle->frame_sz;
-#else
       handle->latency = (float)handle->spec.samples/(float)handle->spec.rate;
-#endif
 
       handle->render = _aaxSoftwareInitRenderer(handle->latency,
                                                 handle->mode, registered);
@@ -678,14 +657,16 @@ _aaxPipeWireDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSE
 
       _pipewire_set_volume(handle, rb, offs, period_frames, no_tracks, gain);
 
-      // store in handle->dataBuffer
+      // store audio data in handle->dataBuffer
       _aaxMutexLock(handle->mutex);
+
       data = _aaxDataGetPtr(handle->dataBuffer);
       sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
       handle->cvt_to_intl(data, sbuf, offs, no_tracks, period_frames);
       rb->release_tracks_ptr(rb);
 
       _aaxDataIncreaseOffset(handle->dataBuffer, size);
+
       _aaxMutexUnLock(handle->mutex);
 
       rv = period_frames;
@@ -1627,8 +1608,6 @@ stream_playback_cb(void *be_ptr)
          assert(be_handle->mode != AAX_MODE_READ);
          assert(be_handle->dataBuffer);
 
-         _aaxMutexLock(be_handle->mutex);
-
          pw_buf = ppw_stream_dequeue_buffer(be_handle->pw);
          if (pw_buf)
          {
@@ -1636,19 +1615,21 @@ stream_playback_cb(void *be_ptr)
             if (spa_buf)
             {
                _data_t *buf = be_handle->dataBuffer;
-               uint64_t len;
-
                if (be_handle->dataBuffer)
                {
-                  // from handle->dataBuffer to PipeWire
+                  uint64_t len;
+
+                  // copy audio data from handle->dataBuffer to PipeWire
+                  _aaxMutexLock(be_handle->mutex);
+
                   len = _aaxDataMove(buf, spa_buf->datas[0].data,
                                           be_handle->spec.size);
+
+                  _aaxMutexUnLock(be_handle->mutex);
 
                   spa_buf->datas[0].chunk->offset = 0;
                   spa_buf->datas[0].chunk->stride = be_handle->frame_sz;
                   spa_buf->datas[0].chunk->size = len;
-
-                  ppw_stream_queue_buffer(be_handle->pw, pw_buf);
                }
                rv = AAX_TRUE;
             }
@@ -1657,12 +1638,10 @@ stream_playback_cb(void *be_ptr)
             }
             ppw_stream_queue_buffer(be_handle->pw, pw_buf);
          }
+      }
 
-         _aaxMutexUnLock(be_handle->mutex);
-
-         if (rv) {
-            _aaxSignalTrigger(&handle->thread.signal);
-         }
+      if (rv) {
+         _aaxSignalTrigger(&handle->thread.signal);
       }
    }
 }
@@ -2092,8 +2071,6 @@ _aaxPipeWireDriverThread(void* config)
    _aaxMutexLock(handle->thread.signal.mutex);
    do
    {
-      float dt = delay_sec;
-
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
       }
@@ -2113,32 +2090,6 @@ _aaxPipeWireDriverThread(void* config)
       if (_IS_PLAYING(handle))
       {
          res = _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
-
-#if USE_PID
-         do
-         {
-            float target, input, err, P, I;
-
-            target = be_handle->fill.aim;
-            input = (float)_aaxDataGetOffset(be_handle->dataBuffer)/freq;
-            err = input - target;
-
-            /* present error */
-            P = err;
-
-            /*  accumulation of past errors */
-            be_handle->PID.I += err*delay_sec;
-            I = be_handle->PID.I;
-
-            err = 0.40f*P + 0.97f*I;
-            dt = _MINMAX((delay_sec + err), 1e-6f, 1.5f*delay_sec);
-# if 0
- printf("target: %8.1f, avail: %8.1f, err: %- 8.1f, delay: %5.4f (%5.4f)\r", target*freq, input*freq, err*freq, dt, delay_sec);
-# endif
-         }
-         while (0);
-#endif
-
          if (handle->finished) {
             _aaxSemaphoreRelease(handle->finished);
          }
