@@ -51,7 +51,7 @@
 
 static _intBuffers* get_backends();
 static _handle_t* _open_handle(aaxConfig);
-static _aaxConfig* _aaxReadConfig(_handle_t*, const char*, int);
+static _aaxConfig* _aaxReadConfig(_handle_t*, const char*, int, char);
 static void _aaxSetupHRTF(void *, unsigned int);
 static void _aaxSetupSpeakers(void **, unsigned char *router, unsigned int);
 static void _aaxFreeSensor(void *);
@@ -265,7 +265,7 @@ aaxDriverGetByName(const char* devname, enum aaxRenderMode mode)
 
          if (!name)
          {
-            _aaxConfig *cfg = _aaxReadConfig(handle, NULL, mode);
+            _aaxConfig *cfg = _aaxReadConfig(handle, NULL, mode, AAX_FALSE);
             if (cfg->node[0].devname)
             {
                name = _aax_strdup(cfg->node[0].devname);
@@ -387,7 +387,7 @@ aaxDriverOpen(aaxConfig config)
    if (handle)
    {
       enum aaxRenderMode mode = handle->info->mode;
-      _aaxConfig *cfg = _aaxReadConfig(handle, NULL, mode);
+      _aaxConfig *cfg = _aaxReadConfig(handle, NULL, mode, AAX_TRUE);
       const _aaxDriverBackend *be = handle->backend.ptr;
       void *xoid, *nid = 0;
 
@@ -456,7 +456,8 @@ aaxDriverOpenByName(const char* name, enum aaxRenderMode mode)
    if (mode < AAX_MODE_WRITE_MAX)
    {
       config = aaxDriverGetByName(name, mode);
-      if (config) {
+      if (config)
+      {
          config = aaxDriverOpen(config);
       } else {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
@@ -1120,13 +1121,14 @@ _open_handle(aaxConfig config)
 }
 
 _aaxConfig*
-_aaxReadConfig(_handle_t *handle, const char *devname, int mode)
+_aaxReadConfig(_handle_t *handle, const char *devname, int mode, char setup)
 {
    _aaxConfig* config = calloc(1, sizeof(_aaxConfig));
 
    if (config)
    {
       _intBufferData *dptr;
+      _aaxMixerInfo* info;
       long tract_now;
       char *path, *name;
       void *xid, *be;
@@ -1164,7 +1166,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
          free(path);
       }
 
-      /* read the user configurstion file */
+      /* read the user configuration file */
       path = userConfigFile();
       if (path)
       {
@@ -1223,50 +1225,54 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
          if (handle->backend.driver) free(handle->backend.driver);
          handle->backend.driver = _aax_strdup(config->backend.driver);
 
+         info = handle->info;
          if (config->node[0].no_emitters)
          {
             unsigned int emitters = config->node[0].no_emitters;
             unsigned int system_max = _aaxGetNoEmitters(be);
 
-            handle->info->max_emitters = _MINMAX(emitters, 4, system_max);
-            _aaxSetNoEmitters(NULL, handle->info->max_emitters);
+            info->max_emitters = _MINMAX(emitters, 4, system_max);
+            _aaxSetNoEmitters(NULL, info->max_emitters);
          }
          else {
-            handle->info->max_emitters = _aaxGetNoEmitters(be);
+            info->max_emitters = _aaxGetNoEmitters(be);
          }
 
          ptr = config->node[0].setup;
-         if (ptr && handle->info->mode == AAX_MODE_WRITE_STEREO)
+         if (ptr)
          {
-            if (!strcasecmp(ptr, "surround")) {
-               handle->info->mode = AAX_MODE_WRITE_SURROUND;
-            } else if (!strcasecmp(ptr, "hrtf")) {
-               handle->info->mode = AAX_MODE_WRITE_HRTF;
-            } else if (!strcasecmp(ptr, "spatial")) {
-               handle->info->mode = AAX_MODE_WRITE_SPATIAL;
-            } else if (!strcasecmp(ptr, "stereo")) {
-               handle->info->mode = AAX_MODE_WRITE_STEREO;
+            if (info->mode == AAX_MODE_READ)
+            {
+               if (!strcasecmp(ptr, "mix")) {
+                  info->track = AAX_TRACK_MIX;
+               } else if (!strcasecmp(ptr, "left")) {
+                  info->track = AAX_TRACK_LEFT;
+               } else if (!strcasecmp(ptr, "right")) {
+                  info->track = AAX_TRACK_RIGHT;
+               } else {
+                  info->track = AAX_TRACK_ALL;
+               }
             }
-         }
-         else if (ptr && handle->info->mode == AAX_MODE_READ)
-         {
-            if (!strcasecmp(ptr, "mix")) {
-               handle->info->track = AAX_TRACK_MIX;
-            } else if (!strcasecmp(ptr, "left")) {
-               handle->info->track = AAX_TRACK_LEFT;
-            } else if (!strcasecmp(ptr, "right")) {
-               handle->info->track = AAX_TRACK_RIGHT;
-            } else {
-               handle->info->track = AAX_TRACK_ALL;
+            else if ((devname || setup) && info->mode == AAX_MODE_WRITE_STEREO)
+            {
+               if (!strcasecmp(ptr, "surround")) {
+                  info->mode = AAX_MODE_WRITE_SURROUND;
+               } else if (!strcasecmp(ptr, "hrtf")) {
+                  info->mode = AAX_MODE_WRITE_HRTF;
+               } else if (!strcasecmp(ptr, "spatial")) {
+                  info->mode = AAX_MODE_WRITE_SPATIAL;
+               } else if (!strcasecmp(ptr, "stereo")) {
+                  info->mode = AAX_MODE_WRITE_STEREO;
+               }
             }
          }
 
          if (config->node[0].no_speakers > 0) {
-            handle->info->no_tracks = config->node[0].no_speakers;
+            info->no_tracks = config->node[0].no_speakers;
          }
 
          if (config->node[0].bitrate >= 0 && config->node[0].bitrate <= 320000) {
-            handle->info->bitrate = config->node[0].bitrate;
+            info->bitrate = config->node[0].bitrate;
          }
 
          fq = config->node[0].frequency;
@@ -1287,16 +1293,16 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                iv = _AAX_MAX_MIXER_REFRESH_RATE;
             }
             iv = fq / INTERVAL(fq / iv);
-            handle->info->period_rate = iv;
-            handle->info->refresh_rate = iv;
-            handle->info->frequency = fq;
+            info->period_rate = iv;
+            info->refresh_rate = iv;
+            info->frequency = fq;
             if (config->node[0].update) {
-               handle->info->update_rate = (uint8_t)rintf(iv/config->node[0].update);
+               info->update_rate = (uint8_t)rintf(iv/config->node[0].update);
             } else {
-               handle->info->update_rate = (uint8_t)rintf(iv/50);
+               info->update_rate = (uint8_t)rintf(iv/50);
             }
-            if (handle->info->update_rate < 1) {
-               handle->info->update_rate = 1;
+            if (info->update_rate < 1) {
+               info->update_rate = 1;
             }
 
             handle->valid = HANDLE_ID;
@@ -1313,9 +1319,9 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                unsigned int size;
 
                size = _AAX_MAX_SPEAKERS * sizeof(vec4f_t);
-               if (handle->info->mode == AAX_MODE_WRITE_HRTF)
+               if (info->mode == AAX_MODE_WRITE_HRTF)
                {
-                  handle->info->no_tracks = 2;
+                  info->no_tracks = 2;
                   _aax_memcpy(&info->speaker,&_aaxDefaultHRTFVolume, size);
                   _aax_memcpy(info->delay, &_aaxDefaultHRTFDelay, size);
 
@@ -1336,7 +1342,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
 
                   _aaxSetupSpeakers(config->node[0].speaker,
                                            info->router, info->no_tracks);
-                  for (t=0; t<handle->info->no_tracks; t++)
+                  for (t=0; t<info->no_tracks; t++)
                   {
                      vec3f_t sv;
                      vec3fFill(sv.v3, _aaxDefaultSpeakersVolume[t]);
@@ -1362,11 +1368,11 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                   snprintf(buf,1024,"  output[%i]: '%s'\n", i, config->node[i].devname);
                  _AAX_SYSLOG(buf);
 
-                  snprintf(buf,1024,"  setup: %s\n", (handle->info->mode == AAX_MODE_READ) ? "capture" : config->node[i].setup);
+                  snprintf(buf,1024,"  setup: %s\n", (info->mode == AAX_MODE_READ) ? "capture" : config->node[i].setup);
                   _AAX_SYSLOG(buf);
 
                   snprintf(buf,1024,"  frequency: %5.1f, interval: %5.1f\n",
-                           handle->info->frequency, handle->info->refresh_rate);
+                           info->frequency, info->refresh_rate);
                   _AAX_SYSLOG(buf);
                }
 
