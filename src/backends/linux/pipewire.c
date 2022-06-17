@@ -59,7 +59,7 @@
 #define DEFAULT_DEVNAME		"default"
 #define DEFAULT_REFRESH		25.0
 
-#define USE_PID			AAX_TRUE
+#define USE_PID			AAX_FALSE
 #define USE_PIPEWIRE_THREAD	AAX_TRUE
 #define CAPTURE_CALLBACK	AAX_TRUE
 #define FILL_FACTOR		4.0f
@@ -1614,49 +1614,55 @@ _pipewire_detect_devices(char description[2][MAX_DEVICES_LIST])
 static void
 stream_playback_cb(void *be_ptr)
 {
-   _driver_t *be_handle = (_driver_t *)be_ptr;
-   _handle_t *handle = (_handle_t *)be_handle->handle;
-    int rv = AAX_FALSE;
-
-   if (_IS_PLAYING(handle))
+   if (be_ptr)
    {
-      struct pw_buffer *pw_buf;
+      _driver_t *be_handle = (_driver_t *)be_ptr;
+      _handle_t *handle = (_handle_t *)be_handle->handle;
+       int rv = AAX_FALSE;
 
-      assert(be_handle->mode != AAX_MODE_READ);
-      assert(be_handle->dataBuffer);
-
-      _aaxMutexLock(be_handle->mutex);
-
-      pw_buf = ppw_stream_dequeue_buffer(be_handle->pw);
-      if (pw_buf)
+      if (_IS_PLAYING(handle))
       {
-         struct spa_buffer *spa_buf = pw_buf->buffer;
-         if (spa_buf)
+         struct pw_buffer *pw_buf;
+
+         assert(be_handle->mode != AAX_MODE_READ);
+         assert(be_handle->dataBuffer);
+
+         _aaxMutexLock(be_handle->mutex);
+
+         pw_buf = ppw_stream_dequeue_buffer(be_handle->pw);
+         if (pw_buf)
          {
-            _data_t *buf = be_handle->dataBuffer;
-            uint64_t len;
+            struct spa_buffer *spa_buf = pw_buf->buffer;
+            if (spa_buf)
+            {
+               _data_t *buf = be_handle->dataBuffer;
+               uint64_t len;
 
-            // from handle->dataBuffer to PipeWire
-            len = _aaxDataMove(buf, spa_buf->datas[0].data,
-                                    be_handle->spec.size);
+               if (be_handle->dataBuffer)
+               {
+                  // from handle->dataBuffer to PipeWire
+                  len = _aaxDataMove(buf, spa_buf->datas[0].data,
+                                          be_handle->spec.size);
 
-            spa_buf->datas[0].chunk->offset = 0;
-            spa_buf->datas[0].chunk->stride = be_handle->frame_sz;
-            spa_buf->datas[0].chunk->size = len;
+                  spa_buf->datas[0].chunk->offset = 0;
+                  spa_buf->datas[0].chunk->stride = be_handle->frame_sz;
+                  spa_buf->datas[0].chunk->size = len;
 
+                  ppw_stream_queue_buffer(be_handle->pw, pw_buf);
+               }
+               rv = AAX_TRUE;
+            }
+            else {
+               memset(spa_buf->datas[0].data, 0, be_handle->spec.size);
+            }
             ppw_stream_queue_buffer(be_handle->pw, pw_buf);
-            rv = AAX_TRUE;
          }
-         else {
-            memset(spa_buf->datas[0].data, 0, be_handle->spec.size);
+
+         _aaxMutexUnLock(be_handle->mutex);
+
+         if (rv) {
+            _aaxSignalTrigger(&handle->thread.signal);
          }
-         ppw_stream_queue_buffer(be_handle->pw, pw_buf);
-      }
-
-      _aaxMutexUnLock(be_handle->mutex);
-
-      if (rv) {
-         _aaxSignalTrigger(&handle->thread.signal);
       }
    }
 }
@@ -1664,77 +1670,87 @@ stream_playback_cb(void *be_ptr)
 static void
 stream_capture_cb(void *be_ptr)
 {
-   _driver_t *be_handle = (_driver_t *)be_ptr;
-   struct pw_buffer  *pw_buf;
-
-   pw_buf = ppw_stream_dequeue_buffer(be_handle->pw);
-   if (pw_buf)
+   if (be_ptr)
    {
-      struct spa_buffer *spa_buf = pw_buf->buffer;
-      if (spa_buf->datas[0].data)
-      {
-         uint32_t offs = SPA_MIN(spa_buf->datas[0].chunk->offset,
-                                 spa_buf->datas[0].maxsize);
-         uint32_t len = SPA_MIN(spa_buf->datas[0].chunk->size,
-                                spa_buf->datas[0].maxsize - offs);
+      _driver_t *be_handle = (_driver_t *)be_ptr;
+      struct pw_buffer  *pw_buf;
 
-         if (_aaxDataGetOffset(be_handle->dataBuffer)+len < _aaxDataGetSize(be_handle->dataBuffer))
+      pw_buf = ppw_stream_dequeue_buffer(be_handle->pw);
+      if (pw_buf)
+      {
+         struct spa_buffer *spa_buf = pw_buf->buffer;
+         if (spa_buf->datas[0].data)
          {
-            uint8_t *buf = (uint8_t*)spa_buf->datas[0].data + offs;
-            _aaxDataAdd(be_handle->dataBuffer, buf, len);
+            uint32_t offs = SPA_MIN(spa_buf->datas[0].chunk->offset,
+                                    spa_buf->datas[0].maxsize);
+            uint32_t len = SPA_MIN(spa_buf->datas[0].chunk->size,
+                                   spa_buf->datas[0].maxsize - offs);
+
+            if (_aaxDataGetOffset(be_handle->dataBuffer)+len
+                                   < _aaxDataGetSize(be_handle->dataBuffer))
+            {
+               uint8_t *buf = (uint8_t*)spa_buf->datas[0].data + offs;
+               _aaxDataAdd(be_handle->dataBuffer, buf, len);
+            }
          }
+         ppw_stream_queue_buffer(be_handle->pw, pw_buf);
       }
-      ppw_stream_queue_buffer(be_handle->pw, pw_buf);
    }
 }
 
 static void
 stream_add_buffer_cb(void *be_ptr, struct pw_buffer *buffer)
 {
-   _driver_t *be_handle = (_driver_t *)be_ptr;
-
-   if (be_handle->mode != AAX_MODE_READ)
+   if (be_ptr)
    {
-      /*
-       * Clamp the output spec samples and size to the max size of the PipeWire
-       * buffer. If they exceed the maximum size of the PipeWire buffer, double
-       * buffering will be used.
-       */
-      if (be_handle->spec.size > buffer->buffer->datas[0].maxsize)
+      _driver_t *be_handle = (_driver_t *)be_ptr;
+      if (be_handle->mode != AAX_MODE_READ)
       {
-         be_handle->spec.samples = buffer->buffer->datas[0].maxsize/be_handle->frame_sz;
-         be_handle->spec.size = buffer->buffer->datas[0].maxsize;
-      }
+         /*
+          * Clamp the output spec samples and size to the max size of the PipeWire
+          * buffer. If they exceed the maximum size of the PipeWire buffer, double
+          * buffering will be used.
+          */
+         if (be_handle->spec.size > buffer->buffer->datas[0].maxsize)
+         {
+            be_handle->spec.samples = buffer->buffer->datas[0].maxsize/be_handle->frame_sz;
+            be_handle->spec.size = buffer->buffer->datas[0].maxsize;
+         }
 #if 0
-   } else if (this->hidden->buffer == NULL) {
-       /*
-        * The latency of source nodes can change, so buffering is always required.
-        *
-        * Ensure that the intermediate input buffer is large enough to hold the requested
-        * application packet size or a full buffer of data from PipeWire, whichever is larger.
-        *
-        * A packet size of 2 periods should be more than is ever needed.
-        */
-      this->hidden->input_buffer_packet_size = SPA_MAX(this->spec.size, buffer->buffer->datas[0].maxsize) * 2;
-      this->hidden->buffer                   = SDL_NewDataQueue(this->hidden->input_buffer_packet_size, this->hidden->input_buffer_packet_size);
+      } else if (this->hidden->buffer == NULL) {
+          /*
+           * The latency of source nodes can change, so buffering is always required.
+           *
+           * Ensure that the intermediate input buffer is large enough to hold the requested
+           * application packet size or a full buffer of data from PipeWire, whichever is larger.
+           *
+           * A packet size of 2 periods should be more than is ever needed.
+           */
+         this->hidden->input_buffer_packet_size = SPA_MAX(this->spec.size, buffer->buffer->datas[0].maxsize) * 2;
+         this->hidden->buffer                   = SDL_NewDataQueue(this->hidden->input_buffer_packet_size, this->hidden->input_buffer_packet_size);
 #endif
-   }
+      }
 
-   be_handle->stream_init_status |= PW_READY_FLAG_BUFFER_ADDED;
-   ppw_thread_loop_signal(be_handle->ml, false);
+      be_handle->stream_init_status |= PW_READY_FLAG_BUFFER_ADDED;
+      ppw_thread_loop_signal(be_handle->ml, false);
+   }
 }
 
 static void
 stream_state_cb(void *be_ptr, enum pw_stream_state old, enum pw_stream_state state, const char *error)
 {
-   _driver_t *be_handle = (_driver_t *)be_ptr;
+   if (be_ptr)
+   {
+      _driver_t *be_handle = (_driver_t *)be_ptr;
 
-   if (state == PW_STREAM_STATE_STREAMING) {
-      be_handle->stream_init_status |= PW_READY_FLAG_STREAM_READY;
-   }
+      if (state == PW_STREAM_STATE_STREAMING) {
+         be_handle->stream_init_status |= PW_READY_FLAG_STREAM_READY;
+      }
 
-   if (state == PW_STREAM_STATE_STREAMING || state == PW_STREAM_STATE_ERROR) {
-      ppw_thread_loop_signal(be_handle->ml, false);
+      if (state == PW_STREAM_STATE_STREAMING || state == PW_STREAM_STATE_ERROR)
+      {
+         ppw_thread_loop_signal(be_handle->ml, false);
+      }
    }
 }
 
@@ -2128,7 +2144,8 @@ _aaxPipeWireDriverThread(void* config)
          }
       }
 
-      res = _aaxSignalWaitTimed(&handle->thread.signal, dt);
+//    res = _aaxSignalWaitTimed(&handle->thread.signal, dt);
+      res = _aaxSignalWait(&handle->thread.signal);
    }
    while (res == AAX_TIMEOUT || res == AAX_TRUE);
 
