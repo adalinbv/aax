@@ -874,6 +874,8 @@ _aaxSDLDriverGetDevices(UNUSED(const void *id), int mode)
          // We already provide a file and none backend
          if (!strcmp(driver, "disk") || !strcmp(driver, "dummy")) continue;
 
+         // We already provide the pipewire backend
+         if (!strcmp(driver, "pipewire")) continue;
          // We already provide the pulseaudio backend
          if (!strcmp(driver, "pulseaudio")) continue;
          // We already provide the alsa backend
