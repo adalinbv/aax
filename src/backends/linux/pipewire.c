@@ -63,8 +63,8 @@
 #define CAPTURE_CALLBACK	AAX_TRUE
 #define FILL_FACTOR		4.0f
 
-#define PERIODS			2
-#define CAPTURE_BUFFER_SIZE	(PERIODS*1024)
+#define NO_PERIODS		1
+#define CAPTURE_BUFFER_SIZE	(NO_PERIODS*1024)
 #define MAX_DEVICES_LIST	1024
 
 #define _AAX_DRVLOG(a)         _aaxPipeWireDriverLog(id, 0, 0, a)
@@ -315,7 +315,7 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
       handle->spec.format = SPA_AUDIO_FORMAT_F32;
       handle->frame_sz = handle->spec.channels*handle->bits_sample/8;
       handle->spec.samples = get_pow2(handle->spec.rate/DEFAULT_REFRESH);
-      handle->spec.size = handle->spec.samples*handle->frame_sz;
+      handle->spec.size = NO_PERIODS*handle->spec.samples*handle->frame_sz;
       handle->latency = (float)handle->spec.samples/(float)handle->spec.rate;
 
       handle->volumeInit = 1.0f;
@@ -517,13 +517,14 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    handle->spec.rate = rate;
    handle->spec.channels = channels;
-   handle->spec.size = period_samples*handle->frame_sz;
+   handle->spec.samples = NO_PERIODS*period_samples;
+   handle->spec.size = NO_PERIODS*period_samples*handle->frame_sz;
 
    handle->id = _pipewire_get_id_by_name(handle, handle->driver);
    if (_pipewire_open(handle))
    {
-      handle->spec.samples = period_samples;
-      handle->spec.size = period_samples*handle->frame_sz;
+      handle->spec.samples = NO_PERIODS*period_samples;
+      handle->spec.size = NO_PERIODS*period_samples*handle->frame_sz;
 
       handle->cvt_to_intl = _batch_cvtps_intl_24;
       handle->cvt_from_intl = _batch_cvt24_ps_intl;
@@ -642,7 +643,7 @@ _aaxPipeWireDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSE
    if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < 8*size))
    {
       _aaxDataDestroy(handle->dataBuffer);
-      handle->dataBuffer = _aaxDataCreate(PERIODS*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
+      handle->dataBuffer = _aaxDataCreate(NO_PERIODS*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
       if (handle->dataBuffer == 0) return -1;
    }
 
@@ -778,7 +779,7 @@ _aaxPipeWireDriverParam(const void *id, enum _aaxDriverParam param)
          break;
       case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
-         rv = 2.0f;
+         rv = NO_PERIODS;
          break;
       case DRIVER_MAX_SOURCES:
          rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
