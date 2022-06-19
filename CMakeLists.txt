@@ -224,9 +224,6 @@ if(MSVC)
   set_property(SOURCE src/software/cpu/arch3d_fma3.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:AVX2 /fp:fast -D__FMA__"
   )
-  set_property(SOURCE src/software/cpu/arch2d_fma4.c APPEND
-               PROPERTY COMPILE_FLAGS  "/arch:XOP /fp:fast -D__FMA__"
-  )
 
   # don't use a /O[012x] flag if you want custom optimizations
   set(SPEED_OPTIMIZATIONS "/Ob2 /Oi /Ot /Oy /GT /GF /GS-")
@@ -334,49 +331,46 @@ else(MSVC)
      if(X86_64)
        set(C_FLAGS "${C_FLAGS} -march=athlon64 -DARCH64=1 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize ")
        set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -Ofast"
+                    PROPERTY COMPILE_FLAGS "-Ofast"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -Os"
+                    PROPERTY COMPILE_FLAGS "-Os"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -Ofast"
+                    PROPERTY COMPILE_FLAGS "-Ofast"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -Os"
+                    PROPERTY COMPILE_FLAGS "-Os"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -Ofast"
+                    PROPERTY COMPILE_FLAGS "-msse3 -Ofast"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -Os"
+                    PROPERTY COMPILE_FLAGS "-msse3 -Os"
        )
-       set_property(SOURCE src/software/cpu/arch2d_sse4.c APPENDZ
-                    PROPERTY COMPILE_FLAGS "-msse4.1 -mfpmath=sse -march=silvermont -Ofast"
+       set_property(SOURCE src/software/cpu/arch2d_sse4.c APPEND
+                    PROPERTY COMPILE_FLAGS "-msse4.1 -march=silvermont -Ofast"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -Ofast -march=sandybridge"
+                    PROPERTY COMPILE_FLAGS "-mavx -Ofast -march=sandybridge"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -Os"
+                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -Os"
        )
        set_property(SOURCE src/software/cpu/arch2d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -Ofast -march=sandybridge -Os"
+                    PROPERTY COMPILE_FLAGS "-mavx -Ofast -march=sandybridge -Os"
        )
        set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -Os"
+                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -Os"
        )
        set_property(SOURCE src/software/cpu/arch2d_avx2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -Ofast -march=haswell -Os"
+                    PROPERTY COMPILE_FLAGS "-mavx2 -Ofast -march=haswell -Os"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -Ofast -mfma -march=haswell -Os"
+                    PROPERTY COMPILE_FLAGS "-mavx2 -Ofast -mfma -march=haswell -Os"
        )
        set_property(SOURCE src/software/cpu/arch3d_fma3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -mfma -march=haswell -Os"
-       )
-       set_property(SOURCE src/software/cpu/arch2d_fma4.c APPEND
-                   PROPERTY COMPILE_FLAGS "-mxop -mfpmath=sse -Ofast -mfma4 -march=bdver1"
+                    PROPERTY COMPILE_FLAGS "-mavx2 -mfma -march=haswell -Os"
        )
        set_property(SOURCE src/software/cpu/rbuf_effects.c  APPEND
                    PROPERTY COMPILE_FLAGS "${OpenACC_C_FLAGS}"
