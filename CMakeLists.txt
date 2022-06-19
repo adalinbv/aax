@@ -298,7 +298,7 @@ else(MSVC)
      set(CXX_FLAGS "${CXX_FLAGS} -g -std=c++11" CACHE STRING
          "Flags used by al build types."
          FORCE)
-     set(C_FLAGS "${C_FLAGS} -g -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops" CACHE STRING
+     set(C_FLAGS "${C_FLAGS} -g -Werror=format-security -std=c11 -Wall -fvisibility=hidden -funroll-loops" CACHE STRING
          "Flags used by al build types."
          FORCE)
 
