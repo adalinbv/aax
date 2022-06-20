@@ -208,6 +208,7 @@ DECL_FUNCTION(pw_stream_connect);
 DECL_FUNCTION(pw_stream_get_state);
 DECL_FUNCTION(pw_stream_dequeue_buffer);
 DECL_FUNCTION(pw_stream_queue_buffer);
+DECL_FUNCTION(pw_stream_get_control);
 DECL_FUNCTION(pw_stream_set_control);
 DECL_FUNCTION(pw_properties_new);
 DECL_FUNCTION(pw_properties_set);
@@ -271,6 +272,7 @@ _aaxPipeWireDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(pw_stream_get_state);
          TIE_FUNCTION(pw_stream_dequeue_buffer);
          TIE_FUNCTION(pw_stream_queue_buffer);
+         TIE_FUNCTION(pw_stream_get_control);
          TIE_FUNCTION(pw_stream_set_control);
          TIE_FUNCTION(pw_properties_new);
          TIE_FUNCTION(pw_properties_set);
@@ -523,6 +525,8 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
    handle->id = _pipewire_get_id_by_name(handle, handle->driver);
    if (_pipewire_open(handle))
    {
+      const struct pw_stream_control *pw;
+
       handle->spec.samples = NO_PERIODS*period_samples;
       handle->spec.size = NO_PERIODS*period_samples*handle->frame_sz;
 
@@ -551,6 +555,17 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
       handle->render = _aaxSoftwareInitRenderer(handle->latency,
                                                 handle->mode, registered);
+
+      // PipeWire uses linear volumes: 0.0 silence, 1.0 normal
+      pw = ppw_stream_get_control(handle->pw, SPA_PROP_volume);
+      handle->volumeCur = handle->volumeInit = pw->values[0];
+      handle->volumeMin = pw->min;
+      handle->volumeMax = pw->max;
+#if 0
+ printf("%s: curr: %3.2f, min: %3.2f, max: %3.2f, step: %3.f\n", pw->name,
+   handle->volumeCur, handle->volumeMin, handle->volumeMax, handle->volumeStep);
+#endif
+
       if (handle->render)
       {
          const char *rstr = handle->render->info(handle->render->id);
@@ -870,8 +885,9 @@ static float
 _pipewire_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, uint32_t period_frames, unsigned int tracks, float volume)
 {
    float gain = fabsf(volume);
-   float hwgain = gain;
-   float rv = 0;
+   float hwgain;
+
+   hwgain = _MINMAX(fabsf(gain), handle->volumeMin, handle->volumeMax);
 
    /*
     * Slowly adjust volume to dampen volume slider movement.
@@ -890,23 +906,24 @@ _pipewire_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, uint
       handle->hwgain = hwgain;
    }
 
-   if (ppw_stream_set_control)
+   if (fabsf(hwgain - handle->volumeCur) >= handle->volumeStep)
    {
-      if (fabsf(hwgain - handle->volumeCur) >= handle->volumeStep)
+      if (ppw_stream_set_control &&
+          !ppw_stream_set_control(handle->pw, SPA_PROP_volume, 1, &hwgain, 0))
       {
-         if (!ppw_stream_set_control(handle->pw, SPA_PROP_volume, 1, &hwgain,0))
-         {
-            gain /= hwgain;
-         }
+         handle->volumeCur = hwgain;
       }
    }
+
+   if (hwgain) gain /= hwgain;
+   else gain = 0.0f;
 
    /* software volume fallback */
    if (rb && fabsf(gain - 1.0f) > LEVEL_32DB) {
       rb->data_multiply(rb, offset, period_frames, gain);
    }
 
-   return rv;
+   return gain;
 }
 
 /* ----------------------------------------------------------------------- */
@@ -1600,44 +1617,46 @@ stream_playback_cb(void *be_ptr)
    {
       _driver_t *be_handle = (_driver_t *)be_ptr;
       _handle_t *handle = (_handle_t *)be_handle->handle;
-       int rv = AAX_FALSE;
+
+      int rv = AAX_FALSE;
+
+      assert(be_handle->mode != AAX_MODE_READ);
+      assert(be_handle->dataBuffer);
 
       if (_IS_PLAYING(handle))
       {
-         struct pw_buffer *pw_buf;
-
-         assert(be_handle->mode != AAX_MODE_READ);
-         assert(be_handle->dataBuffer);
-
-         pw_buf = ppw_stream_dequeue_buffer(be_handle->pw);
-         if (pw_buf)
+         _data_t *buf = be_handle->dataBuffer;
+         if (be_handle->dataBuffer)
          {
-            struct spa_buffer *spa_buf = pw_buf->buffer;
-            if (spa_buf)
+            uint64_t len = _aaxDataGetDataAvail(buf);
+            if (len > 0)
             {
-               _data_t *buf = be_handle->dataBuffer;
-               if (be_handle->dataBuffer)
+               struct pw_buffer *pw_buf;
+               pw_buf = ppw_stream_dequeue_buffer(be_handle->pw);
+               if (pw_buf)
                {
-                  uint64_t len;
+                  struct spa_buffer *spa_buf = pw_buf->buffer;
+                  if (spa_buf)
+                  {
+                     uint64_t len;
 
-                  // copy audio data from handle->dataBuffer to PipeWire
-                  _aaxMutexLock(be_handle->mutex);
+                     // copy audio data from handle->dataBuffer to PipeWire
+                     _aaxMutexLock(be_handle->mutex);
 
-                  len = _aaxDataMove(buf, spa_buf->datas[0].data,
-                                          be_handle->spec.size);
+                     len = _aaxDataMove(buf, spa_buf->datas[0].data,
+                                             be_handle->spec.size);
 
-                  _aaxMutexUnLock(be_handle->mutex);
+                     _aaxMutexUnLock(be_handle->mutex);
 
-                  spa_buf->datas[0].chunk->offset = 0;
-                  spa_buf->datas[0].chunk->stride = be_handle->frame_sz;
-                  spa_buf->datas[0].chunk->size = len;
+                     spa_buf->datas[0].chunk->offset = 0;
+                     spa_buf->datas[0].chunk->size = len;
+                     spa_buf->datas[0].chunk->stride = be_handle->frame_sz;
+                  }
+                  rv = AAX_TRUE;
                }
-               rv = AAX_TRUE;
+               ppw_stream_queue_buffer(be_handle->pw, pw_buf);
             }
-            else {
-               memset(spa_buf->datas[0].data, 0, be_handle->spec.size);
-            }
-            ppw_stream_queue_buffer(be_handle->pw, pw_buf);
+            else rv = AAX_TRUE;
          }
       }
 
@@ -1723,13 +1742,19 @@ stream_state_cb(void *be_ptr, enum pw_stream_state old, enum pw_stream_state sta
    {
       _driver_t *be_handle = (_driver_t *)be_ptr;
 
-      if (state == PW_STREAM_STATE_STREAMING) {
-         be_handle->stream_init_status |= PW_READY_FLAG_STREAM_READY;
-      }
-
-      if (state == PW_STREAM_STATE_STREAMING || state == PW_STREAM_STATE_ERROR)
+      switch(state)
       {
+      case PW_STREAM_STATE_STREAMING:
+         be_handle->stream_init_status |= PW_READY_FLAG_STREAM_READY;
+         // intentional fallthrough
+      case PW_STREAM_STATE_ERROR:
          ppw_thread_loop_signal(be_handle->ml, false);
+         break;
+      case PW_STREAM_STATE_CONNECTING:
+      case PW_STREAM_STATE_UNCONNECTED:
+      case PW_STREAM_STATE_PAUSED:
+      default:
+         break;
       }
    }
 }

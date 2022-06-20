@@ -1207,7 +1207,7 @@ _pulseaudio_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, ui
 
       gain = (float)vol/PA_VOLUME_NORM / fabsf(volume);
 
-      if (abs(handle->volume - vol) > 0)
+      if (fabsf(handle->volume - vol) > 0)
       {
          pa_cvolume cvol;
 
