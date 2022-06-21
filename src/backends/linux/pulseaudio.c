@@ -67,7 +67,6 @@
 #define DEFAULT_DEVNAME		"default"
 #define DEFAULT_REFRESH		25.0
 
-#define USE_PID			AAX_TRUE
 #define USE_PULSE_THREAD	AAX_TRUE
 #define CAPTURE_CALLBACK	AAX_TRUE
 #define FILL_FACTOR		4.0f
@@ -178,7 +177,6 @@ typedef struct
    unsigned int min_tracks;
    unsigned int max_tracks;
 
-#if USE_PID
    struct {
       float I;
       float err;
@@ -186,7 +184,6 @@ typedef struct
    struct {
       float aim;
    } fill;
-#endif
 
    char descriptions[2][MAX_DEVICES_LIST];
    char names[2][MAX_DEVICES_LIST];
@@ -401,12 +398,8 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
       handle->samples = get_pow2(handle->spec.rate*handle->spec.channels/DEFAULT_REFRESH);
 
       frame_sz = handle->spec.channels*handle->bits_sample/8;
-#if USE_PID
       handle->fill.aim = FILL_FACTOR*handle->samples/handle->spec.rate;
       handle->latency = (float)handle->fill.aim/(float)frame_sz;
-#else
-      handle->latency = (float)handle->samples/(float)handle->spec.rate*frame_sz;
-#endif
 
       if (!m) {
          handle->mutex = _aaxMutexCreate(handle->mutex);
@@ -709,13 +702,9 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
       handle->refresh_rate = *refresh_rate;
 
-#if USE_PID
       handle->fill.aim = FILL_FACTOR*handle->samples/handle->spec.rate;
       handle->latency = (float)handle->fill.aim/(float)frame_sz;
       handle->latency *= handle->spec.channels/2;
-#else
-      handle->latency = (float)handle->samples/(float)handle->spec.rate*frame_sz;
-#endif
 
       handle->render = _aaxSoftwareInitRenderer(handle->latency,
                                                 handle->mode, registered);
@@ -1075,9 +1064,9 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
 
 		/* boolean */
       case DRIVER_SHARED_MODE:
+      case DRIVER_TIMER_MODE:
          rv = AAX_TRUE;
          break;
-      case DRIVER_TIMER_MODE:
       case DRIVER_BATCHED_MODE:
       default:
          break;
@@ -1395,7 +1384,6 @@ _aaxPulseAudioDriverThread(void* config)
       {
          res = _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
 
-#if USE_PID
          do
          {
             float target, input, err, P, I;
@@ -1418,7 +1406,6 @@ _aaxPulseAudioDriverThread(void* config)
 # endif
          }
          while (0);
-#endif
 
          if (handle->finished) {
             _aaxSemaphoreRelease(handle->finished);
