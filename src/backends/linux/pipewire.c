@@ -53,24 +53,22 @@
 
 
 #define DEFAULT_RENDERER	"PipeWire"
+#define DEFAULT_DEVNAME		"default"
 #define MAX_ID_STRLEN		96
 
+#define DEFAULT_PERIODS		2
 #define DEFAULT_OUTPUT_RATE	48000
-#define DEFAULT_DEVNAME		"default"
 #define DEFAULT_REFRESH		25.0
 
 #define USE_PIPEWIRE_THREAD	AAX_TRUE
 #define CAPTURE_CALLBACK	AAX_TRUE
-#define FILL_FACTOR		4.0f
 
-#define NO_PERIODS		1
-#define CAPTURE_BUFFER_SIZE	(NO_PERIODS*1024)
-#define MAX_DEVICES_LIST	1024
+#define FILL_FACTOR		4.0f
+#define CAPTURE_BUFFER_SIZE	(DEFAULT_PERIODS*8192)
+#define MAX_DEVICES_LIST	4096
 
 #define _AAX_DRVLOG(a)         _aaxPipeWireDriverLog(id, 0, 0, a)
 
-#define PW_POD_BUFFER_LENGTH         1024
-#define PW_THREAD_NAME_BUFFER_LENGTH 128
 
 _aaxDriverDetect _aaxPipeWireDriverDetect;
 static _aaxDriverNewHandle _aaxPipeWireDriverNewHandle;
@@ -146,20 +144,15 @@ typedef struct
    struct pw_stream *pw;
    struct pw_context *ctx;
    struct pw_thread_loop *ml;
+
+   struct spa_hook listener;
+   struct spa_audio_info_raw spec;
    int stream_init_status;
+   size_t buf_len;
 
-   struct {
-      int32_t rate;
-      uint8_t channels;
-      unsigned int format;
-
-      unsigned int samples;
-      size_t size;
-   } spec;
-
-   int frame_sz;
    char bits_sample;
    unsigned int format;
+   unsigned int period_frames;
    enum aaxRenderMode mode;
    float refresh_rate;
    float latency;
@@ -179,6 +172,14 @@ typedef struct
    unsigned int max_frequency;
    unsigned int min_tracks;
    unsigned int max_tracks;
+
+   struct {
+      float I;
+      float err;
+   } PID;
+   struct {
+      float aim; // in bytes
+   } fill;
 
 } _driver_t;
 
@@ -211,6 +212,7 @@ DECL_FUNCTION(pw_stream_queue_buffer);
 DECL_FUNCTION(pw_stream_get_control);
 DECL_FUNCTION(pw_stream_set_control);
 DECL_FUNCTION(pw_properties_new);
+DECL_FUNCTION(pw_properties_get);
 DECL_FUNCTION(pw_properties_set);
 DECL_FUNCTION(pw_properties_setf);
 DECL_FUNCTION(pw_get_library_version);
@@ -219,9 +221,11 @@ DECL_FUNCTION(pw_get_prgname);
 
 static int hotplug_loop_init();
 static void hotplug_loop_destroy();
+static int spa_audio_info_raw_valid(const struct spa_audio_info_raw*);
 static void _pipewire_detect_devices(char[2][MAX_DEVICES_LIST]);
 static uint32_t _pipewire_get_id_by_name(_driver_t*, const char*);
-static int _pipewire_open(_driver_t*);
+static int _aaxPipeWireAudioStreamConnect(_driver_t*, const char **error);
+static enum aaxFormat _aaxPipeWireGetFormat(unsigned int);
 static float _pipewire_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, uint32_t, unsigned int, float);
 
 static char* _aaxPipeWireDriverLogVar(const void *, const char *, ...);
@@ -229,6 +233,17 @@ static char* _aaxPipeWireDriverLogVar(const void *, const char *, ...);
 static char pipewire_initialized = AAX_FALSE;
 static const char *_const_pipewire_default_name = DEFAULT_DEVNAME;
 const char *_const_pipewire_default_device = NULL;
+
+static const enum spa_audio_channel channel_map[] = {
+  SPA_AUDIO_CHANNEL_FL,
+  SPA_AUDIO_CHANNEL_FR,
+  SPA_AUDIO_CHANNEL_RL,
+  SPA_AUDIO_CHANNEL_RR,
+  SPA_AUDIO_CHANNEL_FC,
+  SPA_AUDIO_CHANNEL_LFE,
+  SPA_AUDIO_CHANNEL_SL,
+  SPA_AUDIO_CHANNEL_SR
+};
 
 int
 _aaxPipeWireDriverDetect(UNUSED(int mode))
@@ -275,6 +290,7 @@ _aaxPipeWireDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(pw_stream_get_control);
          TIE_FUNCTION(pw_stream_set_control);
          TIE_FUNCTION(pw_properties_new);
+         TIE_FUNCTION(pw_properties_get);
          TIE_FUNCTION(pw_properties_set);
          TIE_FUNCTION(pw_properties_setf);
       }
@@ -305,29 +321,31 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
    if (handle)
    {
       int m = (mode == AAX_MODE_READ) ? 1 : 0;
-      int err;
+      int err, frame_sz;
 
       handle->id = PW_ID_ANY;
       handle->driver = (char*)_const_pipewire_default_name;
       handle->mode = mode;
-      handle->format = AAX_FLOAT;
-      handle->bits_sample = aaxGetBitsPerSample(handle->format);
-      handle->spec.rate = 44100;
+
+      handle->bits_sample = 32;
       handle->spec.channels = 2;
-      handle->spec.format = SPA_AUDIO_FORMAT_F32;
-      handle->frame_sz = handle->spec.channels*handle->bits_sample/8;
-      handle->spec.samples = get_pow2(handle->spec.rate/DEFAULT_REFRESH);
-      handle->spec.size = NO_PERIODS*handle->spec.samples*handle->frame_sz;
-      handle->latency = (float)handle->spec.samples/(float)handle->spec.rate;
+      handle->spec.rate = DEFAULT_OUTPUT_RATE;
+      handle->spec.format = SPA_AUDIO_FORMAT_S16;
+      memcpy(handle->spec.position, channel_map, sizeof(channel_map));
+
+      frame_sz = handle->spec.channels*handle->bits_sample/8;
+      handle->period_frames = get_pow2(handle->spec.rate/DEFAULT_REFRESH);
+      handle->fill.aim = FILL_FACTOR*handle->period_frames/handle->spec.rate;
+      handle->latency = (float)handle->fill.aim/(float)frame_sz;
+
+      if (!m) {
+         handle->mutex = _aaxMutexCreate(handle->mutex);
+      }
 
       handle->volumeInit = 1.0f;
       handle->volumeCur  = 1.0f;
       handle->volumeMin = 0.0f;
       handle->volumeMax = 1.0f;
-
-      if (!m) {
-         handle->mutex = _aaxMutexCreate(handle->mutex);
-      }
 
       handle->min_tracks = 1;
       handle->max_tracks = _AAX_MAX_SPEAKERS;
@@ -406,12 +424,12 @@ _aaxPipeWireDriverConnect(void *config, const void *id, void *xid, const char *r
          {
             if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
             {
-               _AAX_SYSLOG("pulse; frequency too small.");
+               _AAX_SYSLOG("pipewire; frequency too small.");
                f = (float)_AAX_MIN_MIXER_FREQUENCY;
             }
             else if (f > (float)_AAX_MAX_MIXER_FREQUENCY)
             {
-               _AAX_SYSLOG("pulse; frequency too large.");
+               _AAX_SYSLOG("pipewire; frequency too large.");
                f = (float)_AAX_MAX_MIXER_FREQUENCY;
             }
             handle->spec.rate = f;
@@ -424,12 +442,12 @@ _aaxPipeWireDriverConnect(void *config, const void *id, void *xid, const char *r
             {
                if (i < 1)
                {
-                  _AAX_SYSLOG("pulse; no. tracks too small.");
+                  _AAX_SYSLOG("pipewire; no. tracks too small.");
                   i = 1;
                }
                else if (i > _AAX_MAX_SPEAKERS)
                {
-                  _AAX_SYSLOG("pulse; no. tracks too great.");
+                  _AAX_SYSLOG("pipewire; no. tracks too great.");
                   i = _AAX_MAX_SPEAKERS;
                }
                handle->spec.channels = i;
@@ -441,7 +459,7 @@ _aaxPipeWireDriverConnect(void *config, const void *id, void *xid, const char *r
          {
             if (i != 16)
             {
-               _AAX_SYSLOG("pulse; unsopported bits-per-sample");
+               _AAX_SYSLOG("pipewire; unsopported bits-per-sample");
                i = 16;
             }
          }
@@ -494,16 +512,17 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int period_samples;
-   int32_t rate;
-   uint8_t channels;
+   struct spa_audio_info_raw req;
+   int samples, frame_sz;
    int rv = AAX_FALSE;
 
    *fmt = AAX_PCM16S;
 
-   rate = (unsigned int)*speed;
-   channels = *tracks;
-   if (channels > handle->spec.channels) {
-      channels = handle->spec.channels;
+   req = handle->spec;
+   req.rate = (unsigned int)*speed;
+   req.channels = *tracks;
+   if (req.channels > handle->spec.channels) {
+      req.channels = handle->spec.channels;
    }
 
    if (*refresh_rate > 100) {
@@ -511,60 +530,86 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
    }
 
    if (!registered) {
-      period_samples = get_pow2((size_t)rintf(rate/(*refresh_rate)));
+      period_samples = get_pow2(req.rate/(*refresh_rate));
    } else {
-      period_samples = get_pow2((size_t)rintf(rate/period_rate));
+      period_samples = get_pow2(req.rate/period_rate);
    }
-   handle->frame_sz = channels*handle->bits_sample/8;
+   req.format = SPA_AUDIO_FORMAT_S16;
+   frame_sz = req.channels*handle->bits_sample/8;
+   samples = period_samples*frame_sz;
 
-   handle->spec.rate = rate;
-   handle->spec.channels = channels;
-   handle->spec.samples = NO_PERIODS*period_samples;
-   handle->spec.size = NO_PERIODS*period_samples*handle->frame_sz;
-
-   handle->id = _pipewire_get_id_by_name(handle, handle->driver);
-   if (_pipewire_open(handle))
+   if (spa_audio_info_raw_valid(&req))
    {
-      const struct pw_stream_control *pw;
+      const char *error;
 
-      handle->spec.samples = NO_PERIODS*period_samples;
-      handle->spec.size = NO_PERIODS*period_samples*handle->frame_sz;
+      handle->spec = req;
+      handle->period_frames = samples;
 
-      handle->cvt_to_intl = _batch_cvtps_intl_24;
-      handle->cvt_from_intl = _batch_cvt24_ps_intl;
+      handle->id = _pipewire_get_id_by_name(handle, handle->driver);
+      _aaxPipeWireAudioStreamConnect(handle, &error);
+      if (!handle->pw || error) {
+         _aaxPipeWireDriverLogVar(id, "connect: %s", error);
+      }
 
-#if 0
- printf("spec:\n");
- printf("   frequency: %i\n", handle->spec.rate);
- printf("     samples: %i\n", handle->spec.samples);
- printf("      format: %x\n", handle->format);
- printf("    channels: %i\n", handle->spec.channels);
- printf(" bits/sample: %i\n", handle->bits_sample);
- printf("  frame size: %i\n", handle->frame_sz);
-#endif
+      handle->format = _aaxPipeWireGetFormat(handle->spec.format);
+      switch(handle->format & AAX_FORMAT_NATIVE)
+      {
+      case AAX_PCM16S:
+         handle->cvt_to_intl = _batch_cvt16_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_16_intl;
+         break;
+      case AAX_FLOAT:
+         handle->cvt_to_intl = _batch_cvtps_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_ps_intl;
+         break;
+      case AAX_PCM32S:
+         handle->cvt_to_intl = _batch_cvt24_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_24_intl;
+         break;
+      case AAX_PCM24S:
+         handle->cvt_to_intl = _batch_cvt32_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_32_intl;
+         break;
+      case AAX_PCM24S_PACKED:
+         handle->cvt_to_intl = _batch_cvt24_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_24_intl;
+         break;
+      case AAX_PCM8S:
+         handle->cvt_to_intl = _batch_cvt8_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_8_intl;
+         break;
+      default:
+         rv = AAX_FALSE;
+         break;
+      }
 
+      handle->bits_sample = aaxGetBitsPerSample(handle->format);
+      frame_sz = handle->spec.channels*handle->bits_sample/8;
+      handle->period_frames = period_samples;
+
+      *fmt = handle->format;
       *speed = handle->spec.rate;
       *tracks = handle->spec.channels;
       if (!registered) {
-         *refresh_rate = handle->spec.rate/(float)handle->spec.samples;
+         *refresh_rate = handle->spec.rate/(float)handle->period_frames;
       } else {
          *refresh_rate = period_rate;
       }
       handle->refresh_rate = *refresh_rate;
-      handle->latency = (float)handle->spec.samples/(float)handle->spec.rate;
+
+      handle->fill.aim = FILL_FACTOR*frame_sz*handle->period_frames/handle->spec.rate;
+      handle->latency = (float)handle->fill.aim/(float)frame_sz;
+
+#if 0
+ printf("spec:\n");
+ printf("   frequency: %i\n", handle->spec.rate);
+ printf("   format:    %x\n", handle->format);
+ printf("   channels:  %i\n", handle->spec.channels);
+ printf("   samples:   %i\n", handle->period_frames);
+#endif
 
       handle->render = _aaxSoftwareInitRenderer(handle->latency,
                                                 handle->mode, registered);
-
-      // PipeWire uses linear volumes: 0.0 silence, 1.0 normal
-      pw = ppw_stream_get_control(handle->pw, SPA_PROP_volume);
-      handle->volumeCur = handle->volumeInit = pw->values[0];
-      handle->volumeMin = pw->min;
-      handle->volumeMax = pw->max;
-#if 0
- printf("%s: curr: %3.2f, min: %3.2f, max: %3.2f, step: %3.f\n", pw->name,
-   handle->volumeCur, handle->volumeMin, handle->volumeMax, handle->volumeStep);
-#endif
 
       if (handle->render)
       {
@@ -597,9 +642,9 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       _AAX_SYSLOG(str);
       snprintf(str,255, "  playback rate: %5i hz", handle->spec.rate);
       _AAX_SYSLOG(str);
-      snprintf(str,255, "  buffer size: %lu bytes", handle->spec.size);
+      snprintf(str,255, "  buffer size: %i bytes", handle->period_frames*handle->spec.channels*handle->bits_sample/8);
       _AAX_SYSLOG(str);
-      snprintf(str,255, "  latency: %3.2f ms",  1e3f*handle->latency);
+      snprintf(str,255, "  latency: %3.2f ms", 1e3f*handle->latency);
       _AAX_SYSLOG(str);
       snprintf(str,255,"  timer based: yes");
       _AAX_SYSLOG(str);
@@ -614,7 +659,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
  }
  printf("  device: '%s'\n", handle->devname);
  printf("  playback rate: %5i Hz\n", handle->spec.rate);
- printf("  buffer size: %u bytes\n", handle-spec.size);
+ printf("  buffer size: %lu bytes\n", handle->buf_len);
  printf("  latency:  %5.2f ms\n", 1e3f*handle->latency);
  printf("  timer based: yes\n");
  printf("  channels: %i, bytes/sample: %i\n", handle->spec.channels, handle->bits_sample/8);
@@ -638,7 +683,7 @@ _aaxPipeWireDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSE
    _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs, period_frames;
-   unsigned int no_tracks;
+   unsigned int no_tracks, frame_sz;
    const int32_t **sbuf;
    size_t size, free;
    int rv = 0;
@@ -653,18 +698,19 @@ _aaxPipeWireDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSE
 
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
    period_frames = rb->get_parami(rb, RB_NO_SAMPLES);
+   frame_sz = no_tracks*handle->bits_sample/8;
 
-   size = period_frames*handle->frame_sz;
+   size = period_frames*frame_sz;
    if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < 8*size))
    {
       _aaxDataDestroy(handle->dataBuffer);
-      handle->dataBuffer = _aaxDataCreate(NO_PERIODS*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
+      handle->dataBuffer = _aaxDataCreate(DEFAULT_PERIODS*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
       if (handle->dataBuffer == 0) return -1;
    }
 
    offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
    period_frames -= offs;
-   size = period_frames*handle->frame_sz;
+   size = period_frames*frame_sz;
 
    free = _aaxDataGetFreeSpace(handle->dataBuffer);
    if (free > size)
@@ -793,8 +839,10 @@ _aaxPipeWireDriverParam(const void *id, enum _aaxDriverParam param)
          rv = (float)handle->max_tracks;
          break;
       case DRIVER_MIN_PERIODS:
+         rv = 1;
+         break;
       case DRIVER_MAX_PERIODS:
-         rv = NO_PERIODS;
+         rv = 4;
          break;
       case DRIVER_MAX_SOURCES:
          rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
@@ -803,7 +851,7 @@ _aaxPipeWireDriverParam(const void *id, enum _aaxDriverParam param)
          rv = AAX_FPINFINITE;
          break;
       case DRIVER_SAMPLE_DELAY:
-         rv = (float)handle->spec.samples;
+         rv = (float)handle->period_frames;
          break;
 
 		/* boolean */
@@ -887,7 +935,7 @@ _pipewire_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, uint
    float gain = fabsf(volume);
    float hwgain;
 
-   hwgain = _MINMAX(fabsf(gain), handle->volumeMin, handle->volumeMax);
+   hwgain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
 
    /*
     * Slowly adjust volume to dampen volume slider movement.
@@ -927,6 +975,9 @@ _pipewire_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, uint
 }
 
 /* ----------------------------------------------------------------------- */
+#define PW_POD_BUFFER_LENGTH		1024
+#define PW_THREAD_NAME_BUFFER_LENGTH	128
+
 static struct pw_core *hotplug_core = NULL;
 static struct pw_thread_loop *hotplug_loop = NULL;
 static struct pw_context *hotplug_context = NULL;
@@ -980,6 +1031,69 @@ struct io_node
 
    char name[];
 };
+
+
+static int
+spa_sample_format_valid(unsigned format)
+{
+   int rv = AAX_FALSE;
+   switch(format)
+   {
+   case SPA_AUDIO_FORMAT_ALAW:
+   case SPA_AUDIO_FORMAT_ULAW:
+   case SPA_AUDIO_FORMAT_S8:
+   case SPA_AUDIO_FORMAT_U8:
+   case SPA_AUDIO_FORMAT_S16_LE:
+   case SPA_AUDIO_FORMAT_S16_BE:
+   case SPA_AUDIO_FORMAT_U16_LE:
+   case SPA_AUDIO_FORMAT_U16_BE:
+   case SPA_AUDIO_FORMAT_S24_32_LE:
+   case SPA_AUDIO_FORMAT_S24_32_BE:
+   case SPA_AUDIO_FORMAT_S32_LE:
+   case SPA_AUDIO_FORMAT_S32_BE:
+   case SPA_AUDIO_FORMAT_U32_LE:
+   case SPA_AUDIO_FORMAT_U32_BE:
+   case SPA_AUDIO_FORMAT_S24_LE:
+   case SPA_AUDIO_FORMAT_S24_BE:
+   case SPA_AUDIO_FORMAT_U24_LE:
+   case SPA_AUDIO_FORMAT_U24_BE:
+   case SPA_AUDIO_FORMAT_F32_LE:
+   case SPA_AUDIO_FORMAT_F32_BE:
+   case SPA_AUDIO_FORMAT_F64_LE:
+   case SPA_AUDIO_FORMAT_F64_BE:
+      rv = AAX_TRUE;
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
+static int
+spa_sample_rate_valid(uint32_t rate)
+{
+  return rate > 0 && rate <= _AAX_MAX_MIXER_FREQUENCY;
+}
+
+static int
+spa_channels_valid(uint8_t channels)
+{
+  return channels > 0 && channels <= _AAX_MAX_SPEAKERS;
+}
+
+static int
+spa_audio_info_raw_valid(const struct spa_audio_info_raw *spec)
+{
+   assert(spec);
+
+   if (!spa_sample_rate_valid(spec->rate) ||
+       !spa_channels_valid(spec->channels) ||
+       !spa_sample_format_valid(spec->format))
+      return 0;
+
+   return 1;
+}
+
 
 /* Helpers for retrieving values from params */
 static char
@@ -1407,7 +1521,7 @@ registry_event_global_callback(void *object, uint32_t id, uint32_t permissions, 
             /* Begin setting the node properties */
             io->id = id;
             io->is_capture = is_capture;
-            io->spec.format = SPA_AUDIO_FORMAT_F32;
+            io->spec.format = SPA_AUDIO_FORMAT_S16;
             strncpy(io->name, node_desc, str_buffer_len);
 
             /* Update sync points */
@@ -1618,10 +1732,7 @@ stream_playback_cb(void *be_ptr)
       _driver_t *be_handle = (_driver_t *)be_ptr;
       _handle_t *handle = (_handle_t *)be_handle->handle;
 
-      int rv = AAX_FALSE;
-
       assert(be_handle->mode != AAX_MODE_READ);
-      assert(be_handle->dataBuffer);
 
       if (_IS_PLAYING(handle))
       {
@@ -1638,31 +1749,33 @@ stream_playback_cb(void *be_ptr)
                   struct spa_buffer *spa_buf = pw_buf->buffer;
                   if (spa_buf)
                   {
+                     int frame_sz;
                      uint64_t len;
+
+                     frame_sz = be_handle->spec.channels*be_handle->bits_sample/8;
 
                      // copy audio data from handle->dataBuffer to PipeWire
                      _aaxMutexLock(be_handle->mutex);
 
                      len = _aaxDataMove(buf, spa_buf->datas[0].data,
-                                             be_handle->spec.size);
+                                             be_handle->period_frames*frame_sz);
 
                      _aaxMutexUnLock(be_handle->mutex);
 
                      spa_buf->datas[0].chunk->offset = 0;
                      spa_buf->datas[0].chunk->size = len;
-                     spa_buf->datas[0].chunk->stride = be_handle->frame_sz;
+                     spa_buf->datas[0].chunk->stride = frame_sz;
                   }
-                  rv = AAX_TRUE;
+
+                  ppw_stream_queue_buffer(be_handle->pw, pw_buf);
                }
-               ppw_stream_queue_buffer(be_handle->pw, pw_buf);
             }
-            else rv = AAX_TRUE;
          }
       }
 
-      if (rv) {
-         _aaxSignalTrigger(&handle->thread.signal);
-      }
+//    if (handle->thread.signal.mutex) {
+//       _aaxSignalTrigger(&handle->thread.signal);
+//    }
    }
 }
 
@@ -1705,15 +1818,18 @@ stream_add_buffer_cb(void *be_ptr, struct pw_buffer *buffer)
       _driver_t *be_handle = (_driver_t *)be_ptr;
       if (be_handle->mode != AAX_MODE_READ)
       {
+         size_t buf_len;
+         int frame_sz;
+
          /*
           * Clamp the output spec samples and size to the max size of the PipeWire
           * buffer. If they exceed the maximum size of the PipeWire buffer, double
           * buffering will be used.
           */
-         if (be_handle->spec.size > buffer->buffer->datas[0].maxsize)
-         {
-            be_handle->spec.samples = buffer->buffer->datas[0].maxsize/be_handle->frame_sz;
-            be_handle->spec.size = buffer->buffer->datas[0].maxsize;
+         frame_sz = be_handle->spec.channels*be_handle->bits_sample/8;
+         buf_len = be_handle->period_frames*frame_sz;
+         if (buf_len > buffer->buffer->datas[0].maxsize) {
+            be_handle->period_frames = buffer->buffer->datas[0].maxsize/frame_sz;
          }
 #if 0
       } else if (this->hidden->buffer == NULL) {
@@ -1725,13 +1841,39 @@ stream_add_buffer_cb(void *be_ptr, struct pw_buffer *buffer)
            *
            * A packet size of 2 periods should be more than is ever needed.
            */
-         this->hidden->input_buffer_packet_size = SPA_MAX(this->spec.size, buffer->buffer->datas[0].maxsize) * 2;
+         this->hidden->input_buffer_packet_size = SPA_MAX(this->buf_len, buffer->buffer->datas[0].maxsize) * 2;
          this->hidden->buffer                   = SDL_NewDataQueue(this->hidden->input_buffer_packet_size, this->hidden->input_buffer_packet_size);
 #endif
       }
 
       be_handle->stream_init_status |= PW_READY_FLAG_BUFFER_ADDED;
       ppw_thread_loop_signal(be_handle->ml, false);
+   }
+}
+
+static void
+stream_control_cb(void *be_ptr, uint32_t control, const struct pw_stream_control *pw)
+{
+   if (be_ptr)
+   {
+      _driver_t *be_handle = (_driver_t *)be_ptr;
+
+      switch (control)
+      {
+      case SPA_PROP_volume:
+         be_handle->hwgain = be_handle->volumeCur = pw->values[0];
+         be_handle->volumeMin = pw->min;
+         be_handle->volumeMax = pw->max;
+         break;
+      case SPA_PROP_mute:
+      case SPA_PROP_channelVolumes:
+      case SPA_PROP_monitorMute:
+      case SPA_PROP_monitorVolumes:
+      case SPA_PROP_softMute:
+      case SPA_PROP_softVolumes:
+      default:
+         break;
+      }
    }
 }
 
@@ -1762,6 +1904,7 @@ stream_state_cb(void *be_ptr, enum pw_stream_state old, enum pw_stream_state sta
 static const struct pw_stream_events stream_output_events =
 {
   PW_VERSION_STREAM_EVENTS,
+  .control_info = stream_control_cb,
   .state_changed = stream_state_cb,
   .add_buffer = stream_add_buffer_cb,
   .process = stream_playback_cb
@@ -1769,6 +1912,7 @@ static const struct pw_stream_events stream_output_events =
 static const struct pw_stream_events stream_input_events =
 {
   PW_VERSION_STREAM_EVENTS,
+  .control_info = stream_control_cb,
   .state_changed = stream_state_cb,
   .add_buffer = stream_add_buffer_cb,
   .process = stream_capture_cb
@@ -1799,63 +1943,9 @@ _pipewire_get_id_by_name(_driver_t *handle, const char *name)
    return rv;
 }
 
-static const enum spa_audio_channel pchannel_map_1[] = {
-  SPA_AUDIO_CHANNEL_MONO
-};
-static const enum spa_audio_channel pchannel_map_2[] = {
-  SPA_AUDIO_CHANNEL_FL,
-  SPA_AUDIO_CHANNEL_FR
-};
-static const enum spa_audio_channel pchannel_map_3[] = {
-  SPA_AUDIO_CHANNEL_FL,
-  SPA_AUDIO_CHANNEL_FR,
-  SPA_AUDIO_CHANNEL_LFE
-};
-static const enum spa_audio_channel pchannel_map_4[] = {
-  SPA_AUDIO_CHANNEL_FL,
-  SPA_AUDIO_CHANNEL_FR,
-  SPA_AUDIO_CHANNEL_RL,
-  SPA_AUDIO_CHANNEL_RR
-};
-static const enum spa_audio_channel pchannel_map_5[] = {
-  SPA_AUDIO_CHANNEL_FL,
-  SPA_AUDIO_CHANNEL_FR,
-  SPA_AUDIO_CHANNEL_FC,
-  SPA_AUDIO_CHANNEL_RL,
-  SPA_AUDIO_CHANNEL_RR
-};
-static const enum spa_audio_channel pchannel_map_6[] = {
-  SPA_AUDIO_CHANNEL_FL,
-  SPA_AUDIO_CHANNEL_FR,
-  SPA_AUDIO_CHANNEL_FC,
-  SPA_AUDIO_CHANNEL_LFE,
-  SPA_AUDIO_CHANNEL_RL,
-  SPA_AUDIO_CHANNEL_RR };
-static const enum spa_audio_channel pchannel_map_7[] = {
-  SPA_AUDIO_CHANNEL_FL,
-  SPA_AUDIO_CHANNEL_FR,
-  SPA_AUDIO_CHANNEL_FC,
-  SPA_AUDIO_CHANNEL_LFE,
-  SPA_AUDIO_CHANNEL_RC,
-  SPA_AUDIO_CHANNEL_RL,
-  SPA_AUDIO_CHANNEL_RR
-};
-static const enum spa_audio_channel pchannel_map_8[] = {
-  SPA_AUDIO_CHANNEL_FL,
-  SPA_AUDIO_CHANNEL_FR,
-  SPA_AUDIO_CHANNEL_FC,
-  SPA_AUDIO_CHANNEL_LFE,
-  SPA_AUDIO_CHANNEL_RL,
-  SPA_AUDIO_CHANNEL_RR,
-  SPA_AUDIO_CHANNEL_SL,
-  SPA_AUDIO_CHANNEL_SR
-};
-
-#define COPY_CHANNEL_MAP(c) memcpy(&spa_info.position, pchannel_map_##c, sizeof(pchannel_map_##c))
 static int
-_pipewire_open(_driver_t *handle)
+_aaxPipeWireAudioStreamConnect(_driver_t *handle, const char **error)
 {
-   void *id = handle;
    char m = (handle->mode == AAX_MODE_READ) ? 1 : 0;
    uint8_t pod_buffer[PW_POD_BUFFER_LENGTH];
    struct spa_pod_builder b = SPA_POD_BUILDER_INIT(pod_buffer, sizeof(pod_buffer));
@@ -1863,35 +1953,9 @@ _pipewire_open(_driver_t *handle)
    const struct spa_pod *params = NULL;
    int rv = AAX_FALSE;
 
-   spa_info.rate = handle->spec.rate;
-   spa_info.channels = handle->spec.channels;
-   switch (handle->spec.channels) {
-   case 1:
-      COPY_CHANNEL_MAP(1);
-      break;
-   case 2:
-      COPY_CHANNEL_MAP(2);
-      break;
-   case 3:
-      COPY_CHANNEL_MAP(3);
-      break;
-   case 4:
-      COPY_CHANNEL_MAP(4);
-      break;
-   case 5:
-      COPY_CHANNEL_MAP(5);
-      break;
-   case 6:
-      COPY_CHANNEL_MAP(6);
-      break;
-   case 7:
-      COPY_CHANNEL_MAP(7);
-      break;
-   case 8:
-      COPY_CHANNEL_MAP(8);
-      break;
-   }
-   spa_info.format = handle->spec.format;
+   *error = NULL;
+
+   spa_info = handle->spec;
    params = spa_format_audio_raw_build(&b, SPA_PARAM_EnumFormat, &spa_info);
    if (params)
    {
@@ -1933,8 +1997,9 @@ _pipewire_open(_driver_t *handle)
       props = ppw_properties_new(NULL, NULL);
       if (props)
       {
-         const char *name = AAX_LIBRARY_STR;
-         const char *stream_role = "Game";
+         const char *app_name = AAX_LIBRARY_STR;
+         const char *role = (handle->latency < 0.010f) ? "Music" : "Game";
+         const char *category = m ? "Capture" : "Playback";
          const char *stream_name = NULL;
 
          if (ppw_get_application_name) {
@@ -1949,12 +2014,12 @@ _pipewire_open(_driver_t *handle)
 
 
          ppw_properties_set(props, PW_KEY_MEDIA_TYPE, "Audio");
-         ppw_properties_set(props, PW_KEY_MEDIA_CATEGORY, m ? "Capture" : "Playback");
-         ppw_properties_set(props, PW_KEY_MEDIA_ROLE, stream_role);
-         ppw_properties_set(props, PW_KEY_APP_NAME, name);
+         ppw_properties_set(props, PW_KEY_MEDIA_CATEGORY, category);
+         ppw_properties_set(props, PW_KEY_MEDIA_ROLE, role);
+         ppw_properties_set(props, PW_KEY_APP_NAME, app_name);
          ppw_properties_set(props, PW_KEY_NODE_NAME, stream_name);
          ppw_properties_set(props, PW_KEY_NODE_DESCRIPTION, stream_name);
-         ppw_properties_setf(props, PW_KEY_NODE_LATENCY, "%u/%i", handle->spec.samples, handle->spec.rate);
+         ppw_properties_setf(props, PW_KEY_NODE_LATENCY, "%u/%i", handle->period_frames, handle->spec.rate);
          ppw_properties_setf(props, PW_KEY_NODE_RATE, "1/%u", handle->spec.rate);
          ppw_properties_set(props, PW_KEY_NODE_ALWAYS_PROCESS, "true");
 
@@ -1986,8 +2051,6 @@ _pipewire_open(_driver_t *handle)
                res = ppw_thread_loop_start(handle->ml);
                if (res == 0)
                {
-                  const char *error;
-
                   ppw_thread_loop_lock(handle->ml);
                   while (handle->stream_init_status != PW_READY_FLAG_ALL_BITS &&
                          ppw_stream_get_state(handle->pw, NULL) != PW_STREAM_STATE_ERROR)
@@ -1996,33 +2059,113 @@ _pipewire_open(_driver_t *handle)
                   }
                   ppw_thread_loop_unlock(handle->ml);
 
-                  if (ppw_stream_get_state(handle->pw, &error) == PW_STREAM_STATE_ERROR) {
-                     _aaxPipeWireDriverLogVar(handle, "PipeWire: hotplug loop error: %s", error);
-                  } else {
+                  if (ppw_stream_get_state(handle->pw, error) != PW_STREAM_STATE_ERROR)
+                  {
                      rv = AAX_TRUE;
                   }
                }
                else {
-                  _AAX_DRVLOG("PipeWire: Failed to start stream loop");
+                  *error = "PipeWire: Failed to start stream loop";
                }
             }
             else {
-               _AAX_DRVLOG("PipeWire: Failed to connect stream");
+               *error = "PipeWire: Failed to connect stream";
             }
          }
       }
    }
 
    if (!params) {
-      _AAX_DRVLOG("incompatible hardware configuration");
+      *error = "incompatible hardware configuration";
    } else if (!handle->ml) {
-      _AAX_DRVLOG("failed to create a stream loop");
+      *error = "failed to create a stream loop";
    } else if (!handle->ctx) {
-      _AAX_DRVLOG("failed to create a stream context");
+      *error = "failed to create a stream context";
    } else if (!handle->pw) {
-      _AAX_DRVLOG("failed to create a stream");
+      *error = "failed to create a stream";
    }
 
+   return rv;
+}
+
+static enum aaxFormat
+_aaxPipeWireGetFormat(unsigned int format)
+{
+   enum aaxFormat rv = AAX_PCM16S;
+   switch(format)
+   {
+   case SPA_AUDIO_FORMAT_ALAW:
+      rv = AAX_ALAW;
+      break;
+   case SPA_AUDIO_FORMAT_ULAW:
+      rv = AAX_MULAW;
+      break;
+   case SPA_AUDIO_FORMAT_S8:
+      rv = AAX_PCM8S;
+      break;
+   case SPA_AUDIO_FORMAT_U8:
+      rv = AAX_PCM8U;
+      break;
+#if __BYTE_ORDER == __BIG_ENDIAN
+#else
+   case SPA_AUDIO_FORMAT_S16_LE:
+      rv = AAX_PCM16S;
+      break;
+   case SPA_AUDIO_FORMAT_S16_BE:
+      rv = AAX_PCM16S_BE;
+      break;
+   case SPA_AUDIO_FORMAT_U16_LE:
+      rv = AAX_PCM16U;
+      break;
+   case SPA_AUDIO_FORMAT_U16_BE:
+      rv = AAX_PCM16U_BE;
+      break;
+   case SPA_AUDIO_FORMAT_S24_32_LE:
+      rv = AAX_PCM24S;
+      break;
+   case SPA_AUDIO_FORMAT_S24_32_BE:
+      rv = AAX_PCM24S_BE;
+      break;
+   case SPA_AUDIO_FORMAT_U24_32_LE:
+      rv = AAX_PCM24U;
+      break;
+   case SPA_AUDIO_FORMAT_U24_32_BE:
+      rv = AAX_PCM24U_BE;
+      break;
+   case SPA_AUDIO_FORMAT_S32_LE:
+      rv = AAX_PCM32S;
+      break;
+   case SPA_AUDIO_FORMAT_S32_BE:
+      rv = AAX_PCM32S_BE;
+      break;
+   case SPA_AUDIO_FORMAT_U32_LE:
+      rv = AAX_PCM32U;
+      break;
+   case SPA_AUDIO_FORMAT_U32_BE:
+      rv = AAX_PCM32U_BE;
+      break;
+   case SPA_AUDIO_FORMAT_S24_LE:
+      rv = AAX_PCM24S_PACKED;
+      break;
+   case SPA_AUDIO_FORMAT_S24_BE:
+      rv = AAX_PCM24S_PACKED_BE;
+      break;
+   case SPA_AUDIO_FORMAT_F32_LE:
+      rv = AAX_FLOAT;
+      break;
+   case SPA_AUDIO_FORMAT_F32_BE:
+      rv = AAX_FLOAT_BE;
+      break;
+   case SPA_AUDIO_FORMAT_F64_LE:
+      rv = AAX_DOUBLE;
+      break;
+   case SPA_AUDIO_FORMAT_F64_BE:
+      rv = AAX_DOUBLE_BE;
+      break;
+#endif
+   default:
+      break;
+   }
    return rv;
 }
 
@@ -2052,7 +2195,7 @@ _aaxPipeWireDriverThread(void* config)
    delay_sec = 1.0f/handle->info->period_rate;
 
    tracks = 2;
-   freq = 48000.0f;
+   freq = DEFAULT_OUTPUT_RATE;
    smixer = NULL;
    dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, handle->info->mode);
    if (dest_rb)
@@ -2097,6 +2240,8 @@ _aaxPipeWireDriverThread(void* config)
    _aaxMutexLock(handle->thread.signal.mutex);
    do
    {
+      float dt = delay_sec;
+
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
       }
@@ -2116,13 +2261,37 @@ _aaxPipeWireDriverThread(void* config)
       if (_IS_PLAYING(handle))
       {
          res = _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
+
+         do
+         {
+            float target, input, err, P, I;
+
+            target = be_handle->fill.aim;
+            input = (float)_aaxDataGetOffset(be_handle->dataBuffer)/freq;
+            err = input - target;
+
+            /* present error */
+            P = err;
+
+            /*  accumulation of past errors */
+            be_handle->PID.I += err*delay_sec;
+            I = be_handle->PID.I;
+
+            err = 0.40f*P + 0.97f*I;
+            dt = _MINMAX((delay_sec + err), 0.5*delay_sec, 1.25f*delay_sec);
+# if 0
+ printf("target: %8.1f, avail: %8.1f, err: %- 8.1f, delay: %5.4f (%5.4f)\r",
+         target*freq, input*freq, err*freq, dt, delay_sec);
+# endif
+         }
+         while (0);
+
          if (handle->finished) {
             _aaxSemaphoreRelease(handle->finished);
          }
       }
 
-//    res = _aaxSignalWaitTimed(&handle->thread.signal, dt);
-      res = _aaxSignalWait(&handle->thread.signal);
+      res = _aaxSignalWaitTimed(&handle->thread.signal, dt);
    }
    while (res == AAX_TIMEOUT || res == AAX_TRUE);
 

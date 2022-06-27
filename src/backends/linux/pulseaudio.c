@@ -61,18 +61,18 @@
 #include "audio.h"
 
 #define DEFAULT_RENDERER	"PulseAudio"
+#define DEFAULT_DEVNAME		"default"
 #define MAX_ID_STRLEN		96
 
+#define DEFAULT_PERIODS		2
 #define DEFAULT_OUTPUT_RATE	48000
-#define DEFAULT_DEVNAME		"default"
 #define DEFAULT_REFRESH		25.0
 
 #define USE_PULSE_THREAD	AAX_TRUE
 #define CAPTURE_CALLBACK	AAX_TRUE
-#define FILL_FACTOR		4.0f
 
-#define PERIODS			2
-#define CAPTURE_BUFFER_SIZE	(PERIODS*8192)
+#define FILL_FACTOR		4.0f
+#define CAPTURE_BUFFER_SIZE	(DEFAULT_PERIODS*8192)
 #define MAX_DEVICES_LIST	4096
 
 #define _AAX_DRVLOG(a)         _aaxPulseAudioDriverLog(id, 0, 0, a)
@@ -160,7 +160,7 @@ typedef struct
 // char no_periods;
    char bits_sample;
    unsigned int format;
-   unsigned int samples;
+   unsigned int period_frames;
    enum aaxRenderMode mode;
    float refresh_rate;
    float latency;
@@ -182,7 +182,7 @@ typedef struct
       float err;
    } PID;
    struct {
-      float aim;
+      float aim; // in bytes
    } fill;
 
    char descriptions[2][MAX_DEVICES_LIST];
@@ -391,14 +391,16 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
 
       handle->driver = (char*)_const_pulseaudio_default_name;
       handle->mode = mode;
+
       handle->bits_sample = 16;
-      handle->spec.rate = 44100;
       handle->spec.channels = 2;
+      handle->spec.rate = DEFAULT_OUTPUT_RATE;
       handle->spec.format = is_bigendian() ? PA_SAMPLE_S16BE : PA_SAMPLE_S16LE;
-      handle->samples = get_pow2(handle->spec.rate*handle->spec.channels/DEFAULT_REFRESH);
+
 
       frame_sz = handle->spec.channels*handle->bits_sample/8;
-      handle->fill.aim = FILL_FACTOR*handle->samples/handle->spec.rate;
+      handle->period_frames = get_pow2(handle->spec.rate/DEFAULT_REFRESH);
+      handle->fill.aim = FILL_FACTOR*handle->period_frames/handle->spec.rate;
       handle->latency = (float)handle->fill.aim/(float)frame_sz;
 
       if (!m) {
@@ -609,8 +611,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    *fmt = AAX_PCM16S;
 
-   memcpy(&req, &handle->spec, sizeof(pa_sample_spec));
-
+   req = handle->spec;
    req.rate = (unsigned int)*speed;
    req.channels = *tracks;
    if (req.channels > handle->spec.channels) {
@@ -622,9 +623,9 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
    }
 
    if (!registered) {
-      period_samples = get_pow2((size_t)rintf(req.rate/(*refresh_rate)));
+      period_samples = get_pow2(req.rate/(*refresh_rate));
    } else {
-      period_samples = get_pow2((size_t)rintf(req.rate/period_rate));
+      period_samples = get_pow2(req.rate/period_rate);
    }
    req.format = is_bigendian() ? PA_SAMPLE_S16BE : PA_SAMPLE_S16LE;
    frame_sz = req.channels*handle->bits_sample/8;
@@ -635,8 +636,8 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
       pa_stream_flags_t flags;
       int error;
 
-      handle->samples = samples;
-      memcpy(&handle->spec, &req, sizeof(pa_sample_spec));
+      handle->spec = req;
+      handle->period_frames = samples;
 
       flags = PA_STREAM_FIX_FORMAT | PA_STREAM_FIX_RATE |
               PA_STREAM_FIX_CHANNELS | PA_STREAM_DONT_MOVE |
@@ -650,11 +651,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
          _aaxPulseAudioDriverLogVar(id, "connect: %s", ppa_strerror(error));
       }
 
-      frame_sz = handle->spec.channels*handle->bits_sample/8;
-      handle->samples = period_samples*frame_sz;
       handle->format = _aaxPulseAudioGetFormat(handle->spec.format);
-      handle->bits_sample = aaxGetBitsPerSample(handle->format);
-
       switch(handle->format & AAX_FORMAT_NATIVE)
       {
       case AAX_PCM16S:
@@ -685,26 +682,31 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
          rv = AAX_FALSE;
          break;
       }
-#if 0
- printf("spec:\n");
- printf("   frequency: %i\n", handle->spec.rate);
- printf("   format:    %x\n", handle->format);
- printf("   channels:  %i\n", handle->spec.channels);
- printf("   samples:   %i\n", handle->samples);
-#endif
 
+      handle->bits_sample = aaxGetBitsPerSample(handle->format);
+      frame_sz = handle->spec.channels*handle->bits_sample/8;
+      handle->period_frames = period_samples;
+
+      *fmt = handle->format;
       *speed = handle->spec.rate;
       *tracks = handle->spec.channels;
       if (!registered) {
-         *refresh_rate = handle->spec.rate*frame_sz/(float)handle->samples;
+         *refresh_rate = handle->spec.rate/(float)handle->period_frames;
       } else {
          *refresh_rate = period_rate;
       }
       handle->refresh_rate = *refresh_rate;
 
-      handle->fill.aim = FILL_FACTOR*handle->samples/handle->spec.rate;
+      handle->fill.aim = FILL_FACTOR*frame_sz*handle->period_frames/handle->spec.rate;
       handle->latency = (float)handle->fill.aim/(float)frame_sz;
-      handle->latency *= handle->spec.channels/2;
+
+#if 0
+ printf("spec:\n");
+ printf("   frequency: %i\n", handle->spec.rate);
+ printf("   format:    %x\n", handle->format);
+ printf("   channels:  %i\n", handle->spec.channels);
+ printf("   samples:   %i\n", handle->period_frames);
+#endif
 
       handle->render = _aaxSoftwareInitRenderer(handle->latency,
                                                 handle->mode, registered);
@@ -740,7 +742,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
       _AAX_SYSLOG(str);
       snprintf(str,255, "  playback rate: %5i hz", handle->spec.rate);
       _AAX_SYSLOG(str);
-      snprintf(str,255, "  buffer size: %i bytes", handle->samples*handle->bits_sample/8);
+      snprintf(str,255, "  buffer size: %i bytes", handle->period_frames*handle->spec.channels*handle->bits_sample/8);
       _AAX_SYSLOG(str);
       snprintf(str,255, "  latency: %3.2f ms",  1e3f*handle->latency);
       _AAX_SYSLOG(str);
@@ -757,7 +759,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
  }
  printf("  device: '%s'\n", handle->devname);
  printf("  playback rate: %5i Hz\n", handle->spec.rate);
- printf("  buffer size: %u bytes\n", handle->samples*handle->bits_sample/8);
+ printf("  buffer size: %u bytes\n", handle->period_frames*handle->bits_sample/8);
  printf("  latency:  %5.2f ms\n", 1e3f*handle->latency);
  printf("  timer based: yes\n");
  printf("  channels: %i, bytes/sample: %i\n", handle->spec.channels, handle->bits_sample/8);
@@ -792,7 +794,7 @@ _aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t
       const pa_buffer_attr *a;
 
       a = ppa_stream_get_buffer_attr(handle->pa);
-      if (a) size = PERIODS*a->maxlength;
+      if (a) size = DEFAULT_PERIODS*a->maxlength;
 
       handle->dataBuffer = _aaxDataCreate(size, 1);
       if (handle->dataBuffer == 0) return AAX_FALSE;
@@ -896,7 +898,7 @@ _aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNU
    if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < 8*size))
    {
       _aaxDataDestroy(handle->dataBuffer);
-      handle->dataBuffer = _aaxDataCreate(PERIODS*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
+      handle->dataBuffer = _aaxDataCreate(DEFAULT_PERIODS*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
       if (handle->dataBuffer == 0) return -1;
 
       ppa_stream_set_write_callback(handle->pa, stream_playback_cb, handle);
@@ -1059,7 +1061,7 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
          rv = AAX_FPINFINITE;
          break;
       case DRIVER_SAMPLE_DELAY:
-         rv = (float)handle->samples/handle->spec.channels;
+         rv = (float)handle->period_frames/handle->spec.channels;
          break;
 
 		/* boolean */
@@ -1827,13 +1829,13 @@ _aaxPulseAudioStreamConnect(_driver_t *handle, pa_stream_flags_t flags, int *err
       ppa_stream_set_state_callback(pa, stream_state_cb, handle);
       ppa_stream_set_latency_update_callback(pa, stream_latency_update_cb, handle);
 
-      buflen = handle->samples*handle->bits_sample/8;
+      buflen = handle->period_frames*handle->bits_sample/8;
 
       attr.fragsize = buflen;		// recording only
-      attr.maxlength = 2*PERIODS*buflen;
+      attr.maxlength = 2*DEFAULT_PERIODS*buflen;
       attr.minreq = (uint32_t)-1;
       attr.prebuf = 0;			// playback only
-      attr.tlength = PERIODS*buflen;	// playback only
+      attr.tlength = DEFAULT_PERIODS*buflen;	// playback only
       flags |= PA_STREAM_ADJUST_LATENCY;
 
       name = detect_name(handle);
