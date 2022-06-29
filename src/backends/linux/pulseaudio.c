@@ -392,16 +392,17 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
       handle->driver = (char*)_const_pulseaudio_default_name;
       handle->mode = mode;
 
-      handle->bits_sample = 16;
       handle->spec.channels = 2;
       handle->spec.rate = DEFAULT_OUTPUT_RATE;
       handle->spec.format = is_bigendian() ? PA_SAMPLE_S16BE : PA_SAMPLE_S16LE;
 
+      handle->format = _aaxPulseAudioGetFormat(handle->spec.format);
+      handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
       frame_sz = handle->spec.channels*handle->bits_sample/8;
       handle->period_frames = get_pow2(handle->spec.rate/DEFAULT_REFRESH);
       handle->fill.aim = FILL_FACTOR*handle->period_frames/handle->spec.rate;
-      handle->latency = (float)handle->fill.aim/(float)frame_sz;
+      handle->latency = handle->fill.aim/frame_sz;
 
       if (!m) {
          handle->mutex = _aaxMutexCreate(handle->mutex);
@@ -623,6 +624,8 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
    }
 
    if (!registered) {
+
+
       period_samples = get_pow2(req.rate/(*refresh_rate));
    } else {
       period_samples = get_pow2(req.rate/period_rate);
@@ -698,7 +701,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
       handle->refresh_rate = *refresh_rate;
 
       handle->fill.aim = FILL_FACTOR*frame_sz*handle->period_frames/handle->spec.rate;
-      handle->latency = (float)handle->fill.aim/(float)frame_sz;
+      handle->latency = handle->fill.aim/frame_sz;
 
 #if 0
  printf("spec:\n");
@@ -916,13 +919,14 @@ _aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNU
       _pulseaudio_set_volume(handle, rb, offs, period_frames, no_tracks, gain);
 
       _aaxMutexLock(handle->mutex);
+
       data = _aaxDataGetPtr(handle->dataBuffer);
       sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
-//    _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, period_frames);
       handle->cvt_to_intl(data, sbuf, offs, no_tracks, period_frames);
       rb->release_tracks_ptr(rb);
 
       _aaxDataIncreaseOffset(handle->dataBuffer, size);
+
       _aaxMutexUnLock(handle->mutex);
 
       rv = period_frames;

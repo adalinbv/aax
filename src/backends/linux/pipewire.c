@@ -206,6 +206,7 @@ DECL_FUNCTION(pw_core_disconnect);
 DECL_FUNCTION(pw_stream_new_simple);
 DECL_FUNCTION(pw_stream_destroy);
 DECL_FUNCTION(pw_stream_connect);
+DECL_FUNCTION(pw_stream_set_active);
 DECL_FUNCTION(pw_stream_get_state);
 DECL_FUNCTION(pw_stream_dequeue_buffer);
 DECL_FUNCTION(pw_stream_queue_buffer);
@@ -219,16 +220,17 @@ DECL_FUNCTION(pw_get_library_version);
 DECL_FUNCTION(pw_get_application_name);
 DECL_FUNCTION(pw_get_prgname);
 
-static int hotplug_loop_init();
-static void hotplug_loop_destroy();
-static int spa_audio_info_raw_valid(const struct spa_audio_info_raw*);
-static void _pipewire_detect_devices(char[2][MAX_DEVICES_LIST]);
-static uint32_t _pipewire_get_id_by_name(_driver_t*, const char*);
-static int _aaxPipeWireAudioStreamConnect(_driver_t*, const char **error);
-static enum aaxFormat _aaxPipeWireGetFormat(unsigned int);
+static int _aaxPipeWireAudioStreamConnect(_driver_t*, enum pw_stream_flags, const char **error);
 static float _pipewire_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, uint32_t, unsigned int, float);
+static uint32_t _pipewire_get_id_by_name(_driver_t*, const char*);
+static void _pipewire_detect_devices(char[2][MAX_DEVICES_LIST]);
 
 static char* _aaxPipeWireDriverLogVar(const void *, const char *, ...);
+static enum aaxFormat _aaxPipeWireGetFormat(unsigned int);
+
+static int spa_audio_info_raw_valid(const struct spa_audio_info_raw*);
+static void hotplug_loop_destroy();
+static int hotplug_loop_init();
 
 static char pipewire_initialized = AAX_FALSE;
 static const char *_const_pipewire_default_name = DEFAULT_DEVNAME;
@@ -284,6 +286,7 @@ _aaxPipeWireDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(pw_core_disconnect);
          TIE_FUNCTION(pw_stream_destroy);
          TIE_FUNCTION(pw_stream_connect);
+         TIE_FUNCTION(pw_stream_set_active);
          TIE_FUNCTION(pw_stream_get_state);
          TIE_FUNCTION(pw_stream_dequeue_buffer);
          TIE_FUNCTION(pw_stream_queue_buffer);
@@ -321,29 +324,30 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
    if (handle)
    {
       int m = (mode == AAX_MODE_READ) ? 1 : 0;
-      int err, frame_sz;
+      int frame_sz;
 
       handle->id = PW_ID_ANY;
       handle->driver = (char*)_const_pipewire_default_name;
       handle->mode = mode;
 
-      handle->bits_sample = 32;
       handle->spec.channels = 2;
       handle->spec.rate = DEFAULT_OUTPUT_RATE;
       handle->spec.format = SPA_AUDIO_FORMAT_S16;
       memcpy(handle->spec.position, channel_map, sizeof(channel_map));
 
+      handle->format = _aaxPipeWireGetFormat(handle->spec.format);
+      handle->bits_sample = aaxGetBitsPerSample(handle->format);
+
       frame_sz = handle->spec.channels*handle->bits_sample/8;
       handle->period_frames = get_pow2(handle->spec.rate/DEFAULT_REFRESH);
       handle->fill.aim = FILL_FACTOR*handle->period_frames/handle->spec.rate;
-      handle->latency = (float)handle->fill.aim/(float)frame_sz;
+      handle->latency = handle->fill.aim/frame_sz;
 
       if (!m) {
          handle->mutex = _aaxMutexCreate(handle->mutex);
       }
 
-      handle->volumeInit = 1.0f;
-      handle->volumeCur  = 1.0f;
+      handle->volumeInit = handle->volumeCur  = 1.0f;
       handle->volumeMin = 0.0f;
       handle->volumeMax = 1.0f;
 
@@ -354,6 +358,8 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
 
       if (!pipewire_initialized)
       {
+         int err;
+
          ppw_init(NULL, NULL);
          pipewire_initialized = AAX_TRUE;
 
@@ -534,19 +540,27 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
    } else {
       period_samples = get_pow2(req.rate/period_rate);
    }
-   req.format = SPA_AUDIO_FORMAT_S16;
+   req.format = SPA_AUDIO_FORMAT_F32;
    frame_sz = req.channels*handle->bits_sample/8;
    samples = period_samples*frame_sz;
 
    if (spa_audio_info_raw_valid(&req))
    {
+      enum pw_stream_flags flags;
       const char *error;
 
       handle->spec = req;
       handle->period_frames = samples;
 
-      handle->id = _pipewire_get_id_by_name(handle, handle->driver);
-      _aaxPipeWireAudioStreamConnect(handle, &error);
+      // PW_STREAM_FLAG_EXCLUSIVE 		// require exclusive access
+      flags = PW_STREAM_FLAG_AUTOCONNECT |	// try to automatically connect
+              PW_STREAM_FLAG_MAP_BUFFERS |	// mmap the buffers
+              PW_STREAM_FLAG_DONT_RECONNECT;    // don't try to reconnect
+      if (handle->mode != AAX_MODE_READ) {
+//       flags |= PW_STREAM_FLAG_INACTIVE;	// start the stream inactive
+      }
+
+      _aaxPipeWireAudioStreamConnect(handle, flags, &error);
       if (!handle->pw || error) {
          _aaxPipeWireDriverLogVar(id, "connect: %s", error);
       }
@@ -598,7 +612,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       handle->refresh_rate = *refresh_rate;
 
       handle->fill.aim = FILL_FACTOR*frame_sz*handle->period_frames/handle->spec.rate;
-      handle->latency = (float)handle->fill.aim/(float)frame_sz;
+      handle->latency = handle->fill.aim/frame_sz;
 
 #if 0
  printf("spec:\n");
@@ -706,6 +720,8 @@ _aaxPipeWireDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSE
       _aaxDataDestroy(handle->dataBuffer);
       handle->dataBuffer = _aaxDataCreate(DEFAULT_PERIODS*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
       if (handle->dataBuffer == 0) return -1;
+
+      // stream_set_write_callback
    }
 
    offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
@@ -776,14 +792,24 @@ _aaxPipeWireDriverRender(const void* config)
 static int
 _aaxPipeWireDriverState(const void *id, enum _aaxDriverState state)
 {
-// _driver_t *handle = (_driver_t *)id;
+   _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
 
    switch(state)
    {
    case DRIVER_PAUSE:
+      if (handle)
+      {
+         ppw_stream_set_active(handle->pw, AAX_FALSE);
+         rv = AAX_TRUE;
+      }
       break;
    case DRIVER_RESUME:
+      if (handle)
+      {
+         ppw_stream_set_active(handle->pw, AAX_TRUE);
+         rv = AAX_TRUE;
+      }
       break;
    case DRIVER_AVAILABLE:
    case DRIVER_SHARED_MIXER:
@@ -839,10 +865,10 @@ _aaxPipeWireDriverParam(const void *id, enum _aaxDriverParam param)
          rv = (float)handle->max_tracks;
          break;
       case DRIVER_MIN_PERIODS:
-         rv = 1;
+         rv = 2.0f;
          break;
       case DRIVER_MAX_PERIODS:
-         rv = 4;
+         rv = 2.0f;
          break;
       case DRIVER_MAX_SOURCES:
          rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
@@ -935,6 +961,7 @@ _pipewire_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, uint
    float gain = fabsf(volume);
    float hwgain;
 
+#if 0
    hwgain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
 
    /*
@@ -965,6 +992,7 @@ _pipewire_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, uint
 
    if (hwgain) gain /= hwgain;
    else gain = 0.0f;
+#endif
 
    /* software volume fallback */
    if (rb && fabsf(gain - 1.0f) > LEVEL_32DB) {
@@ -1732,45 +1760,40 @@ stream_playback_cb(void *be_ptr)
       _driver_t *be_handle = (_driver_t *)be_ptr;
       _handle_t *handle = (_handle_t *)be_handle->handle;
 
-      assert(be_handle->mode != AAX_MODE_READ);
-
-      if (_IS_PLAYING(handle))
+      if (_IS_PLAYING(handle) && be_handle->dataBuffer)
       {
          _data_t *buf = be_handle->dataBuffer;
-         if (be_handle->dataBuffer)
-         {
-            uint64_t len = _aaxDataGetDataAvail(buf);
-            if (len > 0)
-            {
-               struct pw_buffer *pw_buf;
-               pw_buf = ppw_stream_dequeue_buffer(be_handle->pw);
-               if (pw_buf)
-               {
-                  struct spa_buffer *spa_buf = pw_buf->buffer;
-                  if (spa_buf)
-                  {
-                     int frame_sz;
-                     uint64_t len;
+         uint64_t len = _aaxDataGetDataAvail(buf);
+         struct pw_buffer *pw_buf;
 
-                     frame_sz = be_handle->spec.channels*be_handle->bits_sample/8;
+         assert(be_handle->mode != AAX_MODE_READ);
+         assert(be_handle->dataBuffer);
 
-                     // copy audio data from handle->dataBuffer to PipeWire
-                     _aaxMutexLock(be_handle->mutex);
+         _aaxMutexLock(be_handle->mutex);
 
-                     len = _aaxDataMove(buf, spa_buf->datas[0].data,
-                                             be_handle->period_frames*frame_sz);
-
-                     _aaxMutexUnLock(be_handle->mutex);
-
-                     spa_buf->datas[0].chunk->offset = 0;
-                     spa_buf->datas[0].chunk->size = len;
-                     spa_buf->datas[0].chunk->stride = frame_sz;
-                  }
-
-                  ppw_stream_queue_buffer(be_handle->pw, pw_buf);
-               }
-            }
+         if (_aaxDataGetDataAvail(be_handle->dataBuffer) < len) {
+            len = _aaxDataGetDataAvail(be_handle->dataBuffer);
          }
+
+         pw_buf = ppw_stream_dequeue_buffer(be_handle->pw);
+         if (pw_buf)
+         {
+            struct spa_buffer *spa_buf = pw_buf->buffer;
+            uint64_t len;
+            int frame_sz;
+
+            frame_sz = be_handle->spec.channels*be_handle->bits_sample/8;
+            len = _aaxDataMove(buf, spa_buf->datas[0].data,
+                               be_handle->period_frames*frame_sz);
+
+            spa_buf->datas[0].chunk->offset = 0;
+            spa_buf->datas[0].chunk->size = len;
+            spa_buf->datas[0].chunk->stride = frame_sz;
+
+            ppw_stream_queue_buffer(be_handle->pw, pw_buf);
+         }
+
+         _aaxMutexUnLock(be_handle->mutex);
       }
 
 //    if (handle->thread.signal.mutex) {
@@ -1944,7 +1967,7 @@ _pipewire_get_id_by_name(_driver_t *handle, const char *name)
 }
 
 static int
-_aaxPipeWireAudioStreamConnect(_driver_t *handle, const char **error)
+_aaxPipeWireAudioStreamConnect(_driver_t *handle, enum pw_stream_flags flags, const char **error)
 {
    char m = (handle->mode == AAX_MODE_READ) ? 1 : 0;
    uint8_t pod_buffer[PW_POD_BUFFER_LENGTH];
@@ -1954,6 +1977,8 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, const char **error)
    int rv = AAX_FALSE;
 
    *error = NULL;
+
+   handle->id = _pipewire_get_id_by_name(handle, handle->driver);
 
    spa_info = handle->spec;
    params = spa_format_audio_raw_build(&b, SPA_PARAM_EnumFormat, &spa_info);
@@ -2039,13 +2064,12 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, const char **error)
              *       when the  callback is in the calling application, this flag
              *       is omitted.
              */
-            static const enum pw_stream_flags STREAM_FLAGS = PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS;
             uint32_t node_id = handle->id;
             int res;
 
             res = ppw_stream_connect(handle->pw,
                                    m ? PW_DIRECTION_INPUT : PW_DIRECTION_OUTPUT,
-                                   node_id, STREAM_FLAGS, &params, 1);
+                                   node_id, flags, &params, 1);
             if (res == 0)
             {
                res = ppw_thread_loop_start(handle->ml);
