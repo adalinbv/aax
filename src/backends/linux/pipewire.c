@@ -61,7 +61,6 @@
 #define DEFAULT_REFRESH		25.0
 
 #define USE_PIPEWIRE_THREAD	AAX_TRUE
-#define CAPTURE_CALLBACK	AAX_TRUE
 
 #define FILL_FACTOR		4.0f
 #define CAPTURE_BUFFER_SIZE	(DEFAULT_PERIODS*8192)
@@ -340,7 +339,7 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
 
       frame_sz = handle->spec.channels*handle->bits_sample/8;
       handle->period_frames = get_pow2(handle->spec.rate/DEFAULT_REFRESH);
-      handle->fill.aim = FILL_FACTOR*handle->period_frames/handle->spec.rate;
+      handle->fill.aim = (float)DEFAULT_PERIODS*handle->period_frames/handle->spec.rate;
       handle->latency = handle->fill.aim/frame_sz;
 
       if (!m) {
@@ -611,7 +610,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
       handle->refresh_rate = *refresh_rate;
 
-      handle->fill.aim = FILL_FACTOR*frame_sz*handle->period_frames/handle->spec.rate;
+      handle->fill.aim = (float)DEFAULT_PERIODS*frame_sz*handle->period_frames/handle->spec.rate;
       handle->latency = handle->fill.aim/frame_sz;
 
 #if 0
@@ -688,7 +687,69 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
 static ssize_t
 _aaxPipeWireDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, UNUSED(void *scratch), UNUSED(size_t scratchlen), float gain, UNUSED(char batched))
 {
-   return AAX_FALSE;
+   _driver_t *handle = (_driver_t *)id;
+   size_t len, nframes = *frames;
+   int tracks, frame_sz;
+   size_t offs = *offset;
+
+   *offset = 0;
+   if ((handle->mode != 0) || (frames == 0) || (data == 0)) {
+     return AAX_FALSE;
+   }
+
+   if (nframes == 0) {
+      return AAX_TRUE;
+   }
+
+   if (handle->dataBuffer == 0)
+   {
+      size_t size = CAPTURE_BUFFER_SIZE;
+      struct pw_buffer  *pw_buf;
+
+      pw_buf = ppw_stream_dequeue_buffer(handle->pw);
+      if (pw_buf)
+      {
+         struct spa_buffer *spa_buf = pw_buf->buffer;
+
+         size = DEFAULT_PERIODS*spa_buf->datas[0].chunk->size;
+         ppw_stream_queue_buffer(handle->pw, pw_buf);
+      }
+
+      handle->dataBuffer = _aaxDataCreate(size, 1);
+      if (handle->dataBuffer == 0) return AAX_FALSE;
+
+//    stream_set_read_callback
+   }
+
+   *frames = 0;
+   tracks = handle->spec.channels;
+   frame_sz = tracks*handle->bits_sample/8;
+
+   len = _aaxDataGetDataAvail(handle->dataBuffer);
+   if (len > nframes*frame_sz) len = nframes*frame_sz;
+   if (len)
+   {
+      void *buf = _aaxDataGetData(handle->dataBuffer);
+
+      nframes = len/frame_sz;
+//    _batch_cvt24_16_intl((int32_t**)data, buf, offs, tracks, nframes);
+      handle->cvt_from_intl((int32_t**)data, buf, offs, tracks, nframes);
+      _aaxDataMove(handle->dataBuffer, NULL, len);
+
+      gain = _pipewire_set_volume(handle, NULL, offs, nframes, tracks, gain);
+      if (gain > LEVEL_96DB && fabsf(gain-1.0f) > LEVEL_96DB)
+      {
+         unsigned int t;
+         for (t=0; t<tracks; t++)
+         {
+            int32_t *ptr = (int32_t*)data[t]+offs;
+            _batch_imul_value(ptr, ptr, sizeof(int32_t), nframes, gain);
+         }
+      }
+      *frames = nframes;
+   }
+
+   return AAX_TRUE;
 }
 
 static size_t
@@ -714,11 +775,11 @@ _aaxPipeWireDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSE
    period_frames = rb->get_parami(rb, RB_NO_SAMPLES);
    frame_sz = no_tracks*handle->bits_sample/8;
 
-   size = period_frames*frame_sz;
-   if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < 8*size))
+   size = FILL_FACTOR*DEFAULT_PERIODS*period_frames*frame_sz;
+   if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < size))
    {
       _aaxDataDestroy(handle->dataBuffer);
-      handle->dataBuffer = _aaxDataCreate(DEFAULT_PERIODS*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
+      handle->dataBuffer = _aaxDataCreate(size, no_tracks*handle->bits_sample/8);
       if (handle->dataBuffer == 0) return -1;
 
       // stream_set_write_callback
@@ -961,7 +1022,6 @@ _pipewire_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, uint
    float gain = fabsf(volume);
    float hwgain;
 
-#if 0
    hwgain = _MINMAX(gain, handle->volumeMin, handle->volumeMax);
 
    /*
@@ -981,6 +1041,7 @@ _pipewire_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, uint
       handle->hwgain = hwgain;
    }
 
+#if 0
    if (fabsf(hwgain - handle->volumeCur) >= handle->volumeStep)
    {
       if (ppw_stream_set_control &&
@@ -989,10 +1050,10 @@ _pipewire_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, uint
          handle->volumeCur = hwgain;
       }
    }
+#endif
 
    if (hwgain) gain /= hwgain;
    else gain = 0.0f;
-#endif
 
    /* software volume fallback */
    if (rb && fabsf(gain - 1.0f) > LEVEL_32DB) {
@@ -1762,29 +1823,31 @@ stream_playback_cb(void *be_ptr)
 
       if (_IS_PLAYING(handle) && be_handle->dataBuffer)
       {
-         _data_t *buf = be_handle->dataBuffer;
-         uint64_t len = _aaxDataGetDataAvail(buf);
          struct pw_buffer *pw_buf;
 
          assert(be_handle->mode != AAX_MODE_READ);
          assert(be_handle->dataBuffer);
 
-         _aaxMutexLock(be_handle->mutex);
-
-         if (_aaxDataGetDataAvail(be_handle->dataBuffer) < len) {
-            len = _aaxDataGetDataAvail(be_handle->dataBuffer);
-         }
-
          pw_buf = ppw_stream_dequeue_buffer(be_handle->pw);
          if (pw_buf)
          {
             struct spa_buffer *spa_buf = pw_buf->buffer;
-            uint64_t len;
+            _data_t *buf = be_handle->dataBuffer;
+            uint64_t len = _aaxDataGetDataAvail(buf);
             int frame_sz;
 
             frame_sz = be_handle->spec.channels*be_handle->bits_sample/8;
+
+            _aaxMutexLock(be_handle->mutex);
+
+            if (_aaxDataGetDataAvail(be_handle->dataBuffer) < len) {
+               len = _aaxDataGetDataAvail(be_handle->dataBuffer);
+            }
+
             len = _aaxDataMove(buf, spa_buf->datas[0].data,
                                be_handle->period_frames*frame_sz);
+
+            _aaxMutexUnLock(be_handle->mutex);
 
             spa_buf->datas[0].chunk->offset = 0;
             spa_buf->datas[0].chunk->size = len;
@@ -1792,13 +1855,13 @@ stream_playback_cb(void *be_ptr)
 
             ppw_stream_queue_buffer(be_handle->pw, pw_buf);
          }
-
-         _aaxMutexUnLock(be_handle->mutex);
       }
 
-//    if (handle->thread.signal.mutex) {
-//       _aaxSignalTrigger(&handle->thread.signal);
-//    }
+#if 0
+      if (handle->thread.signal.mutex) {
+         _aaxSignalTrigger(&handle->thread.signal);
+      }
+#endif
    }
 }
 
@@ -1814,19 +1877,16 @@ stream_capture_cb(void *be_ptr)
       if (pw_buf)
       {
          struct spa_buffer *spa_buf = pw_buf->buffer;
-         if (spa_buf->datas[0].data)
-         {
-            uint32_t offs = SPA_MIN(spa_buf->datas[0].chunk->offset,
-                                    spa_buf->datas[0].maxsize);
-            uint32_t len = SPA_MIN(spa_buf->datas[0].chunk->size,
-                                   spa_buf->datas[0].maxsize - offs);
+         uint32_t offs = SPA_MIN(spa_buf->datas[0].chunk->offset,
+                                 spa_buf->datas[0].maxsize);
+         uint32_t len = SPA_MIN(spa_buf->datas[0].chunk->size,
+                                spa_buf->datas[0].maxsize - offs);
 
-            if (_aaxDataGetOffset(be_handle->dataBuffer)+len
-                                   < _aaxDataGetSize(be_handle->dataBuffer))
-            {
-               uint8_t *buf = (uint8_t*)spa_buf->datas[0].data + offs;
-               _aaxDataAdd(be_handle->dataBuffer, buf, len);
-            }
+         if (_aaxDataGetOffset(be_handle->dataBuffer)+len
+                                < _aaxDataGetSize(be_handle->dataBuffer))
+         {
+            uint8_t *buf = (uint8_t*)spa_buf->datas[0].data + offs;
+            _aaxDataAdd(be_handle->dataBuffer, buf, len);
          }
          ppw_stream_queue_buffer(be_handle->pw, pw_buf);
       }
@@ -2291,18 +2351,25 @@ _aaxPipeWireDriverThread(void* config)
             float target, input, err, P, I;
 
             target = be_handle->fill.aim;
-            input = (float)_aaxDataGetOffset(be_handle->dataBuffer)/freq;
+
+            _aaxMutexLock(be_handle->mutex);
+            input = (float)_aaxDataGetDataAvail(be_handle->dataBuffer)/freq;
+            _aaxMutexUnLock(be_handle->mutex);
+
             err = input - target;
 
             /* present error */
             P = err;
 
             /*  accumulation of past errors */
-            be_handle->PID.I += err*delay_sec;
             I = be_handle->PID.I;
+            be_handle->PID.I += err*delay_sec;
+            if (be_handle->PID.I > 2.0f) {
+               be_handle->PID.I = 2.0f;
+            }
 
             err = 0.40f*P + 0.97f*I;
-            dt = _MINMAX((delay_sec + err), 0.5*delay_sec, 1.25f*delay_sec);
+            dt = _MINMAX((delay_sec + err), 1e-6f, delay_sec);
 # if 0
  printf("target: %8.1f, avail: %8.1f, err: %- 8.1f, delay: %5.4f (%5.4f)\r",
          target*freq, input*freq, err*freq, dt, delay_sec);

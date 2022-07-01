@@ -1,6 +1,6 @@
 /*
- * Copyright 2019-2020 by Erik Hofman.
- * Copyright 2019-2020 by Adalin B.V.
+ * Copyright 2019-2022 by Erik Hofman.
+ * Copyright 2019-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -703,7 +703,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
       handle->fill.aim = FILL_FACTOR*frame_sz*handle->period_frames/handle->spec.rate;
       handle->latency = handle->fill.aim/frame_sz;
 
-#if 0
+#if 1
  printf("spec:\n");
  printf("   frequency: %i\n", handle->spec.rate);
  printf("   format:    %x\n", handle->format);
@@ -1407,7 +1407,7 @@ _aaxPulseAudioDriverThread(void* config)
 
             err = 0.40f*P + 0.97f*I;
             dt = _MINMAX((delay_sec + err), 1e-6f, 1.5f*delay_sec);
-# if 0
+# if 1
  printf("target: %8.1f, avail: %8.1f, err: %- 8.1f, delay: %5.4f (%5.4f)\r", target*freq, input*freq, err*freq, dt, delay_sec);
 # endif
          }
