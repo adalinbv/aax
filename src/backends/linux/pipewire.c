@@ -518,7 +518,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
    _driver_t *handle = (_driver_t *)id;
    unsigned int period_samples;
    struct spa_audio_info_raw req;
-   int samples, frame_sz;
+   int rate, periods, samples, frame_sz;
    int rv = AAX_FALSE;
 
    *fmt = AAX_PCM16S;
@@ -534,10 +534,12 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       *refresh_rate = 100;
    }
 
+   rate = handle->spec.rate;
+   periods = DEFAULT_PERIODS;
    if (!registered) {
-      period_samples = get_pow2(req.rate/(*refresh_rate));
+      period_samples = get_pow2((size_t)rintf(rate/(*refresh_rate*periods)));
    } else {
-      period_samples = get_pow2(req.rate/period_rate);
+      period_samples = get_pow2((size_t)rintf((rate*periods)/period_rate));
    }
    req.format = SPA_AUDIO_FORMAT_F32;
    frame_sz = req.channels*handle->bits_sample/8;
@@ -598,19 +600,27 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
       handle->bits_sample = aaxGetBitsPerSample(handle->format);
       frame_sz = handle->spec.channels*handle->bits_sample/8;
+
+      /* recalculate period_frames and latency */
+      if (!registered) {
+         period_samples = get_pow2((size_t)rintf(rate/(*refresh_rate*periods)));
+      } else {
+         period_samples = get_pow2((size_t)rintf((rate*periods)/period_rate));
+      }
+      period_samples *= periods;
       handle->period_frames = period_samples;
 
       *fmt = handle->format;
       *speed = handle->spec.rate;
       *tracks = handle->spec.channels;
       if (!registered) {
-         *refresh_rate = handle->spec.rate/(float)handle->period_frames;
+         *refresh_rate = rate/(float)period_samples;
       } else {
          *refresh_rate = period_rate;
       }
       handle->refresh_rate = *refresh_rate;
 
-      handle->fill.aim = (float)DEFAULT_PERIODS*frame_sz*handle->period_frames/handle->spec.rate;
+      handle->fill.aim = (float)(periods-1)*frame_sz*period_samples/handle->spec.rate;
       handle->latency = handle->fill.aim/frame_sz;
 
 #if 0
