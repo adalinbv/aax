@@ -64,7 +64,7 @@
 #define DEFAULT_REFRESH		25.0
 
 #define USE_PIPEWIRE_THREAD	AAX_TRUE
-#define TIMING_DEBUG		AAX_FALSE
+#define TIMING_DEBUG		AAX_TRUE
 
 #define BUFFER_SIZE_FACTOR	4.0f
 #define CAPTURE_BUFFER_SIZE	(DEFAULT_PERIODS*8192)
@@ -611,9 +611,6 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
          break;
       }
 
-      handle->bits_sample = aaxGetBitsPerSample(handle->format);
-      frame_sz = handle->spec.channels*handle->bits_sample/8;
-
       /* recalculate period_frames and latency */
       if (!registered) {
          period_samples = get_pow2((size_t)rintf(rate/(*refresh_rate*periods)));
@@ -622,6 +619,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
       period_samples *= periods;
       handle->period_frames = period_samples;
+      handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
       *fmt = handle->format;
       *speed = handle->spec.rate;
@@ -633,6 +631,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
       handle->refresh_rate = *refresh_rate;
 
+      frame_sz = handle->spec.channels*handle->bits_sample/8;
       handle->fill.aim = (float)(periods-1)*frame_sz*period_samples/handle->spec.rate;
       handle->latency = handle->fill.aim/frame_sz;
 
@@ -2355,6 +2354,7 @@ _aaxPipeWireDriverThread(void* config)
          }
       }
 
+      dt = be_handle->callback_dt;
       res = _aaxSignalWaitTimed(&handle->thread.signal, dt);
    }
    while (res == AAX_TIMEOUT || res == AAX_TRUE);
