@@ -64,6 +64,7 @@
 #define DEFAULT_REFRESH		25.0
 
 #define USE_PIPEWIRE_THREAD	AAX_TRUE
+#define TIMING_DEBUG		AAX_FALSE
 
 #define BUFFER_SIZE_FACTOR	4.0f
 #define CAPTURE_BUFFER_SIZE	(DEFAULT_PERIODS*8192)
@@ -176,12 +177,17 @@ typedef struct
    unsigned int max_tracks;
 
    struct {
-      float I;
-      float err;
-   } PID;
-   struct {
       float aim; // in bytes
    } fill;
+
+   _aaxTimer *callback_timer;
+   float callback_dt;
+   size_t callback_avail;
+
+#if TIMING_DEBUG
+   _aaxTimer *playback_timer;
+   float playback_dt;
+#endif
 
 } _driver_t;
 
@@ -358,6 +364,11 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
       handle->min_frequency = _AAX_MIN_MIXER_FREQUENCY;
       handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
 
+      handle->callback_timer = _aaxTimerCreate();
+#if TIMING_DEBUG
+      handle->playback_timer = _aaxTimerCreate();
+#endif
+
       if (!pipewire_initialized)
       {
          int err;
@@ -521,7 +532,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
    _driver_t *handle = (_driver_t *)id;
    unsigned int period_samples;
    struct spa_audio_info_raw req;
-   int rate, periods, samples, frame_sz;
+   int rate, periods, frame_sz;
    int rv = AAX_FALSE;
 
    *fmt = AAX_PCM16S;
@@ -546,7 +557,6 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
    }
    req.format = SPA_AUDIO_FORMAT_F32;
    frame_sz = req.channels*handle->bits_sample/8;
-   samples = period_samples*frame_sz;
 
    if (spa_audio_info_raw_valid(&req))
    {
@@ -554,11 +564,11 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       const char *error;
 
       handle->spec = req;
-      handle->period_frames = samples;
+      handle->period_frames = period_samples;
 
       // PW_STREAM_FLAG_EXCLUSIVE 		// require exclusive access
       flags = PW_STREAM_FLAG_AUTOCONNECT |	// try to automatically connect
-//            PW_STREAM_FLAG_MAP_BUFFERS |	// mmap the buffers
+              PW_STREAM_FLAG_MAP_BUFFERS |	// mmap the buffers
               PW_STREAM_FLAG_DONT_RECONNECT;    // don't try to reconnect
       if (handle->mode != AAX_MODE_READ) {
 //       flags |= PW_STREAM_FLAG_INACTIVE;	// start the stream inactive
@@ -780,6 +790,10 @@ _aaxPipeWireDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSE
 
    assert(rb);
    assert(id != 0);
+
+#if TIMING_DEBUG
+   handle->playback_dt = _aaxTimerElapsed(handle->playback_timer);
+#endif
 
    if (handle->mode == 0)
       return 0;
@@ -1830,6 +1844,9 @@ stream_playback_cb(void *be_ptr)
       _driver_t *be_handle = (_driver_t *)be_ptr;
       _handle_t *handle = (_handle_t *)be_handle->handle;
 
+      be_handle->callback_avail = 0;
+      be_handle->callback_dt = _aaxTimerElapsed(be_handle->callback_timer);
+
       if (_IS_PLAYING(handle) && be_handle->dataBuffer)
       {
          struct pw_buffer *pw_buf;
@@ -1858,6 +1875,7 @@ stream_playback_cb(void *be_ptr)
 
             _aaxMutexUnLock(be_handle->mutex);
 
+            be_handle->callback_avail = len;
             spa_buf->datas[0].chunk->offset = 0;
             spa_buf->datas[0].chunk->size = len;
             spa_buf->datas[0].chunk->stride = frame_sz;
@@ -1865,12 +1883,6 @@ stream_playback_cb(void *be_ptr)
             ppw_stream_queue_buffer(be_handle->pw, pw_buf);
          }
       }
-
-#if 0
-      if (handle->thread.signal.mutex) {
-         _aaxSignalTrigger(&handle->thread.signal);
-      }
-#endif
    }
 }
 
@@ -1913,29 +1925,13 @@ stream_add_buffer_cb(void *be_ptr, struct pw_buffer *buffer)
          size_t buf_len;
          int frame_sz;
 
-         /*
-          * Clamp the output spec samples and size to the max size of the PipeWire
-          * buffer. If they exceed the maximum size of the PipeWire buffer, double
-          * buffering will be used.
-          */
+         // Clamp the output spec samples and size to the max size of the
+         // PipeWire buffer.
          frame_sz = be_handle->spec.channels*be_handle->bits_sample/8;
          buf_len = be_handle->period_frames*frame_sz;
          if (buf_len > buffer->buffer->datas[0].maxsize) {
             be_handle->period_frames = buffer->buffer->datas[0].maxsize/frame_sz;
          }
-#if 0
-      } else if (this->hidden->buffer == NULL) {
-          /*
-           * The latency of source nodes can change, so buffering is always required.
-           *
-           * Ensure that the intermediate input buffer is large enough to hold the requested
-           * application packet size or a full buffer of data from PipeWire, whichever is larger.
-           *
-           * A packet size of 2 periods should be more than is ever needed.
-           */
-         this->hidden->input_buffer_packet_size = SPA_MAX(this->buf_len, buffer->buffer->datas[0].maxsize) * 2;
-         this->hidden->buffer                   = SDL_NewDataQueue(this->hidden->input_buffer_packet_size, this->hidden->input_buffer_packet_size);
-#endif
       }
 
       be_handle->stream_init_status |= PW_READY_FLAG_BUFFER_ADDED;
@@ -2354,43 +2350,6 @@ _aaxPipeWireDriverThread(void* config)
       if (_IS_PLAYING(handle))
       {
          res = _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
-
-#if 0
-         do
-         {
-            float target, input, err, P, I;
-
-            target = be_handle->fill.aim;
-
-            _aaxMutexLock(be_handle->mutex);
-            input = (float)_aaxDataGetDataAvail(be_handle->dataBuffer)/freq;
-            _aaxMutexUnLock(be_handle->mutex);
-
-            err = input - target;
-
-            /* present error */
-            P = err;
-
-            /*  accumulation of past errors */
-            I = be_handle->PID.I;
-            be_handle->PID.I += err*delay_sec;
-            if (be_handle->PID.I > 2.0f) {
-               be_handle->PID.I = 2.0f;
-            }
-
-            err = 0.40f*P + 0.97f*I;
-//          dt = _MINMAX((delay_sec + err), 1e-3f, delay_sec);
-# if 0
-{
- int frame_sz = dest_rb->get_parami(dest_rb, RB_NO_TRACKS)*dest_rb->get_parami(dest_rb, RB_BYTES_SAMPLE);
- printf("target: %4.0f, avail: %4.0f, err: %- 8.1f, delay: %5.4f (%5.4f)\r",
-         target*freq/frame_sz, input*freq/frame_sz, err*freq/frame_sz, dt, delay_sec);
-}
-# endif
-         }
-         while (0);
-#endif
-
          if (handle->finished) {
             _aaxSemaphoreRelease(handle->finished);
          }
