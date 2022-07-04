@@ -34,6 +34,9 @@
 #  include <string.h>		/* strstr, strncmp */
 # endif
 
+#include <pipewire/pipewire.h>
+#include <pipewire/extensions/metadata.h>
+#include <spa/param/audio/format-utils.h>
 #include <spa/param/props.h>
 
 #include <aax/aax.h>
@@ -1270,10 +1273,6 @@ io_list_check_add(struct io_node *node)
 
    /* Add to the list if the node doesn't already exist */
    spa_list_append(&hotplug_io_list, &node->link);
-
-   if (hotplug_events_enabled) {
-//      SDL_AddAudioDevice(node->is_capture, node->name, &node->spec, PW_ID_TO_HANDLE(node->id));
-   }
 
 dup_found:
    return ret;
