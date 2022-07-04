@@ -65,7 +65,7 @@
 
 #define USE_PIPEWIRE_THREAD	AAX_TRUE
 
-#define FILL_FACTOR		4.0f
+#define BUFFER_SIZE_FACTOR	4.0f
 #define CAPTURE_BUFFER_SIZE	(DEFAULT_PERIODS*8192)
 #define MAX_DEVICES_LIST	4096
 
@@ -558,7 +558,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
       // PW_STREAM_FLAG_EXCLUSIVE 		// require exclusive access
       flags = PW_STREAM_FLAG_AUTOCONNECT |	// try to automatically connect
-              PW_STREAM_FLAG_MAP_BUFFERS |	// mmap the buffers
+//            PW_STREAM_FLAG_MAP_BUFFERS |	// mmap the buffers
               PW_STREAM_FLAG_DONT_RECONNECT;    // don't try to reconnect
       if (handle->mode != AAX_MODE_READ) {
 //       flags |= PW_STREAM_FLAG_INACTIVE;	// start the stream inactive
@@ -788,7 +788,7 @@ _aaxPipeWireDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSE
    period_frames = rb->get_parami(rb, RB_NO_SAMPLES);
    frame_sz = no_tracks*handle->bits_sample/8;
 
-   size = FILL_FACTOR*DEFAULT_PERIODS*period_frames*frame_sz;
+   size = BUFFER_SIZE_FACTOR*DEFAULT_PERIODS*period_frames*frame_sz;
    if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < size))
    {
       _aaxDataDestroy(handle->dataBuffer);
@@ -2355,6 +2355,7 @@ _aaxPipeWireDriverThread(void* config)
       {
          res = _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
 
+#if 0
          do
          {
             float target, input, err, P, I;
@@ -2378,13 +2379,17 @@ _aaxPipeWireDriverThread(void* config)
             }
 
             err = 0.40f*P + 0.97f*I;
-            dt = _MINMAX((delay_sec + err), 1e-6f, delay_sec);
+//          dt = _MINMAX((delay_sec + err), 1e-3f, delay_sec);
 # if 0
- printf("target: %8.1f, avail: %8.1f, err: %- 8.1f, delay: %5.4f (%5.4f)\r",
-         target*freq, input*freq, err*freq, dt, delay_sec);
+{
+ int frame_sz = dest_rb->get_parami(dest_rb, RB_NO_TRACKS)*dest_rb->get_parami(dest_rb, RB_BYTES_SAMPLE);
+ printf("target: %4.0f, avail: %4.0f, err: %- 8.1f, delay: %5.4f (%5.4f)\r",
+         target*freq/frame_sz, input*freq/frame_sz, err*freq/frame_sz, dt, delay_sec);
+}
 # endif
          }
          while (0);
+#endif
 
          if (handle->finished) {
             _aaxSemaphoreRelease(handle->finished);
