@@ -702,7 +702,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             *refresh_rate = period_rate;
 
             handle->refresh_rate = period_rate;
-            handle->dt = 0.5f/handle->refresh_rate;
+            handle->dt = 1.0f/handle->refresh_rate;
             handle->no_samples = no_samples;
             if (handle->no_channels && handle->bits_sample && handle->frequency)
             {

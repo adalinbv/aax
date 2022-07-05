@@ -364,6 +364,9 @@ _socket_read(_io_t *io, _data_t *buf, size_t count)
       {
          io->error_ctr = 0;
          _aaxDataIncreaseOffset(buf, rv);
+#if 0
+ printf("fill: %8li (%8li)\r", _aaxDataGetDataAvail(buf), _aaxDataGetSize(buf));
+#endif
 
          if (io->prot) {
             rv = io->prot->process(io->prot, buf);

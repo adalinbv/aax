@@ -35,8 +35,8 @@ extern "C" {
 
 #define COPY_TO_BUFFER	"_ctb237676265365"
 
-#define PERIOD_SIZE	4096
-#define IOBUF_THRESHOLD	(4*PERIOD_SIZE)
+#define PERIOD_SIZE	16384
+#define IOBUF_THRESHOLD	(2*PERIOD_SIZE)
 #define IOBUF_SIZE	(2*IOBUF_THRESHOLD)
 
 extern const _aaxDriverBackend _aaxStreamDriverBackend;
