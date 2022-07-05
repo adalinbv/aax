@@ -175,10 +175,10 @@ int _aaxMutexUnLockDebug(void *, char *, int);
 # else
 int _aaxMutexLock(void *);
 # endif
-int _aaxMutexLockTimed(void *, float);
 void *_aaxMutexCreate(void *);
 int _aaxMutexUnLock(void *);
 #endif
+int _aaxMutexLockTimed(void *, float);
 int _aaxMutexLockDebug(void *, char *, int);
 void _aaxMutexDestroy(void *);
 
