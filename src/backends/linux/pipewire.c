@@ -194,7 +194,6 @@ typedef struct
 #undef DECL_FUNCTION
 #define DECL_FUNCTION(f) static __typeof__(f) * p##f
 DECL_FUNCTION(pw_init);
-DECL_FUNCTION(pw_deinit);
 DECL_FUNCTION(pw_thread_loop_new);
 DECL_FUNCTION(pw_thread_loop_destroy);
 DECL_FUNCTION(pw_thread_loop_stop);
@@ -275,7 +274,6 @@ _aaxPipeWireDriverDetect(UNUSED(int mode))
       if (ppw_stream_new_simple)
       {
          TIE_FUNCTION(pw_init);
-         TIE_FUNCTION(pw_deinit);
          TIE_FUNCTION(pw_thread_loop_new);
          TIE_FUNCTION(pw_thread_loop_destroy);
          TIE_FUNCTION(pw_thread_loop_stop);
@@ -497,11 +495,15 @@ _aaxPipeWireDriverDisconnect(void *id)
    {
       pipewire_initialized = AAX_FALSE;
       hotplug_loop_destroy();
-      ppw_deinit();
    }
 
    if (handle)
    {
+      _aaxTimerDestroy(handle->callback_timer);
+#if TIMING_DEBUG
+      _aaxTimerDestroy(handle->playback_timer);
+#endif
+
       if (handle->driver != _const_pipewire_default_name) {
          free(handle->driver);
       }
@@ -516,6 +518,22 @@ _aaxPipeWireDriverDisconnect(void *id)
          _aaxMutexDestroy(handle->mutex);
       }
       _aaxDataDestroy(handle->dataBuffer);
+
+      if (handle->pw)
+      {
+         ppw_stream_destroy(handle->pw);
+         handle->pw = NULL;
+      }
+      if (handle->ctx)
+      {
+         ppw_context_destroy(handle->ctx);
+         handle->ctx = NULL;
+      }
+      if (handle->ml)
+      {
+         ppw_thread_loop_destroy(handle->ml);
+         handle->ctx = NULL;
+      }
 
       free(handle);
 
@@ -2354,8 +2372,11 @@ _aaxPipeWireDriverThread(void* config)
          }
       }
 
-      dt = be_handle->callback_dt;
+      dt = 0.5f*dt + 0.5f*be_handle->callback_dt;
       res = _aaxSignalWaitTimed(&handle->thread.signal, dt);
+#if 0
+ printf("dt: %5.4f, delay: %5.4f\r", dt, delay_sec);
+#endif
    }
    while (res == AAX_TIMEOUT || res == AAX_TRUE);
 
