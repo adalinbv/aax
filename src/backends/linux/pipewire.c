@@ -2372,10 +2372,10 @@ _aaxPipeWireDriverThread(void* config)
          }
       }
 
-      dt = 0.5f*dt + 0.5f*be_handle->callback_dt;
+      dt = be_handle->callback_dt;
       res = _aaxSignalWaitTimed(&handle->thread.signal, dt);
 #if 0
- printf("dt: %5.4f, delay: %5.4f\r", dt, delay_sec);
+ printf("dt: %5.4f (%5.4f), delay: %5.4f\n", dt, be_handle->callback_dt, delay_sec);
 #endif
    }
    while (res == AAX_TIMEOUT || res == AAX_TRUE);
