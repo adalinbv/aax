@@ -855,10 +855,12 @@ _aaxSDLDriverGetDevices(UNUSED(const void *id), int mode)
    t_now = time(NULL);
    if (t_now > (t_previous[m]+5))
    {
+      const char *env = getenv("AAX_SHOW_ALL_SDL_DEVICES");
       int i, count, len = 1024;
-      char *ptr;
+      char show_all, *ptr;
 
       t_previous[m] = t_now;
+      show_all = (env && _aax_getbool(env)) ? AAX_TRUE : AAX_FALSE;
 
       ptr = (char *)&names[m];
       *ptr = 0; *(ptr+1) = 0;
@@ -871,26 +873,29 @@ _aaxSDLDriverGetDevices(UNUSED(const void *id), int mode)
 
          if (slen > (len-1)) break;
 
-         // We already provide a file and none backend
-         if (!strcmp(driver, "disk") || !strcmp(driver, "dummy")) continue;
+         if (!show_all)
+         {
+            // We already provide a file and none backend
+            if (!strcmp(driver, "disk") || !strcmp(driver, "dummy")) continue;
 
-         // We already provide the pipewire backend
-         if (!strcmp(driver, "pipewire")) continue;
-         // We already provide the pulseaudio backend
-         if (!strcmp(driver, "pulseaudio")) continue;
-         // We already provide the alsa backend
-         if (!strcmp(driver, "alsa")) continue;
-         // We already provide the oss backend
-         if (!strcmp(driver, "dsp") || !strcmp(driver, "dma")) continue;
+            // We already provide the pipewire backend
+            if (!strcmp(driver, "pipewire")) continue;
+            // We already provide the pulseaudio backend
+            if (!strcmp(driver, "pulseaudio")) continue;
+            // We already provide the alsa backend
+            if (!strcmp(driver, "alsa")) continue;
+            // We already provide the oss backend
+            if (!strcmp(driver, "dsp") || !strcmp(driver, "dma")) continue;
 
-         // We already provide the windows backend
-         if (!strcmp(driver, "directsound") || !strcmp(driver, "winmm")) {
+            // We already provide the windows backend
+            if (!strcmp(driver, "directsound") || !strcmp(driver, "winmm")) {
 #if defined(WIN32)
-           // for XP use the directsound SDL fallback
-           // for Vista and later: skip it.
-           if (IsWindowsVistaOrGreater())
+              // for XP use the directsound SDL fallback
+              // for Vista and later: skip it.
+              if (IsWindowsVistaOrGreater())
 #endif
-            continue;
+               continue;
+            }
          }
 
          snprintf(ptr, len, "%s", pSDL_GetAudioDriver(i));
