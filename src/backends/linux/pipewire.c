@@ -33,6 +33,8 @@
 #  endif
 #  include <string.h>		/* strstr, strncmp */
 # endif
+#include <stdarg.h>		/* va_start */
+#include <stdio.h>		/* snprintf */
 
 #include <pipewire/pipewire.h>
 #include <pipewire/extensions/metadata.h>
@@ -64,7 +66,7 @@
 #define DEFAULT_REFRESH		25.0
 
 #define USE_PIPEWIRE_THREAD	AAX_TRUE
-#define TIMING_DEBUG		AAX_TRUE
+#define TIMING_DEBUG		AAX_FALSE
 
 #define BUFFER_SIZE_FACTOR	4.0f
 #define CAPTURE_BUFFER_SIZE	(DEFAULT_PERIODS*8192)
@@ -160,15 +162,11 @@ typedef struct
    float refresh_rate;
    float latency;
 
-    float volumeCur, volumeInit;
-    float volumeMin, volumeMax;
-    float volumeStep, hwgain;
+   _batch_cvt_to_intl_proc cvt_to_intl;
+   _batch_cvt_from_intl_proc cvt_from_intl;
 
    _data_t *dataBuffer;
    _aaxMutex *mutex;
-
-   _batch_cvt_to_intl_proc cvt_to_intl;
-   _batch_cvt_from_intl_proc cvt_from_intl;
 
    /* capabilities */
    unsigned int min_frequency;
@@ -179,6 +177,10 @@ typedef struct
    struct {
       float aim; // in bytes
    } fill;
+
+   float volumeCur, volumeInit;
+   float volumeMin, volumeMax;
+   float volumeStep, hwgain;
 
    _aaxTimer *callback_timer;
    float callback_dt;
@@ -206,6 +208,7 @@ DECL_FUNCTION(pw_thread_loop_start);
 DECL_FUNCTION(pw_context_new);
 DECL_FUNCTION(pw_context_destroy);
 DECL_FUNCTION(pw_context_connect);
+DECL_FUNCTION(pw_context_update_properties);
 DECL_FUNCTION(pw_proxy_add_object_listener);
 DECL_FUNCTION(pw_proxy_get_user_data);
 DECL_FUNCTION(pw_proxy_destroy);
@@ -286,6 +289,7 @@ _aaxPipeWireDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(pw_context_new);
          TIE_FUNCTION(pw_context_destroy);
          TIE_FUNCTION(pw_context_connect);
+         TIE_FUNCTION(pw_context_update_properties);
          TIE_FUNCTION(pw_proxy_add_object_listener);
          TIE_FUNCTION(pw_proxy_get_user_data);
          TIE_FUNCTION(pw_proxy_destroy);
@@ -338,7 +342,8 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
 
       handle->spec.channels = 2;
       handle->spec.rate = DEFAULT_OUTPUT_RATE;
-      handle->spec.format = SPA_AUDIO_FORMAT_S16;
+      handle->spec.format = is_bigendian() ? SPA_AUDIO_FORMAT_S16_BE
+                                           : SPA_AUDIO_FORMAT_S16_LE;
       memcpy(handle->spec.position, channel_map, sizeof(channel_map));
 
       handle->format = _aaxPipeWireGetFormat(handle->spec.format);
@@ -573,7 +578,8 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
    } else {
       period_samples = get_pow2((size_t)rintf((rate*periods)/period_rate));
    }
-   req.format = SPA_AUDIO_FORMAT_F32;
+   req.format = is_bigendian() ? SPA_AUDIO_FORMAT_F32_BE
+                               : SPA_AUDIO_FORMAT_F32_LE;
    frame_sz = req.channels*handle->bits_sample/8;
 
    if (spa_audio_info_raw_valid(&req))
@@ -865,10 +871,44 @@ _aaxPipeWireDriverSetName(const void *id, int type, const char *name)
    int ret = AAX_FALSE;
    if (handle)
    {
+      struct spa_dict_item items[2];
+
       switch (type)
       {
+      case AAX_MUSIC_PERFORMER_STRING:
+      case AAX_MUSIC_PERFORMER_UPDATE:
+         items[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_ARTIST, name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_TRACK_TITLE_STRING:
+      case AAX_TRACK_TITLE_UPDATE:
+         items[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_TITLE, name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_SONG_COPYRIGHT_STRING:
+         items[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_COPYRIGHT, name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_SONG_COMMENT_STRING:
+         items[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_COMMENT, name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_RELEASE_DATE_STRING:
+         items[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_DATE, name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_COVER_IMAGE_DATA:
+      case AAX_MUSIC_GENRE_STRING:
+      case AAX_TRACK_NUMBER_STRING:
+      case AAX_ALBUM_NAME_STRING:
+      case AAX_SONG_COMPOSER_STRING:
+      case AAX_WEBSITE_STRING:
       default:
          break;
+      }
+
+      if (ret) {
+         ppw_context_update_properties(handle->ctx, &SPA_DICT_INIT(items, 1));
       }
    }
    return ret;
@@ -2110,10 +2150,10 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, enum pw_stream_flags flags, co
          const char *stream_name = NULL;
 
          if (ppw_get_application_name) {
-            stream_name = ppw_get_application_name();
+            app_name = ppw_get_application_name();
          }
          if (!stream_name && ppw_get_prgname) {
-            stream_name = ppw_get_prgname();
+            app_name = ppw_get_prgname();
          }
          if (!stream_name) {
             stream_name = _aax_get_binary_name("Audio Stream");
