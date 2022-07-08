@@ -186,6 +186,8 @@ typedef struct
    float callback_dt;
    size_t callback_avail;
 
+   struct _meta_t meta;
+
 #if TIMING_DEBUG
    _aaxTimer *playback_timer;
    float playback_dt;
@@ -508,6 +510,8 @@ _aaxPipeWireDriverDisconnect(void *id)
 #if TIMING_DEBUG
       _aaxTimerDestroy(handle->playback_timer);
 #endif
+
+      _aax_free_meta(&handle->meta);
 
       if (handle->driver != _const_pipewire_default_name) {
          free(handle->driver);
@@ -871,30 +875,35 @@ _aaxPipeWireDriverSetName(const void *id, int type, const char *name)
    int ret = AAX_FALSE;
    if (handle)
    {
-      struct spa_dict_item items[2];
+      struct spa_dict_item item;
 
       switch (type)
       {
       case AAX_MUSIC_PERFORMER_STRING:
       case AAX_MUSIC_PERFORMER_UPDATE:
-         items[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_ARTIST, name);
+         handle->meta.artist = strdup(name);
+         item = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_ARTIST, name);
          ret = AAX_TRUE;
          break;
       case AAX_TRACK_TITLE_STRING:
       case AAX_TRACK_TITLE_UPDATE:
-         items[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_TITLE, name);
+         handle->meta.title = strdup(name);
+         item = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_TITLE, name);
          ret = AAX_TRUE;
          break;
       case AAX_SONG_COPYRIGHT_STRING:
-         items[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_COPYRIGHT, name);
+         handle->meta.copyright = strdup(name);
+         item = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_COPYRIGHT, name);
          ret = AAX_TRUE;
          break;
       case AAX_SONG_COMMENT_STRING:
-         items[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_COMMENT, name);
+         handle->meta.comments = strdup(name);
+         item = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_COMMENT, name);
          ret = AAX_TRUE;
          break;
       case AAX_RELEASE_DATE_STRING:
-         items[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_DATE, name);
+         handle->meta.date = strdup(name);
+         item = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_DATE, name);
          ret = AAX_TRUE;
          break;
       case AAX_COVER_IMAGE_DATA:
@@ -907,8 +916,8 @@ _aaxPipeWireDriverSetName(const void *id, int type, const char *name)
          break;
       }
 
-      if (ret) {
-         ppw_context_update_properties(handle->ctx, &SPA_DICT_INIT(items, 1));
+      if (ret && handle->ctx) {
+         ppw_context_update_properties(handle->ctx, &SPA_DICT_INIT(&item, 1));
       }
    }
    return ret;
@@ -1022,7 +1031,7 @@ _aaxPipeWireDriverParam(const void *id, enum _aaxDriverParam param)
          rv = AAX_FPINFINITE;
          break;
       case DRIVER_SAMPLE_DELAY:
-         rv = (float)handle->period_frames;
+         rv = (float)handle->period_frames/handle->spec.channels;
          break;
 
 		/* boolean */
@@ -2154,6 +2163,13 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, enum pw_stream_flags flags, co
          }
          if (!stream_name && ppw_get_prgname) {
             app_name = ppw_get_prgname();
+         }
+
+         if (!stream_name) {
+            stream_name = handle->meta.artist;
+         }
+         if (!stream_name) {
+            stream_name = handle->meta.title;
          }
          if (!stream_name) {
             stream_name = _aax_get_binary_name("Audio Stream");
