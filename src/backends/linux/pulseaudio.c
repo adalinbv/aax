@@ -23,18 +23,19 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# if HAVE_STRINGS_H
-#  include <strings.h>
+#if HAVE_PULSEAUDIO_H
+
+# ifdef HAVE_RMALLOC_H
+#  include <rmalloc.h>
+# else
+#  if HAVE_STRINGS_H
+#   include <strings.h>
+#  endif
+#  include <string.h>		/* strstr, strncmp */
 # endif
-# include <string.h>		/* strstr, strncmp */
-#endif
 #include <stdarg.h>		/* va_start */
 #include <stdio.h>		/* snprintf */
 
-#if HAVE_PULSEAUDIO_H
 #include <pulse/util.h>
 #include <pulse/error.h>
 #include <pulse/stream.h>
@@ -45,15 +46,11 @@
 #include <aax/aax.h>
 #include <xml.h>
 
-#include <base/types.h>
-#include <base/logging.h>
 #include <base/memory.h>
 #include <base/dlsym.h>
-#include <base/timer.h>
 
 #include <backends/driver.h>
 #include <ringbuffer.h>
-#include <arch.h>
 #include <api.h>
 
 #include <dsp/effects.h>
@@ -71,7 +68,7 @@
 #define USE_PULSE_THREAD	AAX_TRUE
 #define CAPTURE_CALLBACK	AAX_TRUE
 
-#define FILL_FACTOR		4.0f
+#define BUFFER_SIZE_FACTOR	4.0f
 #define CAPTURE_BUFFER_SIZE	(DEFAULT_PERIODS*8192)
 #define MAX_DEVICES_LIST	4096
 
@@ -157,7 +154,6 @@ typedef struct
    pa_buffer_attr attr;
    pa_volume_t volume;
 
-// char no_periods;
    char bits_sample;
    unsigned int format;
    unsigned int period_frames;
@@ -351,9 +347,6 @@ _aaxPulseAudioDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(pa_sample_spec_valid);
          TIE_FUNCTION(pa_sample_spec_snprint);
          TIE_FUNCTION(pa_channel_map_snprint);
-//       TIE_FUNCTION(pa_signal_new);
-//       TIE_FUNCTION(pa_signal_done);
-//       TIE_FUNCTION(pa_xfree);
       }
 
       error = _aaxGetSymError(0);
@@ -401,7 +394,7 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
 
       frame_sz = handle->spec.channels*handle->bits_sample/8;
       handle->period_frames = get_pow2(handle->spec.rate/DEFAULT_REFRESH);
-      handle->fill.aim = FILL_FACTOR*handle->period_frames/handle->spec.rate;
+      handle->fill.aim = (float)DEFAULT_PERIODS*handle->period_frames/handle->spec.rate;
       handle->latency = handle->fill.aim/frame_sz;
 
       if (!m) {
@@ -606,8 +599,8 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int period_samples;
+   int periods, samples, frame_sz;
    pa_sample_spec req;
-   int samples, frame_sz;
    int rv = AAX_FALSE;
 
    *fmt = AAX_PCM16S;
@@ -623,9 +616,9 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
       *refresh_rate = 100;
    }
 
+   periods = DEFAULT_PERIODS;
+
    if (!registered) {
-
-
       period_samples = get_pow2(req.rate/(*refresh_rate));
    } else {
       period_samples = get_pow2(req.rate/period_rate);
@@ -687,7 +680,6 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
 
       handle->bits_sample = aaxGetBitsPerSample(handle->format);
-      frame_sz = handle->spec.channels*handle->bits_sample/8;
       handle->period_frames = period_samples;
 
       *fmt = handle->format;
@@ -700,7 +692,8 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
       handle->refresh_rate = *refresh_rate;
 
-      handle->fill.aim = FILL_FACTOR*frame_sz*handle->period_frames/handle->spec.rate;
+      frame_sz = handle->spec.channels*handle->bits_sample/8;
+      handle->fill.aim = (float)periods*frame_sz*period_samples/handle->spec.rate;
       handle->latency = handle->fill.aim/frame_sz;
 
 #if 0
@@ -854,7 +847,6 @@ _aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t
       void *buf = _aaxDataGetData(handle->dataBuffer);
 
       nframes = len/frame_sz;
-//    _batch_cvt24_16_intl((int32_t**)data, buf, offs, tracks, nframes);
       handle->cvt_from_intl((int32_t**)data, buf, offs, tracks, nframes);
       _aaxDataMove(handle->dataBuffer, NULL, len);
 
@@ -897,11 +889,11 @@ _aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNU
    period_frames = rb->get_parami(rb, RB_NO_SAMPLES);
    frame_sz = no_tracks*handle->bits_sample/8;
 
-   size = period_frames*frame_sz;
-   if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < 8*size))
+   size = BUFFER_SIZE_FACTOR*DEFAULT_PERIODS*period_frames*frame_sz;
+   if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < size))
    {
       _aaxDataDestroy(handle->dataBuffer);
-      handle->dataBuffer = _aaxDataCreate(DEFAULT_PERIODS*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
+      handle->dataBuffer = _aaxDataCreate(size, no_tracks*handle->bits_sample/8);
       if (handle->dataBuffer == 0) return -1;
 
       ppa_stream_set_write_callback(handle->pa, stream_playback_cb, handle);
@@ -1247,27 +1239,26 @@ stream_playback_cb(pa_stream *stream, size_t len, void *be_ptr)
 
    if (_IS_PLAYING(handle))
    {
+      _data_t *buf = be_handle->dataBuffer;
+      void *data;
+      int res;
+
       assert(be_handle->mode != AAX_MODE_READ);
       assert(be_handle->dataBuffer);
 
       _aaxMutexLock(be_handle->mutex);
 
-      if (_aaxDataGetDataAvail(be_handle->dataBuffer) < len) {
-         len = _aaxDataGetDataAvail(be_handle->dataBuffer);
+      if (_aaxDataGetDataAvail(buf) < len) {
+         len = _aaxDataGetDataAvail(buf);
       }
 
-      if (1)
-      {
-         void *data = _aaxDataGetData(be_handle->dataBuffer);
-         int res;
-
-         res = ppa_stream_write(be_handle->pa, data, len, NULL, 0LL,
-                                PA_SEEK_RELATIVE);
-         if (res >= 0) {
-            _aaxDataMove(be_handle->dataBuffer, NULL, len);
-         } else if (ppa_strerror) {
-            _AAX_DRVLOG(ppa_strerror(res));
-         }
+      data = _aaxDataGetData(buf);
+      res = ppa_stream_write(be_handle->pa, data, len, NULL, 0LL,
+                             PA_SEEK_RELATIVE);
+      if (res >= 0) {
+         _aaxDataMove(buf, NULL, len);
+      } else if (ppa_strerror) {
+         _AAX_DRVLOG(ppa_strerror(res));
       }
 
       _aaxMutexUnLock(be_handle->mutex);

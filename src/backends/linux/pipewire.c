@@ -324,6 +324,15 @@ _aaxPipeWireDriverDetect(UNUSED(int mode))
    return rv;
 }
 
+
+// https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/FAQ#pipewire-buffering-explained
+//
+// Filters and real-time clients must use float-32
+//
+// The period_frames on the server is controlled by the clients node.latency property.
+// It it always set to the lowest requested latency. If you start a PipeWire
+// app with PIPEWIRE_LATENCY=128/48000 it will use a 2.6ms quantum and the
+// latency between a client waking up and the sink read pointer will be 2.6ms.
 static void *
 _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
 {
@@ -353,7 +362,7 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
 
       frame_sz = handle->spec.channels*handle->bits_sample/8;
       handle->period_frames = get_pow2(handle->spec.rate/DEFAULT_REFRESH);
-      handle->fill.aim = (float)DEFAULT_PERIODS*handle->period_frames/handle->spec.rate;
+      handle->fill.aim = (float)handle->period_frames/handle->spec.rate;
       handle->latency = handle->fill.aim/frame_sz;
 
       if (!m) {
@@ -559,7 +568,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
    _driver_t *handle = (_driver_t *)id;
    unsigned int period_samples;
    struct spa_audio_info_raw req;
-   int rate, periods, frame_sz;
+   int rate, frame_sz;
    int rv = AAX_FALSE;
 
    *fmt = AAX_PCM16S;
@@ -576,11 +585,10 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
    }
 
    rate = handle->spec.rate;
-   periods = DEFAULT_PERIODS;
    if (!registered) {
-      period_samples = get_pow2((size_t)rintf(rate/(*refresh_rate*periods)));
+      period_samples = get_pow2((size_t)rintf(rate/(*refresh_rate)));
    } else {
-      period_samples = get_pow2((size_t)rintf((rate*periods)/period_rate));
+      period_samples = get_pow2((size_t)rintf(rate/period_rate));
    }
    req.format = is_bigendian() ? SPA_AUDIO_FORMAT_F32_BE
                                : SPA_AUDIO_FORMAT_F32_LE;
@@ -641,11 +649,10 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
       /* recalculate period_frames and latency */
       if (!registered) {
-         period_samples = get_pow2((size_t)rintf(rate/(*refresh_rate*periods)));
+         period_samples = get_pow2((size_t)rintf(rate/(*refresh_rate)));
       } else {
-         period_samples = get_pow2((size_t)rintf((rate*periods)/period_rate));
+         period_samples = get_pow2((size_t)rintf(rate/period_rate));
       }
-      period_samples *= periods;
       handle->period_frames = period_samples;
       handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
@@ -660,7 +667,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       handle->refresh_rate = *refresh_rate;
 
       frame_sz = handle->spec.channels*handle->bits_sample/8;
-      handle->fill.aim = (float)(periods-1)*frame_sz*period_samples/handle->spec.rate;
+      handle->fill.aim = (float)frame_sz*period_samples/handle->spec.rate;
       handle->latency = handle->fill.aim/frame_sz;
 
 #if 0
@@ -829,7 +836,7 @@ _aaxPipeWireDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSE
    period_frames = rb->get_parami(rb, RB_NO_SAMPLES);
    frame_sz = no_tracks*handle->bits_sample/8;
 
-   size = BUFFER_SIZE_FACTOR*DEFAULT_PERIODS*period_frames*frame_sz;
+   size = BUFFER_SIZE_FACTOR*period_frames*frame_sz;
    if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < size))
    {
       _aaxDataDestroy(handle->dataBuffer);
@@ -1910,6 +1917,11 @@ stream_playback_cb(void *be_ptr)
       _driver_t *be_handle = (_driver_t *)be_ptr;
       _handle_t *handle = (_handle_t *)be_handle->handle;
 
+      _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
+      if (handle->finished) {
+         _aaxSemaphoreRelease(handle->finished);
+      }
+
       be_handle->callback_avail = 0;
       be_handle->callback_dt = _aaxTimerElapsed(be_handle->callback_timer);
 
@@ -2418,14 +2430,6 @@ _aaxPipeWireDriverThread(void* config)
          }
 
          state = handle->state;
-      }
-
-      if (_IS_PLAYING(handle))
-      {
-         res = _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
-         if (handle->finished) {
-            _aaxSemaphoreRelease(handle->finished);
-         }
       }
 
       dt = be_handle->callback_dt;
