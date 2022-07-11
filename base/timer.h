@@ -70,9 +70,6 @@ typedef INT64   ssize_t;
 
 int usecSleep(unsigned int);
 int msecSleep(unsigned int);
-unsigned int getTimerResolution();
-int setTimerResolution(unsigned int);
-int resetTimerResolution(unsigned int);
 
 
 /** highres timing code */

@@ -101,30 +101,6 @@ int usecSleep(unsigned int dt_us)
    return 0;
 }
 
-unsigned int
-getTimerResolution()
-{
-   _aaxTimer* timer = _aaxTimerCreate();
-   double dt;
-
-   _aaxTimerStart(timer);
-   SleepEx(1, 0);
-   dt = _aaxTimerElapsed(timer);
-   _aaxTimerDestroy(timer);
-
-   return 1000*dt;
-}
-
-int
-setTimerResolution(unsigned int dt_ms) {
-   return timeBeginPeriod(dt_ms);
-}
-
-int
-resetTimerResolution(unsigned int dt_ms) {
-   return timeEndPeriod(dt_ms);
-}
-
 /** highres timing code */
 _aaxTimer*
 _aaxTimerCreate()
@@ -239,7 +215,7 @@ _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
                                &tm->dueTime, 0, NULL, NULL, FALSE);
          if (hr)
          {
-            setTimerResolution(1);
+            timeBeginPeriod(1);
             rv = AAX_TRUE;
          }
       }
@@ -258,7 +234,7 @@ _aaxTimerStop(_aaxTimer* tm)
    {
       if (CancelWaitableTimer(tm->Event[WAITABLE_TIMER_EVENT]))
       {
-         resetTimerResolution(1);
+         timeEndPeriod(1);
          CloseHandle(tm->Event[WAITABLE_TIMER_EVENT]);
          tm->Event[WAITABLE_TIMER_EVENT] = NULL;
          rv = AAX_TRUE;
@@ -326,21 +302,6 @@ int usecSleep(unsigned int dt_us)
    s.tv_nsec = (dt_us % 1000000)*1000L;
    while(nanosleep(&s,&s)==-1 && errno == EINTR)
       continue;
-   return 0;
-}
-
-unsigned int
-getTimerResolution() {
-   return 0;
-}
-
-int
-setTimerResolution(UNUSED(unsigned int dt_ms)) {
-   return 0;
-}
-
-int
-resetTimerResolution(UNUSED(unsigned int dt_ms)) {
    return 0;
 }
 
