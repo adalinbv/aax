@@ -8,6 +8,7 @@
    is not installed.
  * Add aaxGetFormatString() which returns the audio format in a human friendly
    text format.
+ * Clean up a number of allocated memory locations at exit.
 
 -- Erik Hofman <tech@adalin.org>  Wed 05 Jul 2022 14:45:18 + 0200
 
