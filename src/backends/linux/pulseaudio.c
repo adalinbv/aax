@@ -280,6 +280,7 @@ _aaxPulseAudioDriverDetect(UNUSED(int mode))
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
+#if 0
 #if HAVE_PIPEWIRE_H
 # if RELEASE
    const char *env = getenv("AAX_SHOW_PULSEAUDIO_DEVICES");
@@ -287,6 +288,7 @@ _aaxPulseAudioDriverDetect(UNUSED(int mode))
       return AAX_FALSE;
    }
 # endif
+#endif
 #endif
 
    if (TEST_FOR_FALSE(rv) && !audio) {
