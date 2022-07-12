@@ -57,6 +57,7 @@
 #if 0
 static _aaxDriverDetect _aaxSLESDriverDetect;
 static _aaxDriverNewHandle _aaxSLESDriverNewHandle;
+static _aaxDriverFreeHandle _aaxSLESDriverFreeHandle;
 static _aaxDriverGetDevices _aaxSLESDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxSLESDriverGetInterfaces;
 static _aaxDriverConnect _aaxSLESDriverConnect;
@@ -85,6 +86,7 @@ const _aaxDriverBackend _aaxSLESDriverBackend =
 
    (_aaxDriverDetect *)&_aaxSLESDriverDetect,
    (_aaxDriverNewHandle *)&_aaxSLESDriverNewHandle,
+   (_aaxDriverFreeHandle *)&_aaxSLESDriverFreeHandle,
    (_aaxDriverGetDevices *)&_aaxSLESDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxSLESDriverGetInterfaces,
 
@@ -168,11 +170,11 @@ static void _aaxSLESDriverCallback(SLAndroidSimpleBufferQueueItf, void*);
 
 #define _AAX_DRVLOG(a)		_aaxSLESDriverLog(id, __LINE__, 0, a)
 
+static void *audio = NULL;
 
 static int
 _aaxSLESDriverDetect(int mode)
 {
-   static void *audio = NULL;
    static int rv = AAX_FALSE;
 // char *error = 0;
 
@@ -212,6 +214,15 @@ _aaxSLESDriverNewHandle(enum aaxRenderMode mode)
    }
 
    return handle;
+}
+
+static int
+_aaxSLESDriverFreeHandle(UNUSED(void *id))
+{
+   _aaxCloseLibrary(audio);
+   audio = NULL;
+
+   return AAX_TRUE;
 }
 
 static void *
@@ -349,6 +360,7 @@ static int
 _aaxSLESDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
+   int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -378,9 +390,11 @@ _aaxSLESDriverDisconnect(void *id)
 
       _aaxSemaphoreDestroy(handle->worker_start);
       free(handle);
+
+      rv = AAX_TRUE;
    }
 
-   return AAX_TRUE;
+   return rv;
 }
 
 static int

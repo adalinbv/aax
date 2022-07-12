@@ -577,6 +577,9 @@ _mp3_close(_fmt_t *fmt)
       _aax_free_meta(&handle->meta);
       free(handle);
    }
+
+   _aaxCloseLibrary(audio);
+   audio = NULL;
 }
 
 int

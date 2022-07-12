@@ -72,6 +72,7 @@
 
 static _aaxDriverDetect _aaxSDLDriverDetect;
 static _aaxDriverNewHandle _aaxSDLDriverNewHandle;
+static _aaxDriverFreeHandle _aaxSDLDriverFreeHandle;
 static _aaxDriverGetDevices _aaxSDLDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxSDLDriverGetInterfaces;
 static _aaxDriverConnect _aaxSDLDriverConnect;
@@ -102,6 +103,7 @@ const _aaxDriverBackend _aaxSDLDriverBackend =
 
    (_aaxDriverDetect *)&_aaxSDLDriverDetect,
    (_aaxDriverNewHandle *)&_aaxSDLDriverNewHandle,
+   (_aaxDriverFreeHandle *)&_aaxSDLDriverFreeHandle,
    (_aaxDriverGetDevices *)&_aaxSDLDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxSDLDriverGetInterfaces,
 
@@ -199,10 +201,11 @@ static float _sdl_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, uint32_t, uns
 const char *_const_sdl_default_driver = DEFAULT_DEVNAME;
 const char *_const_sdl_default_device = NULL;
 
+static void *audio = NULL;
+
 static int
 _aaxSDLDriverDetect(UNUSED(int mode))
 {
-   static void *audio = NULL;
    static int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -292,6 +295,15 @@ _aaxSDLDriverNewHandle(enum aaxRenderMode mode)
    }
 
    return handle;
+}
+
+static int
+_aaxSDLDriverFreeHandle(UNUSED(void *id))
+{
+   _aaxCloseLibrary(audio);
+   audio = NULL;
+
+   return AAX_TRUE;
 }
 
 static void *
@@ -435,6 +447,7 @@ static int
 _aaxSDLDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
+   int rv = AAX_FALSE;
    char *ifname;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -463,12 +476,14 @@ _aaxSDLDriverDisconnect(void *id)
       ifname = handle->ifname[(handle->mode == AAX_MODE_READ) ? 1 : 0];
       if (ifname) free(ifname);
       free(handle);
+
+      pSDL_AudioQuit();
+      pSDL_Quit();
+
+      rv = AAX_TRUE;
    }
 
-   pSDL_AudioQuit();
-   pSDL_Quit();
-
-   return AAX_TRUE;
+   return rv;
 }
 
 static int

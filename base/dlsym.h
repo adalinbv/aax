@@ -51,6 +51,7 @@ extern "C" {
 
 char *_aaxGetSymError(const char *error);
 void *_aaxIsLibraryPresent(const char *name, const char *version);
+void _aaxCloseLibrary(void*);
 DLL_RV _aaxGetProcAddress(void *handle, const char *func);
 void *_aaxGetGlobalProcAddress(const char *func);
 

@@ -102,10 +102,18 @@ _aaxGetDriverBackends()
    return backends;
 }
 
+static void
+_aax_free_backend(void *p)
+{
+   _aaxDriverBackend *be = (_aaxDriverBackend*)p;
+   be->free_handle(NULL);
+   free(be);
+}
+
 void *
 _aaxRemoveDriverBackends(_intBuffers **be)
 {
-   _intBufErase(be, _AAX_BACKEND, free);
+   _intBufErase(be, _AAX_BACKEND, _aax_free_backend);
    return 0;
 }
 

@@ -79,6 +79,7 @@
 
 static _aaxDriverDetect _aaxOSSDriverDetect;
 static _aaxDriverNewHandle _aaxOSSDriverNewHandle;
+static _aaxDriverFreeHandle _aaxOSSDriverFreeHandle;
 static _aaxDriverGetDevices _aaxOSSDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxOSSDriverGetInterfaces;
 static _aaxDriverConnect _aaxOSSDriverConnect;
@@ -106,6 +107,7 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
 
    (_aaxDriverDetect *)&_aaxOSSDriverDetect,
    (_aaxDriverNewHandle *)&_aaxOSSDriverNewHandle,
+   (_aaxDriverFreeHandle *)&_aaxOSSDriverFreeHandle,
    (_aaxDriverGetDevices *)&_aaxOSSDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxOSSDriverGetInterfaces,
 
@@ -187,10 +189,11 @@ static const char *_const_oss_default_name = DEFAULT_DEVNAME;
 static int _oss_default_nodenum = DEFAULT_DEVNUM;
 static char *_default_mixer = DEFAULT_MIXER;
 
+static void *audio = NULL;
+
 static int
 _aaxOSSDriverDetect(UNUSED(int mode))
 {
-   static void *audio = NULL;
    static int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -233,6 +236,14 @@ _aaxOSSDriverNewHandle(enum aaxRenderMode mode)
    return handle;
 }
 
+static int
+_aaxOSSDriverFreeHandle(UNUSED(void *id))
+{
+   _aaxCloseLibrary(audio);
+   audio = NULL;
+
+   return AAX_TRUE;
+}
 
 static void *
 _aaxOSSDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
@@ -385,6 +396,7 @@ static int
 _aaxOSSDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
+   int rv = AAX_FALSE;
 
    if (handle)
    {
@@ -418,9 +430,10 @@ _aaxOSSDriverDisconnect(void *id)
       if (handle->ptr) free(handle->ptr);
       free(handle);
 
-      return AAX_TRUE;
+      rv = AAX_TRUE;
    }
-   return AAX_FALSE;
+
+   return rv;
 }
 
 static int

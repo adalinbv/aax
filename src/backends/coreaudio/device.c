@@ -57,6 +57,7 @@
 
 static _aaxDriverDetect _aaxCoreAudioDriverDetect;
 static _aaxDriverNewHandle _aaxCoreAudioDriverNewHandle;
+static _aaxDriverFreeHandle _aaxCodeAudioDriverFreeHandle;
 static _aaxDriverGetDevices _aaxCoreAudioDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxCoreAudioDriverGetInterfaces;
 static _aaxDriverConnect _aaxCoreAudioDriverConnect;
@@ -84,6 +85,7 @@ const _aaxDriverBackend _aaxCoreAudioDriverBackend =
 
    (_aaxDriverDetect *)&_aaxCoreAudioDriverDetect,
    (_aaxDriverNewHandle *)&_aaxCoreAudioDriverNewHandle,
+   (_aaxDriverFreeHandle *)&_aaxCodeAudioDriverFreeHandle,
    (_aaxDriverGetDevices *)&_aaxCoreAudioDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxCoreAudioDriverGetInterfaces,
 
@@ -115,10 +117,11 @@ const _aaxDriverBackend _aaxCoreAudioDriverBackend =
 const char *_coreaudio_default_name = DEFAULT_DEVNAME;
 static const int __rate[] = { AL_INPUT_RATE, AL_OUTPUT_RATE };
 
+static void *audio = NULL;
+
 static int
 _aaxCoreAudioDriverDetect(UNUSED(int mode))
 {
-   static void *audio = NULL;
    static int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -169,6 +172,15 @@ _aaxCoreAudioDriverNewHandle(enum aaxRenderMode mode)
    }
 
    return handle;
+}
+
+static int
+_aaxCodeAudioDriverFreeHandle(UNUSED(void *id))
+{
+   _aaxCloseLibrary(audio);
+   audio = NULL;
+
+   return AAX_TRUE;
 }
 
 static void *

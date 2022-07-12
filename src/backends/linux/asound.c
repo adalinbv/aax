@@ -73,6 +73,7 @@
 
 _aaxDriverDetect _aaxALSADriverDetect;
 static _aaxDriverNewHandle _aaxALSADriverNewHandle;
+static _aaxDriverFreeHandle _aaxALSADriverFreeHandle;
 static _aaxDriverGetDevices _aaxALSADriverGetDevices;
 static _aaxDriverGetInterfaces _aaxALSADriverGetInterfaces;
 static _aaxDriverConnect _aaxALSADriverConnect;
@@ -101,6 +102,7 @@ const _aaxDriverBackend _aaxALSADriverBackend =
 
    (_aaxDriverDetect *)&_aaxALSADriverDetect,
    (_aaxDriverNewHandle *)&_aaxALSADriverNewHandle,
+   (_aaxDriverFreeHandle *)&_aaxALSADriverFreeHandle,
    (_aaxDriverGetDevices *)&_aaxALSADriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxALSADriverGetInterfaces,
 
@@ -345,12 +347,11 @@ static const _alsa_formats_t _alsa_formats[MAX_FORMATS];
 
 #define MAX_PREFIX	7
 static const char* ifname_prefix[MAX_PREFIX];
-
+static void *audio = NULL;
 
 int
 _aaxALSADriverDetect(int mode)
 {
-   static void *audio = NULL;
    static int rv = AAX_FALSE;
    char *error = 0;
 
@@ -537,6 +538,15 @@ _aaxALSADriverNewHandle(enum aaxRenderMode mode)
    return handle;
 }
 
+static int
+_aaxALSADriverFreeHandle(UNUSED(void *id))
+{
+   _aaxCloseLibrary(audio);
+   audio = NULL;
+
+   return AAX_TRUE;
+}
+
 static void *
 _aaxALSADriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
 {
@@ -698,6 +708,7 @@ static int
 _aaxALSADriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
+   int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -745,10 +756,10 @@ _aaxALSADriverDisconnect(void *id)
       free(handle);
       handle = 0;
 
-      return AAX_TRUE;
+      rv = AAX_TRUE;
    }
 
-   return AAX_FALSE;
+   return rv;
 }
 
 

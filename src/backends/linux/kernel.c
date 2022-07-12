@@ -88,6 +88,7 @@ static char *_aaxLinuxDriverLogVar(const void *, const char *, ...);
 
 static _aaxDriverDetect _aaxLinuxDriverDetect;
 static _aaxDriverNewHandle _aaxLinuxDriverNewHandle;
+static _aaxDriverFreeHandle _aaxLinuxDriverFreeHandle;
 static _aaxDriverGetDevices _aaxLinuxDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxLinuxDriverGetInterfaces;
 static _aaxDriverConnect _aaxLinuxDriverConnect;
@@ -116,6 +117,7 @@ const _aaxDriverBackend _aaxLinuxDriverBackend =
 
    (_aaxDriverDetect *)&_aaxLinuxDriverDetect,
    (_aaxDriverNewHandle *)&_aaxLinuxDriverNewHandle,
+   (_aaxDriverFreeHandle *)&_aaxLinuxDriverFreeHandle,
    (_aaxDriverGetDevices *)&_aaxLinuxDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxLinuxDriverGetInterfaces,
 
@@ -233,10 +235,11 @@ static int _get_pagesize();
 # define O_NONBLOCK	0
 #endif
 
+static void *audio = NULL;
+
 static int
 _aaxLinuxDriverDetect(int mode)
 {
-   static void *audio = NULL;
    static int rv = AAX_FALSE;
    char *s, *error = 0;
 
@@ -331,6 +334,14 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
    return handle;
 }
 
+static int
+_aaxLinuxDriverFreeHandle(UNUSED(void *id))
+{
+   _aaxCloseLibrary(audio);
+   audio = NULL;
+
+   return AAX_TRUE;
+}
 
 static void *
 _aaxLinuxDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
@@ -480,6 +491,7 @@ static int
 _aaxLinuxDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
+   int rv = AAX_FALSE;
 
    if (handle)
    {
@@ -523,9 +535,10 @@ _aaxLinuxDriverDisconnect(void *id)
       if (handle->ptr) free(handle->ptr);
       free(handle);
 
-      return AAX_TRUE;
+      rv = AAX_TRUE;
    }
-   return AAX_FALSE;
+
+   return rv;
 }
 
 static int

@@ -76,6 +76,7 @@
 
 static _aaxDriverDetect _aaxDMediaDriverDetect;
 static _aaxDriverNewHandle _aaxDMediaDriverNewHandle;
+static _aaxDriverFreeHandle _aaxDMediaDriverFreeHandle;
 static _aaxDriverGetDevices _aaxDMediaDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxDMediaDriverGetInterfaces;
 static _aaxDriverConnect _aaxDMediaDriverConnect;
@@ -103,6 +104,7 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
 
    (_aaxDriverDetect *)&_aaxDMediaDriverDetect,
    (_aaxDriverNewHandle *)&_aaxDMediaDriverNewHandle,
+   (_aaxDriverFreeHandle *)&_aaxDMediaDriverFreeHandle,
    (_aaxDriverGetDevices *)&_aaxDMediaDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxDMediaDriverGetInterfaces,
 
@@ -222,11 +224,12 @@ static int oserror(void);
 #define __REPORT_ERROR()
 #endif
 
+static void *audio = NULL;
+static void *dmedia = NULL;
 
 static int
 _aaxDMediaDriverDetect(UNUSED(int mode))
 {
-   static void *audio = NULL;
    static int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -271,10 +274,8 @@ _aaxDMediaDriverDetect(UNUSED(int mode))
       error = _aaxGetSymError(0);
       if (!error)
       {
-         static void *dmedia = NULL;
-
          if (!dmedia) {
-            _aaxIsLibraryPresent("dmedia", 0);
+            dmedia = _aaxIsLibraryPresent("dmedia", 0);
          }
          if (dmedia)
          {
@@ -319,6 +320,18 @@ _aaxDMediaDriverNewHandle(enum aaxRenderMode mode)
    }
 
    return handle;
+}
+
+static int
+_aaxDMediaDriverFreeHandle(UNUSED(void *id))
+{
+   _aaxCloseLibrary(dmedia);
+   dmedia = NULL;
+
+   _aaxCloseLibrary(audio);
+   audio = NULL;
+
+   return AAX_TRUE;
 }
 
 static void *
@@ -506,6 +519,7 @@ static int
 _aaxDMediaDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
+   int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -558,9 +572,11 @@ _aaxDMediaDriverDisconnect(void *id)
          free(handle);
          handle = NULL;
       }
+
+      rv = AAX_TRUE;
    }
 
-   return AAX_TRUE;
+   return rv;
 }
 
 static int

@@ -53,6 +53,12 @@ _aaxIsLibraryPresent(const char *name, const char *version)
    return 0;
 }
 
+void
+_aaxCloseLibrary(void *lib)
+{
+}
+
+
 DLL_RV
 _aaxGetProcAddress(void *handle, const char *func)
 {
@@ -109,6 +115,12 @@ _aaxIsLibraryPresent(const char *name, const char *version)
    return handle;
 }
 
+void
+_aaxCloseLibrary(void *lib)
+{
+   if (lib) FreeLibrary(lib);
+}
+
 DLL_RV
 _aaxGetProcAddress(void *handle, const char *func)
 {
@@ -158,6 +170,12 @@ _aaxIsLibraryPresent(const char *name, const char *version)
       lib = libname;
    }
    return dlopen(lib, RTLD_LAZY);
+}
+
+void
+_aaxCloseLibrary(void *lib)
+{
+   if (lib) dlclose(lib);
 }
 
 DLL_RV

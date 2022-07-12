@@ -139,6 +139,7 @@ typedef int _aaxDriverDetect(int mode);
 typedef void *_aaxDriverNewHandle(enum aaxRenderMode);
 typedef void *_aaxDriverConnect(void*, const void*, void*, const char*, enum aaxRenderMode);
 typedef int _aaxDriverDisconnect(void*);
+typedef int _aaxDriverFreeHandle(void*);
 typedef int _aaxDriverSetup(const void*, float*, int*, unsigned int*, float*, int*, int, float);
 
 typedef char *_aaxDriverGetName(const void*, int);
@@ -179,6 +180,7 @@ typedef struct
 
     _aaxDriverDetect *detect;
     _aaxDriverNewHandle *new_handle;
+    _aaxDriverFreeHandle *free_handle;
     _aaxDriverGetDevices *get_devices;
     _aaxDriverGetInterfaces *get_interfaces;
 

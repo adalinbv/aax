@@ -77,6 +77,7 @@
 
 _aaxDriverDetect _aaxPipeWireDriverDetect;
 static _aaxDriverNewHandle _aaxPipeWireDriverNewHandle;
+static _aaxDriverFreeHandle _aaxPipeWireDriverFreeHandle;
 static _aaxDriverGetDevices _aaxPipeWireDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxPipeWireDriverGetInterfaces;
 static _aaxDriverConnect _aaxPipeWireDriverConnect;
@@ -107,6 +108,7 @@ const _aaxDriverBackend _aaxPipeWireDriverBackend =
 
    (_aaxDriverDetect *)&_aaxPipeWireDriverDetect,
    (_aaxDriverNewHandle *)&_aaxPipeWireDriverNewHandle,
+   (_aaxDriverFreeHandle *)&_aaxPipeWireDriverFreeHandle,
    (_aaxDriverGetDevices *)&_aaxPipeWireDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxPipeWireDriverGetInterfaces,
 
@@ -253,10 +255,11 @@ static const enum spa_audio_channel channel_map[] = {
   SPA_AUDIO_CHANNEL_SR
 };
 
+static void *audio = NULL;
+
 int
 _aaxPipeWireDriverDetect(UNUSED(int mode))
 {
-   static void *audio = NULL;
    static int rv = AAX_FALSE;
    char *error = NULL;
 
@@ -394,6 +397,14 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
    return handle;
 }
 
+static int
+_aaxPipeWireDriverFreeHandle(UNUSED(void *id))
+{
+   _aaxCloseLibrary(audio);
+   audio = NULL;
+
+   return AAX_TRUE;
+}
 
 static void *
 _aaxPipeWireDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
@@ -497,6 +508,7 @@ static int
 _aaxPipeWireDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
+   int rv = AAX_FALSE;
 
    if (pipewire_initialized)
    {
@@ -539,9 +551,10 @@ _aaxPipeWireDriverDisconnect(void *id)
 
       free(handle);
 
-      return AAX_TRUE;
+      rv = AAX_TRUE;
    }
-   return AAX_FALSE;
+
+   return rv;
 }
 
 static int

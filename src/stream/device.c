@@ -68,6 +68,7 @@
 
 static _aaxDriverDetect _aaxStreamDriverDetect;
 static _aaxDriverNewHandle _aaxStreamDriverNewHandle;
+static _aaxDriverFreeHandle _aaxALSADriverFreeHandle;
 static _aaxDriverGetDevices _aaxStreamDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxStreamDriverGetInterfaces;
 static _aaxDriverConnect _aaxStreamDriverConnect;
@@ -97,6 +98,7 @@ const _aaxDriverBackend _aaxStreamDriverBackend =
 
    (_aaxDriverDetect *)&_aaxStreamDriverDetect,
    (_aaxDriverNewHandle *)&_aaxStreamDriverNewHandle,
+   (_aaxDriverFreeHandle *)&_aaxALSADriverFreeHandle,
    (_aaxDriverGetDevices *)&_aaxStreamDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxStreamDriverGetInterfaces,
 
@@ -219,6 +221,13 @@ _aaxStreamDriverNewHandle(enum aaxRenderMode mode)
 
    return handle;
 }
+
+static int
+_aaxALSADriverFreeHandle(UNUSED(void *id))
+{
+   return AAX_TRUE;
+}
+
 
 static void *
 _aaxStreamDriverConnect(void *config, const void *id, void *xid, const char *device, enum aaxRenderMode mode)

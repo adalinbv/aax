@@ -77,6 +77,7 @@
 
 _aaxDriverDetect _aaxPulseAudioDriverDetect;
 static _aaxDriverNewHandle _aaxPulseAudioDriverNewHandle;
+static _aaxDriverFreeHandle _aaxPulseAudioDriverFreeHandle;
 static _aaxDriverGetDevices _aaxPulseAudioDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxPulseAudioDriverGetInterfaces;
 static _aaxDriverConnect _aaxPulseAudioDriverConnect;
@@ -107,6 +108,7 @@ const _aaxDriverBackend _aaxPulseAudioDriverBackend =
 
    (_aaxDriverDetect *)&_aaxPulseAudioDriverDetect,
    (_aaxDriverNewHandle *)&_aaxPulseAudioDriverNewHandle,
+   (_aaxDriverFreeHandle *)&_aaxPulseAudioDriverFreeHandle,
    (_aaxDriverGetDevices *)&_aaxPulseAudioDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxPulseAudioDriverGetInterfaces,
 
@@ -270,11 +272,11 @@ static enum aaxFormat _aaxPulseAudioGetFormat(pa_sample_format_t);
 
 static const char *_const_pulseaudio_default_name = DEFAULT_DEVNAME;
 const char *_const_pulseaudio_default_device = NULL;
+static void *audio = NULL;
 
 int
 _aaxPulseAudioDriverDetect(UNUSED(int mode))
 {
-   static void *audio = NULL;
    static int rv = AAX_FALSE;
    char *error = NULL;
 
@@ -447,6 +449,14 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
    return handle;
 }
 
+static int
+_aaxPulseAudioDriverFreeHandle(UNUSED(void *id))
+{
+   _aaxCloseLibrary(audio);
+   audio = NULL;
+
+   return AAX_TRUE;
+}
 
 static void *
 _aaxPulseAudioDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
@@ -550,6 +560,7 @@ static int
 _aaxPulseAudioDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
+   int rv = AAX_FALSE;
 
    if (handle)
    {
@@ -589,9 +600,10 @@ _aaxPulseAudioDriverDisconnect(void *id)
 
       free(handle);
 
-      return AAX_TRUE;
+      rv = AAX_TRUE;
    }
-   return AAX_FALSE;
+
+   return rv;
 }
 
 static int

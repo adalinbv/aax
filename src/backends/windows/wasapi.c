@@ -77,6 +77,7 @@
 
 static _aaxDriverDetect _aaxWASAPIDriverDetect;
 static _aaxDriverNewHandle _aaxWASAPIDriverNewHandle;
+static _aaxDriverFreeHandle _aaxWASAPIDriverFreeHandle;
 static _aaxDriverGetDevices _aaxWASAPIDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxWASAPIDriverGetInterfaces;
 static _aaxDriverConnect _aaxWASAPIDriverConnect;
@@ -107,6 +108,7 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
 
    (_aaxDriverDetect *)&_aaxWASAPIDriverDetect,
    (_aaxDriverNewHandle *)&_aaxWASAPIDriverNewHandle,
+   (_aaxDriverFreeHandle *)&_aaxWASAPIDriverFreeHandle,
    (_aaxDriverGetDevices *)&_aaxWASAPIDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxWASAPIDriverGetInterfaces,
 
@@ -326,10 +328,11 @@ static int _wasapi_get_volume_range(_driver_t *);
 static int _wasapi_set_volume(_driver_t*, int32_t**, ssize_t, size_t, unsigned int, float);
 
 
+static void *audio = NULL;
+
 static int
 _aaxWASAPIDriverDetect(int mode)
 {
-   static void *audio = NULL;
    static int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -374,6 +377,15 @@ _aaxWASAPIDriverNewHandle(enum aaxRenderMode mode)
    }
 
    return handle;
+}
+
+static int
+_aaxWASAPIDriverFreeHandle(UNUSED(void *id))
+{
+   _aaxCloseLibrary(audio);
+   audio = NULL;
+
+   return AAX_TRUE;
 }
 
 static void *
@@ -539,6 +551,7 @@ static int
 _aaxWASAPIDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
+   int rv = AAX_FALSE;
 
    if (handle)
    {
@@ -577,9 +590,10 @@ _aaxWASAPIDriverDisconnect(void *id)
 
       free(handle);
 
-      return AAX_TRUE;
+      rv = AAX_TRUE;
    }
-   return AAX_FALSE;
+
+   return rv;
 }
 
 static int

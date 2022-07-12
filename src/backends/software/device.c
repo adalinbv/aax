@@ -48,6 +48,7 @@
 
 static _aaxDriverDetect _aaxNoneDriverDetect;
 static _aaxDriverNewHandle _aaxNoneDriverNewHandle;
+static _aaxDriverFreeHandle _aaxNoneDriverFreeHandle;
 static _aaxDriverGetDevices _aaxNoneDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxNoneDriverGetInterfaces;
 static _aaxDriverConnect _aaxNoneDriverConnect;
@@ -78,6 +79,7 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
 
    (_aaxDriverDetect *)&_aaxNoneDriverDetect,
    (_aaxDriverNewHandle *)&_aaxNoneDriverNewHandle,
+   (_aaxDriverFreeHandle *)&_aaxNoneDriverFreeHandle,
    (_aaxDriverGetDevices *)&_aaxNoneDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxNoneDriverGetInterfaces,
 
@@ -145,6 +147,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
 
    (_aaxDriverDetect *)&_aaxNoneDriverDetect,
    (_aaxDriverNewHandle *)&_aaxLoopbackDriverNewHandle,
+   (_aaxDriverFreeHandle *)&_aaxNoneDriverFreeHandle,
    (_aaxDriverGetDevices *)&_aaxNoneDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxNoneDriverGetInterfaces,
 
@@ -182,6 +185,12 @@ static void *
 _aaxNoneDriverNewHandle(UNUSED(enum aaxRenderMode mode))
 {
    return NULL;
+}
+
+static int
+_aaxNoneDriverFreeHandle(UNUSED(void *id))
+{
+   return AAX_TRUE;
 }
 
 static void *
@@ -389,7 +398,7 @@ _aaxLoopbackDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
 
-   if (handle->render)
+   if (handle && handle->render)
    {
       handle->render->close(handle->render->id);
       free(handle->render);
