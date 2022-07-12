@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2007-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -77,7 +77,7 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
    char *rv = NULL;
    if (handle)
    {
-      _aaxDriverBackend *be = handle->backend.ptr;
+      const _aaxDriverBackend *be = handle->backend.ptr;
       switch(type)
       {
       case AAX_VERSION_STRING:
@@ -95,7 +95,12 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
          break;
       case AAX_RENDERER_STRING:
          rv = be->name(handle->backend.handle, type);
-         if (!rv)
+         if (rv)
+         {
+            if (handle->renderer) free(handle->renderer);
+            handle->renderer = rv;
+         }
+         else
          {
             if (handle->backend.driver) {
                rv = (char*)handle->backend.driver;
@@ -223,7 +228,7 @@ aaxDriverGetByPos(unsigned pos_req, enum aaxRenderMode mode)
                }
             }
          }
- 
+
          if (be)
          {
             handle->id = HANDLE_ID;
@@ -373,7 +378,7 @@ aaxDriverGetSupport(const aaxConfig config, enum aaxRenderMode mode)
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
-   } 
+   }
    return rv;
 }
 
@@ -405,7 +410,7 @@ aaxDriverOpen(aaxConfig config)
 
             if (!name) name = "default";
             handle->backend.handle = be->connect(handle, nid, xoid, name, mode);
-            if (!handle->backend.handle) 
+            if (!handle->backend.handle)
             {
                _AAX_SYSLOG(be->log(NULL, 0, 0, NULL));
                return NULL;
@@ -510,6 +515,10 @@ aaxDriverDestroy(aaxConfig config)
       {
          free(handle->devname[0]);
          handle->devname[0] = (char *)_aax_default_devname;
+      }
+
+      if (handle->renderer) {
+         free(handle->renderer);
       }
 
       if (handle->backend.driver &&
@@ -1306,7 +1315,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode, char setup)
             }
 
             handle->valid = HANDLE_ID;
-         } 
+         }
          while(0);
 
          if (handle->sensors)
