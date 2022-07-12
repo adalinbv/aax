@@ -183,15 +183,10 @@ typedef struct
    float volumeStep, hwgain;
 
    _aaxTimer *callback_timer;
-   float callback_dt;
    size_t callback_avail;
+   float callback_dt;
 
    struct _meta_t meta;
-
-#if TIMING_DEBUG
-   _aaxTimer *playback_timer;
-   float playback_dt;
-#endif
 
 } _driver_t;
 
@@ -210,7 +205,6 @@ DECL_FUNCTION(pw_thread_loop_start);
 DECL_FUNCTION(pw_context_new);
 DECL_FUNCTION(pw_context_destroy);
 DECL_FUNCTION(pw_context_connect);
-DECL_FUNCTION(pw_context_update_properties);
 DECL_FUNCTION(pw_proxy_add_object_listener);
 DECL_FUNCTION(pw_proxy_get_user_data);
 DECL_FUNCTION(pw_proxy_destroy);
@@ -224,6 +218,7 @@ DECL_FUNCTION(pw_stream_dequeue_buffer);
 DECL_FUNCTION(pw_stream_queue_buffer);
 DECL_FUNCTION(pw_stream_get_control);
 DECL_FUNCTION(pw_stream_set_control);
+DECL_FUNCTION(pw_stream_update_properties);
 DECL_FUNCTION(pw_properties_new);
 DECL_FUNCTION(pw_properties_get);
 DECL_FUNCTION(pw_properties_set);
@@ -291,7 +286,6 @@ _aaxPipeWireDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(pw_context_new);
          TIE_FUNCTION(pw_context_destroy);
          TIE_FUNCTION(pw_context_connect);
-         TIE_FUNCTION(pw_context_update_properties);
          TIE_FUNCTION(pw_proxy_add_object_listener);
          TIE_FUNCTION(pw_proxy_get_user_data);
          TIE_FUNCTION(pw_proxy_destroy);
@@ -304,6 +298,7 @@ _aaxPipeWireDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(pw_stream_queue_buffer);
          TIE_FUNCTION(pw_stream_get_control);
          TIE_FUNCTION(pw_stream_set_control);
+         TIE_FUNCTION(pw_stream_update_properties);
          TIE_FUNCTION(pw_properties_new);
          TIE_FUNCTION(pw_properties_get);
          TIE_FUNCTION(pw_properties_set);
@@ -379,9 +374,6 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
       handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
 
       handle->callback_timer = _aaxTimerCreate();
-#if TIMING_DEBUG
-      handle->playback_timer = _aaxTimerCreate();
-#endif
 
       if (!pipewire_initialized)
       {
@@ -516,9 +508,6 @@ _aaxPipeWireDriverDisconnect(void *id)
    if (handle)
    {
       _aaxTimerDestroy(handle->callback_timer);
-#if TIMING_DEBUG
-      _aaxTimerDestroy(handle->playback_timer);
-#endif
 
       _aax_free_meta(&handle->meta);
 
@@ -550,7 +539,7 @@ _aaxPipeWireDriverDisconnect(void *id)
       if (handle->ml)
       {
          ppw_thread_loop_destroy(handle->ml);
-         handle->ctx = NULL;
+         handle->ml = NULL;
       }
 
       free(handle);
@@ -825,10 +814,6 @@ _aaxPipeWireDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSE
    assert(rb);
    assert(id != 0);
 
-#if TIMING_DEBUG
-   handle->playback_dt = _aaxTimerElapsed(handle->playback_timer);
-#endif
-
    if (handle->mode == 0)
       return 0;
 
@@ -882,35 +867,45 @@ _aaxPipeWireDriverSetName(const void *id, int type, const char *name)
    int ret = AAX_FALSE;
    if (handle)
    {
-      struct spa_dict_item item;
+      struct spa_dict_item item[3];
+      int nitems = 1;
 
       switch (type)
       {
       case AAX_MUSIC_PERFORMER_STRING:
       case AAX_MUSIC_PERFORMER_UPDATE:
+         if (handle->meta.artist) free(handle->meta.artist);
          handle->meta.artist = strdup(name);
-         item = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_ARTIST, name);
+         item[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_ARTIST, name);
+         item[1] = SPA_DICT_ITEM_INIT(PW_KEY_NODE_NAME, name);
+         nitems = 2;
          ret = AAX_TRUE;
          break;
       case AAX_TRACK_TITLE_STRING:
       case AAX_TRACK_TITLE_UPDATE:
+         if (handle->meta.title) free(handle->meta.title);
          handle->meta.title = strdup(name);
-         item = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_TITLE, name);
+         item[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_TITLE, name);
+         item[1] = SPA_DICT_ITEM_INIT(PW_KEY_NODE_DESCRIPTION, name);
+         nitems = 2;
          ret = AAX_TRUE;
          break;
       case AAX_SONG_COPYRIGHT_STRING:
+         if (handle->meta.copyright) free(handle->meta.copyright);
          handle->meta.copyright = strdup(name);
-         item = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_COPYRIGHT, name);
+         item[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_COPYRIGHT, name);
          ret = AAX_TRUE;
          break;
       case AAX_SONG_COMMENT_STRING:
+         if (handle->meta.comments) free(handle->meta.comments);
          handle->meta.comments = strdup(name);
-         item = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_COMMENT, name);
+         item[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_COMMENT, name);
          ret = AAX_TRUE;
          break;
       case AAX_RELEASE_DATE_STRING:
+         if (handle->meta.date) free(handle->meta.date);
          handle->meta.date = strdup(name);
-         item = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_DATE, name);
+         item[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_DATE, name);
          ret = AAX_TRUE;
          break;
       case AAX_COVER_IMAGE_DATA:
@@ -923,8 +918,11 @@ _aaxPipeWireDriverSetName(const void *id, int type, const char *name)
          break;
       }
 
-      if (ret && handle->ctx) {
-         ppw_context_update_properties(handle->ctx, &SPA_DICT_INIT(&item, 1));
+      if (ret)
+      {
+         if (handle->pw) {
+            ppw_stream_update_properties(handle->pw, &SPA_DICT_INIT(item, nitems));
+         }
       }
    }
    return ret;
@@ -1948,12 +1946,12 @@ stream_playback_cb(void *be_ptr)
                len = _aaxDataGetDataAvail(be_handle->dataBuffer);
             }
 
+            be_handle->callback_avail = len;
             len = _aaxDataMove(buf, spa_buf->datas[0].data,
                                be_handle->period_frames*frame_sz);
 
             _aaxMutexUnLock(be_handle->mutex);
 
-            be_handle->callback_avail = len;
             spa_buf->datas[0].chunk->offset = 0;
             spa_buf->datas[0].chunk->size = len;
             spa_buf->datas[0].chunk->stride = frame_sz;
@@ -2169,6 +2167,7 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, enum pw_stream_flags flags, co
          const char *role = (handle->latency < 0.010f) ? "Music" : "Game";
          const char *category = m ? "Capture" : "Playback";
          const char *stream_name = NULL;
+         const char *stream_desc = NULL;
 
          if (ppw_get_application_name) {
             app_name = ppw_get_application_name();
@@ -2180,20 +2179,28 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, enum pw_stream_flags flags, co
          if (!stream_name) {
             stream_name = handle->meta.artist;
          }
-         if (!stream_name) {
-            stream_name = handle->meta.title;
+         if (!stream_desc)
+         {
+            stream_desc = handle->meta.title;
+            if (!stream_desc) {
+               stream_desc = stream_name;
+            } else if (!stream_name) {
+               stream_name = stream_desc;
+            }
          }
          if (!stream_name) {
             stream_name = _aax_get_binary_name("Audio Stream");
          }
-
+         if (!stream_desc) {
+            stream_desc = AAX_LIBRARY_STR;
+         }
 
          ppw_properties_set(props, PW_KEY_MEDIA_TYPE, "Audio");
          ppw_properties_set(props, PW_KEY_MEDIA_CATEGORY, category);
          ppw_properties_set(props, PW_KEY_MEDIA_ROLE, role);
          ppw_properties_set(props, PW_KEY_APP_NAME, app_name);
          ppw_properties_set(props, PW_KEY_NODE_NAME, stream_name);
-         ppw_properties_set(props, PW_KEY_NODE_DESCRIPTION, stream_name);
+         ppw_properties_set(props, PW_KEY_NODE_DESCRIPTION, stream_desc);
          ppw_properties_setf(props, PW_KEY_NODE_LATENCY, "%u/%i", handle->period_frames, handle->spec.rate);
          ppw_properties_setf(props, PW_KEY_NODE_RATE, "1/%u", handle->spec.rate);
          ppw_properties_set(props, PW_KEY_NODE_ALWAYS_PROCESS, "true");
@@ -2414,8 +2421,6 @@ _aaxPipeWireDriverThread(void* config)
    _aaxMutexLock(handle->thread.signal.mutex);
    do
    {
-      float dt = delay_sec;
-
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
       }
@@ -2432,10 +2437,10 @@ _aaxPipeWireDriverThread(void* config)
          state = handle->state;
       }
 
-      dt = be_handle->callback_dt;
-      res = _aaxSignalWaitTimed(&handle->thread.signal, dt);
+      res = _aaxSignalWaitTimed(&handle->thread.signal, delay_sec);
 #if 0
- printf("dt: %5.4f (%5.4f), delay: %5.4f\n", dt, be_handle->callback_dt, delay_sec);
+ printf("dt: %5.4f, delay: %5.4f, avail: %lu\n",
+        be_handle->callback_dt, delay_sec, be_handle->callback_avail);
 #endif
    }
    while (res == AAX_TIMEOUT || res == AAX_TRUE);
