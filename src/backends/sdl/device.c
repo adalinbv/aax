@@ -441,12 +441,9 @@ _aaxSDLDriverDisconnect(void *id)
 
    if (handle)
    {
-      if (handle->devnum)
-      {
+      if (handle->devnum) {
          pSDL_CloseAudioDevice(handle->devnum);
-         pSDL_AudioQuit();
       }
-      pSDL_Quit();
 
       if (handle->driver != _const_sdl_default_driver) {
          free(handle->driver);
@@ -467,6 +464,9 @@ _aaxSDLDriverDisconnect(void *id)
       if (ifname) free(ifname);
       free(handle);
    }
+
+   pSDL_AudioQuit();
+   pSDL_Quit();
 
    return AAX_TRUE;
 }
