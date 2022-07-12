@@ -147,7 +147,6 @@ typedef struct
    _aaxRenderer *render;
 
    struct pw_stream *pw;
-   struct pw_context *ctx;
    struct pw_thread_loop *ml;
 
    struct spa_hook listener;
@@ -507,8 +506,6 @@ _aaxPipeWireDriverDisconnect(void *id)
 
    if (handle)
    {
-      _aaxTimerDestroy(handle->callback_timer);
-
       _aax_free_meta(&handle->meta);
 
       if (handle->driver != _const_pipewire_default_name) {
@@ -531,16 +528,14 @@ _aaxPipeWireDriverDisconnect(void *id)
          ppw_stream_destroy(handle->pw);
          handle->pw = NULL;
       }
-      if (handle->ctx)
-      {
-         ppw_context_destroy(handle->ctx);
-         handle->ctx = NULL;
-      }
       if (handle->ml)
       {
+         ppw_thread_loop_stop(handle->ml);
          ppw_thread_loop_destroy(handle->ml);
          handle->ml = NULL;
       }
+
+      _aaxTimerDestroy(handle->callback_timer);
 
       free(handle);
 
@@ -2132,31 +2127,7 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, enum pw_stream_flags flags, co
       handle->ml = ppw_thread_loop_new(thread_name, NULL);
    }
 
-   /*
-    * Load the realtime module so PipeWire can set the loop thread to the
-    * appropriate priority.
-    *
-    * NOTE: PipeWire versions 0.3.22 or higher require the PW_KEY_CONFIG_NAME
-    *       property (with client-rt.conf), lower versions require explicitly
-    *       specifying the 'rtkit' module.
-    *
-    *       PW_KEY_CONTEXT_PROFILE_MODULES is deprecated and can be safely
-    *       removed if the minimum required PipeWire version is increased to
-    *       0.3.22 or higher at some point.
-    */
    if (handle->ml)
-   {
-      struct pw_properties *props;
-
-      props = ppw_properties_new(PW_KEY_CONFIG_NAME, "client-rt.conf",
-                                 PW_KEY_CONTEXT_PROFILE_MODULES,
-                                 "default,rtkit", NULL);
-      if (props) {
-         handle->ctx = ppw_context_new(ppw_thread_loop_get_loop(handle->ml),                                           props, 0);
-      }
-   }
-
-   if (handle->ctx)
    {
       struct pw_properties *props;
 
@@ -2260,8 +2231,6 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, enum pw_stream_flags flags, co
       *error = "incompatible hardware configuration";
    } else if (!handle->ml) {
       *error = "failed to create a stream loop";
-   } else if (!handle->ctx) {
-      *error = "failed to create a stream context";
    } else if (!handle->pw) {
       *error = "failed to create a stream";
    }
