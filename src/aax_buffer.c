@@ -1725,8 +1725,63 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    xiid = xmlNodeGet(xaid, "info");
    if (xiid)
    {
-      void *xnid = xmlNodeGet(xiid, "note");
+      char s[1024] = "";
+      void *xnid;
 
+      do
+      {
+         char *name, *bank, *program;
+
+         name = xmlAttributeGetString(xiid, "name");
+         bank = xmlAttributeGetString(xiid, "bank");
+         program = xmlAttributeGetString(xiid, "program");
+      
+         if (name) {
+            aax_buf->meta.title = strdup(name);
+         }
+
+         if (bank && program) {
+            snprintf(s, 1024, "bank number: %s, program number: %s\n", bank, program);
+         } else if (program) {
+            snprintf(s, 1024, "program number: %s\n", program);
+         }
+         aax_buf->meta.comments = strdup(s);
+
+         xmlFree(program);
+         xmlFree(bank);
+         xmlFree(name);
+      }
+      while(0);
+
+      xnid = xmlNodeGet(xiid, "copyright");
+      if (xnid)
+      {
+         char *from, *until, *by;
+
+         from = xmlAttributeGetString(xnid, "from");
+         until = xmlAttributeGetString(xnid, "until");
+         by = xmlAttributeGetString(xnid, "by");
+
+         if (from && until && by) {
+            snprintf(s, 1024, "(c) %s-%s by %s\n", from, until, by);
+         } else if (from && by) {
+            snprintf(s, 1024, "(c) %s by %s\n", from, by);
+         } else if (by) {
+            snprintf(s, 1024, "(c) %s\n", by);
+         } else if (from) {
+            snprintf(s, 1024, "(c) %s\n", from);
+         }
+
+         aax_buf->meta.copyright = strdup(s);
+
+         xmlFree(from);
+         xmlFree(until);
+         xmlFree(by);
+
+         xmlFree(xnid);
+      }
+
+      xnid = xmlNodeGet(xiid, "note");
       if (xnid)
       {
          if (xmlAttributeExists(xnid, "min")) {
@@ -1742,30 +1797,6 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          xmlFree(xnid);
       }
 
-      xnid = xmlNodeGet(xiid, "copyright");
-      if (xnid)
-      {
-         char *from, *until, *by;
-         char c[1024] = "";
-
-         from = xmlAttributeGetString(xnid, "from");
-         until = xmlAttributeGetString(xnid, "until");
-         by = xmlAttributeGetString(xnid, "by");
-
-         if (from && until && by) {
-            snprintf(c, 1024, "(c) %s-%s by %s\n", from, until, by);
-         } else if (from && by) {
-            snprintf(c, 1024, "(c) %s by %s\n", from, by);
-         } else if (by) {
-            snprintf(c, 1024, "(c) %s\n", by);
-         } else if (from) {
-            snprintf(c, 1024, "(c) %s\n", from);
-         }
-
-         aax_buf->meta.copyright = strdup(c);
-
-         xmlFree(xnid);
-      }
       xmlFree(xiid);
    }
 
@@ -2138,6 +2169,8 @@ _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
    _buffer_aax_t data;
    int rv = AAX_FALSE;
 
+   memset(&data, 0, sizeof(_buffer_aax_t));
+
    data.parent = buffer;
    data.aaxs = aaxs;
    data.frequency = freq;
@@ -2163,7 +2196,7 @@ _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
       _bufAAXSThread(&data);
    }
 
-   handle->meta.copyright = data.meta.copyright;
+   handle->meta = data.meta;
 
    if (data.error) {
       _aaxErrorSet(data.error);
