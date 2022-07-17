@@ -802,7 +802,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
       _buffer_info_t info;
       char **ptr;
 
-      ptr = _bufGetDataFromStream(url, &info, handle->info);
+      ptr = _bufGetDataFromStream(handle, url, &info, handle->info);
       if (ptr)
       {
          buf = aaxBufferCreate(config, info.no_samples, info.no_tracks, info.fmt);
@@ -1061,7 +1061,7 @@ _bufDestroyRingBuffer(_buffer_t* buf, unsigned char pos)
 }
 
 char**
-_bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_info)
+_bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, _aaxMixerInfo *_info)
 {
    const _aaxDriverBackend *stream = &_aaxStreamDriverBackend;
    char **ptr = NULL;
@@ -1148,6 +1148,22 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
 
                // read the last information chunks, if any
                stream->flush(id);
+
+               if (handle)
+               {
+                  handle->meta.artist = stream->name(id, AAX_MUSIC_PERFORMER_STRING);
+                  handle->meta.genre = stream->name(id, AAX_MUSIC_GENRE_STRING);
+                  handle->meta.title = stream->name(id, AAX_TRACK_TITLE_STRING);
+                  handle->meta.trackno = stream->name(id, AAX_TRACK_NUMBER_STRING);
+                  handle->meta.album = stream->name(id, AAX_ALBUM_NAME_STRING);
+                  handle->meta.date = stream->name(id, AAX_RELEASE_DATE_STRING);
+                  handle->meta.composer = stream->name(id, AAX_SONG_COMPOSER_STRING);
+                  handle->meta.copyright = stream->name(id, AAX_SONG_COPYRIGHT_STRING);
+                  handle->meta.comments = stream->name(id, AAX_SONG_COMMENT_STRING);
+                  handle->meta.composer = stream->name(id, AAX_ORIGINAL_PERFORMER_STRING);
+                  handle->meta.contact = stream->name(id, AAX_CONTACT_STRING);
+                  handle->meta.image = stream->name(id, AAX_COVER_IMAGE_DATA);
+               }
 
                // get the actual number of samples
                info->no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
@@ -1239,7 +1255,7 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
    s = strrchr(url, '.');
    if (!s || strcasecmp(s, ".aaxs"))
    {
-      data = _bufGetDataFromStream(url, info, *buffer->mixer_info);
+      data = _bufGetDataFromStream(NULL, url, info, *buffer->mixer_info);
 #if 0
  printf("url: '%s'\n\tfmt: %x, tracks: %i, freq: %4.1f, samples: %li, blocksize: %i\n", url, info->fmt, info->no_tracks, info->rate, info->no_samples, info->blocksize);
 #endif

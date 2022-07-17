@@ -114,17 +114,50 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
          break;
       case AAX_MUSIC_PERFORMER_STRING:
       case AAX_MUSIC_PERFORMER_UPDATE:
-      case AAX_MUSIC_GENRE_STRING:
+         rv = be->name(handle->backend.handle, type);
+         if (!rv) rv = handle->meta.artist;
+         break;
       case AAX_TRACK_TITLE_STRING:
       case AAX_TRACK_TITLE_UPDATE:
+         rv = be->name(handle->backend.handle, type);
+         if (!rv) rv = handle->meta.title;
+         break;
+      case AAX_MUSIC_GENRE_STRING:
+         rv = be->name(handle->backend.handle, type);
+         if (!rv) rv = handle->meta.genre;
+         break;
       case AAX_TRACK_NUMBER_STRING:
+         rv = be->name(handle->backend.handle, type);
+         if (!rv) rv = handle->meta.trackno;
+         break;
       case AAX_ALBUM_NAME_STRING:
+         rv = be->name(handle->backend.handle, type);
+         if (!rv) rv = handle->meta.album;
+         break;
       case AAX_RELEASE_DATE_STRING:
+         rv = be->name(handle->backend.handle, type);
+         if (!rv) rv = handle->meta.date;
+         break;
       case AAX_SONG_COMPOSER_STRING:
+         rv = be->name(handle->backend.handle, type);
+         if (!rv) rv = handle->meta.composer;
+         break;
       case AAX_SONG_COPYRIGHT_STRING:
+         rv = be->name(handle->backend.handle, type);
+         if (!rv) rv = handle->meta.copyright;
+         break;
       case AAX_SONG_COMMENT_STRING:
+         rv = be->name(handle->backend.handle, type);
+         if (!rv) rv = handle->meta.comments;
+         break;
       case AAX_ORIGINAL_PERFORMER_STRING:
+         rv = be->name(handle->backend.handle, type);
+         if (!rv) rv = handle->meta.composer;
+         break;
       case AAX_CONTACT_STRING:
+         rv = be->name(handle->backend.handle, type);
+         if (!rv) rv = handle->meta.contact;
+         break;
       case AAX_COVER_IMAGE_DATA:
           rv = be->name(handle->backend.handle, type);
           break;
@@ -536,6 +569,8 @@ aaxDriverDestroy(aaxConfig config)
       if (handle->timer) {
          _aaxTimerDestroy(handle->timer);
       }
+
+      _aax_free_meta(&handle->meta);
 
       /* safeguard against using already destroyed handles */
       handle->id = FADEDBAD;

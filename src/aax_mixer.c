@@ -1890,7 +1890,7 @@ _aaxCreateBufferFromAAXS(aaxConfig config, _buffer_t *buffer, char *file)
    if (!s || strcasecmp(s, ".aaxs"))
    {
       _handle_t *handle = (_handle_t*)config;
-      ptr = _bufGetDataFromStream(url, &info, handle->info);
+      ptr = _bufGetDataFromStream(config, url, &info, handle->info);
    }
 
    if (ptr)

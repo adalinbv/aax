@@ -190,6 +190,7 @@ typedef struct aax_handle_t
    _intBuffers *backends;
    struct backend_t backend;
    struct backend_t file;		/* file recording backend */
+   struct _meta_t meta;
 
    struct threat_t thread;
    _aaxSignal buffer_ready;
@@ -341,7 +342,7 @@ _buffer_t* get_buffer(aaxBuffer, const char*);
 int free_buffer(_buffer_t*);
 
 int _getMaxMipLevels(int);
-char** _bufGetDataFromStream(const char*, _buffer_info_t*, _aaxMixerInfo*);
+char** _bufGetDataFromStream(_handle_t*, const char*, _buffer_info_t*, _aaxMixerInfo*);
 void _aaxFileDriverWrite(const char*, enum aaxProcessingType, void*, size_t, size_t, char, enum aaxFormat);
 
 /* --- Emitter --- */
