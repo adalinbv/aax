@@ -1763,13 +1763,13 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          by = xmlAttributeGetString(xnid, "by");
 
          if (from && until && by) {
-            snprintf(s, 1024, "(c) %s-%s by %s\n", from, until, by);
+            snprintf(s, 1024, "(c) %s-%s by %s", from, until, by);
          } else if (from && by) {
-            snprintf(s, 1024, "(c) %s by %s\n", from, by);
+            snprintf(s, 1024, "(c) %s by %s", from, by);
          } else if (by) {
-            snprintf(s, 1024, "(c) %s\n", by);
+            snprintf(s, 1024, "(c) %s", by);
          } else if (from) {
-            snprintf(s, 1024, "(c) %s\n", from);
+            snprintf(s, 1024, "(c) %s", from);
          }
 
          aax_buf->meta.copyright = strdup(s);
