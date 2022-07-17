@@ -1152,17 +1152,28 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
                if (handle)
                {
                   handle->meta.artist = stream->name(id, AAX_MUSIC_PERFORMER_STRING);
-                  handle->meta.genre = stream->name(id, AAX_MUSIC_GENRE_STRING);
                   handle->meta.title = stream->name(id, AAX_TRACK_TITLE_STRING);
+                  handle->meta.genre = stream->name(id, AAX_MUSIC_GENRE_STRING);
                   handle->meta.trackno = stream->name(id, AAX_TRACK_NUMBER_STRING);
                   handle->meta.album = stream->name(id, AAX_ALBUM_NAME_STRING);
                   handle->meta.date = stream->name(id, AAX_RELEASE_DATE_STRING);
                   handle->meta.composer = stream->name(id, AAX_SONG_COMPOSER_STRING);
                   handle->meta.copyright = stream->name(id, AAX_SONG_COPYRIGHT_STRING);
                   handle->meta.comments = stream->name(id, AAX_SONG_COMMENT_STRING);
-                  handle->meta.composer = stream->name(id, AAX_ORIGINAL_PERFORMER_STRING);
                   handle->meta.contact = stream->name(id, AAX_CONTACT_STRING);
                   handle->meta.image = stream->name(id, AAX_COVER_IMAGE_DATA);
+#if 0
+ printf("artist: %s\n", handle->meta.artist);
+ printf("title: %s\n", handle->meta.title);
+ printf("genre: %s\n", handle->meta.genre);
+ printf("track no.: %s\n", handle->meta.trackno);
+ printf("album: %s\n", handle->meta.album);
+ printf("sate: %s\n", handle->meta.date);
+ printf("composer: %s\n", handle->meta.composer);
+ printf("copyright: %s\n", handle->meta.copyright);
+ printf("comments: %s\n", handle->meta.comments);
+ printf("contact: %s\n", handle->meta.contact);
+#endif
                }
 
                // get the actual number of samples
@@ -1683,7 +1694,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    int midi_mode;
    int rv = AAX_FALSE;
    limitType limiter;
-   void *xaid, *xnid;
+   void *xaid, *xiid;
    void *xsid, *xlid;
    char *env;
 
@@ -1711,20 +1722,51 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       limiter = atoi(env);
    }
 
-   xnid = xmlNodeGet(xaid, "info/note");
-   if (xnid)
+   xiid = xmlNodeGet(xaid, "info");
+   if (xiid)
    {
-      if (xmlAttributeExists(xnid, "min")) {
-         low_frequency = note2freq(xmlAttributeGetDouble(xnid, "min"));
-      }
-      if (xmlAttributeExists(xnid, "max")) {
-         high_frequency = note2freq(_MIN(xmlAttributeGetDouble(xnid, "max"), 128));
+      void *xnid = xmlNodeGet(xiid, "note");
+
+      if (xnid)
+      {
+         if (xmlAttributeExists(xnid, "min")) {
+            low_frequency = note2freq(xmlAttributeGetDouble(xnid, "min"));
+         }
+         if (xmlAttributeExists(xnid, "max")) {
+            high_frequency = note2freq(_MIN(xmlAttributeGetDouble(xnid, "max"), 128));
+         }
+
+         if (xmlAttributeExists(xnid, "pitch-fraction")) {
+            handle->info.pitch_fraction = xmlAttributeGetDouble(xnid, "pitch-fraction");
+         }
+         xmlFree(xnid);
       }
 
-      if (xmlAttributeExists(xnid, "pitch-fraction")) {
-         handle->info.pitch_fraction = xmlAttributeGetDouble(xnid, "pitch-fraction");
+      xnid = xmlNodeGet(xiid, "copyright");
+      if (xnid)
+      {
+         char *from, *until, *by;
+         char c[1024] = "";
+
+         from = xmlAttributeGetString(xnid, "from");
+         until = xmlAttributeGetString(xnid, "until");
+         by = xmlAttributeGetString(xnid, "by");
+
+         if (from && until && by) {
+            snprintf(c, 1024, "(c) %s-%s by %s\n", from, until, by);
+         } else if (from && by) {
+            snprintf(c, 1024, "(c) %s by %s\n", from, by);
+         } else if (by) {
+            snprintf(c, 1024, "(c) %s\n", by);
+         } else if (from) {
+            snprintf(c, 1024, "(c) %s\n", from);
+         }
+
+         aax_buf->meta.copyright = strdup(c);
+
+         xmlFree(xnid);
       }
-      xmlFree(xnid);
+      xmlFree(xiid);
    }
 
    if (midi_mode == AAX_RENDER_SYNTHESIZER ||
@@ -2120,6 +2162,8 @@ _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
    else {
       _bufAAXSThread(&data);
    }
+
+   handle->meta.copyright = data.meta.copyright;
 
    if (data.error) {
       _aaxErrorSet(data.error);

@@ -335,6 +335,8 @@ typedef struct
    float frequency;
    enum aaxErrorType error;
 
+   struct _meta_t meta;
+
 } _buffer_aax_t;
 
 _buffer_t* new_buffer(_handle_t*, unsigned int, enum aaxFormat, unsigned);
