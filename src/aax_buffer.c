@@ -1152,15 +1152,17 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
                if (handle)
                {
                   handle->meta.artist = stream->name(id, AAX_MUSIC_PERFORMER_STRING);
+                  handle->meta.original = stream->name(id, AAX_ORIGINAL_PERFORMER_STRING);
                   handle->meta.title = stream->name(id, AAX_TRACK_TITLE_STRING);
-                  handle->meta.genre = stream->name(id, AAX_MUSIC_GENRE_STRING);
-                  handle->meta.trackno = stream->name(id, AAX_TRACK_NUMBER_STRING);
                   handle->meta.album = stream->name(id, AAX_ALBUM_NAME_STRING);
+                  handle->meta.trackno = stream->name(id, AAX_TRACK_NUMBER_STRING);
                   handle->meta.date = stream->name(id, AAX_RELEASE_DATE_STRING);
+                  handle->meta.genre = stream->name(id, AAX_MUSIC_GENRE_STRING);
                   handle->meta.composer = stream->name(id, AAX_SONG_COMPOSER_STRING);
-                  handle->meta.copyright = stream->name(id, AAX_SONG_COPYRIGHT_STRING);
                   handle->meta.comments = stream->name(id, AAX_SONG_COMMENT_STRING);
+                  handle->meta.copyright = stream->name(id, AAX_SONG_COPYRIGHT_STRING);
                   handle->meta.contact = stream->name(id, AAX_CONTACT_STRING);
+                  handle->meta.website = stream->name(id, AAX_WEBSITE_STRING);
                   handle->meta.image = stream->name(id, AAX_COVER_IMAGE_DATA);
 #if 0
  printf("artist: %s\n", handle->meta.artist);
@@ -1727,56 +1729,50 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    {
       char s[1024] = "";
       void *xnid;
+      int res;
 
       do
       {
-         char *name, *bank, *program;
+         char *bank, *program;
 
-         name = xmlAttributeGetString(xiid, "name");
+         res = xmlAttributeCopyString(xiid, "name", s, 1024);
+         if (res) aax_buf->meta.title = strdup(s);
+
          bank = xmlAttributeGetString(xiid, "bank");
          program = xmlAttributeGetString(xiid, "program");
-      
-         if (name) {
-            aax_buf->meta.title = strdup(name);
-         }
 
          if (bank && program) {
-            snprintf(s, 1024, "bank number: %s, program number: %s\n", bank, program);
+            snprintf(s, 1024, "%s/%s", bank, program);
          } else if (program) {
-            snprintf(s, 1024, "program number: %s\n", program);
+            snprintf(s, 1024, "%s", program);
          }
-         aax_buf->meta.comments = strdup(s);
+         aax_buf->meta.trackno = strdup(s);
 
          xmlFree(program);
          xmlFree(bank);
-         xmlFree(name);
       }
       while(0);
 
       xnid = xmlNodeGet(xiid, "copyright");
       if (xnid)
       {
-         char *from, *until, *by;
+         res = xmlAttributeCopyString(xnid, "by", s, 1024);
+         if (res) aax_buf->meta.copyright = strdup(s);
 
-         from = xmlAttributeGetString(xnid, "from");
-         until = xmlAttributeGetString(xnid, "until");
-         by = xmlAttributeGetString(xnid, "by");
+         res = xmlAttributeCopyString(xnid, "from", s, 1024);
+         if (res) aax_buf->meta.date = strdup(s);
 
-         if (from && until && by) {
-            snprintf(s, 1024, "(c) %s-%s by %s", from, until, by);
-         } else if (from && by) {
-            snprintf(s, 1024, "(c) %s by %s", from, by);
-         } else if (by) {
-            snprintf(s, 1024, "(c) %s", by);
-         } else if (from) {
-            snprintf(s, 1024, "(c) %s", from);
-         }
+         xmlFree(xnid);
+      }
 
-         aax_buf->meta.copyright = strdup(s);
+      xnid = xmlNodeGet(xiid, "contact");
+      if (xnid)
+      {
+         res = xmlAttributeCopyString(xnid, "author", s, 1024);
+         if (res) aax_buf->meta.composer = strdup(s);
 
-         xmlFree(from);
-         xmlFree(until);
-         xmlFree(by);
+         res = xmlAttributeCopyString(xnid, "website", s, 1024);
+         if (res) aax_buf->meta.contact = strdup(s);
 
          xmlFree(xnid);
       }
@@ -1784,6 +1780,8 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       xnid = xmlNodeGet(xiid, "note");
       if (xnid)
       {
+         char *polyphony;
+
          if (xmlAttributeExists(xnid, "min")) {
             low_frequency = note2freq(xmlAttributeGetDouble(xnid, "min"));
          }
@@ -1794,6 +1792,19 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          if (xmlAttributeExists(xnid, "pitch-fraction")) {
             handle->info.pitch_fraction = xmlAttributeGetDouble(xnid, "pitch-fraction");
          }
+
+         polyphony = xmlAttributeGetString(xnid, "polyphony");
+         if (polyphony && handle->info.pitch_fraction) {
+            snprintf(s, 1024, "polyphony: %s, pitch fraction: %3.1f",
+                      polyphony, handle->info.pitch_fraction);
+         } else if (polyphony) {
+            snprintf(s, 1024, "polyphony: %s", polyphony);
+         } else if (handle->info.pitch_fraction) {
+            snprintf(s, 1024, "pitch fraction: %3.1f", handle->info.pitch_fraction);
+         }
+         aax_buf->meta.comments = strdup(s);
+         xmlFree(polyphony);
+
          xmlFree(xnid);
       }
 
