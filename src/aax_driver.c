@@ -152,7 +152,7 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
          break;
       case AAX_ORIGINAL_PERFORMER_STRING:
          rv = be->name(handle->backend.handle, type);
-         if (!rv) rv = handle->meta.composer;
+         if (!rv) rv = handle->meta.original;
          break;
       case AAX_CONTACT_STRING:
          rv = be->name(handle->backend.handle, type);
