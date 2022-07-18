@@ -81,6 +81,7 @@ void*
 _prot_free(_prot_t *prot)
 {
    _aax_free_meta(&prot->meta);
+   free(prot);
    return 0;
 }
 
