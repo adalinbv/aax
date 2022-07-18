@@ -1151,6 +1151,7 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
 
                if (handle)
                {
+                  _aax_free_meta(&handle->meta);
                   handle->meta.artist = stream->name(id, AAX_MUSIC_PERFORMER_STRING);
                   handle->meta.original = stream->name(id, AAX_ORIGINAL_PERFORMER_STRING);
                   handle->meta.title = stream->name(id, AAX_TRACK_TITLE_STRING);
@@ -2207,6 +2208,7 @@ _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
       _bufAAXSThread(&data);
    }
 
+   _aax_free_meta(&handle->meta);
    handle->meta = data.meta;
 
    if (data.error) {

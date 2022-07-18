@@ -668,4 +668,5 @@ _aax_free_meta(struct _meta_t *meta)
    if (meta->website) free(meta->website);
    if (meta->contact) free(meta->contact);
    if (meta->image) free(meta->image);
+   memset(meta, 0, sizeof(struct _meta_t));
 }
