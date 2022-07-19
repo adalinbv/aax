@@ -510,14 +510,24 @@ _aaxPipeWireDriverDisconnect(void *id)
    _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
 
-   if (pipewire_initialized)
-   {
-      pipewire_initialized = AAX_FALSE;
-      hotplug_loop_destroy();
-   }
-
    if (handle)
    {
+      if (handle->ml) {
+         ppw_thread_loop_stop(handle->ml);
+      }
+
+      if (handle->pw)
+      {
+         ppw_stream_destroy(handle->pw);
+         handle->pw = NULL;
+      }
+
+      if (handle->ml)
+      {
+         ppw_thread_loop_destroy(handle->ml);
+         handle->ml = NULL;
+      }
+
       _aax_free_meta(&handle->meta);
 
       if (handle->driver != _const_pipewire_default_name) {
@@ -535,23 +545,17 @@ _aaxPipeWireDriverDisconnect(void *id)
       }
       _aaxDataDestroy(handle->dataBuffer);
 
-      if (handle->pw)
-      {
-         ppw_stream_destroy(handle->pw);
-         handle->pw = NULL;
-      }
-      if (handle->ml)
-      {
-         ppw_thread_loop_stop(handle->ml);
-         ppw_thread_loop_destroy(handle->ml);
-         handle->ml = NULL;
-      }
-
       _aaxTimerDestroy(handle->callback_timer);
 
       free(handle);
 
       rv = AAX_TRUE;
+   }
+
+   if (pipewire_initialized)
+   {
+      pipewire_initialized = AAX_FALSE;
+      hotplug_loop_destroy();
    }
 
    return rv;
@@ -1923,7 +1927,9 @@ stream_playback_cb(void *be_ptr)
       _driver_t *be_handle = (_driver_t *)be_ptr;
       _handle_t *handle = (_handle_t *)be_handle->handle;
 
-      _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
+      if (handle->ringbuffer) {
+         _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
+      }
       if (handle->finished) {
          _aaxSemaphoreRelease(handle->finished);
       }
@@ -2429,12 +2435,14 @@ _aaxPipeWireDriverThread(void* config)
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
+#if 0
    dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
    {
       be->destroy_ringbuffer(handle->ringbuffer);
       handle->ringbuffer = NULL;
    }
+#endif
 
    return handle;
 }
