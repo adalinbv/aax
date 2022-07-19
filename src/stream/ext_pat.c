@@ -36,8 +36,6 @@ typedef struct
 {
    _fmt_t *fmt;
 
-   char trackno[4];
-
    int capturing;
    int mode;
 
@@ -57,6 +55,7 @@ typedef struct
    _instrument_data_t instrument;
    _layer_data_t layer;
    _patch_data patch;
+   char trackno[8];
 
 } _driver_t;
 
@@ -94,7 +93,7 @@ _pat_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->info.no_samples = no_samples;
          handle->info.blocksize = tracks*bits_sample/8;
 
-         snprintf(handle->trackno, 4, "%i", 0);
+         snprintf(handle->trackno, 8, "%u", 0);
 
          if (handle->capturing)
          {
@@ -266,7 +265,7 @@ _pat_name(_ext_t *ext, enum _aaxStreamParam param)
       switch(param)
       {
       case __F_TITLE:
-         rv =  handle->instrument.name;
+         rv = handle->instrument.name;
          break;
       case __F_COPYRIGHT:
          rv = handle->header.header;
@@ -502,6 +501,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
          // Layer Header
          handle->layer.layer_duplicate = *header++;
          handle->layer.layer = *header++;
+         snprintf(handle->trackno, 8, "%u", handle->layer.layer);
 
          handle->layer.size = *header++;
          handle->layer.size += *header++ << 8;

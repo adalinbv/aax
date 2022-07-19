@@ -1122,9 +1122,9 @@ _aaxStreamDriverGetName(const void *id, int type)
       case AAX_MODE_WRITE_SURROUND:
       case AAX_MODE_WRITE_HRTF:
          if (handle->name) {
-            ret = _aax_strdup(handle->name);
+            ret = handle->name;
          } else {
-            ret = _aax_strdup("default");
+            ret = "default";
          }
          break;
       default:
@@ -1262,7 +1262,7 @@ _aaxStreamDriverGetName(const void *id, int type)
       }
    }
 
-   return ret;
+   return ret ? strdup(ret) : ret;
 }
 
 _aaxRenderer*
