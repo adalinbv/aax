@@ -4,6 +4,9 @@
  * Implement a PipeWire audio backend.
  * Handle PulseAudio returning a different audio-format than requested.
  * Accept any version of libssl as long as it supports the correct functions.
+ * Make it possible to return buffer meta-data after calling the 
+   aaxBufferReadFromStream function. The meta-data is available until the next
+   call to aaxBufferReadFromStream, by callling the aaxDriverGetSetup function.
  * Report io errors. Especially when an https connection is requested and SSL
    is not installed.
  * Add aaxGetFormatString() which returns the audio format in a human friendly
