@@ -590,6 +590,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
 
             if (xmlAttributeExists(xid, "repeat"))
             {
+               state = 0;
                if (!xmlAttributeCompareString(xid, "repeat", "inf") ||
                    !xmlAttributeCompareString(xid, "repeat", "max"))
                {
