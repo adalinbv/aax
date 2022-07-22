@@ -61,21 +61,23 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       }
       stmp = (size_t)s & MEMMASK;
 
-      step = sizeof(__m256)/sizeof(float);
-
+      step = 2*sizeof(__m256)/sizeof(float);
       i = num/step;
       if (i)
       {
-         __m256 ymm0, dv, tv, dvstep;
+         __m256 ymm0, ymm1, dv, tv0, tv1, dvstep0, dvstep1;
          __m256 *sptr = (__m256 *)s;
          __m256 *dptr = (__m256 *)d;
 
          assert(step == 8);
-         dvstep = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
-         dvstep = _mm256_mul_ps(dvstep, _mm256_set1_ps(vstep));
+         dvstep0 = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
+         dvstep1 = _mm256_set_ps(15.0f, 14.0f, 13.0f, 12.0f, 11.0f, 10.0f, 9.0f, 8.0f);
+         dvstep0 = _mm256_mul_ps(dvstep0, _mm256_set1_ps(vstep));
+         dvstep1 = _mm256_mul_ps(dvstep1, _mm256_set1_ps(vstep));
 
          dv = _mm256_set1_ps(vstep*step);
-         tv = _mm256_add_ps(_mm256_set1_ps(v), dvstep);
+         tv0 = _mm256_add_ps(_mm256_set1_ps(v), dvstep0);
+         tv1 = _mm256_add_ps(_mm256_set1_ps(v), dvstep1);
          v += i*step*vstep;
 
          num -= i*step;
@@ -86,10 +88,14 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
             do
             {
                ymm0 = _mm256_loadu_ps((const float*)sptr++);
-               ymm0 =_mm256_fmadd_ps(ymm0, tv, _mm256_load_ps((const float*)dptr));
-               tv = _mm256_add_ps(tv, dv);
+               ymm1 = _mm256_loadu_ps((const float*)sptr++);
+               ymm0 =_mm256_fmadd_ps(ymm0, tv0, _mm256_load_ps((const float*)dptr));
+               ymm1 =_mm256_fmadd_ps(ymm1, tv1, _mm256_load_ps((const float*)(dptr+1)));
+               tv0 = _mm256_add_ps(tv0, dv);
+               tv1 = _mm256_add_ps(tv1, dv);
 
                _mm256_store_ps((float*)dptr++, ymm0);
+               _mm256_store_ps((float*)dptr++, ymm1);
             }
             while(--i);
          }
@@ -98,10 +104,14 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
             do
             {
                ymm0 = _mm256_load_ps((const float*)sptr++);
-               ymm0 =_mm256_fmadd_ps(ymm0, tv, _mm256_load_ps((const float*)dptr));
-               tv = _mm256_add_ps(tv, dv);
+               ymm1 = _mm256_load_ps((const float*)sptr++);
+               ymm0 =_mm256_fmadd_ps(ymm0, tv0, _mm256_load_ps((const float*)dptr));
+               ymm1 =_mm256_fmadd_ps(ymm1, tv1, _mm256_load_ps((const float*)(dptr+1)));
+               tv0 = _mm256_add_ps(tv0, dv);
+               tv1 = _mm256_add_ps(tv1, dv);
 
                _mm256_store_ps((float*)dptr++, ymm0);
+               _mm256_store_ps((float*)dptr++, ymm1);
             }
             while(--i);
          }
