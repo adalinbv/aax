@@ -1,5 +1,5 @@
-* Wed Jul 5 2022 - tech@adalin.org
-- AeonWave (3.11.2) stable; urgency=low
+* Fri Jul 22 2022 - tech@adalin.org
+- AeonWave (3.12.0) stable; urgency=low
 
  * Implement a PipeWire audio backend.
  * Re-synchronize the midi instruments with the master repository.
@@ -15,7 +15,7 @@
  * Clean up a number of allocated memory locations at exit.
  * Fix even repeat numbers being one too many for the timed gain filter.
 
--- Erik Hofman <tech@adalin.org>  Wed 05 Jul 2022 14:45:18 + 0200
+-- Erik Hofman <tech@adalin.org>  Fri 22 Jul 2022 10:53:23 + 0200
 
 
 * Wed Mar 23 2022 - tech@adalin.org
