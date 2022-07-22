@@ -35,7 +35,7 @@
     </slot>
    </filter>
   </layer>
-  <layer ratio="0.4">
+  <layer ratio="0.8">
    <waveform src="square"/>
    <waveform src="sawtooth" processing="add" ratio="0.8" pitch="4.0"/>
    <waveform src="triangle" processing="add" ratio="-0.4" pitch="3.0"/>
@@ -55,7 +55,7 @@
   <filter type="timed-gain" src="envelope" release-time="0.4">
    <slot n="0">
     <param n="0">0.414</param>
-    <param n="1">0.01</param>
+    <param n="1">0.02</param>
     <param n="2">1.48</param>
     <param n="3">0.12</param>
    </slot>

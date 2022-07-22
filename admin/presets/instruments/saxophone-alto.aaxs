@@ -20,7 +20,7 @@
   <note polyphony="2" min="49" max="80" step="12"/>
  </info>
 
- <sound mode="1" gain="1.30" db="1.1" frequency="138.591" duration="0.5">
+ <sound mode="1" gain="1.20" db="1.1" frequency="138.591" duration="0.5">
   <layer>
    <waveform src="triangle"/>
    <waveform src="triangle" processing="modulate" pitch="4.0"/>
@@ -28,9 +28,8 @@
    <waveform src="sawtooth" processing="mix" ratio="0.33"/>
    <waveform src="triangle" processing="modulate" pitch="2.0"/>
   </layer>
-  <layer ratio="0.5">
+  <layer>
    <waveform src="sawtooth"/>
-   <waveform src="sawtooth" processing="mix"/>
   </layer>
  </sound>
 
@@ -47,13 +46,13 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.08</param>
-    <param n="2">0.811</param>
+    <param n="2">1.011</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.878</param>
+    <param n="0">1.078</param>
     <param n="1">7.5</param>
-    <param n="2">0.696</param>
+    <param n="2">0.896</param>
     <param n="3">3.2</param>
    </slot>
   </filter>
