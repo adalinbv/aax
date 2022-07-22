@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,12 +14,13 @@
 
  <info name="Lead 3 (Calliope)" bank="0" program="82">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
-  <note polyphony="43" min="48" max="96" step="6"/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="43" min="20" max="96" step="6"/>
  </info>
 
- <sound gain="0.56" db="-8.5" frequency="58.2705">
+ <sound gain="0.45" db="-8.5" frequency="58.2705">
   <waveform src="triangle"/>
   <waveform src="sine" processing="add" ratio="0.1" pitch="3.0"/>
   <filter type="frequency" optional="true">
@@ -35,37 +36,37 @@
  <emitter looping="true">
   <filter type="bitcrusher" src="inverse-envelope">
    <slot n="0">
-    <param n="0">0.2</param>
-    <param n="1">0.9</param>
-    <param n="2">0.33</param>
-    <param n="3">0.0</param>
+    <param n="0">0.0</param>
+    <param n="1">0.01</param>
+    <param n="2">0.28</param>
+    <param n="3">0.03</param>
    </slot>
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.405</param>
+    <param n="0">0.433</param>
     <param n="1">0.05</param>
-    <param n="2">2.38</param>
+    <param n="2">2.67</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">2.26</param>
+    <param n="0">2.52</param>
     <param n="1">inf</param>
-    <param n="2">2.26</param>
+    <param n="2">2.52</param>
     <param n="3">0.1</param>
    </slot>
   </filter>
  </emitter>
 
  <audioframe>
-  <filter type="equalizer" optional="true">
+  <effect type="distortion" src="envelope|logarithmic">
    <slot n="0">
-    <param n="0">3500.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.35</param>
-    <param n="3">3.0</param>
+    <param n="0">0.3</param>
+    <param n="1">0.3</param>
+    <param n="2">0.3</param>
+    <param n="3">0.3</param>
    </slot>
-  </filter>
+  </effect>
  </audioframe>
 
 </aeonwave>

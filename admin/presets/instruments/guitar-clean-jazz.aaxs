@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,28 +14,45 @@
 
  <info name="Jazz Guitar" bank="0" program="26">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="40" max="86" step="12"/>
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="0.97" db="-5.7" frequency="110" duration="0.1">
-  <waveform src="sawtooth" ratio="0.9"/>
-  <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
-  <waveform src="sine" processing="modulate" pitch="3.0"/>
+ <sound gain="0.86" db="-5.3" frequency="110" duration="0.1">
+  <layer>
+   <waveform src="sawtooth" ratio="0.9"/>
+   <waveform src="square" processing="add" ratio="0.15" pitch="4.0"/>
+   <waveform src="sine" processing="modulate" pitch="3.0"/>
+  </layer>
+  <layer>
+   <waveform src="sawtooth" ratio="0.9"/>
+   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
+   <waveform src="sine" processing="modulate" ratio="0.5" pitch="3.0"/>
+   <waveform src="sawtooth" processing="add" ratio="0.15" pitch="1.5"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" src="envelope" release-time="0.4">
+  <filter type="dynamic-layer" src="inverse-envelope">
    <slot n="0">
     <param n="0">0.0</param>
+    <param n="1">10.0</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain" src="envelope" release-time="0.4">
+   <slot n="0">
+    <param n="0">1.84</param>
     <param n="1">0.01</param>
-    <param n="2">1.93</param>
+    <param n="2">1.84</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.75</param>
+    <param n="0">1.66</param>
     <param n="1">2.66</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -58,6 +75,14 @@
  </emitter>
 
  <audioframe pan="-0.4">
+  <filter type="frequency" optional="true">
+   <slot n="0">
+    <param n="0">2000.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.5</param>
+    <param n="3">1.1</param>
+   </slot>
+  </filter>
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">90.0</param>

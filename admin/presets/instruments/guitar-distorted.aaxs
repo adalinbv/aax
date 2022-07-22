@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,13 +14,14 @@
 
  <info name="Electric Guitar (Distorted)" bank="0" program="30">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="40" max="86" step="12"/>
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="0.51" db="-2.3" frequency="110" duration="0.1">
+ <sound gain="0.52" db="-11.8" frequency="110" duration="0.1">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
   <waveform src="triangle" processing="modulate" pitch="5.0"/>
@@ -29,13 +30,13 @@
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.2">
    <slot n="0">
-    <param n="0">0.561</param>
+    <param n="0">1.65</param>
     <param n="1">0.01</param>
-    <param n="2">1.31</param>
+    <param n="2">3.87</param>
     <param n="3">0.03</param>
    </slot>
    <slot n="1">
-    <param n="0">0.875</param>
+    <param n="0">2.58</param>
     <param n="1">31.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -66,21 +67,13 @@
     <param n="3">1.2</param>
    </slot>
    <slot n="1">
-    <param n="0">1800.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.7</param>
-    <param n="3">1.5</param>
-   </slot>
-  </filter>
-  <filter type="frequency" src="24db" optional="true">
-   <slot n="0">
     <param n="0">2000.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">1.1</param>
+    <param n="3">1.5</param>
    </slot>
   </filter>
-  <effect type="distortion">
+  <effect type="distortion" src="envelope">
    <slot n="0">
     <param n="0">2.0</param>
     <param n="1">0.0</param>

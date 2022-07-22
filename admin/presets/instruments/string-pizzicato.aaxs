@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -12,35 +12,41 @@
 
 <aeonwave>
 
- <info name="Pizzicato String" bank="0" program="45">
+ <info name="Pizzicato Solo" bank="0" program="45">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="16" min="28" max="96" step="12"/>
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.22" db="-7.3" frequency="110" duration="0.1">
-  <waveform src="square"/>
-  <waveform src="triangle" processing="modulate" pitch="3.989"/>
-  <waveform src="triangle" processing="mix" pitch="1.929"/>
-  <waveform src="impulse" processing="add" ratio="0.05" pitch="2.989"/>
+ <sound gain="1.82" db="-5.4" frequency="220">
+  <waveform src="sawtooth"/>
+  <waveform src="triangle" processing="modulate" pitch="4.0"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.2" pitch="0.991"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" src="envelope">
+  <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
-    <param n="0">1.98</param>
-    <param n="1">0.0829</param>
-    <param n="2">2.31</param>
-    <param n="3">0.929</param>
+    <param n="0">1.46</param>
+    <param n="1">0.05</param>
+    <param n="2">1.86</param>
+    <param n="3">0.464</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">1.77</param>
+    <param n="0">3.66</param>
     <param n="1">0.01</param>
     <param n="2">1.0</param>
+    <param n="3">1.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.987</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
@@ -50,23 +56,15 @@
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">200.0</param>
-    <param n="1">0.5</param>
+    <param n="1">1.1</param>
     <param n="2">1.0</param>
-    <param n="3">1.5</param>
+    <param n="3">3.1</param>
    </slot>
    <slot n="1">
-    <param n="0">600.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.5</param>
-    <param n="3">2.0</param>
-   </slot>
-  </filter>
-  <filter type="frequency" src="24db" optional="true">
-   <slot n="0">
-    <param n="0">1600.0</param>
+    <param n="0">500.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">1.0</param>
+    <param n="3">2.0</param>
    </slot>
   </filter>
  </audioframe>

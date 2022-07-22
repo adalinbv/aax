@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,48 +14,43 @@
 
  <info name="Rhodes Electric Piano (Detuned)" bank="5" program="4">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="28" max="103" step="12"/>
  </info>
 
- <sound gain="0.85" db="-1.8" frequency="880" duration="0.1">
-  <waveform src="sawtooth" ratio="0.8" pitch="2.0"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.98"/>
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0" pitch="3.0">4400.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">2.0</param>
-   </slot>
-  </filter>
+ <sound gain="3.89" db="2.8" frequency="110" duration="0.1">
+  <waveform src="sawtooth"/>
+  <waveform src="sawtooth" processing="add" ratio="0.21694" pitch="2.0"/>
+  <waveform src="sawtooth" processing="add" ratio="0.0769732" pitch="3.0"/>
+  <waveform src="sine" processing="add" ratio="0.0544928" pitch="7.25"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.2">
    <slot n="0">
-    <param n="0">1.23</param>
-    <param n="1">0.04</param>
-    <param n="2">0.972</param>
-    <param n="3">0.35</param>
+    <param n="0">0.724</param>
+    <param n="1">0.02</param>
+    <param n="2">0.661</param>
+    <param n="3">0.12</param>
    </slot>
    <slot n="1">
-    <param n="0">0.85</param>
-    <param n="1">1.49</param>
+    <param n="0">0.461</param>
+    <param n="1">1.99</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="timed-pitch" src="envelope">
+  <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.2</param>
-    <param n="1">0.015</param>
+    <param n="0">1.98</param>
+    <param n="1">0.01</param>
     <param n="2">0.987</param>
     <param n="3">4.5</param>
    </slot>
    <slot n="1">
-    <param n="0">0.985</param>
+    <param n="0">0.972</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -64,25 +59,33 @@
  </emitter>
 
  <audioframe pan="0.6">
+  <filter type="frequency" optional="true">
+   <slot n="0">
+    <param n="0">2500.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">2.0</param>
+   </slot>
+  </filter>
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">100.0</param>
-    <param n="1">0.1</param>
+    <param n="0">150.0</param>
+    <param n="1">0.5</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">3700.0</param>
+    <param n="0">300.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
+    <param n="2">0.5</param>
+    <param n="3">1.2</param>
    </slot>
   </filter>
-  <effect type="distortion" optional="true">
+  <effect type="distortion" src="envelope|logarithmic" optional="true">
    <slot n="0">
     <param n="0">0.1</param>
     <param n="1">0.0</param>
-    <param n="2">0.1</param>
+    <param n="2">0.15</param>
     <param n="3">1.0</param>
    </slot>
   </effect>

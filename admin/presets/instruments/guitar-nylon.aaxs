@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,13 +14,14 @@
 
  <info name="Acoustic Guitar (Nylon)" bank="0" program="24">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
-  <note polyphony="6" min="40" max="84" step="12"/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="6" min="40" max="127" step="12"/>
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="3.43" db="-0.5" frequency="110" duration="0.1">
+ <sound gain="3.24" db="1.7" frequency="110" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.75" pitch="1.999"/>
   <waveform src="triangle" processing="modulate" pitch="0.999"/>
@@ -30,13 +31,13 @@
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
-    <param n="0">0.777</param>
+    <param n="0">0.826</param>
     <param n="1">0.01</param>
-    <param n="2">0.995</param>
-    <param n="3">0.08</param>
+    <param n="2">0.796</param>
+    <param n="3">0.18</param>
    </slot>
    <slot n="1">
-    <param n="0">0.926</param>
+    <param n="0">0.712</param>
     <param n="1">2.86</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -63,14 +64,8 @@
    <slot n="1">
     <param n="0">600.0</param>
     <param n="1">0.6</param>
-    <param n="2">0.8</param>
+    <param n="2">0.4</param>
     <param n="3">2.0</param>
-   </slot>
-   <slot n="2">
-    <param n="0">800.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.3</param>
-    <param n="3">3.0</param>
    </slot>
   </filter>
  </audioframe>

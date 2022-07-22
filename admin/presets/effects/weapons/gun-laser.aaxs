@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2021 by Erik Hofman.
- * Copyright (C) 2017-2021 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,12 +14,13 @@
 
  <info name="Laser Gun">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2021" by="Erik Hofman"/>
-  <copyright from="2017" until="2021" by="Adalin B.V."/>
-  <note polyphony="1"/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="1" pitch-fraction="0.5"/>
  </info>
 
- <sound gain="1.08" db="4.4" frequency="220" duration="0.3">
+ <sound gain="0.87" db="1.6" frequency="220" duration="0.3">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="modulate" pitch="1.5"/>
   <waveform src="pink-noise" processing="add" pitch="0.25"/>
@@ -34,20 +35,6 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="inverse-timed|logarithmic|24db">
-   <slot n="0">
-    <param n="0" pitch="1.0">220.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">9.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0" pitch="20.0">4400.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.7</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
     <param n="0">0.832</param>
@@ -56,20 +43,6 @@
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="phasing" src="false" optional="true">
-   <slot n="0">
-    <param n="0">0.9</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.18</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.18</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
  </emitter>
 
  <audioframe/>

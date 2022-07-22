@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2021 by Erik Hofman.
- * Copyright (C) 2017-2021 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -12,42 +12,28 @@
 
 <aeonwave>
 
- <info>
+ <info name="Water Stream">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2021" by="Erik Hofman"/>
-  <copyright from="2017" until="2021" by="Adalin B.V."/>
-  <note polyphony="1"/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="1" pitch-fraction="0.2"/>
  </info>
 
- <sound fixed-gain="1.00" db="0.0" frequency="220" duration="2.9">
-  <waveform src="white-noise" pitch="0.25"/>
-  <waveform src="brownian-noise" processing="add" ratio="20.0" pitch="0.05" staticity="0.9"/>
+ <sound gain="0.97" db="0.0" frequency="440" duration="2.9">
+  <waveform src="white-noise" pitch="0.28"/>
+  <waveform src="pink-noise" processing="add" ratio="7.0" pitch="0.014" staticity="0.9"/>
   <filter type="frequency" src="48db">
    <slot n="0">
     <param n="0">2700.0</param>
-    <param n="1">0.8</param>
-    <param n="2">0.3</param>
+    <param n="1">1.0</param>
+    <param n="2">0.65</param>
     <param n="3">2.0</param>
    </slot>
   </filter>
  </sound>
 
- <emitter looping="true">
-  <filter type="frequency" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">110.0</param>
-    <param n="1">0.2</param>
-    <param n="2">0.3</param>
-    <param n="3">15.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">17500.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.5</param>
-   </slot>
-  </filter>
- </emitter>
+ <emitter looping="true"/>
 
  <audioframe/>
 

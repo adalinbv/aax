@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2021 by Erik Hofman.
- * Copyright (C) 2017-2021 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,9 +14,10 @@
 
  <info name="Waterfall" bank="4" program="123">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2021" by="Erik Hofman"/>
-  <copyright from="2017" until="2021" by="Adalin B.V."/>
-  <note polyphony="1"/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="1" pitch-fraction="0.2"/>
  </info>
 
  <sound fixed-gain="1.13" db="0.0" frequency="220" duration="2.9">
@@ -41,22 +42,7 @@
   </filter>
  </sound>
 
- <emitter looping="true">
-  <filter type="frequency" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">220.0</param>
-    <param n="1">0.2</param>
-    <param n="2">0.3</param>
-    <param n="3">8.5</param>
-   </slot>
-   <slot n="1">
-    <param n="0">17500.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">2.0</param>
-   </slot>
-  </filter>
- </emitter>
+ <emitter looping="true"/>
 
  <audioframe/>
 

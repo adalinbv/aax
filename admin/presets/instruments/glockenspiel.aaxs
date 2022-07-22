@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,42 +14,52 @@
 
  <info name="Glockenspiel" bank="0" program="9">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
-  <note polyphony="8" min="72" max="108" step="12"/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="8" min="60" max="84" step="12"/>
  </info>
 
- <sound gain="0.49" db="-4.6" frequency="523.251" duration="0.5">
-  <waveform src="square" pitch="9.0"/>
-  <waveform src="sine" processing="modulate" pitch="3.0"/>
-  <waveform src="sine" processing="mix" ratio="0.6"/>
+ <sound gain="0.84" db="-0.8" frequency="880" duration="0.1">
+  <layer>
+   <waveform src="square" pitch="9.1"/>
+   <waveform src="sine" processing="modulate" pitch="4.298"/>
+   <waveform src="sine" processing="mix" ratio="0.6"/>
+  </layer>
+  <layer>
+   <waveform src="sine"/>
+   <waveform src="sine" processing="add" ratio="0.3" pitch="3.03"/>
+   <waveform src="sine" processing="add" ratio="0.5" pitch="8.987"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" src="envelope" release-time="1.2">
+  <filter type="dynamic-layer" src="inverse-timed|logarithmic">
    <slot n="0">
-    <param n="0">1.7</param>
-    <param n="1">2.75</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="0">0.0</param>
+    <param n="1">7.5</param>
+    <param n="2">1.02</param>
+    <param n="3">0.01</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain" src="envelope" release-time="0.5">
+   <slot n="0">
+    <param n="0">1.1</param>
+    <param n="1">0.02</param>
+    <param n="2">1.1</param>
+    <param n="3">1.38</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">2.0</param>
+    <param n="0">2.63</param>
     <param n="1">0.01</param>
     <param n="2">1.0</param>
-    <param n="3">4.5</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.985</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
- <audioframe pan="-0.4"/>
+ <audioframe/>
 
 </aeonwave>

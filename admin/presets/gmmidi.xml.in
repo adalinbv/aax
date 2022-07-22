@@ -32,7 +32,7 @@
    <instrument n="15" name="Dulcimer" file="instruments/dulcimer"/>
    <instrument n="16" name="Drawbar Organ" file="instruments/organ-drawbar"/>
    <instrument n="17" name="Percussive Organ" file="instruments/organ-percussive"/>
-   <instrument n="18" name="Rock Organ" file="instruments/organ-rock"/>
+   <instrument n="18" name="Rock Organ" file="instruments/organ-hammond"/>
    <instrument n="19" name="Church Organ" file="instruments/organ-church"/>
    <instrument n="20" name="Reed Organ" file="instruments/organ-reed"/>
    <instrument n="21" name="French Accordion" file="instruments/accordion-french"/>
@@ -40,7 +40,7 @@
    <instrument n="23" name="Tango Accordion" file="instruments/accordion-tango"/>
    <instrument n="24" name="Acoustic Guitar (nylon)" file="instruments/guitar-nylon"/>
    <instrument n="25" name="Acoustic Guitar (steel)" file="instruments/guitar-steel"/>
-   <instrument n="26" name="Electric Guitar (jazz)" file="instruments/guitar-jazz"/>
+   <instrument n="26" name="Electric Guitar (jazz)" file="instruments/guitar-clean-jazz"/>
    <instrument n="27" name="Electric Guitar (clean)" file="instruments/guitar-clean"/>
    <instrument n="28" name="Electric Guitar (muted)" file="instruments/guitar-muted"/>
    <instrument n="29" name="Overdriven Guitar" file="instruments/guitar-overdriven"/>
@@ -58,12 +58,12 @@
    <instrument n="41" name="Viola" file="instruments/violin"/>
    <instrument n="42" name="Cello" file="instruments/cello"/>
    <instrument n="43" name="Contrabass" file="instruments/cello"/>
-   <instrument n="44" name="Tremolo Strings" file="instruments/string-tremolo"/>
+   <instrument n="44" name="Tremolo Strings" file="instruments/strings-tremolo"/>
    <instrument n="45" name="Pizzicato Strings" file="instruments/string-pizzicato"/>
    <instrument n="46" name="Orchestral Harp" file="instruments/harp"/>
    <instrument n="47" name="Timpani" file="instruments/timpani"/>
-   <instrument n="48" name="String Ensemble 1" file="instruments/string-ensamble1"/>
-   <instrument n="49" name="String Ensemble 2" file="instruments/string-ensamble2"/>
+   <instrument n="48" name="String Ensemble 1" file="instruments/string-ensemble1"/>
+   <instrument n="49" name="String Ensemble 2" file="instruments/string-ensemble2"/>
    <instrument n="50" name="SynthStrings 1" file="instruments/strings-synth1"/>
    <instrument n="51" name="SynthStrings 2" file="instruments/strings-synth2"/>
    <instrument n="52" name="Choir Aahs" file="instruments/choir-aahs"/>
@@ -190,7 +190,7 @@
   <!-- MT-32 -->
   <bank n="127">
    <instrument n="0" name="Acou Piano 1" file="instruments/piano-bright"/>
-   <instrument n="1" name="Acou Piano 2" file="instruments/piano-acoustic"/>
+   <instrument n="1" name="Acou Piano 2" file="instruments/piano-concert"/>
    <instrument n="2" name="Acou Piano 3" file="instruments/piano-upright"/>
    <instrument n="3" name="Elec Piano 1" file="instruments/piano-electric1"/>
    <instrument n="4" name="Elec Piano 2" file="instruments/piano-electric2"/>
@@ -198,7 +198,7 @@
    <instrument n="6" name="Elec Piano 4" file="instruments/piano-fm"/>
    <instrument n="7" name="Honkytonk" file="instruments/piano-honky-tonk"/>
    <instrument n="8" name="Elect Org 1" file="instruments/organ-drawbar"/>
-   <instrument n="9" name="Elect Org 2" file="instruments/organ-rock"/>
+   <instrument n="9" name="Elect Org 2" file="instruments/organ-hammond"/>
    <instrument n="10" name="Elec Org 3" file="instruments/organ-drawbar"/>
    <instrument n="11" name="Elec Org 4" file="instruments/organ-percussive"/>
    <instrument n="12" name="Pipe Org 1" file="instruments/organ-church-diapason"/>
@@ -237,9 +237,9 @@
    <instrument n="45" name="School Daze" file="instruments/lead-sawtooth"/>
    <instrument n="46" name="Bellsinger" file="effects/industrial/hit-metal-bowl"/>
    <instrument n="47" name="Square Wave" file="instruments/lead-square-wave"/>
-   <instrument n="48" name="Str Sect 1" file="instruments/string-ensamble1"/>
-   <instrument n="49" name="Str Sect 2" file="instruments/string-ensamble2"/>
-   <instrument n="50" name="Str Sect 2" file="instruments/string-arco"/>
+   <instrument n="48" name="Str Sect 1" file="instruments/string-ensemble1"/>
+   <instrument n="49" name="Str Sect 2" file="instruments/string-ensemble2"/>
+   <instrument n="50" name="Str Sect 2" file="instruments/strings-arco"/>
    <instrument n="51" name="Pizzicato" file="instruments/string-pizzicato"/>
    <instrument n="52" name="Violin 1" file="instruments/violin"/>
    <instrument n="53" name="Violin 2" file="instruments/fiddle"/>
@@ -251,7 +251,7 @@
    <instrument n="59" name="Guitar 1" file="instruments/guitar-nylon"/>
    <instrument n="60" name="Guitar 2" file="instruments/guitar-steel"/>
    <instrument n="61" name="Elec Gtr 1" file="instruments/guitar-clean"/>
-   <instrument n="62" name="Elec Gtr 2" file="instruments/guitar-jazz"/>
+   <instrument n="62" name="Elec Gtr 2" file="instruments/guitar-clean-jazz"/>
    <instrument n="63" name="Sitar" file="instruments/sitar"/>
    <instrument n="64" name="Acou Bass 1" file="instruments/bass-acoustic"/>
    <instrument n="65" name="Acou Bass 2" file="instruments/bass-acoustic"/>

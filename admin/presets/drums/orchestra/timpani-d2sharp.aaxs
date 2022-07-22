@@ -1,62 +1,43 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2021 by Erik Hofman.
- * Copyright (C) 2017-2021 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
- * This is UNPUBLISHED PROPRIETARY SOURCE CODE; the contents of this file may
- * not be disclosed to third parties, copied or duplicated in any form, in
- * whole or in part, without the prior written permission of the author.
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
  <info name="Timpani D#2" bank="48" program="52">
-  <license type="Proprietary/Commercial"/>
-  <copyright from="2017" until="2021" by="Erik Hofman"/>
-  <copyright from="2017" until="2021" by="Adalin B.V."/>
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="36" max="57" step="1"/>
  </info>
 
- <sound gain="1.48" db="-2.8" frequency="130.813" duration="2.0">
+ <sound gain="0.97" db="-0.5" frequency="130.813" duration="2.0">
   <waveform src="sine" ratio="0.45" pitch="1.7"/>
   <waveform src="sine" processing="add" ratio="0.25" pitch="2.8"/>
-  <waveform src="white-noise" processing="add" pitch="0.075" random="0.85"/>
+  <waveform src="white-noise" processing="add" pitch="0.075" random="0.185"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="envelope">
-   <slot n="0">
-    <param n="0" pitch="1.0">130.8</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0" pitch="15.0">1962.2</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0" auto="0.433" min="1.5" max="1.28">2.29</param>
-    <param n="1">0.03</param>
-    <param n="2" auto="0.19" min="1.29" max="1.18">1.63</param>
-    <param n="3">0.05</param>
-   </slot>
-   <slot n="1">
-    <param n="0" auto="0.263" min="1.52" max="1.38">2.0</param>
-    <param n="1" auto="1.0">0.5</param>
-    <param n="2" auto="0.263" min="1.52" max="1.38">2.0</param>
-    <param n="3" auto="1.0">4.0</param>
+    <param n="0">1.05</param>
+    <param n="1">1.66</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" auto="1.5">4.8</param>
+    <param n="0">1.29</param>
     <param n="1">0.06</param>
     <param n="2">1.0</param>
     <param n="3">2.0</param>

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,39 +14,42 @@
 
  <info name="Lead 6 (Voice)" bank="0" program="85">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="48" max="84" step="12"/>
  </info>
 
- <sound gain="1.20" db="-4.5" frequency="220" duration="0.2">
+ <sound gain="1.54" db="-5.3" frequency="220" duration="0.5">
   <waveform src="sine" pitch="2.98"/>
+  <waveform src="triangle" processing="mix" ratio="0.5"/>
   <waveform src="sine" processing="modulate" pitch="2.0"/>
+  <waveform src="triangle" processing="mix" ratio="0.3"/>
   <waveform src="sine" processing="modulate" pitch="2.0"/>
-  <waveform src="square" processing="mix" ratio="0.1"/>
-  <filter type="bitcrusher">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.275</param>
-   </slot>
-  </filter>
+  <waveform src="triangle" processing="mix" ratio="0.1"/>
  </sound>
 
  <emitter looping="true">
+  <filter type="bitcrusher" src="envelope|logarithmic">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.275</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.213</param>
+    <param n="0">0.233</param>
     <param n="1">0.08</param>
-    <param n="2">1.68</param>
+    <param n="2">1.84</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.28</param>
+    <param n="0">1.41</param>
     <param n="1">inf</param>
-    <param n="2">1.28</param>
-    <param n="3">0.5</param>
+    <param n="2">1.41</param>
+    <param n="3">0.1</param>
    </slot>
   </filter>
  </emitter>
@@ -54,16 +57,22 @@
  <audioframe>
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">100.0</param>
-    <param n="1">0.01</param>
-    <param n="2">1.0</param>
-    <param n="3">1.5</param>
+    <param n="0">360.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.85</param>
+    <param n="3">2.5</param>
    </slot>
    <slot n="1">
-    <param n="0">3500.0</param>
+    <param n="0">1360.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.35</param>
-    <param n="3">5.0</param>
+    <param n="2">0.85</param>
+    <param n="3">1.5</param>
+   </slot>
+   <slot n="2">
+    <param n="0">2200.0</param>
+    <param n="1">1.0</param>
+    <param n="2">1.2</param>
+    <param n="3">2.5</param>
    </slot>
   </filter>
  </audioframe>

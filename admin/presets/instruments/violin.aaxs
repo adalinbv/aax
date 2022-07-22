@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,30 +14,39 @@
 
  <info name="Violin" bank="0" program="40">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="55" max="96" step="12"/>
  </info>
 
- <sound gain="0.62" db="-9.0" frequency="440" duration="0.5">
+ <sound gain="1.59" db="-4.5" frequency="440" duration="0.5">
   <waveform src="impulse" ratio="0.15" pitch="0.5"/>
-  <waveform src="sawtooth" processing="add"/>
+  <waveform src="sawtooth" processing="add" pitch="3.0"/>
   <waveform src="triangle" processing="modulate" pitch="8.0"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.25" pitch="0.991"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.6" pitch="0.991"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="bitcrusher" src="timed">
    <slot n="0">
-    <param n="0">1.23</param>
-    <param n="1">0.0629</param>
-    <param n="2">2.83</param>
+    <param n="0">0.0</param>
+    <param n="1">0.3</param>
+    <param n="2">0.33</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain" src="envelope">
+   <slot n="0">
+    <param n="0">0.662</param>
+    <param n="1">0.163</param>
+    <param n="2">1.69</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">2.5</param>
+    <param n="0">1.36</param>
     <param n="1">inf</param>
-    <param n="2">2.8</param>
+    <param n="2">1.51</param>
     <param n="3">0.5</param>
    </slot>
   </filter>
@@ -66,12 +75,20 @@
     <param n="3">2.0</param>
    </slot>
    <slot n="2">
-    <param n="0">2000.0</param>
+    <param n="0">1500.0</param>
     <param n="1">1.0</param>
     <param n="2">0.2</param>
     <param n="3">1.15</param>
    </slot>
   </filter>
+  <effect type="distortion" src="envelope|logarithmic">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.0</param>
+    <param n="2">0.05</param>
+    <param n="3">1.0</param>
+   </slot>
+  </effect>
  </audioframe>
 
 </aeonwave>

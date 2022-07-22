@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2021 by Erik Hofman.
- * Copyright (C) 2017-2021 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,13 +14,14 @@
 
  <info name="Bell Tree" bank="0" program="84">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2021" by="Erik Hofman"/>
-  <copyright from="2017" until="2021" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.91" db="-7.9" frequency="1100" duration="0.021">
-  <waveform src="sine" pitch="0.9" voices="3" spread="0.7" phasing="true"/>
+ <sound gain="0.74" db="-7.9" frequency="1100" duration="0.021">
+  <waveform src="sine" pitch="0.9"/>
   <waveform src="triangle" processing="add" ratio="0.8" pitch="3.68354"/>
   <waveform src="sine" processing="modulate" pitch="6.98"/>
  </sound>
@@ -47,20 +48,6 @@
     <param n="0">0.85</param>
     <param n="1">0.4</param>
     <param n="2">1.7</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
-  <effect type="chorus" src="sawtooth">
-   <slot n="0">
-    <param n="0">0.9</param>
-    <param n="1">17.5</param>
-    <param n="2">0.8</param>
-    <param n="3">0.2</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.04</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

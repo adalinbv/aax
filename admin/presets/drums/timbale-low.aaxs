@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2021 by Erik Hofman.
- * Copyright (C) 2017-2021 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,32 +14,19 @@
 
  <info name="Low Timbale" bank="0" program="66">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2021" by="Erik Hofman"/>
-  <copyright from="2017" until="2021" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound mode="1" gain="5.39" db="13.2" frequency="1125" voices="3" spread="0.9" phasing="true">
+ <sound mode="1" gain="4.36" db="7.4" frequency="1125">
   <waveform src="sine" processing="add" ratio="0.37" pitch="0.35"/>
   <waveform src="white-noise" processing="add" ratio="0.174" pitch="0.2"/>
   <waveform src="triangle" processing="add" pitch="0.205"/>
  </sound>
 
  <emitter looping="true" pan="0.31">
-  <filter type="frequency" src="envelope|logarithmic">
-   <slot n="0">
-    <param n="0" pitch="0.1">112.5</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0" pitch="1.0">1125.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.1</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" release-time="1.0">
    <slot n="0">
     <param n="0">0.428</param>

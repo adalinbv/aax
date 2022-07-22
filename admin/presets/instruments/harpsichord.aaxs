@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,38 +14,39 @@
 
  <info name="Harpsichord" bank="0" program="8">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="72" min="41" max="89" step="12"/>
  </info>
 
- <sound gain="1.35" db="-4.6" frequency="220" duration="0.1">
+ <sound gain="1.18" db="-0.8" frequency="220" duration="0.1">
   <waveform src="square" ratio="0.5"/>
   <waveform src="sawtooth" processing="add" ratio="0.4" pitch="4.0"/>
-  <waveform src="impulse" processing="add" ratio="-0.4" pitch="2.987"/>
-  <waveform src="square" processing="modulate" pitch="3.0"/>
+  <waveform src="triangle" processing="add" ratio="-0.4" pitch="3.0"/>
+  <waveform src="sine" processing="modulate" pitch="3.0"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" release-time="1.4">
+  <filter type="timed-gain" src="envelope" release-time="0.4">
    <slot n="0">
-    <param n="0">0.204</param>
+    <param n="0">0.316</param>
     <param n="1">0.01</param>
-    <param n="2">1.7</param>
-    <param n="3">0.01</param>
+    <param n="2">1.1</param>
+    <param n="3">0.0658</param>
    </slot>
    <slot n="1">
-    <param n="0">1.66</param>
-    <param n="1">0.05</param>
-    <param n="2">1.0</param>
-    <param n="3">1.68</param>
+    <param n="0">0.911</param>
+    <param n="1">2.33</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">1.98</param>
     <param n="1">0.01</param>
-    <param n="2">0.99</param>
+    <param n="2">1.0</param>
     <param n="3">4.5</param>
    </slot>
    <slot n="1">
@@ -58,26 +59,20 @@
  </emitter>
 
  <audioframe>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0">6300.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.5</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
   <filter type="equalizer">
    <slot n="0">
     <param n="0">110.0</param>
     <param n="1">1.0</param>
     <param n="2">1.0</param>
-    <param n="3">3.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">3300.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">2.0</param>
-   </slot>
-  </filter>
-  <filter type="frequency" src="24db" optional="true">
-   <slot n="0">
-    <param n="0">4500.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
+    <param n="3">1.2</param>
    </slot>
   </filter>
  </audioframe>

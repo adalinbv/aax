@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,24 +14,17 @@
 
  <info name="Pad 7 (Halo)" bank="0" program="88">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="2.34" db="8.8" frequency="220" duration="3.0">
+ <sound gain="2.01" db="8.7" frequency="220" duration="3.0">
   <waveform src="triangle" pitch="0.51"/>
-  <waveform src="square" processing="modulate" ratio="0.2" pitch="7.9987"/>
+  <waveform src="square" processing="modulate" ratio="0.8" pitch="7.9987"/>
   <waveform src="triangle" processing="add" ratio="0.3" pitch="0.9399"/>
   <waveform src="pink-noise" processing="add" ratio="0.08" pitch="0.02"/>
-  <filter type="frequency" src="36db">
-   <slot n="0">
-    <param n="0">1650.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.1</param>
-    <param n="3">2.0</param>
-   </slot>
-  </filter>
  </sound>
 
  <emitter looping="true">

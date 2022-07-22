@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,41 +14,51 @@
 
  <info name="Synth Brass 2" bank="0" program="63">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="0.93" db="-1.4" frequency="220" duration="0.1">
-  <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="mix" pitch="1.493"/>
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0" pitch="7.0">1540.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.2</param>
-    <param n="3">2.5</param>
-   </slot>
-  </filter>
+ <sound gain="3.56" db="1.1" frequency="1760" duration="0.25">
+  <waveform src="sawtooth" ratio="0.75" pitch="0.993"/>
+  <waveform src="impulse" processing="add" pitch="1.4983"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.227</param>
+    <param n="0">0.0</param>
     <param n="1">0.05</param>
-    <param n="2">1.02</param>
+    <param n="2">0.884</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.859</param>
+    <param n="0">0.742</param>
     <param n="1">inf</param>
-    <param n="2">0.859</param>
-    <param n="3">0.2</param>
+    <param n="2">0.371</param>
+    <param n="3">0.13</param>
    </slot>
   </filter>
+  <effect type="timed-pitch" src="envelope">
+   <slot n="0">
+    <param n="0">0.9</param>
+    <param n="1">0.03</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
  </emitter>
 
- <audioframe/>
+ <audioframe>
+  <effect type="distortion" src="envelope">
+   <slot n="0">
+    <param n="0">0.5</param>
+    <param n="1">0.0</param>
+    <param n="2">0.2</param>
+    <param n="3">1.0</param>
+   </slot>
+  </effect>
+ </audioframe>
 
 </aeonwave>

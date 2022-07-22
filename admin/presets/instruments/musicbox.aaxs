@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,36 +14,43 @@
 
  <info name="Music Box" bank="0" program="10">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
-  <note polyphony="8" min="60" max="84" step="12"/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="8" min="72" max="108" step="12"/>
  </info>
 
- <sound gain="0.83" db="-0.7" frequency="880" duration="0.1">
-  <waveform src="triangle"/>
-  <waveform src="triangle" processing="modulate" pitch="5.0"/>
-  <waveform src="triangle" processing="add" ratio="0.8"/>
+ <sound gain="0.85" db="-1.0" frequency="523.251" duration="0.5">
+  <waveform src="square" pitch="9.0"/>
+  <waveform src="sine" processing="modulate" pitch="3.0"/>
+  <waveform src="triangle" processing="add" ratio="0.6"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" src="envelope" release-time="1.0">
+  <filter type="timed-gain" src="envelope" release-time="1.2">
    <slot n="0">
-    <param n="0">1.096</param>
-    <param n="1" auto="0.48">2.5</param>
+    <param n="0">1.12</param>
+    <param n="1">1.25</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" auto="0.8">4.5</param>
-    <param n="1" auto="0.1">0.2</param>
+    <param n="0">2.0</param>
+    <param n="1">0.01</param>
     <param n="2">1.0</param>
+    <param n="3">4.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.985</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
- <audioframe/>
+ <audioframe pan="-0.4"/>
 
 </aeonwave>

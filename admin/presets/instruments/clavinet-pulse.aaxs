@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,36 +14,29 @@
 
  <info name="Pulse Clavinet" bank="0" program="7">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="2.06" db="-5.8" frequency="880" duration="0.1">
+ <sound gain="1.44" db="-5.0" frequency="880" duration="0.1">
   <waveform src="impulse" pitch="0.5"/>
   <waveform src="impulse" processing="add" ratio="0.4"/>
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0" pitch="0.75">660.0</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.48">
    <slot n="0">
-    <param n="0">1.2</param>
+    <param n="0">1.11</param>
     <param n="1">0.01</param>
-    <param n="2">1.95</param>
-    <param n="3">0.01</param>
+    <param n="2">1.79</param>
+    <param n="3">0.12</param>
    </slot>
    <slot n="1">
-    <param n="0">1.77</param>
+    <param n="0">1.62</param>
     <param n="1">0.02</param>
-    <param n="2">1.64</param>
+    <param n="2">1.51</param>
     <param n="3">2.38</param>
    </slot>
   </filter>
@@ -64,8 +57,16 @@
  </emitter>
 
  <audioframe pan="0.8">
-  <filter type="frequency" src="24db" optional="true">
+  <filter type="frequency">
    <slot n="0">
+    <param n="0">660.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+  <filter type="equalizer" optional="true">
+   <slot n="0" src="24db">
     <param n="0">3300.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>

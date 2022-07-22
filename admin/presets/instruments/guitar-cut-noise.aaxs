@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,13 +14,14 @@
 
  <info name="Guitar Cut Noise" bank="1" program="120">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" min="39" max="96" step="12"/>
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="0.74" db="-5.4" frequency="110" duration="0.1">
+ <sound gain="0.60" db="-5.0" frequency="110" duration="0.1">
   <waveform src="sine"/>
   <waveform src="sine" processing="add" pitch="1.5"/>
   <waveform src="sine" processing="add" pitch="2.0"/>

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,42 +14,46 @@
 
  <info name="Taiko Drum" bank="0" program="117">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="60" max="77" step="1"/>
  </info>
 
- <sound gain="1.04" db="-7.1" frequency="261.626">
+ <sound gain="0.93" db="-7.1" frequency="261.626">
   <waveform src="sine" ratio="0.2" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.2" pitch="0.64"/>
   <waveform src="white-noise" processing="add" pitch="0.0152"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" src="envelope">
+  <filter type="timed-gain" src="envelope" release-time="1.0">
    <slot n="0">
-    <param n="0">1.95</param>
+    <param n="0">2.27</param>
     <param n="1">0.05</param>
-    <param n="2">1.99</param>
-    <param n="3">0.05</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1.74</param>
-    <param n="1">1.15</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="2">2.27</param>
+    <param n="3">1.49</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.53</param>
     <param n="1">0.03</param>
-    <param n="2">0.995</param>
+    <param n="2">1.39</param>
     <param n="3">0.02</param>
    </slot>
   </effect>
  </emitter>
 
- <audioframe/>
+ <audioframe>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0">1231.4</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,31 +14,25 @@
 
  <info name="Timpani" bank="0" program="47">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="36" max="57" step="1"/>
  </info>
 
- <sound gain="1.75" db="2.9" frequency="65.4064">
-  <waveform src="impulse" ratio="0.3"/>
-  <waveform src="sine" processing="add" ratio="0.45" pitch="1.7"/>
+ <sound gain="0.81" db="-0.5" frequency="65.4064" duration="2.0">
+  <waveform src="sine" ratio="0.45" pitch="1.7"/>
   <waveform src="sine" processing="add" ratio="0.25" pitch="2.8"/>
-  <waveform src="pink-noise" processing="add" ratio="5.0" pitch="0.008"/>
+  <waveform src="white-noise" processing="add" pitch="0.075" random="0.185"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.66</param>
-    <param n="1">0.03</param>
-    <param n="2">0.624</param>
-    <param n="3">0.05</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.72</param>
-    <param n="1">0.01</param>
-    <param n="2">0.72</param>
-    <param n="3">0.558</param>
+    <param n="0">1.05</param>
+    <param n="1">1.66</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -46,7 +40,7 @@
     <param n="0">1.29</param>
     <param n="1">0.06</param>
     <param n="2">1.0</param>
-    <param n="3">4.0</param>
+    <param n="3">2.0</param>
    </slot>
    <slot n="1">
     <param n="0">0.98</param>
@@ -58,8 +52,8 @@
  </emitter>
 
  <audioframe pan="0.6">
-  <filter type="frequency" src="24db">
-   <slot n="0">
+  <filter type="equalizer">
+   <slot n="0" src="24db">
     <param n="0">660.0</param>
     <param n="1">1.0</param>
     <param n="2">0.1</param>

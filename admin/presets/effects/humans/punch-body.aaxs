@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2021 by Erik Hofman.
- * Copyright (C) 2017-2021 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,17 +14,18 @@
 
  <info>
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2021" by="Erik Hofman"/>
-  <copyright from="2017" until="2021" by="Adalin B.V."/>
-  <note polyphony="1"/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="1" min="55" max="65"/>
  </info>
 
- <sound fixed-gain="4.81" db="5.8" frequency="25" duration="0.3">
+ <sound fixed-gain="4.81" db="5.8" frequency="246.942" duration="0.3">
   <waveform src="white-noise" ratio="1.25" pitch="0.125"/>
-  <waveform src="triangle" processing="modulate" ratio="0.8" pitch="6.4991"/>
+  <waveform src="triangle" processing="modulate" pitch="6.4991"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="5.0">125.0</param>
+    <param n="0" pitch="5.0">1234.7</param>
     <param n="1">0.0</param>
     <param n="2">2.5</param>
     <param n="3">3.5</param>
@@ -32,7 +33,7 @@
   </filter>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0" pitch="27.5">687.5</param>
+    <param n="0" pitch="27.5">6790.9</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.3</param>
@@ -57,13 +58,13 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.9</param>
+    <param n="0">0.19</param>
     <param n="1">0.01</param>
-    <param n="2">0.4</param>
+    <param n="2">0.04</param>
     <param n="3">0.3</param>
    </slot>
    <slot n="1">
-    <param n="0">0.26</param>
+    <param n="0">0.026</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

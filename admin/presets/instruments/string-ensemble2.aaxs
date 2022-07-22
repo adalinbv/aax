@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -12,38 +12,48 @@
 
 <aeonwave>
 
- <info name="String Ensamble 1" bank="0" program="48">
+ <info name="String Ensamble 2 (Slow Octet)" bank="0" program="49">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
-  <note polyphony="16" min="28" max="96" step="12"/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="16" min="28" max="127" step="12"/>
  </info>
 
- <sound gain="1.31" db="-3.9" frequency="220">
-  <waveform src="sawtooth"/>
+ <sound gain="1.10" db="7.1" frequency="220" duration="2.1">
+  <waveform src="impulse" ratio="0.5"/>
   <waveform src="triangle" processing="modulate" pitch="4.0"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.2" pitch="0.991"/>
+  <waveform src="sawtooth" processing="add" ratio="0.1" pitch="1.5"/>
+  <waveform src="sawtooth" processing="add"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="bitcrusher" src="timed">
    <slot n="0">
-    <param n="0">0.361</param>
-    <param n="1">0.0629</param>
-    <param n="2">1.56</param>
-    <param n="3">0.1</param>
+    <param n="0">0.0</param>
+    <param n="1">0.3</param>
+    <param n="2">0.25</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain" src="envelope">
+   <slot n="0">
+    <param n="0">0.152</param>
+    <param n="1">0.07</param>
+    <param n="2">0.442</param>
+    <param n="3">0.85</param>
    </slot>
    <slot n="1">
-    <param n="0">1.33</param>
+    <param n="0">0.429</param>
     <param n="1">inf</param>
-    <param n="2">0.587</param>
+    <param n="2">0.372</param>
     <param n="3">0.5</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.98</param>
-    <param n="1">0.05</param>
+    <param n="1">0.25</param>
     <param n="2">1.0</param>
     <param n="3">4.5</param>
    </slot>
@@ -71,9 +81,9 @@
     <param n="3">2.0</param>
    </slot>
    <slot n="2">
-    <param n="0">7000.0</param>
+    <param n="0">3000.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
+    <param n="2">0.2</param>
     <param n="3">1.0</param>
    </slot>
   </filter>

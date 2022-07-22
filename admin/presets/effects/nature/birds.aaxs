@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,105 +14,60 @@
 
  <info name="Birds">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
-  <note polyphony="1" min="28" max="57" step="12"/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="1" min="28" max="96" step="12" pitch-fraction="0.3"/>
  </info>
 
- <sound fixed-gain="2.20" db="0.0" frequency="220" duration="2.9">
-  <waveform src="white-noise" ratio="2.0" pitch="0.13"/>
-  <waveform src="impulse" processing="modulate" pitch="0.4729"/>
-  <waveform src="square" processing="modulate" ratio="-2.0" pitch="0.0329"/>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0">100.0</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">15.0</param>
-   </slot>
-  </filter>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0">250.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">2.0</param>
-   </slot>
-  </filter>
+ <sound gain="3.23" db="-4.4" frequency="220" duration="2.9">
+  <waveform src="sawtooth" pitch="0.15"/>
+  <waveform src="sawtooth" processing="modulate" pitch="0.009"/>
+  <waveform src="impulse" processing="modulate" ratio="2.0" pitch="0.0329"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="inverse-envelope">
+  <filter type="timed-gain">
    <slot n="0">
-    <param n="0" auto="-200.0">1500.0</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">80.0</param>
+    <param n="0">1.0</param>
+    <param n="1">0.3</param>
+    <param n="2">1.66</param>
+    <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0" auto="-1e+03.0">2300.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">5.1</param>
+    <param n="0">1.36</param>
+    <param n="1">0.2</param>
+    <param n="2">1.36</param>
+    <param n="3">0.1</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="randomness">
+  <filter type="dynamic-gain" src="sine">
    <slot n="0">
-    <param n="0">0.3</param>
-    <param n="1">0.432</param>
-    <param n="2">0.7</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
-  <effect type="dynamic-pitch" src="square">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.413</param>
+    <param n="0">0.2</param>
+    <param n="1">4.0</param>
     <param n="2">0.8</param>
-    <param n="3">0.0</param>
+    <param n="3">0.2</param>
    </slot>
-  </effect>
-  <effect type="timed-pitch">
-   <slot n="0">
-    <param n="0">0.09</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
+  </filter>
  </emitter>
 
  <audioframe>
-  <filter type="equalizer">
+  <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">2700.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.6</param>
-    <param n="3">10.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">3300.0</param>
-    <param n="1">0.6</param>
+    <param n="0">1200.0</param>
+    <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">6.0</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="randomness">
+  <filter type="dynamic-gain" src="impulse">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.024</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
+    <param n="1">1.9</param>
+    <param n="2">0.6</param>
+    <param n="3">0.4</param>
    </slot>
   </filter>
-  <effect type="dynamic-pitch" src="randomness">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.0648</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
  </audioframe>
 
 </aeonwave>

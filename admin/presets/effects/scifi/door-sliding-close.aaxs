@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2021 by Erik Hofman.
- * Copyright (C) 2017-2021 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,13 +14,14 @@
 
  <info name="Electric Door Sliding Close" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2021" by="Erik Hofman"/>
-  <copyright from="2017" until="2021" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.49" db="2.6" frequency="220">
-  <waveform src="impulse" voices="3" spread="0.2"/>
+ <sound gain="0.40" db="2.6" frequency="220">
+  <waveform src="impulse"/>
   <waveform src="square" processing="mix" ratio="0.5"/>
   <filter type="frequency" src="24db">
    <slot n="0">
@@ -67,14 +68,6 @@
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
-   </slot>
-  </effect>
-  <effect type="chorus" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">0.8</param>
-    <param n="1">0.17</param>
-    <param n="2">0.41</param>
-    <param n="3">0.435</param>
    </slot>
   </effect>
  </emitter>

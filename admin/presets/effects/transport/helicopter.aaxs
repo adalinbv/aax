@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2021 by Erik Hofman.
- * Copyright (C) 2017-2021 by Adalin B.V.
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,37 +14,30 @@
 
  <info name="Helicopter">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2021" by="Erik Hofman"/>
-  <copyright from="2017" until="2021" by="Adalin B.V."/>
-  <note polyphony="1"/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="1" pitch-fraction="0.3"/>
  </info>
 
- <sound gain="2.45" db="5.4" frequency="55" duration="6.7">
+ <sound gain="2.20" db="3.5" frequency="55" duration="6.7">
   <waveform src="white-noise" ratio="100.0" pitch="0.5"/>
   <waveform src="sawtooth" processing="mix" ratio="0.98"/>
   <waveform src="sawtooth" processing="modulate" pitch="0.25"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0">1250.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.5</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.122</param>
+    <param n="0">0.134</param>
     <param n="1">3.0</param>
-    <param n="2">0.608</param>
+    <param n="2">0.669</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">0.608</param>
+    <param n="0">0.669</param>
     <param n="1">7.0</param>
-    <param n="2">0.458</param>
+    <param n="2">0.504</param>
     <param n="3">3.0</param>
    </slot>
   </filter>
