@@ -21,7 +21,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="0.50" db="-13.3" frequency="110" duration="0.1">
+ <sound gain="1.20" db="-13.3" frequency="50" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix"/>
   <waveform src="triangle" processing="add" ratio="0.2" pitch="4.0"/>
@@ -41,11 +41,11 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.01</param>
-    <param n="2">4.64</param>
+    <param n="2">2.64</param>
     <param n="3">0.2</param>
    </slot>
    <slot n="1">
-    <param n="0">3.48</param>
+    <param n="0">1.8</param>
     <param n="1">7.4</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

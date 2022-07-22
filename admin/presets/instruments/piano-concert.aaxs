@@ -83,14 +83,6 @@
  </emitter>
 
  <audioframe pan="-0.6">
-  <filter type="frequency" src="24db" optional="true">
-   <slot n="0">
-    <param n="0">3000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.3</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
   <filter type="equalizer">
    <slot n="0">
     <param n="0">110.0</param>
@@ -103,6 +95,12 @@
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">2.0</param>
+   </slot>
+   <slot n="2" src="24db">
+    <param n="0">3000.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.3</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
  </audioframe>

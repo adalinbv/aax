@@ -59,6 +59,14 @@
     <param n="3">0.03</param>
    </slot>
   </filter>
+  <filter type="equalizer">
+   <slot n="0">
+    <param n="0">1650.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.1</param>
+    <param n="3">2.0</param>
+   </slot>
+  </filter>
  </audioframe>
 
 </aeonwave>

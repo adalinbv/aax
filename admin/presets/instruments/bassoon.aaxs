@@ -84,9 +84,7 @@
     <param n="2">0.0</param>
     <param n="3">1.2</param>
    </slot>
-  </filter>
-  <filter type="frequency" optional="true">
-   <slot n="0">
+   <slot n="2">
     <param n="0">1100.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>

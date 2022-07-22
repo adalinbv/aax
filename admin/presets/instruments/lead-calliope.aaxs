@@ -23,7 +23,7 @@
  <sound gain="0.45" db="-8.5" frequency="58.2705">
   <waveform src="triangle"/>
   <waveform src="sine" processing="add" ratio="0.1" pitch="3.0"/>
-  <filter type="frequency" optional="true">
+  <filter type="frequency">
    <slot n="0">
     <param n="0" pitch="1.0">58.3</param>
     <param n="1">1.0</param>
