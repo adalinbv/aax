@@ -27,17 +27,31 @@
  </sound>
 
  <emitter looping="true">
+  <filter type="frequency" src="envelope|24db|logarithmic">
+   <slot n="0">
+    <param n="0" pitch="0.5">82.4</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">9900.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.25</param>
+   </slot>
+  </filter>
   <filter type="timed-gain" release-time="0.5">
    <slot n="0">
-    <param n="0">1.07</param>
+    <param n="0">0.07</param>
     <param n="1">0.02</param>
-    <param n="2">2.07</param>
+    <param n="2">1.07</param>
     <param n="3">0.04</param>
    </slot>
    <slot n="1">
-    <param n="0">1.53</param>
+    <param n="0">0.53</param>
     <param n="1">0.795</param>
-    <param n="2">0.627</param>
+    <param n="2">0.127</param>
     <param n="3">0.0</param>
    </slot>
   </filter>

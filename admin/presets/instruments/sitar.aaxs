@@ -21,7 +21,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="0.60" db="-7.3" frequency="440" duration="0.1">
+ <sound gain="0.80" db="-7.3" frequency="440" duration="0.1">
   <waveform src="triangle"/>
   <waveform src="sawtooth" processing="mix" ratio="0.95" pitch="1.999"/>
   <waveform src="sine" processing="modulate" ratio="0.8" pitch="3.999"/>

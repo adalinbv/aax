@@ -49,15 +49,15 @@
   </filter>
   <filter type="timed-gain" release-time="0.7">
    <slot n="0">
-    <param n="0">1.94</param>
+    <param n="0">1.24</param>
     <param n="1">0.05</param>
-    <param n="2">2.27</param>
+    <param n="2">1.57</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.48</param>
+    <param n="0">0.78</param>
     <param n="1">0.7</param>
-    <param n="2">0.785</param>
+    <param n="2">0.385</param>
     <param n="3">7.5</param>
    </slot>
   </filter>

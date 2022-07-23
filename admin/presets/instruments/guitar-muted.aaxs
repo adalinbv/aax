@@ -21,7 +21,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.60" db="-5.7" frequency="110" duration="0.1">
+ <sound gain="1.50" db="-5.7" frequency="110" duration="0.1">
   <layer>
    <waveform src="triangle" ratio="0.9"/>
    <waveform src="square" processing="add" ratio="0.3" pitch="3.0"/>
@@ -47,7 +47,7 @@
    <slot n="0">
     <param n="0">1.02</param>
     <param n="1">0.01</param>
-    <param n="2">1.94</param>
+    <param n="2">1.04</param>
     <param n="3">0.5</param>
    </slot>
   </filter>

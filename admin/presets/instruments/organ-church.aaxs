@@ -20,7 +20,7 @@
   <note polyphony="12" min="16" max="96" step="12"/>
  </info>
 
- <sound gain="0.33" db="-9.0" frequency="65.4064">
+ <sound gain="0.63" db="-9.0" frequency="65.4064">
   <waveform src="white-noise" ratio="0.1"/>
   <waveform src="sine" ratio="0.576801"/>
   <waveform src="sine" processing="add" ratio="0.576801" pitch="2.0"/>
@@ -38,7 +38,7 @@
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">2.81</param>
+    <param n="0">1.02</param>
     <param n="1">0.7</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
