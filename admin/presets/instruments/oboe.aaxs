@@ -21,26 +21,12 @@
  </info>
 
  <sound gain="1.25" db="-1.5" frequency="233.082" duration="0.1">
-  <layer>
-   <waveform src="square"/>
-   <waveform src="white-noise" processing="add" ratio="0.1" pitch="0.3"/>
-   <waveform src="square" processing="modulate" pitch="5.0"/>
-  </layer>
-  <layer>
-   <waveform src="square"/>
-   <waveform src="square" processing="modulate" pitch="7.0"/>
-  </layer>
+  <waveform src="square"/>
+  <waveform src="white-noise" processing="add" ratio="0.1" pitch="0.3"/>
+  <waveform src="square" processing="modulate" pitch="5.0"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">11.9</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" release-time="0.05">
    <slot n="0">
     <param n="0">0.483</param>

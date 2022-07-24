@@ -21,26 +21,12 @@
  </info>
 
  <sound gain="1.23" db="-1.0" frequency="130.813" duration="0.1">
-  <layer>
-   <waveform src="sine" processing="add"/>
-   <waveform src="sine" processing="add" ratio="0.2" pitch="0.5"/>
-  </layer>
-  <layer>
-   <waveform src="sine" processing="add"/>
-   <waveform src="sine" processing="add"/>
-   <waveform src="sine" processing="add" ratio="0.75" pitch="9.0"/>
-  </layer>
+  <waveform src="sine" processing="add"/>
+  <waveform src="sine" processing="add"/>
+  <waveform src="sine" processing="add" ratio="0.75" pitch="9.0"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="inverse-envelope|logarithmic">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">5.0</param>
-    <param n="2">0.8</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" release-time="1.0">
    <slot n="0">
     <param n="0">1.13</param>

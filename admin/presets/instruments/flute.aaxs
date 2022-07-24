@@ -21,42 +21,21 @@
  </info>
 
  <sound gain="0.65" db="-9.6" frequency="1760" duration="0.5">
-  <layer>
-   <waveform src="square"/>
-   <waveform src="sine" processing="mix" pitch="0.5"/>
-   <waveform src="sine" processing="add" ratio="0.05" pitch="2.0"/>
-   <filter type="bitcrusher">
-    <slot n="0">
-     <param n="0" auto="0.025">0.19</param>
-     <param n="1">0.0</param>
-     <param n="2">0.0</param>
-     <param n="3">0.1</param>
-    </slot>
-   </filter>
-   <waveform src="pink-noise" processing="add" ratio="0.1" pitch="0.3"/>
-  </layer>
-  <layer>
-   <waveform src="sine"/>
-   <filter type="bitcrusher">
-    <slot n="0">
-     <param n="0">0.03</param>
-     <param n="1">0.0</param>
-     <param n="2">0.0</param>
-     <param n="3">0.5</param>
-    </slot>
-   </filter>
-  </layer>
+  <waveform src="square"/>
+  <waveform src="sine" processing="mix" pitch="0.5"/>
+  <waveform src="sine" processing="add" ratio="0.05" pitch="2.0"/>
+  <filter type="bitcrusher">
+   <slot n="0">
+    <param n="0" auto="0.025">0.19</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.1</param>
+   </slot>
+  </filter>
+  <waveform src="pink-noise" processing="add" ratio="0.1" pitch="0.3"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="envelope|logarithmic">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">5.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope" release-time="0.12">
    <slot n="0">
     <param n="0">1.14</param>

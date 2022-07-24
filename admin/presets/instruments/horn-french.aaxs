@@ -20,13 +20,9 @@
   <note polyphony="2" min="41" max="77" step="12"/>
  </info>
 
- <sound mode="1" gain="1.29" db="2.9" frequency="87.3071" duration="0.3">
+ <sound mode="1" gain="1.49" db="2.9" frequency="87.3071" duration="0.3">
   <layer>
    <waveform src="impulse"/>
-  </layer>
-  <layer ratio="1.2">
-   <waveform src="sawtooth"/>
-   <waveform src="impulse" processing="mix"/>
   </layer>
  </sound>
 
@@ -39,23 +35,15 @@
     <param n="3">1.0</param>
    </slot>
   </filter>
-  <filter type="dynamic-layer" src="envelope">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.1</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope" release-time="0.08">
    <slot n="0">
-    <param n="0">0.182</param>
+    <param n="0">0.482</param>
     <param n="1">0.132</param>
-    <param n="2">0.554</param>
+    <param n="2">0.854</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">0.716</param>
+    <param n="0">1.016</param>
     <param n="1">0.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
