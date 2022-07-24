@@ -28,6 +28,161 @@
 
 #ifdef __FMA__
 
+static inline float
+hsum_ps_sse3(__m128 v) {
+   __m128 shuf = _mm_movehdup_ps(v);
+   __m128 sums = _mm_add_ps(v, shuf);
+   shuf        = _mm_movehl_ps(shuf, sums);
+   sums        = _mm_add_ss(sums, shuf);
+   return        _mm_cvtss_f32(sums);
+}
+
+static inline float
+hsum256_ps_fma3(__m256 v) {
+   __m128 vlow  = _mm256_castps256_ps128(v);
+   __m128 vhigh = _mm256_extractf128_ps(v, 1);
+   vlow  = _mm_add_ps(vlow, vhigh);
+   return hsum_ps_sse3(vlow);
+}
+
+static inline __m256
+_mm256_abs_ps(__m256 x) {
+   return _mm256_andnot_ps(_mm256_set1_ps(-0.0f), x);
+}
+
+static inline int
+_mm256_testz_ps_fma3(__m256 x)
+{
+   __m256i zero = _mm256_setzero_si256();
+   return _mm256_testz_si256(_mm256_castps_si256(x), zero);
+}
+
+static inline __m256    // range -1.0f .. 1.0f
+fast_sin8_fma3(__m256 x)
+{
+   __m256 four = _mm256_set1_ps(-4.0f);
+   return _mm256_mul_ps(four, _mm256_fmadd_ps(-x, _mm256_abs_ps(x), x));
+}
+
+#define MUL     (65536.0f*256.0f)
+#define IMUL    (1.0f/MUL)
+
+static inline __m256
+fast_atan8_fma3(__m256 x)
+{
+   __m256 pi_4_mul = _mm256_set1_ps(GMATH_PI_4+0.273f);
+   __m256 mul = _mm256_set1_ps(0.273f);
+   
+   return _mm256_mul_ps(x, _mm256_sub_ps(pi_4_mul,
+                                         _mm256_mul_ps(mul, _mm256_abs_ps(x))));
+}
+
+void
+_batch_get_average_rms_fma3(const_float32_ptr s, size_t num, float *rms, float *peak)
+{
+   size_t stmp, step, total;
+   double rms_total = 0.0;
+   float peak_cur = 0.0f;
+   int i;
+
+   *rms = *peak = 0;
+
+   if (!num) return;
+
+   total = num;
+   stmp = (size_t)s & MEMMASK;
+   if (stmp)
+   {
+      i = (MEMALIGN - stmp)/sizeof(float);
+      if (i <= num)
+      {
+         do
+         {
+            float samp = *s++;            // rms
+            float val = samp*samp;
+            rms_total += val;
+            if (val > peak_cur) peak_cur = val;
+         }
+         while (--i);
+      }
+   }
+
+   if (num)
+   {
+      __m256* sptr = (__m256*)s;
+
+      step = 3*sizeof(__m256)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         union {
+             __m256 ps;
+             float f[8];
+         } rms1, rms2, rms3, peak1, peak2, peak3;
+
+         peak1.ps = peak2.ps = peak3.ps = _mm256_setzero_ps();
+         rms1.ps = rms2.ps = rms3.ps = _mm256_setzero_ps();
+
+         s += i*step;
+         num -= i*step;
+         do
+         {
+            __m256 smp1 = _mm256_load_ps((const float*)sptr++);
+            __m256 smp2 = _mm256_load_ps((const float*)sptr++);
+            __m256 smp3 = _mm256_load_ps((const float*)sptr++);
+            __m256 val1, val2, val3;
+
+            val1 = _mm256_mul_ps(smp1, smp1);
+            val2 = _mm256_mul_ps(smp2, smp2);
+            val3 = _mm256_mul_ps(smp3, smp3);
+
+            rms1.ps = _mm256_add_ps(rms1.ps, val1);
+            rms2.ps = _mm256_add_ps(rms2.ps, val2);
+            rms3.ps = _mm256_add_ps(rms3.ps, val3);
+
+            peak1.ps = _mm256_max_ps(peak1.ps, val1);
+            peak2.ps = _mm256_max_ps(peak2.ps, val2);
+            peak3.ps = _mm256_max_ps(peak3.ps, val3);
+         }
+         while(--i);
+
+         rms_total += hsum256_ps_fma3(rms1.ps);
+         rms_total += hsum256_ps_fma3(rms2.ps);
+         rms_total += hsum256_ps_fma3(rms3.ps);
+
+         peak1.ps = _mm256_max_ps(peak1.ps, peak2.ps);
+         peak1.ps = _mm256_max_ps(peak1.ps, peak3.ps);
+         _mm256_zeroupper();
+
+         if (peak1.f[0] > peak_cur) peak_cur = peak1.f[0];
+         if (peak1.f[1] > peak_cur) peak_cur = peak1.f[1];
+         if (peak1.f[2] > peak_cur) peak_cur = peak1.f[2];
+         if (peak1.f[3] > peak_cur) peak_cur = peak1.f[3];
+         if (peak1.f[4] > peak_cur) peak_cur = peak1.f[4];
+         if (peak1.f[5] > peak_cur) peak_cur = peak1.f[5];
+         if (peak1.f[6] > peak_cur) peak_cur = peak1.f[6];
+         if (peak1.f[7] > peak_cur) peak_cur = peak1.f[7];
+      }
+
+      if (num)
+      {
+         i = num;
+         do
+         {
+            float samp = *s++;            // rms
+            float val = samp*samp;
+            rms_total += val;
+            if (val > peak_cur) peak_cur = val;
+         }
+         while (--i);
+      }
+   }
+
+   *rms = (float)sqrt(rms_total/total);
+   *peak = sqrtf(peak_cur);
+}
+
 FN_PREALIGN void
 _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
@@ -488,6 +643,136 @@ _batch_resample_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin, size
    }
 }
 
+float *
+_aax_generate_waveform_fma3(float32_ptr rv, size_t no_samples, float freq, float phase, enum wave_types wtype)
+{
+   const_float32_ptr harmonics = _harmonics[wtype];
+   if (wtype == _SINE_WAVE || wtype == _CONSTANT_VALUE) {
+      rv = _aax_generate_waveform_cpu(rv, no_samples, freq, phase, wtype);
+   }
+   else if (rv)
+   {
+      __m256 phase8, freq8, h8;
+      __m256 one, two, eight;
+      __m256 ngain, nfreq;
+      __m256 hdt, s;
+      int i, h;
+      float *ptr;
+
+      assert(MAX_HARMONICS % 8 == 0);
+
+      one = _mm256_set1_ps(1.0f);
+      two = _mm256_set1_ps(2.0f);
+      eight = _mm256_set1_ps(8.0f);
+
+      phase8 = _mm256_set1_ps(-1.0f + phase/GMATH_PI);
+      freq8 = _mm256_set1_ps(freq);
+      h8 = _mm256_set_ps(8.0f, 7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f);
+
+      nfreq = _mm256_div_ps(freq8, h8);
+      ngain = _mm256_and_ps(_mm256_cmp_ps(two, nfreq, _CMP_LT_OS), _mm256_load_ps(harmonics));
+      hdt = _mm256_div_ps(two, nfreq);
+
+      ptr = rv;
+      i = no_samples;
+      s = phase8;
+      do
+      {
+         __m256 rv = fast_sin8_fma3(s);
+
+         *ptr++ = hsum256_ps_fma3(_mm256_mul_ps(ngain, rv));
+
+         s = _mm256_add_ps(s, hdt);
+         s = _mm256_sub_ps(s, _mm256_and_ps(two, _mm256_cmp_ps(s, one, _CMP_GE_OS)));
+      }
+      while (--i);
+
+      h8 = _mm256_add_ps(h8, eight);
+      for(h=8; h<MAX_HARMONICS; h += 8)
+      {
+         nfreq = _mm256_div_ps(freq8, h8);
+         ngain = _mm256_and_ps(_mm256_cmp_ps(two, nfreq, _CMP_LT_OS), _mm256_load_ps(harmonics+h));
+         if (_mm256_testz_ps_fma3(ngain))
+         {
+            hdt = _mm256_div_ps(two, nfreq);
+
+            ptr = rv;
+            i = no_samples;
+            s = phase8;
+            do
+            {
+               __m256 rv = fast_sin8_fma3(s);
+
+               *ptr++ += hsum256_ps_fma3(_mm256_mul_ps(ngain, rv));
+
+               s = _mm256_add_ps(s, hdt);
+               s = _mm256_sub_ps(s, _mm256_and_ps(two, _mm256_cmp_ps(s, one, _CMP_GE_OS)));
+            }
+            while (--i);
+         }
+         h8 = _mm256_add_ps(h8, eight);
+      }
+      _mm256_zeroupper();
+   }
+   return rv;
+}
+
+void
+_batch_atanps_fma3(void_ptr dst, const_void_ptr src, size_t num)
+{
+   float *d = (float*)dst;
+   float *s = (float*)src;
+   size_t i, step;
+   size_t dtmp, stmp;
+
+   if (!num) return;
+
+   dtmp = (size_t)d & MEMMASK;
+   stmp = (size_t)s & MEMMASK;
+   if (dtmp || stmp)                    /* improperly aligned,            */
+   {                                    /* let the compiler figure it out */
+      _batch_atanps_sse2(d, s, num);
+      return;
+   }
+
+   if (num)
+   {
+      __m256 *dptr = (__m256*)d;
+      __m256* sptr = (__m256*)s;
+
+      step = sizeof(__m256)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         __m256 xmin = _mm256_set1_ps(-1.94139795f);
+         __m256 xmax = _mm256_set1_ps(1.94139795f);
+         __m256 mul = _mm256_set1_ps(MUL*GMATH_1_PI_2);
+         __m256 imul = _mm256_set1_ps(IMUL);
+         __m256 xmm0, xmm1;
+
+         num -= i*step;
+         s += i*step;
+         d += i*step;
+         do
+         {
+            xmm0 = _mm256_load_ps((const float*)sptr++);
+
+            xmm0 = _mm256_mul_ps(xmm0,imul);
+            xmm0 = _mm256_min_ps(_mm256_max_ps(xmm0, xmin), xmax);
+            xmm1 = _mm256_mul_ps(mul, fast_atan8_fma3(xmm0));
+
+            _mm256_store_ps((float*)dptr++, xmm1);
+         }
+         while(--i);
+         _mm256_zeroupper();
+      }
+
+      if (num) {
+         _batch_atanps_sse2(d, s, num);
+      }
+   }
+}
 
 #else
 typedef int make_iso_compilers_happy;

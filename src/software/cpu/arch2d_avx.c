@@ -60,7 +60,6 @@ _mm256_testz_ps_avx(__m256 x)
    return _mm256_testz_si256(_mm256_castps_si256(x), zero);
 }
 
-
 static inline __m256    // range -1.0f .. 1.0f
 fast_sin8_avx(__m256 x)
 {
@@ -74,13 +73,11 @@ fast_sin8_avx(__m256 x)
 static inline __m256
 fast_atan8_avx(__m256 x)
 {
-  __m256 pi_4 = _mm256_set1_ps(GMATH_PI_4);
-  __m256 mul =_mm256_set1_ps(0.273f);
-  __m256 one = _mm256_set1_ps(1.0f);
+   __m256 pi_4_mul = _mm256_set1_ps(GMATH_PI_4+0.273f);
+   __m256 mul = _mm256_set1_ps(0.273f);
 
-  return _mm256_add_ps(_mm256_mul_ps(pi_4, x),
-                       _mm256_mul_ps(_mm256_mul_ps(mul, x),
-                                     _mm256_sub_ps(one, _mm256_abs_ps(x))));
+   return _mm256_mul_ps(x, _mm256_sub_ps(pi_4_mul,
+                                         _mm256_mul_ps(mul, _mm256_abs_ps(x))));
 }
 
 void

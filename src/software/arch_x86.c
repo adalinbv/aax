@@ -492,6 +492,11 @@ _aaxGetSIMDSupportLevel()
             if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3))
             {
                _batch_fmadd = _batch_fmadd_fma3;
+
+               _aax_generate_waveform_float = _aax_generate_waveform_fma3;
+               _batch_get_average_rms = _batch_get_average_rms_fma3;
+
+               _batch_atanps = _batch_atanps_fma3;
 #   if RB_FLOAT_DATA
                _batch_freqfilter_float = _batch_freqfilter_float_fma3;
                _batch_resample_float = _batch_resample_float_fma3;

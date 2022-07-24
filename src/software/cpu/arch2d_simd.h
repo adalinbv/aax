@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2019 by Erik Hofman.
- * Copyright 2009-2019 by Adalin B.V.
+ * Copyright 2005-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -215,6 +215,9 @@ void _batch_get_average_rms_avx(const_float32_ptr, size_t, float*, float*);
 void _batch_fmadd_fma3(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_freqfilter_float_fma3(float32_ptr, const_float32_ptr, int, size_t, void*);
 void _batch_resample_float_fma3(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
+void _batch_get_average_rms_fma3(const_float32_ptr, size_t, float*, float*);
+void _batch_atanps_fma3(void_ptr, const_void_ptr, size_t);
+float* _aax_generate_waveform_fma3(float32_ptr, size_t, float, float, enum wave_types);
 
 /* VFPv2 */
 void _batch_cvt24_24_vfpv2(void_ptr, const void*, size_t);

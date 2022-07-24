@@ -154,7 +154,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 
          if (reverb->direct_path == 0)
          {
-            reverb->no_samples = TIME_TO_SAMPLES(fs, 1.0f/rate);
+            reverb->no_samples = 64 + TIME_TO_SAMPLES(fs, 1.0f/rate);
             _aaxRingBufferCreateHistoryBuffer(&reverb->direct_path,
                                               reverb->no_samples, no_tracks);
          }

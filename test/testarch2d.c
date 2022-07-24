@@ -431,6 +431,17 @@ int main()		// x86		ARM
          printf("atan %s:  %f ms - atanf x %2.1f\n", MKSTR(SIMD2), eps*1000.0f, cpu/eps);
          TESTF("atan "MKSTR(SIMD2), dst1, dst2);
       }
+      if (fma)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         _batch_atanps = GLUE(_batch_atanps, FMA3);
+
+         ts = timer_start();
+         _batch_atanps(dst2, dst2, MAXNUM);
+         eps = 1e-6f*timer_end(ts);
+         printf("atan %s:  %f ms - atanf x %2.1f\n", MKSTR(FMA3), eps*1000.0f, cpu/eps);
+         TESTF("atan "MKSTR(FMA3), dst1, dst2);
+      }
 
       /*
        * batch RMS calulculation
@@ -459,6 +470,21 @@ int main()		// x86		ARM
             _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
             eps = 1e-6f*timer_end(ts);
             printf("rms "MKSTR(SIMD2)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            if (rms1 != rms2) {
+               printf(" | rms1: %f, rms2: %f - %f (%5.4f%%)\n", rms1, rms2, rms1-rms2, 100.0f*fabsf((rms1-rms2)/rms1));
+            }
+            if (peak1 != peak2) {
+               printf(" | peak1: %f, peak2: %f - %f (%5.4f%%)\n", peak1, peak2, peak1-peak2, fabsf((peak1-peak2)/peak1));
+            }
+         }
+         if (fma)
+         {
+            _batch_get_average_rms = GLUE(_batch_get_average_rms, FMA3);
+
+            ts = timer_start();
+            _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
+            eps = 1e-6f*timer_end(ts);
+            printf("rms "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             if (rms1 != rms2) {
                printf(" | rms1: %f, rms2: %f - %f (%5.4f%%)\n", rms1, rms2, rms1-rms2, 100.0f*fabsf((rms1-rms2)/rms1));
             }
@@ -629,7 +655,18 @@ int main()		// x86		ARM
          _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE);
          eps = 1e-6f*timer_end(ts);
          printf("generate waveform "MKSTR(SIMD2)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-         TESTFN("waveform "MKSTR(SIMD1), dst1, dst2, 1e-3f);
+         TESTFN("waveform "MKSTR(SIMD2), dst1, dst2, 1e-3f);
+      }
+
+      if (fma)
+      {
+         _aax_generate_waveform_float = GLUE(_aax_generate_waveform, FMA3);
+
+         ts = timer_start();
+         _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE);
+         eps = 1e-6f*timer_end(ts);
+         printf("generate waveform "MKSTR(FMA3)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+         TESTFN("waveform "MKSTR(FMA3), dst1, dst2, 1e-3f);
       }
 
       /*
