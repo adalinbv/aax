@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -362,7 +362,8 @@ FN(batch_cvtps24_24,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
 #define IMUL	(1.0f/MUL)
 
 static inline float fast_atanf(float x) {
-  return GMATH_PI_4*x + 0.273f*x * (1.0f -fabsf(x));
+// return GMATH_PI_4*x + 0.273f*x * (1.0f-fabsf(x));
+   return x*(GMATH_PI_4+0.273f - 0.273f*fabsf(x));
 }
 
 void

@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -73,7 +73,7 @@ static inline __m128
 fast_atan4_sse2(__m128 x)
 {
   __m128 pi_4 = _mm_set1_ps(GMATH_PI_4);
-  __m128 mul =_mm_set1_ps(0.273f);
+  __m128 mul = _mm_set1_ps(0.273f);
   __m128 one = _mm_set1_ps(1.0f);
 
   return _mm_add_ps(_mm_mul_ps(pi_4, x),
@@ -593,8 +593,8 @@ void _batch_atanps_sse2(void_ptr dptr, const_void_ptr sptr, size_t num)
       i = num/step;
       if (i)
       {
-         __m128 xmin = _mm_set1_ps(-1.94139795f);
-         __m128 xmax = _mm_set1_ps(1.94139795f);
+//       __m128 xmin = _mm_set1_ps(-1.94139795f);
+//       __m128 xmax = _mm_set1_ps(1.94139795f);
          __m128 mul = _mm_set1_ps(MUL*GMATH_1_PI_2);
          __m128 imul = _mm_set1_ps(IMUL);
          __m128 xmm0, xmm1;
@@ -606,8 +606,8 @@ void _batch_atanps_sse2(void_ptr dptr, const_void_ptr sptr, size_t num)
          {
             xmm0 = _mm_load_ps((const float*)sptr++);
 
-            xmm0 = _mm_mul_ps(xmm0,imul);
-            xmm0 = _mm_min_ps(_mm_max_ps(xmm0, xmin), xmax);
+            xmm0 = _mm_mul_ps(xmm0, imul);
+//          xmm0 = _mm_min_ps(_mm_max_ps(xmm0, xmin), xmax);
             xmm1 = _mm_mul_ps(mul, fast_atan4_sse2(xmm0));
 
             _mm_store_ps((float*)dptr++, xmm1);

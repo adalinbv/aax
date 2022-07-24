@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -93,7 +93,7 @@ vdivq_f32(float32x4_t a, float32x4_t b)
    reciprocal = vmulq_f32(vrecpsq_f32(b, reciprocal), reciprocal);
 
    // and finally, compute a/b = a*(1/b)
-   return vmulq_f32(a,reciprocal);
+   return vmulq_f32(a, reciprocal);
 }
 
 static inline int
@@ -406,8 +406,8 @@ _batch_atanps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
       i = num/step;
       if (i)
       {
-        float32x4_t xmin = vmovq_n_f32(-1.94139795f);
-        float32x4_t xmax = vmovq_n_f32(1.94139795f);
+//      float32x4_t xmin = vmovq_n_f32(-1.94139795f);
+//      float32x4_t xmax = vmovq_n_f32(1.94139795f);
         float32x4_t mul = vmovq_n_f32(MUL*GMATH_1_PI_2);
         float32x4_t imul = vmovq_n_f32(IMUL);
         float32x4_t res0, res1;
@@ -419,8 +419,8 @@ _batch_atanps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
          {
             res0 = vld1q_f32((const float*)sptr++);
 
-            res0 = vmulq_f32(res0,imul);
-            res0 = vminq_f32(vmaxq_f32(res0, xmin), xmax);
+            res0 = vmulq_f32(res0, imul);
+//          res0 = vminq_f32(vmaxq_f32(res0, xmin), xmax);
             res1 = vmulq_f32(mul, fast_atan4_neon(res0));
 
             vst1q_f32((float*)dptr++, res1);

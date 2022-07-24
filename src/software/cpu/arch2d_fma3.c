@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2005-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -28,6 +28,7 @@
 
 #ifdef __FMA__
 
+// 
 static inline float
 hsum_ps_sse3(__m128 v) {
    __m128 shuf = _mm_movehdup_ps(v);
@@ -53,25 +54,26 @@ _mm256_abs_ps(__m256 x) {
 static inline int
 _mm256_testz_ps_fma3(__m256 x)
 {
-   __m256i zero = _mm256_setzero_si256();
+   const __m256i zero = _mm256_setzero_si256();
    return _mm256_testz_si256(_mm256_castps_si256(x), zero);
 }
 
 static inline __m256    // range -1.0f .. 1.0f
 fast_sin8_fma3(__m256 x)
 {
-   __m256 four = _mm256_set1_ps(-4.0f);
+   const __m256 four = _mm256_set1_ps(-4.0f);
    return _mm256_mul_ps(four, _mm256_fmadd_ps(-x, _mm256_abs_ps(x), x));
 }
 
 #define MUL     (65536.0f*256.0f)
 #define IMUL    (1.0f/MUL)
 
+// domain -PI/2 .. PI/2
 static inline __m256
 fast_atan8_fma3(__m256 x)
 {
-   __m256 pi_4_mul = _mm256_set1_ps(GMATH_PI_4+0.273f);
-   __m256 mul = _mm256_set1_ps(0.273f);
+   const __m256 pi_4_mul = _mm256_set1_ps(GMATH_PI_4+0.273f);
+   const __m256 mul = _mm256_set1_ps(0.273f);
    
    return _mm256_mul_ps(x, _mm256_sub_ps(pi_4_mul,
                                          _mm256_mul_ps(mul, _mm256_abs_ps(x))));
@@ -244,8 +246,8 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
             {
                ymm0 = _mm256_loadu_ps((const float*)sptr++);
                ymm1 = _mm256_loadu_ps((const float*)sptr++);
-               ymm0 =_mm256_fmadd_ps(ymm0, tv0, _mm256_load_ps((const float*)dptr));
-               ymm1 =_mm256_fmadd_ps(ymm1, tv1, _mm256_load_ps((const float*)(dptr+1)));
+               ymm0 = _mm256_fmadd_ps(ymm0, tv0, _mm256_load_ps((const float*)dptr));
+               ymm1 = _mm256_fmadd_ps(ymm1, tv1, _mm256_load_ps((const float*)(dptr+1)));
                tv0 = _mm256_add_ps(tv0, dv);
                tv1 = _mm256_add_ps(tv1, dv);
 
@@ -260,8 +262,8 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
             {
                ymm0 = _mm256_load_ps((const float*)sptr++);
                ymm1 = _mm256_load_ps((const float*)sptr++);
-               ymm0 =_mm256_fmadd_ps(ymm0, tv0, _mm256_load_ps((const float*)dptr));
-               ymm1 =_mm256_fmadd_ps(ymm1, tv1, _mm256_load_ps((const float*)(dptr+1)));
+               ymm0 = _mm256_fmadd_ps(ymm0, tv0, _mm256_load_ps((const float*)dptr));
+               ymm1 = _mm256_fmadd_ps(ymm1, tv1, _mm256_load_ps((const float*)(dptr+1)));
                tv0 = _mm256_add_ps(tv0, dv);
                tv1 = _mm256_add_ps(tv1, dv);
 
@@ -318,8 +320,8 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
                ymm0 = _mm256_loadu_ps((const float*)sptr++);
                ymm1 = _mm256_loadu_ps((const float*)sptr++);
 
-               ymm0 =_mm256_fmadd_ps(ymm0, tv, _mm256_load_ps((const float*)(dptr+0)));
-               ymm1 =_mm256_fmadd_ps(ymm1, tv, _mm256_load_ps((const float*)(dptr+1)));
+               ymm0 = _mm256_fmadd_ps(ymm0, tv, _mm256_load_ps((const float*)(dptr+0)));
+               ymm1 = _mm256_fmadd_ps(ymm1, tv, _mm256_load_ps((const float*)(dptr+1)));
                _mm256_store_ps((float*)dptr++, ymm0);
                _mm256_store_ps((float*)dptr++, ymm1);
             }
@@ -333,8 +335,8 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
                ymm0 = _mm256_load_ps((const float*)sptr++);
                ymm1 = _mm256_load_ps((const float*)sptr++);
 
-               ymm0 =_mm256_fmadd_ps(ymm0, tv, _mm256_load_ps((const float*)(dptr+0)));
-               ymm1 =_mm256_fmadd_ps(ymm1, tv, _mm256_load_ps((const float*)(dptr+1)));
+               ymm0 = _mm256_fmadd_ps(ymm0, tv, _mm256_load_ps((const float*)(dptr+0)));
+               ymm1 = _mm256_fmadd_ps(ymm1, tv, _mm256_load_ps((const float*)(dptr+1)));
                _mm256_store_ps((float*)dptr++, ymm0);
                _mm256_store_ps((float*)dptr++, ymm1);
             }
@@ -745,10 +747,10 @@ _batch_atanps_fma3(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
-         __m256 xmin = _mm256_set1_ps(-1.94139795f);
-         __m256 xmax = _mm256_set1_ps(1.94139795f);
-         __m256 mul = _mm256_set1_ps(MUL*GMATH_1_PI_2);
-         __m256 imul = _mm256_set1_ps(IMUL);
+//       const __m256 xmin = _mm256_set1_ps(-1.94139795f);
+//       const __m256 xmax = _mm256_set1_ps(1.94139795f);
+         const __m256 mul = _mm256_set1_ps(MUL*GMATH_1_PI_2);
+         const __m256 imul = _mm256_set1_ps(IMUL);
          __m256 xmm0, xmm1;
 
          num -= i*step;
@@ -758,8 +760,8 @@ _batch_atanps_fma3(void_ptr dst, const_void_ptr src, size_t num)
          {
             xmm0 = _mm256_load_ps((const float*)sptr++);
 
-            xmm0 = _mm256_mul_ps(xmm0,imul);
-            xmm0 = _mm256_min_ps(_mm256_max_ps(xmm0, xmin), xmax);
+            xmm0 = _mm256_mul_ps(xmm0, imul);
+//          xmm0 = _mm256_min_ps(_mm256_max_ps(xmm0, xmin), xmax);
             xmm1 = _mm256_mul_ps(mul, fast_atan8_fma3(xmm0));
 
             _mm256_store_ps((float*)dptr++, xmm1);
