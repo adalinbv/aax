@@ -21,27 +21,12 @@
  </info>
 
  <sound gain="1.69" db="3.0" frequency="220">
-  <layer>
-   <waveform src="impulse" processing="add" pitch="0.3"/>
-   <waveform src="sawtooth" processing="add" ratio="0.6" pitch="0.5"/>
-   <waveform src="sawtooth" processing="add" ratio="0.5" pitch="0.991"/>
-  </layer>
-  <layer pitch="0.5">
-   <waveform src="impulse" processing="add" pitch="0.3"/>
-   <waveform src="sawtooth" processing="add" ratio="0.6" pitch="0.5"/>
-   <waveform src="sawtooth" processing="add" ratio="0.5" pitch="0.991"/>
-  </layer>
+  <waveform src="impulse" processing="add" pitch="0.3"/>
+  <waveform src="sawtooth" processing="add" ratio="0.6" pitch="0.5"/>
+  <waveform src="sawtooth" processing="add" ratio="0.5" pitch="0.991"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="envelope|logarithmic">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">2.0</param>
-    <param n="2">0.634</param>
-    <param n="3">0.366</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" release-time="0.6">
    <slot n="0">
     <param n="0">0.617</param>

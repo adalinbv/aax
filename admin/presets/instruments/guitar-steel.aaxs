@@ -22,28 +22,12 @@
  </info>
 
  <sound gain="1.21" db="-3.2" frequency="110" duration="0.1">
-  <layer>
-   <waveform src="sine"/>
-   <waveform src="square" processing="mix" ratio="0.8" pitch="1.999"/>
-   <waveform src="square" processing="modulate" pitch="2.999"/>
-  </layer>
-  <layer>
-   <waveform src="sine"/>
-   <waveform src="square" processing="mix" ratio="0.8" pitch="1.999"/>
-   <waveform src="square" processing="modulate" ratio="0.5" pitch="2.999"/>
-   <waveform src="sawtooth" processing="add" ratio="0.15" pitch="1.5"/>
-  </layer>
+  <waveform src="sine"/>
+  <waveform src="square" processing="mix" ratio="0.8" pitch="1.999"/>
+  <waveform src="square" processing="modulate" pitch="2.999"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">10.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
     <param n="0">1.04</param>

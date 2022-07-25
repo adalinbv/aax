@@ -28,14 +28,6 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">1.5</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" release-time="0.7">
    <slot n="0">
     <param n="0">0.0</param>

@@ -20,27 +20,13 @@
   <note polyphony="16" min="36" max="96" step="6"/>
  </info>
 
- <sound mode="1" gain="1.53" db="-2.8" frequency="880" duration="0.5">
-  <layer voices="3" spread="0.61">
-   <waveform src="impulse" ratio="0.7"/>
-   <waveform src="sawtooth" processing="add" ratio="0.7"/>
-   <waveform src="impulse" processing="add" ratio="0.4" pitch="0.99771"/>
-  </layer>
-  <layer ratio="0.75" voices="7" spread="0.11">
-   <waveform src="sawtooth"/>
-   <waveform src="impulse" processing="mix" ratio="0.3"/>
-  </layer>
+ <sound mode="1" gain="1.53" db="-2.8" frequency="880" duration="0.5" voices="3" spread="0.61">
+  <waveform src="impulse" ratio="0.7"/>
+  <waveform src="sawtooth" processing="add" ratio="0.7"/>
+  <waveform src="impulse" processing="add" ratio="0.4" pitch="0.99771"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="envelope|logarithmic">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.1</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" release-time="0.06">
    <slot n="0">
     <param n="0">0.123</param>
@@ -74,7 +60,7 @@
  <audioframe pan="-0.8">
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">5500.0</param>
+    <param n="0">2500.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.5</param>
