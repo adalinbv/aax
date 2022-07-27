@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2021 by Erik Hofman.
- * Copyright 2009-2021 by Adalin B.V.
+ * Copyright 2007-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -208,7 +208,7 @@ _velocity_destroy(void *ptr)
    _aaxRingBufferVelocityEffectData* data = ptr;
    if (data)
    {
-//    if (data->sample_ptr) free(data->sample_ptr);
+      if (data->sample_ptr) free(data->sample_ptr);
       _aax_aligned_free(data);
    }
 }

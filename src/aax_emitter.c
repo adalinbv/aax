@@ -135,14 +135,18 @@ aaxEmitterDestroy(aaxEmitter emitter)
          for (i=0; i<MAX_STEREO_FILTER; ++i) {
             _FILTER_FREE2D_DATA(src, i);
          }
-
          for (i=0; i<MAX_STEREO_EFFECT; ++i) {
             _EFFECT_FREE2D_DATA(src, i);
          }
          _aaxMutexDestroy(src->props2d->mutex);
 
          _aaxMutexLock(src->props3d->mutex);
-         _FILTER_FREE3D_DATA(src, DISTANCE_FILTER);
+         for (i=0; i<MAX_3D_FILTER; ++i) {
+            _FILTER_FREE3D_DATA(src, i);
+         }
+         for (i=0; i<MAX_3D_EFFECT; ++i) {
+            _EFFECT_FREE3D_DATA(src, i);
+         }
          _aaxMutexDestroy(src->props3d->mutex);
 
          _intBufErase(&src->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
