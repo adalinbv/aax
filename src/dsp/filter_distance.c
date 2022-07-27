@@ -52,28 +52,14 @@ _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 
    if (flt)
    {
-      _aaxRingBufferDistanceData *data;
+      _aaxRingBufferDistanceData *data = flt->slot[0]->data;
 
       _aaxSetDefaultFilter3d(flt->slot[0], flt->pos, 0);
+      data->prev.unit_m = flt->info->unit_m;
+      data->next.unit_m = flt->info->unit_m;
+
       flt->slot[0]->destroy = _distance_destroy;
       flt->slot[0]->swap = _distance_swap;
-
-      data = _aax_aligned_alloc(DSIZE);
-      flt->slot[0]->data = data;
-      if (data)
-      {
-         float f = 5000.0f;		// Midband frequency in Hz
-
-         memset(data, 0, DSIZE);
-         data->run = _aaxDistanceFn[1];
-         data->f2 = f*f;
-         data->prev.pa_kPa = 101.325f;
-         data->prev.T_K = 293.15f;
-         data->prev.hr_pct = 60.0f;
-         data->prev.unit_m = flt->info->unit_m;
-         data->next.unit_m = flt->info->unit_m;
-      }
-      
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -140,23 +126,13 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
       _aaxRingBufferDistanceData *data;
 
       _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
-      rv->slot[0]->destroy = _distance_destroy;
-      rv->slot[0]->swap = _distance_swap;
 
       data = rv->slot[0]->data;
-      if (data) 
-      {
-         float f = 5000.0f;		// Midband frequency in Hz
+      data->prev.unit_m = rv->info->unit_m;
+      data->next.unit_m = rv->info->unit_m;
 
-         memset(data, 0, DSIZE);
-         data->run = _aaxDistanceFn[1];
-         data->f2 = f*f;
-         data->prev.pa_kPa = 101.325f;
-         data->prev.T_K = 293.15f;
-         data->prev.hr_pct = 60.0f;
-         data->prev.unit_m = rv->info->unit_m;
-         data->next.unit_m = rv->info->unit_m;
-      }
+      rv->slot[0]->destroy = _distance_destroy;
+      rv->slot[0]->swap = _distance_swap;
       rv->state = p3d->filter[rv->pos].state;
    }
    return rv;

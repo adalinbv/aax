@@ -38,8 +38,6 @@
 
 static void _velocity_swap(void*, void*);
 static void _velocity_destroy(void*);
-static FLOAT _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dProps *edp3d_m, _aaxDelayed3dProps *fdp3d_m, vec3f_ptr epos, float dist_ef, float vs, float sdf);
-static int _velocity_run(void*, void*);
 
 static aaxEffect _aaxVelocityEffectSetState(_effect_t*, int state);
 
@@ -51,12 +49,6 @@ _aaxVelocityEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 
    if (eff)
    {
-      _aaxRingBufferVelocityEffectData *data = eff->slot[0]->data;
-
-      data->dopplerfn = _aaxDopplerFn[0];
-      data->prepare = _velocity_prepare;
-      data->run = _velocity_run;
-
       _aaxSetDefaultEffect3d(eff->slot[0], eff->pos, 0);
       eff->slot[0]->destroy = _velocity_destroy;
       eff->slot[0]->swap = _velocity_swap;
@@ -252,7 +244,7 @@ _velocity_calculcate_vs(_aaxEnvData *data)
    return rv*data->unit_m;
 }
 
-static FLOAT
+FLOAT
 _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dProps *edp3d_m, _aaxDelayed3dProps *fdp3d_m, vec3f_ptr epos, float dist_ef, float vs, float sdf)
 {
    FLOAT df = 1.0;
@@ -304,7 +296,7 @@ _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dPro
    return df;
 }
 
-static int
+int
 _velocity_run(void *rb, void *data)
 {
    int rv = AAX_FALSE;

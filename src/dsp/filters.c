@@ -203,18 +203,28 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
    {
       _aaxRingBufferDistanceData *data = filter->data;
       size_t dsize = sizeof(_aaxRingBufferDistanceData);
+      float f = 5000.0f;	// Midband frequency in Hz
+
+      if (!data) data = _aax_aligned_alloc(dsize);
+      if (data)
+      {
+         filter->data = data;
+
+         memset(data, 0, dsize);
+         data->run = _aaxDistanceFn[1];
+         data->f2 = f*f;
+         data->prev.pa_kPa = 101.325f;
+         data->prev.T_K = 293.15f;
+         data->prev.hr_pct = 60.0f;
+      }
+
+      filter->destroy = _distance_destroy;
+      filter->swap = _distance_swap;
+      filter->data_size = dsize;
+
       filter->param[AAX_REF_DISTANCE] = 1.0f;
       filter->param[AAX_MAX_DISTANCE] = FLT_MAX;
       filter->param[AAX_ROLLOFF_FACTOR] = 1.0f;
-      if (!data) data = _aax_aligned_alloc(dsize);
-      if (data) {
-         memset(data, 0, dsize);
-         data->run = _aaxDistanceFn[1];
-         filter->destroy = _distance_destroy;
-         filter->swap = _distance_swap;
-         filter->data_size = dsize;
-         filter->data = data;
-      }
       break;
    }
    case DIRECTIONAL_FILTER:

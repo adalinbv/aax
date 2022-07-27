@@ -163,6 +163,8 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
  _EFFECT_SET_STATE(P, t, _EFFECT_GET_SLOT_STATE(E));                           \
  _EFFECT_SWAP_SLOT_DATA(P, t, E, s);
 
+FLOAT _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dProps *edp3d_m, _aaxDelayed3dProps *fdp3d_m, vec3f_ptr epos, float dist_ef, float vs, float sdf);
+int _velocity_run(void*, void*);
 float _velocity_calculcate_vs(_aaxEnvData*);
 
 #endif /* _AAX_EFFECTS_H */

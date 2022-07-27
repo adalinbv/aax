@@ -202,11 +202,27 @@ _aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
       }
       break;
    case VELOCITY_EFFECT:
+   {
+      _aaxRingBufferVelocityEffectData *data = effect->data;
+      size_t dsize = sizeof(_aaxRingBufferVelocityEffectData);
+
+      if (!data) data = _aax_aligned_alloc(dsize);
+      if (data)
+      {
+         effect->data = data;
+
+         memset(data, 0, dsize);
+         data->dopplerfn = _aaxDopplerFn[0];
+         data->prepare = _velocity_prepare;
+         data->run = _velocity_run;
+      }
+
       effect->param[AAX_SOUND_VELOCITY] = 343.0f;
       effect->param[AAX_DOPPLER_FACTOR] = 1.0f;
 //    effect->param[AAX_LIGHT_VELOCITY] = 299792458.0f;
       effect->state = AAX_TRUE;
       break;
+   }
    default:
       break;
    }
