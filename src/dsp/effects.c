@@ -205,7 +205,6 @@ _aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
       effect->param[AAX_SOUND_VELOCITY] = 343.0f;
       effect->param[AAX_DOPPLER_FACTOR] = 1.0f;
 //    effect->param[AAX_LIGHT_VELOCITY] = 299792458.0f;
-      effect->data = *(void**)&_aaxDopplerFn[0];
       effect->state = AAX_TRUE;
       break;
    default:

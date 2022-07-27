@@ -298,6 +298,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    if (_PROP3D_MTXSPEED_HAS_CHANGED(edp3d) ||
        _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
    {
+      _aaxRingBufferVelocityEffectData *velocity;
       vec3f_t epos, tmp;
       float esv, vs;
       float dist_ef;
@@ -341,9 +342,10 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 #endif
 
       /* calculate the sound velocity inbetween the emitter and the sensor */
+      velocity = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
       esv = _EFFECT_GET(ep3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
       vs = (esv+ssv) / 2.0f;
-      df = _velocity_prepare(ep3d, edp3d, edp3d_m, fdp3d_m, &epos, dist_ef, vs, sdf);
+      df = velocity->prepare(ep3d, edp3d, edp3d_m, fdp3d_m, &epos, dist_ef, vs, sdf);
       pitch *= df;
 
       /* distance attenuation and audio-cone support */

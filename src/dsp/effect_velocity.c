@@ -34,17 +34,33 @@
 #include "api.h"
 #include "arch.h"
 
+#define DSIZE   sizeof(_aaxRingBufferVelocityEffectData)
+
+static void _velocity_swap(void*, void*);
+static void _velocity_destroy(void*);
+static FLOAT _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dProps *edp3d_m, _aaxDelayed3dProps *fdp3d_m, vec3f_ptr epos, float dist_ef, float vs, float sdf);
+static int _velocity_run(void*, void*);
+
+static aaxEffect _aaxVelocityEffectSetState(_effect_t*, int state);
 
 static aaxEffect
 _aaxVelocityEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, 0);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, DSIZE);
    aaxEffect rv = NULL;
 
    if (eff)
    {
-      eff->slot[0]->data = *(void**)&_aaxDopplerFn[0];
+      _aaxRingBufferVelocityEffectData *data = eff->slot[0]->data;
+
+      data->dopplerfn = _aaxDopplerFn[0];
+      data->prepare = _velocity_prepare;
+      data->run = _velocity_run;
+
       _aaxSetDefaultEffect3d(eff->slot[0], eff->pos, 0);
+      eff->slot[0]->destroy = _velocity_destroy;
+      eff->slot[0]->swap = _velocity_swap;
+
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -53,6 +69,11 @@ _aaxVelocityEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 static int
 _aaxVelocityEffectDestroy(_effect_t* effect)
 {
+   if (effect->slot[0]->data)
+   {
+      effect->slot[0]->destroy(effect->slot[0]->data);
+      effect->slot[0]->data = NULL;
+   }
    free(effect);
    return AAX_TRUE;
 }
@@ -64,17 +85,31 @@ _aaxVelocityEffectSetState(_effect_t* effect, UNUSED(int state))
    return  effect;
 }
 
+static aaxEffect
+_aaxVelocityEffectSetData(_effect_t* effect, aaxBuffer buffer)
+{
+   aaxEffect rv = AAX_FALSE;
+   return rv;
+}
+
 static _effect_t*
 _aaxNewVelocityEffectHandle(const aaxConfig config, enum aaxEffectType type, UNUSED(_aax2dProps* p2d), _aax3dProps* p3d)
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, 0);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, DSIZE);
 
    if (rv)
    {
+      _aaxRingBufferVelocityEffectData *data = rv->slot[0]->data;
+
+      data->dopplerfn = _aaxDopplerFn[0];
+      data->prepare = _velocity_prepare;
+      data->run = _velocity_run;
+
       _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
-      rv->slot[0]->data = *(void**)&_aaxDopplerFn[0];
+      rv->slot[0]->destroy = _velocity_destroy;
+      rv->slot[0]->swap = _velocity_swap;
 
       rv->state = p3d->effect[rv->pos].state;
       if (_EFFECT_GET_UPDATED(p3d, rv->pos)) {
@@ -126,7 +161,7 @@ _eff_function_tbl _aaxVelocityEffect =
    (_aaxEffectDestroy*)&_aaxVelocityEffectDestroy,
    NULL,
    (_aaxEffectSetState*)&_aaxVelocityEffectSetState,
-   NULL,
+   (_aaxEffectSetData*)&_aaxVelocityEffectSetData,
    (_aaxNewEffectHandle*)&_aaxNewVelocityEffectHandle,
    (_aaxEffectConvert*)&_aaxVelocityEffectSet,
    (_aaxEffectConvert*)&_aaxVelocityEffectGet,
@@ -139,6 +174,44 @@ _aaxPitchShiftFn *_aaxDopplerFn[] =
 {
    (_aaxPitchShiftFn *)&_aaxDopplerShift
 };
+
+void
+_velocity_swap(void *d, void *s)
+{
+   _aaxFilterInfo *dst = d, *src = s;
+
+   if (src->data && src->data_size)
+   {
+      if (!dst->data) {
+          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+          dst->data_size = src->data_size;
+      }
+      else
+      {
+         _aaxRingBufferVelocityEffectData *ddef = dst->data;
+         _aaxRingBufferVelocityEffectData *sdef = src->data;
+
+         assert(dst->data_size == src->data_size);
+
+         ddef->dopplerfn = sdef->dopplerfn;
+         ddef->prepare = sdef->prepare;
+         ddef->run = sdef->run;
+      }
+   }
+   dst->destroy = src->destroy;
+   dst->swap = src->swap;
+}
+
+static void
+_velocity_destroy(void *ptr)
+{
+   _aaxRingBufferVelocityEffectData* data = ptr;
+   if (data)
+   {
+//    if (data->sample_ptr) free(data->sample_ptr);
+      _aax_aligned_free(data);
+   }
+}
 
 /*
  * Sources:
@@ -179,19 +252,19 @@ _velocity_calculcate_vs(_aaxEnvData *data)
    return rv*data->unit_m;
 }
 
-FLOAT
+static FLOAT
 _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dProps *edp3d_m, _aaxDelayed3dProps *fdp3d_m, vec3f_ptr epos, float dist_ef, float vs, float sdf)
 {
    FLOAT df = 1.0;
 
    if (dist_ef > 1.0f)
    {
-      _aaxPitchShiftFn* dopplerfn;
+      _aaxRingBufferVelocityEffectData *velocity;
       float ve;
       FLOAT c;
 
-      *(void**)(&dopplerfn) = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
-      assert(dopplerfn);
+      velocity = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
+      assert(velocity->dopplerfn);
 
       /* align velocity vectors with the modified emitter position
        * relative to the sensor
@@ -207,7 +280,7 @@ _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dPro
       }
 
       ve = vec3fDotProduct(&edp3d_m->velocity.v34[LOCATION], epos);
-      df = _MAX(df + dopplerfn(ve, vs/sdf), 0.1f); // prevent negative pitch
+      df = _MAX(df + velocity->dopplerfn(ve, vs/sdf), 0.1f); // prevent negative pitch
 #if 0
 # if 1
  printf("position: ");
@@ -229,4 +302,11 @@ _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dPro
    }
 
    return df;
+}
+
+static int
+_velocity_run(void *rb, void *data)
+{
+   int rv = AAX_FALSE;
+   return rv;
 }

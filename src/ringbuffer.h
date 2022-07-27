@@ -347,6 +347,19 @@ typedef struct
 
 typedef struct
 {
+   int (*run)(void*, void*);
+   FLOAT (*prepare)(_aax3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, float, float);
+
+   _aaxPitchShiftFn *dopplerfn;
+
+   size_t no_samples;
+   void **sample_ptr;
+   MIX_T *sample;
+
+} _aaxRingBufferVelocityEffectData;
+
+typedef struct
+{
    int (*run)(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
 
    float gain;
