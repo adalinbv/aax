@@ -151,13 +151,11 @@ _aaxThreadSetPriority(void *t, int prio)
    }
 
    policy = SCHED_OTHER;
-#if 0
    if (prio < ((AAX_HIGH_PRIORITY+AAX_HIGHEST_PRIORITY)/2)) {
-      policy = SCHED_FIFO;
+      policy = SCHED_RR;
    } else if (prio < ((AAX_NORMAL_PRIORITY+AAX_HIGH_PRIORITY)/2)) {
       policy = SCHED_FIFO;
    }
-#endif
 
    min = sched_get_priority_min(policy);
    max = sched_get_priority_max(policy);
