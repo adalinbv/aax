@@ -17,6 +17,10 @@ dr_flac - Public Domain FLAC decoder:
 dr_opus.h - Public Domain Opus decoder:
 - https://github.com/mackron/dr_libs/blob/master/wip/dr_opus.h
 
+MurmurHash3 - Public Domain 32-bit or 128-bit hash value creator:
+- https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.h
+- https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
+
 PFFFT - 3-clause BSD licensed Pretty Fast FFT:
 - https://bitbucket.org/jpommier/pffft/src
 
