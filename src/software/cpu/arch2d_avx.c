@@ -797,71 +797,6 @@ _batch_hadd_avx(float32_ptr dst, const_float16_ptr src, size_t num)
 }
 #endif
 
-FN_PREALIGN void
-_batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
-{
-   float32_ptr s = (float32_ptr)src;
-   float32_ptr d = (float32_ptr)dst;
-   size_t i, step, dtmp, stmp;
-
-   /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
-   dtmp = (size_t)d & MEMMASK;
-   if (dtmp && num)
-   {
-      i = (MEMALIGN - dtmp)/sizeof(float);
-      if (i <= num)
-      {
-         num -= i;
-         do {
-            *d++ += *s++;
-         } while(--i);
-      }
-   }
-   stmp = (size_t)s & MEMMASK;
-
-   step = sizeof(__m256)/sizeof(float);
-   i = num/step;
-   if (i)
-   {
-      __m256* sptr = (__m256*)s;
-      __m256* dptr = (__m256*)d;
-      __m256 ymm0, ymm1;
-
-      num -= i*step;
-      s += i*step;
-      d += i*step;
-      if (stmp)
-      {
-         do
-         {
-            ymm0 = _mm256_loadu_ps((const float*)sptr++);
-            ymm1 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)dptr));
-            _mm256_store_ps((float*)dptr++, ymm1);
-         }
-         while(--i);
-      }
-      else
-      {
-         do
-         {
-            ymm0 = _mm256_load_ps((const float*)sptr++);
-            ymm1 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)dptr));
-            _mm256_store_ps((float*)dptr++, ymm1);
-         }
-         while(--i);
-      }
-   }
-   _mm256_zeroupper();
-
-   if (num)
-   {
-      i = num;
-      do {
-         *d++ += *s++;
-      } while(--i);
-   }
-}
-
 #if 0
 FN_PREALIGN void
 _batch_hmadd_avx(float32_ptr dst, const_float16_ptr src, size_t num, float v, float vstep)
@@ -984,146 +919,83 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
 
    if (!num || (fabsf(v) <= LEVEL_128DB && !need_step)) return;
 
-   if (fabsf(v - 1.0f) < LEVEL_96DB && !need_step) {
-      _batch_fadd_avx(dst, src, num);
-      return;
-   }
+   /*
+    * Always assume need_step since it doesn't make any difference
+    * in rendering speed.
+    */
 
-   if (need_step)
+   /* work towards a 32-byte aligned d (and hence 32-byte aligned s) */
+   dtmp = (size_t)d & MEMMASK;
+   if (dtmp && num)
    {
-      /* work towards a 32-byte aligned d (and hence 32-byte aligned s) */
-      dtmp = (size_t)d & MEMMASK;
-      if (dtmp && num)
+      i = (MEMALIGN - dtmp)/sizeof(float);
+      if (i <= num)
       {
-         i = (MEMALIGN - dtmp)/sizeof(float);
-         if (i <= num)
-         {
-            num -= i;
-            do {
-               *d++ += *s++ * v;
-               v += vstep;
-            } while(--i);
-         }
-      }
-      stmp = (size_t)s & MEMMASK;
-
-      step = sizeof(__m256)/sizeof(float);
-
-      i = num/step;
-      if (i)
-      {
-         __m256 ymm0, dv, tv, dvstep;
-         __m256* sptr = (__m256*)s;
-         __m256* dptr = (__m256*)d;
-
-         assert(step == 8);
-         dvstep = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
-         dvstep = _mm256_mul_ps(dvstep, _mm256_set1_ps(vstep));
-
-         dv = _mm256_set1_ps(vstep*step);
-         tv = _mm256_add_ps(_mm256_set1_ps(v), dvstep);
-         v += i*step*vstep;
-
-         num -= i*step;
-         s += i*step;
-         d += i*step;
-         if (stmp)
-         {
-            do
-            {
-               ymm0 = _mm256_mul_ps(tv, _mm256_loadu_ps((const float*)sptr++));
-               ymm0 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)dptr));
-
-               tv = _mm256_add_ps(tv, dv);
-
-               _mm256_store_ps((float*)dptr++, ymm0);
-            }
-            while(--i);
-         }
-         else
-         {
-            do
-            {
-               ymm0 = _mm256_mul_ps(tv, _mm256_load_ps((const float*)sptr++));
-               ymm0 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)dptr));
-
-               tv = _mm256_add_ps(tv, dv);
-
-               _mm256_store_ps((float*)dptr++, ymm0);
-            }
-            while(--i);
-         }
-         _mm256_zeroupper();
-      }
-
-      if (num)
-      {
-         i = num;
+         num -= i;
          do {
             *d++ += *s++ * v;
             v += vstep;
          } while(--i);
       }
    }
-   else
+   stmp = (size_t)s & MEMMASK;
+
+   step = sizeof(__m256)/sizeof(float);
+
+   i = num/step;
+   if (i)
    {
-      /* work towards a 32-byte aligned d (and hence 32-byte aligned s) */
-      dtmp = (size_t)d & MEMMASK;
-      if (dtmp && num)
+      __m256 ymm0, dv, tv, dvstep;
+      __m256* sptr = (__m256*)s;
+      __m256* dptr = (__m256*)d;
+
+      assert(step == 8);
+      dvstep = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
+      dvstep = _mm256_mul_ps(dvstep, _mm256_set1_ps(vstep));
+
+      dv = _mm256_set1_ps(vstep*step);
+      tv = _mm256_add_ps(_mm256_set1_ps(v), dvstep);
+      v += i*step*vstep;
+
+      num -= i*step;
+      s += i*step;
+      d += i*step;
+      if (stmp)
       {
-         i = (MEMALIGN - dtmp)/sizeof(float);
-         if (i <= num)
+         do
          {
-            num -= i;
-            do {
-               *d++ += *s++ * v;
-            } while(--i);
+            ymm0 = _mm256_mul_ps(tv, _mm256_loadu_ps((const float*)sptr++));
+            ymm0 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)dptr));
+
+            tv = _mm256_add_ps(tv, dv);
+
+            _mm256_store_ps((float*)dptr++, ymm0);
          }
+         while(--i);
       }
-      stmp = (size_t)s & MEMMASK;
-
-      step = sizeof(__m256)/sizeof(float);
-      i = num/step;
-      if (i)
+      else
       {
-         __m256* sptr = (__m256*)s;
-         __m256* dptr = (__m256*)d;
-         __m256 tv = _mm256_set1_ps(v);
-         __m256 ymm0, ymm1;
+         do
+         {
+            ymm0 = _mm256_mul_ps(tv, _mm256_load_ps((const float*)sptr++));
+            ymm0 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)dptr));
 
-         num -= i*step;
-         s += i*step;
-         d += i*step;
-         if (stmp)
-         {
-            do
-            {
-               ymm0 = _mm256_mul_ps(tv, _mm256_loadu_ps((const float*)sptr++));
-               ymm1 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)dptr));
-               _mm256_store_ps((float*)dptr++, ymm1);
-            }
-            while(--i);
+            tv = _mm256_add_ps(tv, dv);
+
+            _mm256_store_ps((float*)dptr++, ymm0);
          }
-         else
-         {
-            do
-            {
-               ymm0 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
-               ymm1 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)dptr));
-               _mm256_store_ps((float*)dptr++, ymm1);
-            }
-            while(--i);
-         }
+         while(--i);
       }
       _mm256_zeroupper();
+   }
 
-      if (num)
-      {
-         i = num;
-         do {
-            *d++ += *s++ * v;
-         } while(--i);
-      }
+   if (num)
+   {
+      i = num;
+      do {
+         *d++ += *s++ * v;
+         v += vstep;
+      } while(--i);
    }
 }
 
