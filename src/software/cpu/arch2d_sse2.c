@@ -1702,6 +1702,14 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
             h1 = h0;
             h0 = smp;
+
+            if (!--i) break;
+
+            smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
+            *d++ = smp;
+
+            h1 = h0;
+            h0 = smp;
          }
          while (--i);
       }
@@ -1747,6 +1755,14 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
             do
             {
                float smp = *d + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+
+               if (!--i) break;
+
+               smp = *d + h0 * cptr[0] + h1 * cptr[1];
                *d++ = smp;
 
                h1 = h0;
