@@ -73,21 +73,12 @@ fast_sin8_fma3(__m256 x)
 static inline __m256
 fast_atan8_fma3(__m256 x)
 {
-#if 1
    const __m256 pi_4_mul = _mm256_set1_ps(GMATH_PI_4+0.2447);
-   const __m256 add = _mm256_set1_ps(0.1784);
-   const __m256 mull = _mm256_set1_ps(0.0663);
+   const __m256 add = _mm256_set1_ps(-0.1784);
+   const __m256 mull = _mm256_set1_ps(-0.0663);
 
-   return _mm256_mul_ps(x, _mm256_sub_ps(pi_4_mul,
-                              _mm256_mul_ps(x, 
-                                 _mm256_fmadd_ps(mull, x, add))));
-#else
-   const __m256 pi_4_mul = _mm256_set1_ps(GMATH_PI_4+0.273f);
-   const __m256 mul = _mm256_set1_ps(0.273f);
-   
-   return _mm256_mul_ps(x, _mm256_sub_ps(pi_4_mul,
-                                         _mm256_mul_ps(mul, _mm256_abs_ps(x))));
-#endif
+   return _mm256_mul_ps(x,
+             _mm256_fmadd_ps(x, _mm256_fmadd_ps(mull, x, add), pi_4_mul));
 }
 
 void
@@ -146,6 +137,7 @@ _batch_get_average_rms_fma3(const_float32_ptr s, size_t num, float *rms, float *
             __m256 smp3 = _mm256_load_ps((const float*)sptr++);
             __m256 val1, val2, val3;
 
+            // Can't use fmadd since peakX uses valX too
             val1 = _mm256_mul_ps(smp1, smp1);
             val2 = _mm256_mul_ps(smp2, smp2);
             val3 = _mm256_mul_ps(smp3, smp3);
@@ -238,12 +230,9 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       assert(step == 8);
       dvstep0 = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
       dvstep1 = _mm256_set_ps(15.0f, 14.0f, 13.0f, 12.0f, 11.0f, 10.0f, 9.0f, 8.0f);
-      dvstep0 = _mm256_mul_ps(dvstep0, _mm256_set1_ps(vstep));
-      dvstep1 = _mm256_mul_ps(dvstep1, _mm256_set1_ps(vstep));
-
       dv = _mm256_set1_ps(vstep*step);
-      tv0 = _mm256_add_ps(_mm256_set1_ps(v), dvstep0);
-      tv1 = _mm256_add_ps(_mm256_set1_ps(v), dvstep1);
+      tv0 = _mm256_fmadd_ps(dvstep0, _mm256_set1_ps(vstep), _mm256_set1_ps(v));
+      tv1 = _mm256_fmadd_ps(dvstep1, _mm256_set1_ps(vstep), _mm256_set1_ps(v));
       v += i*step*vstep;
 
       num -= i*step;
