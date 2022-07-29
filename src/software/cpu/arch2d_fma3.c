@@ -68,15 +68,26 @@ fast_sin8_fma3(__m256 x)
 #define MUL     (65536.0f*256.0f)
 #define IMUL    (1.0f/MUL)
 
-// domain -PI/2 .. PI/2
+// Use the slower, more accurate algorithm:
+//    x*((GMATH_PI_4 + 0.2447) - x*(0.1784 + 0.0663*x));
 static inline __m256
 fast_atan8_fma3(__m256 x)
 {
+#if 1
+   const __m256 pi_4_mul = _mm256_set1_ps(GMATH_PI_4+0.2447);
+   const __m256 add = _mm256_set1_ps(0.1784);
+   const __m256 mull = _mm256_set1_ps(0.0663);
+
+   return _mm256_mul_ps(x, _mm256_sub_ps(pi_4_mul,
+                              _mm256_mul_ps(x, 
+                                 _mm256_fmadd_ps(mull, x, add))));
+#else
    const __m256 pi_4_mul = _mm256_set1_ps(GMATH_PI_4+0.273f);
    const __m256 mul = _mm256_set1_ps(0.273f);
    
    return _mm256_mul_ps(x, _mm256_sub_ps(pi_4_mul,
                                          _mm256_mul_ps(mul, _mm256_abs_ps(x))));
+#endif
 }
 
 void

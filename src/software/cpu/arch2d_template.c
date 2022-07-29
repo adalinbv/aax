@@ -361,9 +361,19 @@ FN(batch_cvtps24_24,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
 #define MUL	(65536.0f*256.0f)
 #define IMUL	(1.0f/MUL)
 
+// range: 0.0 .. 1.0
+// slower, more accurate:
+//     GMATH_PI_4*x - x*(fabsf(x) - 1)*(0.2447 + 0.0663*fabsf(x));
+// twice as fast, twice less-accurate:
+//     GMATH_PI_4*x + 0.273f*x * (1.0f-fabsf(x));
+//
+// Use the faster, less accurate algorithm:
 static inline float fast_atanf(float x) {
-// return GMATH_PI_4*x + 0.273f*x * (1.0f-fabsf(x));
-   return x*(GMATH_PI_4+0.273f - 0.273f*fabsf(x));
+#if 0
+   return x*((GMATH_PI_4 + 0.2447) - x*((0.2447 - 0.0663) + 0.0663*x));
+#else
+   return x*(GMATH_PI_4+0.273f - 0.273f*x);
+#endif
 }
 
 void

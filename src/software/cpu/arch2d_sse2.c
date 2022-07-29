@@ -69,6 +69,8 @@ fast_sin4_sse2(__m128 x)
 #define MUL     (65536.0f*256.0f)
 #define IMUL    (1.0f/MUL)
 
+// Use the faster, less accurate algorithm:
+//    GMATH_PI_4*x + 0.273f*x * (1.0f-fabsf(x));
 static inline __m128
 fast_atan4_sse2(__m128 x)
 {
