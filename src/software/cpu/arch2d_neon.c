@@ -174,12 +174,27 @@ vabs2q_f32(float32x4x2_t a)
    return a;
 }
 
-#define MUL     (65536.0f*256.0f)
-#define IMUL    (1.0f/MUL)
+static inline float32x4x2_t    // range -1.0f .. 1.0f
+fast_sin8_neon(float32x4x2_t x)
+{
+   float32x4x2_t four = vdup2q_n_f32(-4.0f);
+   return vmul2q_f32(four, vmlaq_f32(x, -x, vabs2q_f32(x)));
+// return vmul2q_f32(four, vsub2q_f32(x, vmul2q_f32(x, vabs2q_f32(x))));
+}
+
+#define MUL	(65536.0f*256.0f)
+#define IMUL	(1.0f/MUL)
 
 static inline float32x4_t
 fast_atan4_neon(float32x4_t x)
 {
+#if 1
+   const float32x4_t pi_4_mul = vmovq_n_f32(GMATH_PI_4+0.2447);
+   const float32x4_t add = vmovq_n_f32(-0.1784);
+   const float32x4_t mull = vmovq_n_f32(-0.0663);
+
+   return vmulq_f32(x, vmlaq_f32(pi_4_mul, x, vmlaq_f32(add, mull, x)));
+#else
   float32x4_t pi_4 = vmovq_n_f32(GMATH_PI_4);
   float32x4_t mul = vmovq_n_f32(0.273f);
   float32x4_t one = vmovq_n_f32(1.0f);
@@ -187,13 +202,7 @@ fast_atan4_neon(float32x4_t x)
   return vaddq_f32(vmulq_f32(pi_4, x),
                    vmulq_f32(vmulq_f32(mul, x),
                              vsubq_f32(one, vabsq_f32(x))));
-}
-
-static inline float32x4x2_t    // range -1.0f .. 1.0f
-fast_sin8_neon(float32x4x2_t x)
-{
-   float32x4x2_t four = vdup2q_n_f32(-4.0f);
-   return vmul2q_f32(four, vsub2q_f32(x, vmul2q_f32(x, vabs2q_f32(x))));
+#endif
 }
 
 float *
@@ -274,16 +283,17 @@ _aax_generate_waveform_neon(float32_ptr rv, size_t num, float freq, float phase,
 void
 _batch_get_average_rms_neon(const_float32_ptr s, size_t num, float *rms, float *peak)
 {
+   size_t step, total;
    double rms_total = 0.0;
    float peak_cur = 0.0f;
-   size_t i, step, total;
+   int i;
 
    *rms = *peak = 0;
 
    if (!num) return;
 
    total = num;
-   step = 2*sizeof(float32x4_t)/sizeof(float);
+   step = 3*sizeof(float32x4_t)/sizeof(float);
 
    i = num/step;
    if (i)
@@ -291,35 +301,41 @@ _batch_get_average_rms_neon(const_float32_ptr s, size_t num, float *rms, float *
       union {
          float32x4_t ps;
          float f[4];
-      } rms1, rms2, peak1, peak2;
+      } rms1, rms2, rms3, peak1, peak2, peak3;
 
-      peak1.ps = peak2.ps = vmovq_n_f32(0.0f);
-      rms1.ps = rms2.ps = vmovq_n_f32(0.0f);
+      peak1.ps = peak2.ps = peak3.ps = vmovq_n_f32(0.0f);
+      rms1.ps = rms2.ps = rms3.ps = vmovq_n_f32(0.0f);
 
       num -= i*step;
       do
       {
          float32x4_t smp1 = vld1q_f32(s);
          float32x4_t smp2 = vld1q_f32(s+4);
-         float32x4_t val1, val2;
+         float32x4_t smp3 = vld1q_f32(s+8);
+         float32x4_t val1, val2, val3;
 
          s += step;
 
          val1 = vmulq_f32(smp1, smp1);
          val2 = vmulq_f32(smp2, smp2);
+         val3 = vmulq_f32(smp3, smp3);
 
          rms1.ps = vaddq_f32(rms1.ps, val1);
          rms2.ps = vaddq_f32(rms2.ps, val2);
+         rms3.ps = vaddq_f32(rms3.ps, val3);
 
          peak1.ps = vmaxq_f32(peak1.ps, val1);
          peak2.ps = vmaxq_f32(peak2.ps, val2);
+         peak3.ps = vmaxq_f32(peak3.ps, val3);
       }
       while(--i);
 
       rms_total += rms1.f[0] + rms1.f[1] + rms1.f[2] + rms1.f[3];
       rms_total += rms2.f[0] + rms2.f[1] + rms2.f[2] + rms2.f[3];
+      rms_total += rms3.f[0] + rms3.f[1] + rms3.f[2] + rms3.f[3];
 
       peak1.ps = vmaxq_f32(peak1.ps, peak2.ps);
+      peak1.ps = vmaxq_f32(peak1.ps, peak3.ps);
       if (peak1.f[0] > peak_cur) peak_cur = peak1.f[0];
       if (peak1.f[1] > peak_cur) peak_cur = peak1.f[1];
       if (peak1.f[2] > peak_cur) peak_cur = peak1.f[2];
@@ -710,7 +726,8 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          dvstep = vmulq_f32(dvstep, vdupq_n_f32(vstep));
 
          dv = vdupq_n_f32(vstep*step);
-         tv = vaddq_f32(vdupq_n_f32(v), dvstep);
+//       tv = vaddq_f32(vdupq_n_f32(v), dvstep);
+         rv = vmlaq_f32(vdupq_n_f32(v), dvstep, vdupq_n_f32(vstep));
          v += i*step*vstep;
 
          num -= i*step;
@@ -1096,6 +1113,22 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
             h1 = h0;
             h0 = nsmp;
+
+            if (!--i) break;
+
+            nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+            *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+
+            h1 = h0;
+            h0 = nsmp;
+
+            if (!--i) break;
+
+            nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+            *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+
+            h1 = h0;
+            h0 = nsmp;
          }
          while (--i);
       }
@@ -1107,6 +1140,22 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
          do
          {
             float smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
+            *d++ = smp;
+
+            h1 = h0;
+            h0 = smp;
+
+            if (!--i) break;
+
+            smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
+            *d++ = smp;
+
+            h1 = h0;
+            h0 = smp;
+
+            if (!--i) break;
+
+            smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
             *d++ = smp;
 
             h1 = h0;
@@ -1153,6 +1202,22 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
                h1 = h0;
                h0 = nsmp;
+
+               if (!--i) break;
+
+               nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
+
+               h1 = h0;
+               h0 = nsmp;
+
+               if (!--i) break;
+
+               nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
+
+               h1 = h0;
+               h0 = nsmp;
             }
             while (--i);
          }
@@ -1172,6 +1237,22 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
                if (!--i) break;
 
                 smp = *d + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+
+               if (!--i) break;
+
+               smp = *d + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+
+               if (!--i) break;
+
+               smp = *d + h0 * cptr[0] + h1 * cptr[1];
                *d++ = smp;
 
                h1 = h0;

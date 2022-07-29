@@ -961,7 +961,6 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
             h1 = h0;
             h0 = nsmp;
 
-
             if (!--i) break;
 
             nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
