@@ -1674,33 +1674,47 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
       if (filter->state == AAX_BUTTERWORTH)
       {
          float32_ptr d = dptr;
-         size_t i = num;
+         int i = num/3;
+         int rest = num-i*3;
 
-         do
+         if (i)
          {
-            float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-            *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+            do
+            {
+               float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
 
-            h1 = h0;
-            h0 = nsmp;
+               h1 = h0;
+               h0 = nsmp;
 
-            if (!--i) break;
+               nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
 
-            nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-            *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+               h1 = h0;
+               h0 = nsmp;
 
-            h1 = h0;
-            h0 = nsmp;
+               nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
 
-            if (!--i) break;
-
-            nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-            *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
-
-            h1 = h0;
-            h0 = nsmp;
+               h1 = h0;
+               h0 = nsmp;
+            }
+            while (--i);
          }
-         while (--i);
+
+         if (rest)
+         {
+            i = rest;
+            do
+            {
+               float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+
+               h1 = h0;
+               h0 = nsmp;
+            }
+            while (--i);
+         }
       }
       else
       {
@@ -1734,33 +1748,47 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          if (filter->state == AAX_BUTTERWORTH)
          {
             float32_ptr d = dptr;
-            size_t i = num;
+            int i = num/3;
+            int rest = num-i*3;
 
-            do
+            if (i)
             {
-               float nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
+               do
+               {
+                  float nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
+                  *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
 
-               h1 = h0;
-               h0 = nsmp;
+                  h1 = h0;
+                  h0 = nsmp;
 
-               if (!--i) break;
+                  nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
+                  *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
 
-               nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
+                  h1 = h0;
+                  h0 = nsmp;
 
-               h1 = h0;
-               h0 = nsmp;
+                  nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
+                  *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
 
-               if (!--i) break;
-
-               nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
-
-               h1 = h0;
-               h0 = nsmp;
+                  h1 = h0;
+                  h0 = nsmp;
+               }
+               while (--i);
             }
-            while (--i);
+
+            if (rest)
+            {
+               i = rest;
+               do
+               {
+                  float nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
+                  *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
+
+                  h1 = h0;
+                  h0 = nsmp;
+               }
+               while (--i);
+            }
          }
          else
          {
