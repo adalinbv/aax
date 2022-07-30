@@ -83,10 +83,10 @@ char check_cpuid_ecx(unsigned int);
 # define CPU    "cpu"
 # define SIMD   vfpv3
 # define SIMD1  vfpv4
-# define SIMD2  neon
-# define SIMD4  vfpv4
+# define SIMD2  vfpv4
+# define SIMD4  neon
 # define SIMD5  neon
-# define FMA3   vfpv4
+# define FMA3   neon
 char _aaxArchDetectVFPV4();
 char _aaxArchDetectNEON();
 #endif

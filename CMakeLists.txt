@@ -421,7 +421,7 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-march=armv8-a -mfpu=neon-vfpv4 -O2 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_neon.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv8-a -mfpu=neon-vfpv4 -O2  -ffast-math -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-march=armv8-a -mfpu=neon-vfpv4 -O3  -ffast-math -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE 3rdparty/pffft.c APPEND
                     PROPERTY COMPILE_FLAGS "-march=armv8-a -mfpu=neon-vfpv4 -O3 -funsafe-math-optimizations -ftree-vectorize -ftree-slp-vectorize"
