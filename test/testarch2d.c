@@ -56,6 +56,7 @@ void _batch_atan_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt);
 
 #if defined(__i386__)
+# define CPU    "cpu"
 # define SIMD   sse2
 # define SIMD1  sse2
 # define SIMD2  sse2
@@ -65,6 +66,7 @@ void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, i
 char _aaxArchDetectSSE2();
 char _aaxArchDetectSSE4();
 #elif defined(__x86_64__)
+# define CPU   "cpu/sse2"
 # define SIMD   sse2
 # define SIMD1  sse_vex
 # define SIMD2  avx
@@ -78,6 +80,7 @@ char _aaxArchDetectAVX2();
 char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
 #elif defined(__arm__) || defined(_M_ARM)
+# define CPU    "cpu"
 # define SIMD   vfpv3
 # define SIMD1  vfpv4
 # define SIMD2  neon
@@ -169,7 +172,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f);
       cpu = 1e-6f*timer_end(ts);
-      printf("\nfadd cpu:  %f ms\n", cpu*1000.0f);
+      printf("\nfadd " CPU ":  %f ms\n", cpu*1000.0f);
 
       if (simd)
       {
@@ -215,7 +218,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_fmadd(dst1, dst1, MAXNUM, FACTOR, 0.0f);
       cpu = 1e-6f*timer_end(ts);
-      printf("\nfmadd cpu: %f ms\n", cpu*1000.0f);
+      printf("\nfmadd " CPU ": %f ms\n", cpu*1000.0f);
 
       if (simd)
       {
@@ -262,7 +265,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_fmadd(dst1, dst1, MAXNUM, FACTOR, VSTEP);
       cpu = 1e-6f*timer_end(ts);
-      printf("\nfmadd cpu: %f ms\n", cpu*1000.0f);
+      printf("\nfmadd " CPU ": %f ms\n", cpu*1000.0f);
 
       if (simd)
       {
@@ -308,7 +311,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_fmul_value(dst1, dst1, sizeof(float), MAXNUM, FACTOR);
       cpu = 1e-6f*timer_end(ts);
-      printf("\nfmul cpu:  %f ms\n", cpu*1000.0f);
+      printf("\nfmul " CPU ":  %f ms\n", cpu*1000.0f);
 
       if (simd)
       {
@@ -342,7 +345,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_roundps(dst1, dst1, MAXNUM);
       cpu = 1e-6f*timer_end(ts);
-      printf("\nround cpu:  %f\n", cpu*1000.0f);
+      printf("\nround " CPU ":  %f\n", cpu*1000.0f);
       if (simd)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -406,7 +409,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_atanps(dst2, dst2, MAXNUM);
       eps = 1e-6f*timer_end(ts);
-      printf("atan  cpu:  %f ms - atanf x %3.2f\n", eps*1000.0f, cpu/eps);
+      printf("atan  " CPU ":  %f ms - atanf x %3.2f\n", eps*1000.0f, cpu/eps);
       TESTF("atan "MKSTR(SIMD), dst1, dst2);
 
       if (simd)
@@ -451,7 +454,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_get_average_rms(src, MAXNUM, &rms1, &peak1);
       cpu = 1e-6f*timer_end(ts);
-      printf("\nrms cpu:  %f\n", cpu*1000.0f);
+      printf("\nrms " CPU ":  %f\n", cpu*1000.0f);
 
       if (simd)
       {
@@ -515,7 +518,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_freqfilter_float(dst1, src, 0, MAXNUM, &flt);
       cpu = 1e-6f*timer_end(ts);
-      printf("\nButterworth freqfilter cpu:  %f\n", cpu*1000.0f);
+      printf("\nButterworth freqfilter " CPU ":  %f\n", cpu*1000.0f);
       cpu2 = cpu;
 
       if (simd)
@@ -570,7 +573,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_freqfilter_float(dst1, src, 0, MAXNUM, &flt);
       cpu = 1e-6f*timer_end(ts);
-      printf("\nBessel freqfilter cpu:  %f - Butterworth x %3.2f\n", cpu*1000.0f, cpu2/cpu);
+      printf("\nBessel freqfilter " CPU ":  %f - Butterworth x %3.2f\n", cpu*1000.0f, cpu2/cpu);
 
       if (simd)
       {
@@ -634,7 +637,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _aax_generate_waveform_float(dst1, MAXNUM, FREQ, PHASE, WAVE_TYPE);
       cpu = 1e-6f*timer_end(ts);
-      printf("\ngenerate waveform cpu:  %f ms\n", cpu*1000.0f);
+      printf("\ngenerate waveform " CPU ":  %f ms\n", cpu*1000.0f);
 
       if (simd)
       {
@@ -678,7 +681,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_convolution(dst1, dst2, src, MAXNUM/16, MAXNUM/8, 2, 1.0f, 0.0);
       cpu = 1e-6f*timer_end(ts);
-      printf("\nconvolution cpu:  %f ms\n", cpu*1000.0f);
+      printf("\nconvolution " CPU ":  %f ms\n", cpu*1000.0f);
    }
 
    _aax_aligned_free(dst3);
