@@ -2,18 +2,20 @@
 - AeonWave (3.12.0) stable; urgency=low
 
  * Implement a PipeWire audio backend.
+ * Rendering speed improvements between 15% and 60% for the frequency filter
+   which can result in up to 40% overall rendering speed improvement.
  * Re-synchronize the midi instruments with the master repository.
  * Handle PulseAudio returning a different audio-format than requested.
  * Accept any version of libssl as long as it supports the correct functions.
  * Make it possible to return buffer meta-data after calling the 
    aaxBufferReadFromStream function. The meta-data is available until the next
    call to aaxBufferReadFromStream, by calling the aaxDriverGetSetup function.
- * Report io errors. Especially when an https connection is requested and SSL
+ * Report I/O errors. Especially when an https connection is requested and SSL
    is not installed.
  * Add aaxGetFormatString() which returns the audio format in a human friendly
    text format.
- * Clean up a number of allocated memory locations at exit.
- * Fix even repeat numbers being one too many for the timed gain filter.
+ * Clean up numerous allocated memory locations at exit.
+ * Fix even repeat-numbers being one too many for the timed gain filter.
 
 -- Erik Hofman <tech@adalin.org>  Fri 22 Jul 2022 10:53:23 + 0200
 
