@@ -3,7 +3,7 @@
 
  * Implement a PipeWire audio backend.
  * Rendering speed improvements between 15% and 60% for the frequency filter
-   which can result in up to 40% overall rendering speed improvement.
+   which can result in up to 40% overall increase in rendering speed.
  * Re-synchronize the midi instruments with the master repository.
  * Handle PulseAudio returning a different audio-format than requested.
  * Accept any version of libssl as long as it supports the correct functions.
