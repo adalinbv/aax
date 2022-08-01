@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -163,6 +163,8 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
  _EFFECT_SET_STATE(P, t, _EFFECT_GET_SLOT_STATE(E));                           \
  _EFFECT_SWAP_SLOT_DATA(P, t, E, s);
 
+void _velocity_swap(void*, void*);
+void _velocity_destroy(void*);
 FLOAT _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dProps *edp3d_m, _aaxDelayed3dProps *fdp3d_m, vec3f_ptr epos, float dist_ef, float vs, float sdf);
 int _velocity_run(void*, void*);
 float _velocity_calculcate_vs(_aaxEnvData*);

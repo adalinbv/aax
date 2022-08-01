@@ -36,9 +36,6 @@
 
 #define DSIZE   sizeof(_aaxRingBufferVelocityEffectData)
 
-static void _velocity_swap(void*, void*);
-static void _velocity_destroy(void*);
-
 static aaxEffect _aaxVelocityEffectSetState(_effect_t*, int state);
 
 static aaxEffect
@@ -194,7 +191,7 @@ _velocity_swap(void *d, void *s)
    dst->swap = src->swap;
 }
 
-static void
+void
 _velocity_destroy(void *ptr)
 {
    _aaxRingBufferVelocityEffectData* data = ptr;

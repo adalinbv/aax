@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2007-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -210,6 +210,8 @@ _aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
       if (data)
       {
          effect->data = data;
+         effect->destroy = _velocity_destroy;
+         effect->swap = _velocity_swap;
 
          memset(data, 0, dsize);
          data->dopplerfn = _aaxDopplerFn[0];
