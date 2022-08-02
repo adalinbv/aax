@@ -107,7 +107,10 @@ aaxAudioFrameCreate(aaxConfig config)
                _EFFECT_COPYD3D(submix, smixer, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
                _EFFECT_COPYD3D(submix, smixer, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
                _EFFECT_COPYD3D(submix, smixer, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
-               _EFFECT_COPYD3D_DATA(submix, smixer, VELOCITY_EFFECT);
+//             _EFFECT_COPYD3D_DATA(submix, smixer, VELOCITY_EFFECT);
+                memcpy(submix->props3d->effect[VELOCITY_EFFECT].data,
+                       smixer->props3d->effect[VELOCITY_EFFECT].data,
+                       sizeof(_aaxRingBufferVelocityEffectData));
 
                submix->info = sensor->mixer->info;
                _intBufReleaseData(dptr, _AAX_SENSOR);

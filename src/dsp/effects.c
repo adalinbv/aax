@@ -206,7 +206,7 @@ _aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
       _aaxRingBufferVelocityEffectData *data = effect->data;
       size_t dsize = sizeof(_aaxRingBufferVelocityEffectData);
 
-      if (!data) data = _aax_aligned_alloc(dsize);
+      data = _aax_aligned_alloc(dsize);
       if (data)
       {
          effect->data = data;
