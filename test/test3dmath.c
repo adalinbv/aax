@@ -9,6 +9,7 @@
 #include <base/geometry.h>
 #include <base/timer.h>
 #include <base/logging.h>
+#include <src/software/cpu/arch3d_simd.h>
 
 // Depends on the timer resolution for an acurate comparison
 #define MAXNUM			(CLOCKS_PER_SEC/100)
@@ -17,33 +18,6 @@
 #define MKSTR(X)		__MKSTR(X)
 #define __GLUE(FUNC,NAME)	FUNC ## _ ## NAME
 #define GLUE(FUNC,NAME)		__GLUE(FUNC,NAME)
-
-float _vec3fDotProduct_neon(const vec3f_ptr v1, const vec3f_ptr v2);
-float _vec3fDotProduct_sse(const vec3f_ptr v1, const vec3f_ptr v2);
-float _vec3fDotProduct_sse3(const vec3f_ptr v1, const vec3f_ptr v2);
-float _vec3fDotProduct_sse_vex(const vec3f_ptr v1, const vec3f_ptr v2);
-
-void _vec3fCrossProduct_neon(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
-void _vec3fCrossProduct_sse(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
-void _vec3fCrossProduct_sse_vex(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
-
-void _mtx4fMulVec4_neon(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
-void _mtx4fMulVec4_sse(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
-void _mtx4fMulVec4_sse_vex(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
-
-void _mtx4fMul_neon(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
-void _mtx4fMul_vfpv3(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
-void _mtx4fMul_vfpv4(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
-void _mtx4fMul_sse(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
-void _mtx4fMul_sse_vex(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
-void _mtx4fMul_avx(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
-void _mtx4fMul_fma3(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
-
-void _mtx4dMul_vfpv3(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
-void _mtx4dMul_vfpv4(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
-void _mtx4dMul_sse2(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
-void _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
-void _mtx4dMul_fma3(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 
 #if defined(__i386__)
 # define CPU	"cpu"
@@ -79,9 +53,9 @@ char check_cpuid_ecx(unsigned int);
 # define SIMD1	vfpv4
 # define SIMD2  vfpv4
 # define SIMD3  vfpv4
-# define SIMD4	neon
+# define SIMD4	vfpv4
 # define FMA3_1 neon
-# define FMA3_2 neon
+# define FMA3_2 vfpv4
 char _aaxArchDetectVFPV3();
 char _aaxArchDetectVFPV4();
 char _aaxArchDetectNeon();
@@ -215,7 +189,7 @@ int main()
             m4fMul(&k, &m, &n);
         }
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("mtx4fMul cpu:\t\t%f ms\n", cpu*1000.0f);
+        printf("mtx4fMul " CPU ":\t\t%f ms\n", cpu*1000.0f);
 
 #if defined(__arm__) || defined(_M_ARM)
         m4fMul = _mtx4fMul_vfpv3;
@@ -245,7 +219,7 @@ int main()
                 m4fMul(&l, &m, &n);
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("mtx4fMul "MKSTR(SIMD1)":\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("mtx4fMul "MKSTR(SIMD1)":\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TESTM4(k,l);
         }
 
@@ -274,7 +248,7 @@ int main()
             m4dMul(&k64, &m64, &n64);
         }
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("\nmtx4dMul cpu:\t\t%f ms\n", cpu*1000.0f);
+        printf("\nmtx4dMul " CPU ":\t\t%f ms\n", cpu*1000.0f);
 
 #if defined(__arm__) || defined(_M_ARM)
         m4dMul = _mtx4dMul_vfpv3;
