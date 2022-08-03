@@ -46,7 +46,9 @@ void _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 void _mtx4dMul_fma3(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 
 #if defined(__i386__)
+# define CPU	"cpu"
 # define SIMD   sse
+# define SIMD1	sse2
 # define SIMD2  sse2
 # define SIMD3  sse3
 # define SIMD4  sse2
@@ -56,8 +58,10 @@ char _aaxArchDetectSSE();
 char _aaxArchDetectSSE2();
 char _aaxArchDetectSSE3();
 #elif defined(__x86_64__)
+# define CPU	"cpu/sse2"
 # define SIMD   sse
-# define SIMD2  sse2
+# define SIMD1  sse_vex
+# define SIMD2	sse2
 # define SIMD3  sse3
 # define SIMD4	avx
 # define FMA3_1 fma3
@@ -70,12 +74,14 @@ char _aaxArchDetectAVX();
 char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
 #elif defined(__arm__) || defined(_M_ARM)
-# define SIMD   neon
-# define SIMD2  neon
-# define SIMD3  neon
-# define SIMD4	vfpv3
-# define FMA3_1 vfpv3
-# define FMA3_2 vfpv4
+# define CPU	"cpu"
+# define SIMD   vfpv3
+# define SIMD1	vfpv4
+# define SIMD2  vfpv4
+# define SIMD3  vfpv4
+# define SIMD4	neon
+# define FMA3_1 neon
+# define FMA3_2 neon
 char _aaxArchDetectVFPV3();
 char _aaxArchDetectVFPV4();
 char _aaxArchDetectNeon();
@@ -221,7 +227,7 @@ int main()
         printf("mtx4fMul vfpv3:\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         TESTM4(k,l);
 #else
-        m4fMul = _mtx4fMul_sse;
+        m4fMul = GLUE(_mtx4fMul, SIMD);
         t = clock();
         for (i=0; i<MAXNUM; ++i) {
             m4fMul(&l, &m, &n);
@@ -233,13 +239,13 @@ int main()
 
         if (simd)
         {
-            m4fMul = GLUE(_mtx4fMul, SIMD);
+            m4fMul = GLUE(_mtx4fMul, SIMD1);
             t = clock();
             for (i=0; i<MAXNUM; ++i) {
                 m4fMul(&l, &m, &n);
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("mtx4fMul "MKSTR(SIMD)":\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("mtx4fMul "MKSTR(SIMD1)":\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TESTM4(k,l);
         }
 
