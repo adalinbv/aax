@@ -20,7 +20,7 @@
 #define GLUE(FUNC,NAME)		__GLUE(FUNC,NAME)
 
 #if defined(__i386__)
-# define CPU	"cpu"
+# define CPU	"cpu\t"
 # define SIMD   sse
 # define SIMD1	sse2
 # define SIMD2  sse2
@@ -48,7 +48,7 @@ char _aaxArchDetectAVX();
 char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
 #elif defined(__arm__) || defined(_M_ARM)
-# define CPU	"cpu"
+# define CPU	"cpu\t"
 # define SIMD   vfpv3
 # define SIMD1	vfpv4
 # define SIMD2  vfpv4
@@ -189,7 +189,7 @@ int main()
             m4fMul(&k, &m, &n);
         }
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("mtx4fMul " CPU ":\t\t%f ms\n", cpu*1000.0f);
+        printf("mtx4fMul " CPU ":\t%f ms\n", cpu*1000.0f);
 
 #if defined(__arm__) || defined(_M_ARM)
         m4fMul = _mtx4fMul_vfpv3;
@@ -248,7 +248,7 @@ int main()
             m4dMul(&k64, &m64, &n64);
         }
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("\nmtx4dMul " CPU ":\t\t%f ms\n", cpu*1000.0f);
+        printf("\nmtx4dMul " CPU ":\t%f ms\n", cpu*1000.0f);
 
 #if defined(__arm__) || defined(_M_ARM)
         m4dMul = _mtx4dMul_vfpv3;
