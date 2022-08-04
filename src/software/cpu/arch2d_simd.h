@@ -174,9 +174,8 @@ void _batch_resample_sse3(int32_ptr, const_int32_ptr, size_t, size_t, float, flo
 /* SSE4 */
 void _batch_roundps_sse4(void_ptr, const_void_ptr, size_t);
 
-/* AVX & SSE/VEX */
+/* SSE/VEX */
 float fast_sin_sse_vex(float);
-void _batch_atanps_avx(void_ptr, const_void_ptr, size_t);
 void _batch_roundps_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_ema_iir_float_sse_vex(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
 void _batch_freqfilter_sse_vex(int32_ptr, const_int32_ptr, int, size_t, void*);
@@ -195,6 +194,8 @@ void _batch_cvt24_16_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_24_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_intl_24_sse_vex(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
+/* AVX */
+void _batch_atanps_avx(void_ptr, const_void_ptr, size_t);
 void _batch_fmul_value_avx(void*, const void*, unsigned, size_t, float);
 void _batch_fadd_avx(float32_ptr, const_float32_ptr, size_t);
 // void _batch_hmadd_avx(float32_ptr, const_float16_ptr, size_t, float, float);

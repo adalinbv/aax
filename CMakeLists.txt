@@ -215,9 +215,6 @@ if(MSVC)
   set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
   )
-  set_property(SOURCE src/software/cpu/arch2d_avx2.c APPEND
-               PROPERTY COMPILE_FLAGS  "/arch:AVX2 /fp:fast -D__AVX2__"
-  )
   set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:AVX2 /fp:fast -D__FMA__"
   )
@@ -352,22 +349,19 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-msse4.1 -march=silvermont -O3 -ffast-math"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -O3 -ffast-math -march=sandybridge"
+                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -O3 -ffast-math"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
                     PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -O2"
        )
        set_property(SOURCE src/software/cpu/arch2d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -O3 -ffast-math -march=sandybridge -O2"
+                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -O3 -ffast-math"
        )
        set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
                     PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -O2"
        )
-       set_property(SOURCE src/software/cpu/arch2d_avx2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -O3 -ffast-math -march=haswell -O2"
-       )
        set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -O3 -ffast-math -mfma -march=haswell -O2"
+                    PROPERTY COMPILE_FLAGS "-mavx2 -mfma -march=haswell -O3 -ffast-math"
        )
        set_property(SOURCE src/software/cpu/arch3d_fma3.c APPEND
                     PROPERTY COMPILE_FLAGS "-mavx2 -mfma -march=haswell -O2"

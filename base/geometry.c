@@ -42,14 +42,12 @@ void
 vec3dFill(double d[3], double v[3])
 {
    memcpy(d, v, sizeof(double[3]));
-   d[3] = 0;
 }
 
 void
 vec3fFill(float d[3], float v[3])
 {
    memcpy(d, v, sizeof(float[3]));
-   d[3] = 0;
 }
 
 void
@@ -59,7 +57,6 @@ vec3dFillf(double dst[3], float src[3])
    for(i=0; i<3; ++i) {
       dst[i] = (double)src[i];
    }
-   dst[3] = 0;
 }
 
 void
@@ -69,7 +66,6 @@ vec3fFilld(float dst[3], double src[3])
    for(i=0; i<3; ++i) {
       dst[i] = (float)src[i];
    }
-   dst[3] = 0;
 }
 
 void

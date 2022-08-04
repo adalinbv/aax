@@ -104,7 +104,8 @@ enum {
     AAX_ARCH_SSE42   = 0x00000080,
     AAX_ARCH_AVX     = 0x00000100,
     AAX_ARCH_XOP     = 0x00000200,
-    AAX_ARCH_AVX2    = 0x00000400
+    AAX_ARCH_AVX2    = 0x00000400,
+    AAX_ARCH_FMA3    = 0x00000800
 };
 
 enum {
@@ -120,6 +121,7 @@ enum {
    AAX_SIMD_AVX,
    AAX_SIMD_XOP,
    AAX_SIMD_AVX2,
+   AAX_SIMD_FMA3,
    AAX_SIMD_MAX
 };
 
@@ -137,7 +139,8 @@ static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
    SIMD_PREFIX"SSE4.2",
    SIMD_PREFIX"SSE/AVX",
    SIMD_PREFIX"SSE/XOP",
-   SIMD_PREFIX"SSE/AVX2"
+   SIMD_PREFIX"SSE/AVX2",
+   SIMD_PREFIX"SSE/FMA3"
 };
 
 static char check_cpuid_ebx(unsigned int);
@@ -249,6 +252,21 @@ _aaxArchDetectAVX()
 }
 
 char
+_aaxArchDetectFMA3()
+{
+   static uint32_t res = 0;
+   static int8_t init = -1;
+   if (init)
+   {
+      init = 0;
+      res = check_cpuid_ecx(CPUID_FEAT_ECX_FMA3) ? AAX_SIMD_FMA3 : 0;
+      if (res) _aax_arch_capabilities |= AAX_ARCH_FMA3;
+   }
+   return res;
+}
+
+
+char
 _aaxArchDetectXOP()
 {
    static uint32_t res = 0;
@@ -308,6 +326,9 @@ _aaxGetSSELevel()
       if (res) sse_level = res;
 
       res = _aaxArchDetectAVX2();
+      if (res) sse_level = res;
+
+      res = _aaxArchDetectFMA3();
       if (res) sse_level = res;
    }
 
@@ -486,10 +507,7 @@ _aaxGetSIMDSupportLevel()
 #   else
 #   endif
 
-            if (_aax_arch_capabilities & AAX_ARCH_AVX2) {
-            }
-
-            if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3))
+            if (_aax_arch_capabilities & AAX_ARCH_FMA3)
             {
                _batch_fmadd = _batch_fmadd_fma3;
 
@@ -730,6 +748,11 @@ _aaxArchDetectXOP() {
 
 char
 _aaxArchDetectAVX() {
+   return 0;
+}
+
+char
+_aaxArchDetectFMA3() {
    return 0;
 }
 

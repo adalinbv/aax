@@ -32,7 +32,7 @@ char _aaxArchDetectSSE();
 char _aaxArchDetectSSE2();
 char _aaxArchDetectSSE3();
 #elif defined(__x86_64__)
-# define CPU	"cpu/sse2"
+# define CPU	"cpu+sse2"
 # define SIMD   sse
 # define SIMD1  sse_vex
 # define SIMD2	sse2
@@ -45,6 +45,8 @@ char _aaxArchDetectSSE();
 char _aaxArchDetectSSE2();
 char _aaxArchDetectSSE3();
 char _aaxArchDetectAVX();
+char _aaxArchDetectAVX2();
+char _aaxArchDetectFMA3();
 char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
 #elif defined(__arm__) || defined(_M_ARM)
@@ -91,9 +93,6 @@ int main()
    char simd2 = 0;      // AVX          NEON
    char simd3 = 0;      // SSE3
    char simd4 = 0;      // SSE4
-#if defined(__x86_64__)
-//  char simd5 = 0;      // AVX2
-#endif
     char fma = 0;        // FMA3         VFPV4
     vec3f_t a3, b3, c3, x3, y3, z3;
     vec4f_t a4, b4, c4, x4, y4, z4;
@@ -115,9 +114,8 @@ int main()
         simd2 = _aaxArchDetectSSE2();
     }
     simd3 = _aaxArchDetectSSE3();
-    if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
-      fma = 3;
-   }
+    simd4 = _aaxArchDetectAVX();
+    fma = _aaxArchDetectFMA3() ? 3 : 0;
 #elif defined(__arm__) || defined(_M_ARM)
     simd = simd2 = simd3 = _aaxArchDetectNeon();
     simd4 = _aaxArchDetectVFPV3();

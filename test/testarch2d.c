@@ -61,22 +61,20 @@ void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, i
 # define SIMD1  sse2
 # define SIMD2  sse2
 # define SIMD4  sse4
-# define SIMD5  sse2
 # define FMA3	sse2
 char _aaxArchDetectSSE2();
 char _aaxArchDetectSSE4();
 #elif defined(__x86_64__)
-# define CPU   "cpu/sse2"
+# define CPU   "cpu+sse2"
 # define SIMD   sse2
 # define SIMD1  sse_vex
 # define SIMD2  avx
 # define SIMD4  sse4
-# define SIMD5  avx2
 # define FMA3   fma3
 # define CPUID_FEAT_ECX_FMA3    (1 << 12)
 char _aaxArchDetectSSE4();
 char _aaxArchDetectAVX();
-char _aaxArchDetectAVX2();
+char _aaxArchDetectFMA3();
 char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
 #elif defined(__arm__) || defined(_M_ARM)
@@ -85,7 +83,6 @@ char check_cpuid_ecx(unsigned int);
 # define SIMD1  vfpv4
 # define SIMD2  vfpv4
 # define SIMD4  neon
-# define SIMD5  neon
 # define FMA3   neon
 char _aaxArchDetectVFPV4();
 char _aaxArchDetectNEON();
@@ -116,7 +113,6 @@ int main()		// x86		ARM
 // char simd3 = 0;	// SSE3
    char simd4 = 0;	// SSE4
 #if defined(__x86_64__)
-// char simd5 = 0;	// AVX2
 #endif
    char fma = 0;	// FMA3		VFPV4
    float *src, *dst1, *dst2, *dst3;
@@ -130,10 +126,7 @@ int main()		// x86		ARM
 // simd1 = _aaxArchDetectAVX();
    simd2 = _aaxArchDetectAVX();
    simd4 = _aaxArchDetectSSE4();
-// simd5 = _aaxArchDetectAVX2();
-   if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
-      fma = 3;
-   }
+   fma = _aaxArchDetectFMA3() ? 3 : 0;
 #elif defined(__arm__) || defined(_M_ARM)
    simd = _aaxArchDetectVFPV3();
 // simd1 = _aaxArchDetectVFPV4();
