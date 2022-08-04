@@ -922,6 +922,89 @@ _batch_hmadd_avx(float32_ptr dst, const_float16_ptr src, size_t num, float v, fl
 }
 #endif
 
+FN_PREALIGN static void
+_batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
+{
+   float32_ptr s = (float32_ptr)src;
+   float32_ptr d = (float32_ptr)dst;
+   size_t i, step, dtmp, stmp;
+
+   /*
+    * Always assume need_step since it doesn't make any difference
+    * in rendering speed.
+    */
+
+   /* work towards a 32-byte aligned d (and hence 32-byte aligned s) */
+   dtmp = (size_t)d & MEMMASK;
+   if (dtmp && num)
+   {
+      i = (MEMALIGN - dtmp)/sizeof(float);
+      if (i <= num)
+      {
+         num -= i;
+         do {
+            *d++ += *s++;
+         } while(--i);
+      }
+   }
+   stmp = (size_t)s & MEMMASK;
+
+   step = 2*sizeof(__m256)/sizeof(float);
+
+   i = num/step;
+   if (i)
+   {
+      __m256 ymm0, ymm1;
+      __m256* sptr = (__m256*)s;
+      __m256* dptr = (__m256*)d;
+
+      assert(step == 8);
+
+      num -= i*step;
+      s += i*step;
+      d += i*step;
+      if (stmp)
+      {
+         do
+         {
+            ymm0 = _mm256_loadu_ps((const float*)sptr++);
+            ymm1 = _mm256_loadu_ps((const float*)sptr++);
+
+            ymm0 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)(dptr+0)));
+            ymm1 = _mm256_add_ps(ymm1, _mm256_load_ps((const float*)(dptr+1)));
+
+            _mm256_store_ps((float*)dptr++, ymm0);
+            _mm256_store_ps((float*)dptr++, ymm1);
+         }
+         while(--i);
+      }
+      else
+      {
+         do
+         {
+            ymm0 = _mm256_load_ps((const float*)sptr++);
+            ymm1 = _mm256_load_ps((const float*)sptr++);
+
+            ymm0 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)(dptr+0)));
+            ymm1 = _mm256_add_ps(ymm1, _mm256_load_ps((const float*)(dptr+1)));
+
+            _mm256_store_ps((float*)dptr++, ymm0);
+            _mm256_store_ps((float*)dptr++, ymm1);
+         }
+         while(--i);
+      }
+      _mm256_zeroupper();
+   }
+
+   if (num)
+   {
+      i = num;
+      do {
+         *d++ += *s++;
+      } while(--i);
+   }
+}
+
 FN_PREALIGN void
 _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
@@ -931,6 +1014,12 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
    size_t i, step, dtmp, stmp;
 
    if (!num || (fabsf(v) <= LEVEL_128DB && !need_step)) return;
+
+   // volume ~= 1.0f and no change requested: just add both buffers
+   if (fabsf(v - 1.0f) < LEVEL_90DB && !need_step) {
+      _batch_fadd_avx(dst, src, num);
+      return;
+   }
 
    /*
     * Always assume need_step since it doesn't make any difference
