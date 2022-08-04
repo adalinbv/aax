@@ -211,13 +211,13 @@ int main()
 
         if (simd)
         {
-            m4fMul = GLUE(_mtx4fMul, SIMD1);
+            m4fMul = GLUE(_mtx4fMul, SIMD);
             t = clock();
             for (i=0; i<MAXNUM; ++i) {
                 m4fMul(&l, &m, &n);
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("mtx4fMul "MKSTR(SIMD1)":\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("mtx4fMul "MKSTR(SIMD)":\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TESTM4(k,l);
         }
 
