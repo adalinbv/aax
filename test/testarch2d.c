@@ -164,8 +164,8 @@ int main()		// x86		ARM
 
       _batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f);
       _batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f);
-
       memcpy(dst1, src, MAXNUM*sizeof(float));
+
       ts = timer_start();
       _batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f);
       cpu = 1e-6f*timer_end(ts);
@@ -175,6 +175,10 @@ int main()		// x86		ARM
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_fmadd = GLUE(_batch_fmadd, SIMD);
+
+         _batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f);
+         _batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f);
+         memcpy(dst1, src, MAXNUM*sizeof(float));
 
          ts = timer_start();
          _batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f);
@@ -187,6 +191,14 @@ int main()		// x86		ARM
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_fmadd = GLUE(_batch_fmadd, SIMD2);
 
+         _batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f);
+         _batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f);
+         memcpy(dst1, src, MAXNUM*sizeof(float));
+
+         _batch_fmadd(dst2, dst2, MAXNUM, 1.0, 0.0f);
+         _batch_fmadd(dst2, dst2, MAXNUM, 1.0, 0.0f);
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+
          ts = timer_start();
          _batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f);
          eps = 1e-6f*timer_end(ts);
@@ -197,6 +209,10 @@ int main()		// x86		ARM
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_fmadd = GLUE(_batch_fmadd, FMA3);
+
+         _batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f);
+         _batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f);
+         memcpy(dst1, src, MAXNUM*sizeof(float));
 
          ts = timer_start();
          _batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f);
