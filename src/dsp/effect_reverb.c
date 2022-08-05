@@ -890,7 +890,6 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    }
    else
    {
-printf("9\n");
       rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
       memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
    }
