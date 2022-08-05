@@ -23,8 +23,8 @@
 #define TESTFN(a,d1,d2,m) { float max = 0.0f; \
    for (i=0; i<MAXNUM; ++i) \
    { if ((fabsf(d1[i]-d2[i])/d1[i]) > max) max = fabsf(fabsf(d1[i]-d2[i])/d1[i]); } \
-   if (max > 1e-4f) printf("\t| error <= %3.2f%%\n", max*100.0f); \
-   else if (max > 0) printf("\t| error < 0.01%%\n"); else printf("\n"); \
+   if (max > 1e-4f) printf("\t| max error <= %3.2f%%\n", max*100.0f); \
+   else if (max > 0) printf("\t| max error < 0.01%%\n"); else printf("\n"); \
 }
 #define TESTF(a,d1,d2)	TESTFN(a,d1,d2,4.0f)
 
@@ -205,6 +205,10 @@ int main()		// x86		ARM
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_fmadd = GLUE(_batch_fmadd, FMA3);
+
+         _batch_fmadd(dst2, dst2, MAXNUM, 1.0, 0.0f);
+         _batch_fmadd(dst2, dst2, MAXNUM, 1.0, 0.0f);
+         memcpy(dst2, src, MAXNUM*sizeof(float));
 
          ts = timer_start();
          _batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f);
