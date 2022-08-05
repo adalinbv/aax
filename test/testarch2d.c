@@ -59,19 +59,23 @@ void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, i
 # define CPU    "cpu"
 # define SIMD   sse2
 # define SIMD1  sse2
+# define SIMD3	sse3
 # define SIMD2  sse2
 # define SIMD4  sse4
 # define FMA3	sse2
+char _aaxArchDetectSSE3();
 char _aaxArchDetectSSE2();
 char _aaxArchDetectSSE4();
 #elif defined(__x86_64__)
 # define CPU   "cpu+sse2"
 # define SIMD   sse2
 # define SIMD1  sse_vex
+# define SIMD3	sse3
 # define SIMD2  avx
 # define SIMD4  sse4
 # define FMA3   fma3
 # define CPUID_FEAT_ECX_FMA3    (1 << 12)
+char _aaxArchDetectSSE3();
 char _aaxArchDetectSSE4();
 char _aaxArchDetectAVX();
 char _aaxArchDetectFMA3();
@@ -82,6 +86,7 @@ char check_cpuid_ecx(unsigned int);
 # define SIMD   vfpv3
 # define SIMD1  vfpv4
 # define SIMD2  vfpv4
+# define SIMD3	vfpv3
 # define SIMD4  neon
 # define FMA3   neon
 char _aaxArchDetectVFPV4();
@@ -107,7 +112,7 @@ int main()		// x86		ARM
 {			// -------	-------
    char simd = 0;	// SSE2		VFPV3
 #if defined(__x86_64__) || defined(_M_ARM)
-// char simd1 = 0;	// SSE_VEX      VFPV4
+   char simd1 = 0;	// SSE_VEX      VFPV4
 #endif
    char simd2 = 0;	// AVX		NEON
 // char simd3 = 0;	// SSE3
@@ -121,11 +126,13 @@ int main()		// x86		ARM
 
 #if defined(__i386__)
    simd = _aaxArchDetectSSE2();
+// simd3 = _aaxArchDetectSSE3();
    simd4 = _aaxArchDetectSSE4();
 #elif defined(__x86_64__)
    simd = 1;
-// simd1 = _aaxArchDetectAVX();
+   simd1 = _aaxArchDetectAVX();
    simd2 = _aaxArchDetectAVX();
+// simd3 = _aaxArchDetectSSE3();
    simd4 = _aaxArchDetectSSE4();
    fma = _aaxArchDetectFMA3() ? 3 : 0;
 #elif defined(__arm__) || defined(_M_ARM)
@@ -574,10 +581,11 @@ int main()		// x86		ARM
       freq_factor = 0.2f;
       _batch_resample_float = _batch_resample_float_cpu;
 
+      printf("\n== Resample:\n");
       ts = timer_start();
       _batch_resample_float(dst1, src, 0, MAXNUM, 0.0, freq_factor);
       cpu = 1e-6f*timer_end(ts);
-      printf("\nresample " CPU ":\t%f ms\n", cpu*1000.0f);
+      printf("cubic " CPU ":\t%f ms\n", cpu*1000.0f);
 
       if (simd)
       {
@@ -586,8 +594,19 @@ int main()		// x86		ARM
          ts = timer_start();
          _batch_resample_float(dst2, src, 0, MAXNUM, 0.0, freq_factor);
          eps = 1e-6f*timer_end(ts);
-         printf("resample "MKSTR(SIMD)":\t%f ms - cpu x %3.2f", eps*1000.0f, cpu/eps);
-         TESTFN("resample "MKSTR(SIMD), dst1, dst2, 1e-3f);
+         printf("cubic "MKSTR(SIMD)":\t%f ms - cpu x %3.2f", eps*1000.0f, cpu/eps);
+         TESTFN("cubic "MKSTR(SIMD), dst1, dst2, 1e-3f);
+      }
+
+      if (simd1)
+      {
+         _batch_resample_float = GLUE(_batch_resample_float, SIMD1);
+
+         ts = timer_start();
+         _batch_resample_float(dst2, src, 0, MAXNUM, 0.0, freq_factor);
+         eps = 1e-6f*timer_end(ts);
+         printf("cubic "MKSTR(SIMD1)":\t%f ms - cpu x %3.2f", eps*1000.0f, cpu/eps);
+         TESTFN("cubic "MKSTR(SIMD1), dst1, dst2, 1e-3f);
       }
 
       if (fma)
@@ -597,8 +616,8 @@ int main()		// x86		ARM
          ts = timer_start();
          _batch_resample_float(dst2, src, 0, MAXNUM, 0.0, freq_factor);
          eps = 1e-6f*timer_end(ts);
-         printf("resample "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1000.0f, cpu/eps);
-         TESTFN("resample "MKSTR(FMA3), dst1, dst2, 1e-3f);
+         printf("cubic "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1000.0f, cpu/eps);
+         TESTFN("cubic "MKSTR(FMA3), dst1, dst2, 1e-3f);
       }
 
       /*
