@@ -22,7 +22,7 @@
 #if defined(__i386__)
 # define CPU	"cpu\t"
 # define SIMD   sse
-# define SIMD1	sse2
+# define SIMD1	sse
 # define SIMD2  sse2
 # define SIMD3  sse3
 # define SIMD4  sse2
@@ -88,7 +88,7 @@ int main()
 {
    char simd = 0;       // SSE2         VFPV3
 #if defined(__x86_64__) || defined(_M_ARM)
-// char simd1 = 0;      // SSE_VEX      VFPV4
+   char simd1 = 0;      // SSE_VEX      VFPV4
 #endif
    char simd2 = 0;      // AVX          NEON
    char simd3 = 0;      // SSE3
@@ -108,7 +108,7 @@ int main()
     simd2 = _aaxArchDetectSSE2();
     simd3 = _aaxArchDetectSSE3();
 #elif defined(__x86_64__)
-    simd = simd2 = simd4 = _aaxArchDetectAVX();
+    simd = simd1 = simd2 = simd4 = _aaxArchDetectAVX();
     if (!simd) {
         simd = _aaxArchDetectSSE();
         simd2 = _aaxArchDetectSSE2();
@@ -166,9 +166,9 @@ int main()
         TEST4(c4,z4);
     }
 
-    if (simd) {
+    if (simd1) {
         _mtx4fMulVec4_cpu(&c4, &m, &b4);
-        GLUE(_mtx4fMulVec4, SIMD)(&z4, &m, &y4);
+        GLUE(_mtx4fMulVec4, SIMD1)(&z4, &m, &y4);
         TEST4(c4,z4);
     }
 
@@ -209,15 +209,15 @@ int main()
         TESTM4(k,l);
 #endif
 
-        if (simd)
+        if (simd1)
         {
-            m4fMul = GLUE(_mtx4fMul, SIMD);
+            m4fMul = GLUE(_mtx4fMul, SIMD1);
             t = clock();
             for (i=0; i<MAXNUM; ++i) {
                 m4fMul(&l, &m, &n);
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("mtx4fMul "MKSTR(SIMD)":\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("mtx4fMul "MKSTR(SIMD1)":\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TESTM4(k,l);
         }
 
