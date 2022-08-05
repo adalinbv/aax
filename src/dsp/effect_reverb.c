@@ -739,17 +739,8 @@ _reflections_run(const _aaxRingBufferReflectionData *reflections,
          if ((volume > 0.001f) || (volume < -0.001f))
          {
             ssize_t offs = reflections->delay[q].sample_offs[track] + dst;
-            if (offs && offs < (ssize_t)ds)
-            {
-               // TODO: can cause cracking sounds
-#if 0
-               // comb filter
-               rbd->add(dptr, sptr-offs, no_samples, -volume, 0.0f);
-               // make it all-pass
-               rbd->add(dptr, sptr, no_samples, volume, 0.0f);
-#else
+            if (offs && offs < (ssize_t)ds) {
                rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
-#endif
             }
          }
       }
@@ -784,15 +775,7 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, 
             ssize_t offs = loopbacks->loopback[q].sample_offs[track] + dst;
             if (offs && offs < (ssize_t)ds)
             {
-               // TODO: can cause cracking sounds
-#if 0
-               // comb filter
-               rbd->add(dptr, dptr-offs, no_samples, -volume, 0.0f);
-               // make it all-pass
-               rbd->add(dptr, scratch, no_samples, volume, 0.0f);
-#else
                rbd->add(dptr, dptr-offs, no_samples, volume, 0.0f);
-#endif
                rv = AAX_TRUE;
             }
          }
