@@ -116,6 +116,7 @@ int main()		// x86		ARM
 #endif
    char fma = 0;	// FMA3		VFPV4
    float *src, *dst1, *dst2, *dst3;
+   float freq_factor;
    struct timespec ts;
 
 #if defined(__i386__)
@@ -567,6 +568,40 @@ int main()		// x86		ARM
       }
 
       /*
+       * resample
+       * Cubic threshold is 0.25
+       */
+      freq_factor = 0.2f;
+      _batch_resample_float = _batch_resample_float_cpu;
+
+      ts = timer_start();
+      _batch_resample_float(dst1, src, 0, MAXNUM, 0.0, freq_factor);
+      cpu = 1e-6f*timer_end(ts);
+      printf("\nresample " CPU ":\t%f ms\n", cpu*1000.0f);
+
+      if (simd)
+      {
+         _batch_resample_float = GLUE(_batch_resample_float, SIMD);
+
+         ts = timer_start();
+         _batch_resample_float(dst2, src, 0, MAXNUM, 0.0, freq_factor);
+         eps = 1e-6f*timer_end(ts);
+         printf("resample "MKSTR(SIMD)":\t%f ms - cpu x %3.2f", eps*1000.0f, cpu/eps);
+         TESTFN("resample "MKSTR(SIMD), dst1, dst2, 1e-3f);
+      }
+
+      if (fma)
+      {
+         _batch_resample_float = GLUE(_batch_resample_float, FMA3);
+
+         ts = timer_start();
+         _batch_resample_float(dst2, src, 0, MAXNUM, 0.0, freq_factor);
+         eps = 1e-6f*timer_end(ts);
+         printf("resample "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1000.0f, cpu/eps);
+         TESTFN("resample "MKSTR(FMA3), dst1, dst2, 1e-3f);
+      }
+
+      /*
        * batch freqfilter calulculation
        */
       memset(&flt, 0, sizeof(_aaxRingBufferFreqFilterData));
@@ -733,7 +768,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_convolution(dst1, dst2, src, MAXNUM/16, MAXNUM/8, 2, 1.0f, 0.0);
       cpu = 1e-6f*timer_end(ts);
-      printf("\nconvolution " CPU ":  %f ms\n", cpu*1000.0f);
+      printf("\nconvolution (uses fastest fmadd):  %f ms\n", cpu*1000.0f);
    }
 
    _aax_aligned_free(dst3);
