@@ -144,43 +144,43 @@ aaxGetByName(const char* type)
 AAX_API unsigned AAX_APIENTRY
 aaxGetMajorVersion()
 {
-   return aaxGetByType(AAX_VERSION_MAJOR);
+   return AAX_MAJOR_VERSION;
 }
 
 AAX_API unsigned AAX_APIENTRY
 aaxGetMinorVersion()
 {
-   return aaxGetByType(AAX_VERSION_MINOR);
+   return AAX_MINOR_VERSION;
 }
 
 AAX_API unsigned int AAX_APIENTRY
 aaxGetPatchLevel()
 {
-   return aaxGetByType(AAX_RELEASE_NUMBER);
+   return AAX_PATCH_LEVEL;
 }
 
 AAX_API const char* AAX_APIENTRY
 aaxGetCopyrightString()
 {
-   return aaxGetString(AAX_COPYRIGHT_STRING);
+   return (const char*)COPYING_v3;
 }
 
 AAX_API const char* AAX_APIENTRY
 aaxGetVersionString(UNUSED(aaxConfig cfg))
 {
-   return aaxGetString(AAX_RENDERER_STRING);
+   return AAX_LIBRARY_STR" "AAX_VERSION_STR;
 }
 
 AAX_API enum aaxFilterType AAX_APIENTRY
 aaxMaxFilter(void)
 {
-   return aaxGetByType(AAX_MAX_FILTER);
+   return AAX_FILTER_MAX;
 }
 
 AAX_API enum aaxEffectType AAX_APIENTRY
 aaxMaxEffect(void)
 {
-   return aaxGetByType(AAX_MAX_EFFECT);
+   return AAX_EFFECT_MAX;
 }
 
 AAX_API enum aaxErrorType AAX_APIENTRY
@@ -394,6 +394,12 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
       _aaxErrorSet(AAX_INVALID_HANDLE);
    }
    return rv;
+}
+
+AAX_API enum aaxErrorType AAX_APIENTRY
+aaxGetErrorNo()
+{
+   return __aaxErrorSet(AAX_ERROR_NONE, NULL);
 }
 
 AAX_API const char* AAX_APIENTRY
