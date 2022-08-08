@@ -1140,11 +1140,11 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
 }
 
 static inline void
-_aaxBufResampleDecimate_float_neon(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleDecimate_float_neon(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
-   int32_ptr s = (int32_ptr)sptr;
-   int32_ptr d = dptr;
-   int32_t samp, dsamp;
+   const_float32_ptr s = sptr;
+   float32_ptr d = dptr;
+   float samp, dsamp;
    size_t i;
 
    assert(s != 0);
@@ -1191,11 +1191,11 @@ _aaxBufResampleDecimate_float_neon(int32_ptr dptr, const_int32_ptr sptr, size_t 
 }
 
 static inline void
-_aaxBufResampleLinear_float_neon(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleLinear_float_neon(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
-   int32_ptr s = (int32_ptr)sptr;
-   int32_ptr d = dptr;
-   int32_t samp, dsamp;
+   const_float32_ptr s = sptr;
+   float32_ptr d = dptr;
+   float samp, dsamp;
    size_t i;
 
    assert(s != 0);
@@ -1235,6 +1235,8 @@ _aaxBufResampleCubic_float_neon(float32_ptr d, const_float32_ptr s, size_t dmin,
    float32_ptr sptr = (float32_ptr)s;
    float32_ptr dptr = d;
    size_t i;
+
+printf("_aaxBufResampleCubic_float_neon\n");
 
    assert(s != 0);
    assert(d != 0);
