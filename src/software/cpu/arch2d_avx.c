@@ -954,7 +954,7 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
    i = num/step;
    if (i)
    {
-      __m256 ymm0, ymm1;
+      __m256 ymm0, ymm1, ymm2, ymm3;
       __m256* sptr = (__m256*)s;
       __m256* dptr = (__m256*)d;
 
@@ -985,11 +985,11 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
             ymm0 = _mm256_load_ps((const float*)sptr++);
             ymm1 = _mm256_load_ps((const float*)sptr++);
 
-            ymm0 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)(dptr+0)));
-            ymm1 = _mm256_add_ps(ymm1, _mm256_load_ps((const float*)(dptr+1)));
+            ymm2 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)(dptr+0)));
+            ymm3 = _mm256_add_ps(ymm1, _mm256_load_ps((const float*)(dptr+1)));
 
-            _mm256_store_ps((float*)dptr++, ymm0);
-            _mm256_store_ps((float*)dptr++, ymm1);
+            _mm256_store_ps((float*)dptr++, ymm2);
+            _mm256_store_ps((float*)dptr++, ymm3);
          }
          while(--i);
       }

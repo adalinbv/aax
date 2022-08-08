@@ -569,7 +569,7 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
 }
 
 void _batch_atanps_sse2(void_ptr dptr, const_void_ptr sptr, size_t num)
-{  
+{
    float *d = (float*)dptr;
    float *s = (float*)sptr;
    size_t i, step;
@@ -919,11 +919,8 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
             xmm2 = _mm_load_ps((const float*)(dptr+0));
             xmm3 = _mm_load_ps((const float*)(dptr+1));
 
-            xmm0 = _mm_add_ps(xmm0, xmm2);
-            xmm1 = _mm_add_ps(xmm1, xmm3);
-
-            _mm_store_ps((float*)dptr++, xmm0);
-            _mm_store_ps((float*)dptr++, xmm1);
+            _mm_store_ps((float*)dptr++, _mm_add_ps(xmm0, xmm2));
+            _mm_store_ps((float*)dptr++, _mm_add_ps(xmm0, xmm3));
          }
          while(--i);
       }
@@ -937,11 +934,8 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
             xmm2 = _mm_load_ps((const float*)(dptr+0));
             xmm3 = _mm_load_ps((const float*)(dptr+1));
 
-            xmm0 = _mm_add_ps(xmm0, xmm2);
-            xmm1 = _mm_add_ps(xmm1, xmm3);
-
-            _mm_store_ps((float*)dptr++, xmm0);
-            _mm_store_ps((float*)dptr++, xmm1);
+            _mm_store_ps((float*)dptr++, _mm_add_ps(xmm0, xmm2));
+            _mm_store_ps((float*)dptr++, _mm_add_ps(xmm1, xmm3));
          }
          while(--i);
       }

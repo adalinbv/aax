@@ -244,8 +244,10 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          {
             ymm0 = _mm256_loadu_ps((const float*)sptr++);
             ymm1 = _mm256_loadu_ps((const float*)sptr++);
+
             ymm0 = _mm256_fmadd_ps(ymm0, tv0, _mm256_load_ps((const float*)dptr));
             ymm1 = _mm256_fmadd_ps(ymm1, tv1, _mm256_load_ps((const float*)(dptr+1)));
+
             tv0 = _mm256_add_ps(tv0, dv);
             tv1 = _mm256_add_ps(tv1, dv);
 
@@ -260,8 +262,10 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          {
             ymm0 = _mm256_load_ps((const float*)sptr++);
             ymm1 = _mm256_load_ps((const float*)sptr++);
+
             ymm0 = _mm256_fmadd_ps(ymm0, tv0, _mm256_load_ps((const float*)dptr));
             ymm1 = _mm256_fmadd_ps(ymm1, tv1, _mm256_load_ps((const float*)(dptr+1)));
+
             tv0 = _mm256_add_ps(tv0, dv);
             tv1 = _mm256_add_ps(tv1, dv);
 
@@ -648,7 +652,7 @@ _aaxBufResampleCubic_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin,
 {
    float32_ptr sptr = (float32_ptr)s;
    float32_ptr dptr = d;
-   float y0, y1, y2, y3, a0, a1, a2;
+   vec4f_t y, a;
    size_t i;
 
    assert(s != 0);
@@ -659,14 +663,16 @@ _aaxBufResampleCubic_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin,
 
    dptr += dmin;
 
-   y0 = *sptr++;
-   y1 = *sptr++;
-   y2 = *sptr++;
-   y3 = *sptr++;
+   y.v4[0] = *sptr++;
+   y.v4[1] = *sptr++;
+   y.v4[2] = *sptr++;
+   y.v4[3] = *sptr++;
 
-   a0 = y3 - y2 - y0 + y1;
-   a1 = y0 - y1 - a0;
-   a2 = y2 - y0;
+   a.v4[0] = -y.v4[0] + y.v4[1] - y.v4[2] + y.v4[3];
+   a.v4[1] =  y.v4[0] - y.v4[1];
+   a.v4[2] = -y.v4[0] + y.v4[2];
+
+   a.v4[1] -= a.v4[0];
 
    i = dmax-dmin;
    if (i)
@@ -676,21 +682,23 @@ _aaxBufResampleCubic_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin,
          float smu2, ftmp;
 
          smu2 = smu*smu;
-         ftmp = (a0*smu*smu2 + a1*smu2 + a2*smu + y1);
+         ftmp = (a.v4[0]*smu*smu2 + a.v4[1]*smu2 + a.v4[2]*smu + y.v4[1]);
          *dptr++ = ftmp;
 
          smu += freq_factor;
          if (smu >= 1.0)
          {
             smu--;
-            a0 += y0;
-            y0 = y1;
-            y1 = y2;
-            y2 = y3;
-            y3 = *sptr++;
-            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
-            a1 = y0 - y1 - a0;
-            a2 = y2 - y0;
+            a.v4[0] += y.v4[0];
+
+            y.v4[0] = y.v4[1];
+            y.v4[1] = y.v4[2];
+            y.v4[2] = y.v4[3];
+            y.v4[3] = *sptr++;
+
+            a.v4[0] = y.v4[3] - a.v4[0];
+            a.v4[1] = y.v4[0] - y.v4[1] - a.v4[0];
+            a.v4[2] = -y.v4[0] + y.v4[2];
          }
       }
       while (--i);
