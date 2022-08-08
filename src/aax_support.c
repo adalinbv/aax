@@ -103,6 +103,8 @@ aaxMaxEffect(void)
 
 /* end of deprecated functions list */
 
+#if 0
+// Windows DLL API changes break backwards compatibility
 AAX_API const char* AAX_APIENTRY
 aaxGetString(enum aaxSetupType type)
 {
@@ -219,6 +221,7 @@ aaxGetFormatString(enum aaxFormat format)
 
    return rv;
 }
+#endif
 
 int AAX_APIENTRY
 aaxPlaySoundLogo(const char *devname)
