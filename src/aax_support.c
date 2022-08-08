@@ -183,11 +183,6 @@ aaxMaxEffect(void)
    return AAX_EFFECT_MAX;
 }
 
-AAX_API enum aaxErrorType AAX_APIENTRY
-aaxGetErrorNo()
-{
-   return aaxGetByType(AAX_ERROR_NUMBER);
-}
 /* end of deprecated functions list */
 
 AAX_API const char* AAX_APIENTRY
