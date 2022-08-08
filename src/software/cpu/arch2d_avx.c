@@ -958,7 +958,7 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
       __m256* sptr = (__m256*)s;
       __m256* dptr = (__m256*)d;
 
-      assert(step == 8);
+      assert(step == 2*8);
 
       num -= i*step;
       s += i*step;
