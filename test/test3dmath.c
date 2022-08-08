@@ -87,9 +87,7 @@ static float t2[4] = {  0.593f,  0.13f,  1.078f, -0.017f };
 int main()
 {
    char simd = 0;       // SSE2         VFPV3
-#if defined(__x86_64__) || defined(_M_ARM)
    char simd1 = 0;      // SSE_VEX      VFPV4
-#endif
    char simd2 = 0;      // AVX          NEON
    char simd3 = 0;      // SSE3
    char simd4 = 0;      // SSE4

@@ -111,9 +111,7 @@ long timer_end(struct timespec start_time)
 int main()		// x86		ARM
 {			// -------	-------
    char simd = 0;	// SSE2		VFPV3
-#if defined(__x86_64__) || defined(_M_ARM)
    char simd1 = 0;	// SSE_VEX      VFPV4
-#endif
    char simd2 = 0;	// AVX		NEON
 // char simd3 = 0;	// SSE3
    char simd4 = 0;	// SSE4
@@ -137,7 +135,7 @@ int main()		// x86		ARM
    fma = _aaxArchDetectFMA3() ? 3 : 0;
 #elif defined(__arm__) || defined(_M_ARM)
    simd = _aaxArchDetectVFPV3();
-// simd1 = _aaxArchDetectVFPV4();
+   simd1 = _aaxArchDetectVFPV4();
    simd2 = _aaxArchDetectNeon();
    fma = _aaxArchDetectVFPV4();
 #endif
