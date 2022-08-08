@@ -1312,6 +1312,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 {
    _handle_t* handle = get_write_handle(config, __func__);
    _frame_t* frame = get_frame(f, _LOCK, __func__);
+   char put = (frame && frame->parent[0]) ? AAX_TRUE : AAX_FALSE;
    int rv = __release_mode;
 
    if (!rv)
@@ -1352,9 +1353,13 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
          if (hf && (mixer->no_registered < mixer->info->max_registered))
          {
             aaxBuffer buf; /* clear the frames buffer queue */
+
+            put_frame(frame);
             while ((buf = aaxAudioFrameGetBuffer(frame)) != NULL) {
                aaxBufferDestroy(buf);
             }
+            frame = get_frame(f, _LOCK, __func__);
+
             _aaxErrorSet(AAX_ERROR_NONE);
             pos = _intBufAddData(hf, _AAX_FRAME, frame);
             mixer->no_registered++;
@@ -1421,7 +1426,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
          }
       }
    }
-   if (frame && frame->parent[0]) put_frame(frame);
+   if (put) put_frame(frame);
 
    return rv;
 }
