@@ -15,7 +15,7 @@
  * Add aaxGetFormatString() which returns the audio format in a human friendly
    text format.
  * Clean up numerous allocated memory locations at exit.
- * Fix possible cracking-sounds caused by an annecessary all-pass filter step in reverb.
+ * Fix possible cracking-sounds caused by an unnecessary all-pass filter step in reverb.
  * Fix even repeat-numbers being one too many for the timed gain filter.
 
 -- Erik Hofman <tech@adalin.org>  Fri 22 Jul 2022 10:53:23 + 0200
