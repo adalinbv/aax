@@ -57,6 +57,52 @@ aaxFree(void *mm)
    free(mm);
 }
 
+/* deprecated functions */
+
+AAX_API unsigned AAX_APIENTRY
+aaxGetMajorVersion()
+{
+   return AAX_MAJOR_VERSION;
+}
+
+AAX_API unsigned AAX_APIENTRY
+aaxGetMinorVersion()
+{
+   return AAX_MINOR_VERSION;
+}
+
+AAX_API unsigned int AAX_APIENTRY
+aaxGetPatchLevel()
+{
+   return AAX_PATCH_LEVEL;
+}
+
+AAX_API const char* AAX_APIENTRY
+aaxGetCopyrightString()
+{
+   return (const char*)COPYING_v3;
+}
+
+AAX_API const char* AAX_APIENTRY
+aaxGetVersionString(UNUSED(aaxConfig cfg))
+{
+   return AAX_LIBRARY_STR" "AAX_VERSION_STR;
+}
+
+AAX_API enum aaxFilterType AAX_APIENTRY
+aaxMaxFilter(void)
+{
+   return AAX_FILTER_MAX;
+}
+
+AAX_API enum aaxEffectType AAX_APIENTRY
+aaxMaxEffect(void)
+{
+   return AAX_EFFECT_MAX;
+}
+
+/* end of deprecated functions list */
+
 AAX_API const char* AAX_APIENTRY
 aaxGetString(enum aaxSetupType type)
 {
@@ -137,53 +183,6 @@ aaxGetByName(const char* type)
 
    return rv;
 }
-
-
-/* deprecated functions */
-
-AAX_API unsigned AAX_APIENTRY
-aaxGetMajorVersion()
-{
-   return AAX_MAJOR_VERSION;
-}
-
-AAX_API unsigned AAX_APIENTRY
-aaxGetMinorVersion()
-{
-   return AAX_MINOR_VERSION;
-}
-
-AAX_API unsigned int AAX_APIENTRY
-aaxGetPatchLevel()
-{
-   return AAX_PATCH_LEVEL;
-}
-
-AAX_API const char* AAX_APIENTRY
-aaxGetCopyrightString()
-{
-   return (const char*)COPYING_v3;
-}
-
-AAX_API const char* AAX_APIENTRY
-aaxGetVersionString(UNUSED(aaxConfig cfg))
-{
-   return AAX_LIBRARY_STR" "AAX_VERSION_STR;
-}
-
-AAX_API enum aaxFilterType AAX_APIENTRY
-aaxMaxFilter(void)
-{
-   return AAX_FILTER_MAX;
-}
-
-AAX_API enum aaxEffectType AAX_APIENTRY
-aaxMaxEffect(void)
-{
-   return AAX_EFFECT_MAX;
-}
-
-/* end of deprecated functions list */
 
 AAX_API const char* AAX_APIENTRY
 aaxGetFormatString(enum aaxFormat format)
