@@ -1139,5 +1139,168 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
    }
 }
 
+static inline void
+_aaxBufResampleDecimate_float_neon(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+{
+   int32_ptr s = (int32_ptr)sptr;
+   int32_ptr d = dptr;
+   int32_t samp, dsamp;
+   size_t i;
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(dmin < dmax);
+   assert(freq_factor >= 1.0f);
+   assert(0.0f <= smu && smu < 1.0f);
+
+   d += dmin;
+
+   samp = *s++;                 // n+(step-1)
+   dsamp = *s - samp;           // (n+1) - n
+
+   i=dmax-dmin;
+   if (i)
+   {
+      if (freq_factor == 2.0f)
+      {
+         do {
+            *d++ = (*s + *(s+1))*0.5f;
+            s += 2;
+         }
+         while (--i);
+      }
+      else
+      {
+         do
+         {
+            size_t step;
+
+            *d++ = samp + (dsamp * smu);
+
+            smu += freq_factor;
+            step = (size_t)floorf(smu);
+
+            smu -= step;
+            s += step-1;
+            samp = *s++; 
+            dsamp = *s - samp;
+         }
+         while (--i);
+      }
+   }
+}
+
+static inline void
+_aaxBufResampleLinear_float_neon(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+{
+   int32_ptr s = (int32_ptr)sptr;
+   int32_ptr d = dptr;
+   int32_t samp, dsamp;
+   size_t i;
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(dmin < dmax);
+   assert(freq_factor < 1.0f);
+   assert(0.0f <= smu && smu < 1.0f);
+
+   d += dmin;
+
+   samp = *s++;         // n
+   dsamp = *s - samp;   // (n+1) - n
+
+   i = dmax-dmin;
+   if (i)
+   {
+      do
+      {
+         *d++ = samp + (dsamp * smu);
+
+         smu += freq_factor;
+         if (smu >= 1.0f)
+         {
+            smu -= 1.0f;
+            samp = *s++;
+            dsamp = *s - samp;
+         }
+      }
+      while (--i);
+   }
+}
+
+static inline void
+_aaxBufResampleCubic_float_neon(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
+{
+   float y0, y1, y2, y3, a0, a1, a2;
+   float32_ptr sptr = (float32_ptr)s;
+   float32_ptr dptr = d;
+   size_t i;
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(dmin < dmax);
+   assert(0.0f <= smu && smu < 1.0f);
+   assert(0.0f < freq_factor && freq_factor <= 1.0f);
+
+   dptr += dmin;
+
+   y0 = *sptr++;
+   y1 = *sptr++;
+   y2 = *sptr++;
+   y3 = *sptr++;
+
+   a0 = y3 - y2 - y0 + y1;
+   a1 = y0 - y1 - a0;
+   a2 = y2 - y0;
+
+   i = dmax-dmin;
+   if (i)
+   {
+      do
+      {
+         float smu2, ftmp;
+
+         smu2 = smu*smu;
+         ftmp = (a0*smu*smu2 + a1*smu2 + a2*smu + y1);
+         *dptr++ = ftmp;
+
+         smu += freq_factor;
+         if (smu >= 1.0)
+         {
+            smu--;
+            a0 += y0;
+            y0 = y1;
+            y1 = y2;
+            y2 = y3;
+            y3 = *sptr++;
+            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
+            a1 = y0 - y1 - a0;
+            a2 = y2 - y0;
+         }
+      }
+      while (--i);
+   }
+}
+
+void
+_batch_resample_float_neon(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
+{
+   assert(fact > 0.0f);
+
+   if (fact < CUBIC_TRESHOLD) {
+      _aaxBufResampleCubic_float_neon(d, s, dmin, dmax, smu, fact);
+   }
+   else if (fact < 1.0f) {
+      _aaxBufResampleLinear_float_neon(d, s, dmin, dmax, smu, fact);
+   }
+   else if (fact >= 1.0f) {
+      _aaxBufResampleDecimate_float_neon(d, s, dmin, dmax, smu, fact);
+   } else {
+//    _aaxBufResampleNearest_float_neon(d, s, dmin, dmax, smu, fact);
+      memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
+   }
+}
+
+
 #endif /* NEON */
 
