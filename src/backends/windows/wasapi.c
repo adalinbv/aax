@@ -68,7 +68,7 @@
 #define MAX_ID_STRLEN		64
 #define DEFAULT_RENDERER	"WASAPI"
 #define DEFAULT_DEVNAME		NULL
-#define CBSIZE		sizeof(WAVEFORMATEXTENSIBLE)-sizeof(WAVEFORMATEX)
+#define CBSIZE		(sizeof(WAVEFORMATEXTENSIBLE)-sizeof(WAVEFORMATEX))
 
 #define _AAX_DRVLOG(p)		_aaxWASAPIDriverLog(id, 0, p, __func__)
 #define _AAX_DRVLOG_VAR(args...)	_aaxWASAPIDriverLogVar(id, args);
