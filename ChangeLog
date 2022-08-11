@@ -1,4 +1,4 @@
-* Fri Jul 22 2022 - tech@adalin.org
+* Thu Aug 11 2022 - tech@adalin.org
 - AeonWave (3.12.0) stable; urgency=low
 
  * Implement a PipeWire audio backend.
@@ -12,13 +12,11 @@
    call to aaxBufferReadFromStream, by calling the aaxDriverGetSetup function.
  * Report I/O errors. Especially when an https connection is requested and SSL
    is not installed.
- * Add aaxGetFormatString() which returns the audio format in a human friendly
-   text format.
  * Clean up numerous allocated memory locations at exit.
  * Fix possible cracking-sounds caused by an unnecessary all-pass filter step in reverb.
  * Fix even repeat-numbers being one too many for the timed gain filter.
 
--- Erik Hofman <tech@adalin.org>  Fri 22 Jul 2022 10:53:23 + 0200
+-- Erik Hofman <tech@adalin.org>  Thu 22 Aug 2022 07:49:31 + 0200
 
 
 * Wed Mar 23 2022 - tech@adalin.org

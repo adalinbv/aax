@@ -603,6 +603,11 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       handle->spec = req;
       handle->period_frames = period_samples;
 
+      // NOTE: The PW_STREAM_FLAG_RT_PROCESS flag can be set to call the stream
+      //       processing callback from the realtime thread. However, it comes
+      //       with some caveats: no file IO, allocations, locking or other
+      //       blocking operations must occur in the mixer callback.
+      //
       // PW_STREAM_FLAG_EXCLUSIVE 		// require exclusive access
       flags = PW_STREAM_FLAG_AUTOCONNECT |	// try to automatically connect
               PW_STREAM_FLAG_MAP_BUFFERS |	// mmap the buffers
@@ -2126,9 +2131,9 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, enum pw_stream_flags flags, co
 {
    char m = (handle->mode == AAX_MODE_READ) ? 1 : 0;
    uint8_t pod_buffer[PW_POD_BUFFER_LENGTH];
-   struct spa_pod_builder b = SPA_POD_BUILDER_INIT(pod_buffer, sizeof(pod_buffer));
    struct spa_audio_info_raw spa_info = { 0 };
    const struct spa_pod *params = NULL;
+   struct spa_pod_builder b;
    int rv = AAX_FALSE;
 
    *error = NULL;
@@ -2136,6 +2141,7 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, enum pw_stream_flags flags, co
    handle->id = _pipewire_get_id_by_name(handle, handle->driver);
 
    spa_info = handle->spec;
+   b = SPA_POD_BUILDER_INIT(pod_buffer, sizeof(pod_buffer));
    params = spa_format_audio_raw_build(&b, SPA_PARAM_EnumFormat, &spa_info);
    if (params)
    {
@@ -2202,15 +2208,6 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, enum pw_stream_flags flags, co
                          handle);
          if (handle->pw)
          {
-            /*
-             * NOTE: The PW_STREAM_FLAG_RT_PROCESS flag can be set to call the
-             *       stream processing callback from the realtime thread.
-             *       However, it comes with some caveats: no file IO,
-             *       allocations, locking or other blocking operations must
-             *       occur in the mixer callback.  As this cannot be guaranteed
-             *       when the  callback is in the calling application, this flag
-             *       is omitted.
-             */
             uint32_t node_id = handle->id;
             int res;
 

@@ -631,10 +631,15 @@ typedef double aaxMtx4d[4][4];
 AAX_API int AAX_APIENTRY aaxPlaySoundLogo(const char*);
 AAX_API void AAX_APIENTRY aaxFree(void*);
 
-
-AAX_API const char* AAX_APIENTRY aaxGetString(enum aaxSetupType);
 AAX_API unsigned int AAX_APIENTRY aaxGetSetup(enum aaxSetupType);
+
+#if AAX_MAJOR_VERSION > 3
+AAX_API unsigned int AAX_APIENTRY aaxGetByType(enum aaxSetupType);
 AAX_API int AAX_APIENTRY aaxGetByName(const char*);
+AAX_API const char* AAX_APIENTRY aaxGetString(enum aaxSetupType);
+AAX_API int AAX_APIENTRY aaxGetByName(const char*);
+AAX_API const char* AAX_APIENTRY aaxGetFormatString(enum aaxFormat);
+#endif
 
 /* deprecated: use aaxGetByType, aaxGetByName and aaxGetString instead */
 AAX_API unsigned AAX_APIENTRY aaxGetMajorVersion(void);
@@ -651,8 +656,6 @@ AAX_API enum aaxDistanceModel AAX_APIENTRY aaxGetDistanceModelByName(const char*
 AAX_API enum aaxFilterType AAX_APIENTRY aaxMaxFilter(void);
 AAX_API enum aaxEffectType AAX_APIENTRY aaxMaxEffect(void);
 /** end of deprecated section */
-
-AAX_API const char* AAX_APIENTRY aaxGetFormatString(enum aaxFormat);
 
 AAX_API unsigned AAX_APIENTRY aaxGetBytesPerSample(enum aaxFormat);
 AAX_API unsigned AAX_APIENTRY aaxGetBitsPerSample(enum aaxFormat);

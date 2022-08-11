@@ -103,8 +103,8 @@ aaxMaxEffect(void)
 
 /* end of deprecated functions list */
 
-#if 0
-// Windows DLL API changes break backwards compatibility
+#if AAX_MAJOR_VERSION > 3
+// Windows DLL API changes would break backwards compatibility
 AAX_API const char* AAX_APIENTRY
 aaxGetString(enum aaxSetupType type)
 {
