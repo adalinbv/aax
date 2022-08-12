@@ -576,7 +576,7 @@ int main()		// x86		ARM
        * resample
        * Cubic threshold is 0.25
        */
-      freq_factor = 0.8f;
+      freq_factor = 0.2f;
       _batch_resample_float = _batch_resample_float_cpu;
 
       printf("\n== Resample:\n");
