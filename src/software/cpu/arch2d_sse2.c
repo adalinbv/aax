@@ -1728,7 +1728,8 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
       else
       {
          float32_ptr d = dptr;
-         size_t i = num;
+         int i = num/3;
+         int rest = num-i*3;
 
          do
          {
@@ -1737,8 +1738,34 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
             h1 = h0;
             h0 = smp;
+
+            smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+            *d++ = smp;
+
+            h1 = h0;
+            h0 = smp;
+
+            smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+            *d++ = smp;
+
+            h1 = h0;
+            h0 = smp;
          }
          while (--i);
+
+         if (rest)
+         {
+            i = rest;
+            do
+            {
+               float smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
       }
 
       *hist++ = h0;
@@ -1802,7 +1829,8 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          else
          {
             float32_ptr d = dptr;
-            size_t i = num;
+            int i = num/3;
+            int rest = num-i*3;
 
             do
             {
@@ -1811,8 +1839,34 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
                h1 = h0;
                h0 = smp;
+
+               smp = *d  + ((h0 * c0) + (h1 * c1));
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+
+               smp = *d  + ((h0 * c0) + (h1 * c1));
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
             }
             while (--i);
+
+            if (rest)
+            {
+               i = rest;
+               do
+               {
+                  float smp = *d  + ((h0 * c0) + (h1 * c1));
+                  *d++ = smp;
+
+                  h1 = h0;
+                  h0 = smp;
+               }
+               while (--i);
+            }
          }
 
          *hist++ = h0;
