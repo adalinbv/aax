@@ -1236,8 +1236,6 @@ _aaxBufResampleCubic_float_neon(float32_ptr d, const_float32_ptr s, size_t dmin,
    float32_ptr dptr = d;
    size_t i;
 
-printf("_aaxBufResampleCubic_float_neon\n");
-
    assert(s != 0);
    assert(d != 0);
    assert(dmin < dmax);

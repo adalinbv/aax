@@ -137,6 +137,7 @@ int main()		// x86		ARM
    simd = _aaxArchDetectVFPV3();
    simd1 = _aaxArchDetectVFPV4();
    simd2 = _aaxArchDetectNeon();
+   simd4 = _aaxArchDetectNeon();
    fma = _aaxArchDetectVFPV4();
 #endif
 
@@ -175,7 +176,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f);
       cpu = 1e-6f*timer_end(ts);
-      printf("\nfadd " CPU ":  %f ms\n", cpu*1000.0f);
+      printf("\nfadd " CPU ":\t%f ms\n", cpu*1000.0f);
 
       if (simd)
       {
@@ -280,7 +281,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_fmadd(dst1, dst1, MAXNUM, FACTOR, VSTEP);
       cpu = 1e-6f*timer_end(ts);
-      printf("\nfmadd " CPU ": %f ms\n", cpu*1000.0f);
+      printf("\nfmadd " CPU ":\t%f ms\n", cpu*1000.0f);
 
       if (simd)
       {
@@ -326,7 +327,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_fmul_value(dst1, dst1, sizeof(float), MAXNUM, FACTOR);
       cpu = 1e-6f*timer_end(ts);
-      printf("\nfmul " CPU ":  %f ms\n", cpu*1000.0f);
+      printf("\nfmul " CPU ":\t%f ms\n", cpu*1000.0f);
 
       if (simd)
       {
@@ -367,7 +368,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_fmul_value_cpu(ddst1, ddst1, sizeof(double), MAXNUM, FACTOR);
       cpu = 1e-6f*timer_end(ts);
-      printf("\ndmul " CPU ":  %f ms\n", cpu*1000.0f);
+      printf("\ndmul " CPU ":\t%f ms\n", cpu*1000.0f);
 
       if (simd)
       {
@@ -377,7 +378,7 @@ int main()		// x86		ARM
          ts = timer_start();
          _batch_fmul_value(dst2, ddst2, sizeof(double), MAXNUM, FACTOR);
          eps = 1e-6f*timer_end(ts);
-         printf("dmul "MKSTR(SIMD)": %f ms - cpu x %3.2f", eps*1000.0f, cpu/eps);
+         printf("dmul "MKSTR(SIMD)":\%f ms - cpu x %3.2f", eps*1000.0f, cpu/eps);
          TESTLF("double fmul "MKSTR(SIMD), (float)ddst1, (float)ddst2);
       }
 
@@ -389,7 +390,7 @@ int main()		// x86		ARM
          ts = timer_start();
          _batch_fmul_value(dst2, ddst2, sizeof(double), MAXNUM, FACTOR);
          eps = 1e-6f*timer_end(ts);
-         printf("dmul "MKSTR(SIMD2)": %f ms - cpu x %3.2f", eps*1000.0f, cpu/eps);
+         printf("dmul "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f", eps*1000.0f, cpu/eps);
          TESTLF("double fmul "MKSTR(SIMD2), (float)ddst1, (float)ddst2);
       }
 #endif
@@ -415,17 +416,6 @@ int main()		// x86		ARM
          printf("round %s:\t%f ms - cpu x %3.2f", MKSTR(SIMD), eps*1000.0f, cpu/eps);
          TESTF("round "MKSTR(SIMD), dst1, dst2);
       }
-      if (simd4)
-      {
-         memcpy(dst2, src, MAXNUM*sizeof(float));
-         _batch_roundps = GLUE(_batch_roundps, SIMD4);
-
-         ts = timer_start();
-         _batch_roundps(dst2, dst2, MAXNUM);
-         eps = 1e-6f*timer_end(ts);
-         printf("round %s:\t%f ms - cpu x %3.2f", MKSTR(SIMD4), eps*1000.0f, cpu/eps);
-         TESTF("round "MKSTR(SIMD4), dst1, dst2);
-      }
       if (simd2)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -437,7 +427,7 @@ int main()		// x86		ARM
          printf("round %s:\t%f ms - cpu x %3.2f", MKSTR(SIMD1), eps*1000.0f, cpu/eps);
          TESTF("round "MKSTR(SIMD1), dst1, dst2);
       }
-#if !defined(__x86_64__)
+#if !defined(__x86_64__) && !(defined(__arm__) || defined(_M_ARM))
       if (simd2)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -450,6 +440,17 @@ int main()		// x86		ARM
          TESTF("round "MKSTR(SIMD2), dst1, dst2);
       }
 #endif
+      if (simd4)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         _batch_roundps = GLUE(_batch_roundps, SIMD4);
+
+         ts = timer_start();
+         _batch_roundps(dst2, dst2, MAXNUM);
+         eps = 1e-6f*timer_end(ts);
+         printf("round %s:\t%f ms - cpu x %3.2f", MKSTR(SIMD4), eps*1000.0f, cpu/eps);
+         TESTF("round "MKSTR(SIMD4), dst1, dst2);
+      }
 
       /*
        * batch atan floats
@@ -467,7 +468,7 @@ int main()		// x86		ARM
       ts = timer_start();
       _batch_atanps(dst2, dst2, MAXNUM);
       eps = 1e-6f*timer_end(ts);
-      printf("atan " CPU ":  %f ms - atanf x %3.2f", eps*1000.0f, cpu/eps);
+      printf("atan " CPU ":\t%f ms - atanf x %3.2f", eps*1000.0f, cpu/eps);
       TESTF("atan "MKSTR(SIMD), dst1, dst2);
 
       if (simd)
