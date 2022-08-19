@@ -82,6 +82,7 @@ aaxEmitterCreate()
       src->props3d = _aax3dPropsCreate();
       if (src->props3d)
       {
+          _PROP_MTX_SET_CHANGED(src->props3d);
           _SET_INITIAL(src->props3d);
 
          _intBufCreate(&src->buffers, _AAX_EMITTER_BUFFER);
