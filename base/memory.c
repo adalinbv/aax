@@ -512,14 +512,15 @@ stradd(char *src, char *dest)
    return rv;
 }
 
-char *
+size_t
 strlcpy(char *dest, const char *src, size_t n)
 {
-   char *rv = NULL;
+   size_t rv = 0;
    if (n > 0)
    {
-      strncpy(dest, src, _MIN(strlen(src), --n));
-      dest[n] = '\0';
+      memcpy(dest, src, _MIN(strlen(src)+1, n-1));
+      dest[n-1] = '\0';
+      rv = strlen(dest);
    }
    return rv;
 }
