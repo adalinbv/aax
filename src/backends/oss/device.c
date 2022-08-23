@@ -974,7 +974,7 @@ _aaxOSSDriverGetDevices(const void *id, int mode)
                   slen = strlen(name);
                   if (slen && !strncasecmp(name, ainfo.name, slen)) continue;
 
-                  strcpy(name, ainfo.name);
+                  strlcpy(name, ainfo.name, 64);
                   p = strstr(name, " rec");
                   if (!p) p = strstr(name, " play");
                   if (!p) p = strstr(name, " pcm");

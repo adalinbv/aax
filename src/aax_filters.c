@@ -33,6 +33,7 @@
 
 #include <aax/aax.h>
 
+#include <base/memory.h>
 #include <base/types.h>		/* for rintf */
 #include <base/gmath.h>
 
@@ -309,9 +310,8 @@ aaxFilterGetByName(UNUSED(aaxConfig handle), const char *name)
       name += 4;
    }
 
-   strncpy(type, name, 256);
+   strlcpy(type, name, 256);
    name = type;
-   type[255] = 0;
 
    slen = strlen(name);
    for (i=0; i<slen; ++i) {

@@ -1722,7 +1722,7 @@ registry_event_global_callback(void *object, uint32_t id, uint32_t permissions, 
             io->id = id;
             io->is_capture = is_capture;
             io->spec.format = SPA_AUDIO_FORMAT_S16;
-            strncpy(io->name, node_desc, str_buffer_len);
+            strnlpy(io->name, node_desc, str_buffer_len);
 
             /* Update sync points */
             hotplug_core_sync(node);

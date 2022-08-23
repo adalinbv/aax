@@ -29,6 +29,8 @@
 
 #include <aax/aax.h>
 
+#include <base/memory.h>
+
 #include <dsp/filters.h>
 #include <dsp/effects.h>
 
@@ -716,9 +718,8 @@ aaxGetDistanceModelByName(const char *name)
       char type[256];
       size_t i, len;
 
-      strncpy(type, name, 255);
+      strlcpy(type, name, 255);
       name = type;
-      type[255] = 0;
 
       len = strlen(name);
       for (i=0; i<len; ++i) {
