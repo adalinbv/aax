@@ -429,6 +429,10 @@ aaxDriverOpen(aaxConfig config)
       const _aaxDriverBackend *be = handle->backend.ptr;
       void *xoid, *nid = 0;
 
+      // for debugging purposes
+      env = getenv("AAX_CUBIC_THRESHOLD");
+      if (env) _aax_cubic_threshold = atof(env);
+
       if (cfg)
       {
          if (handle->info->mode == AAX_MODE_READ) {

@@ -3,6 +3,7 @@
 - AeonWave (3.12.1) stable; urgency=low
 
  * Fix Bessel frequency filter rendering speed improvements for SSE2.
+ * Mark props3d as changed after creation to set at least the max. gain.
 
 -- Erik Hofman <tech@adalin.org>  Tue 16 Aug 2022 07:56:24 + 0200
 

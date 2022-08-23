@@ -54,6 +54,8 @@
 #endif
 #define RB_ID		0x81726354
 
+float _aax_cubic_threshold = 0.25f;
+
 static int _aaxRingBufferClear(_aaxRingBufferData*, int, char);
 static void _aaxRingBufferInitFunctions(_aaxRingBuffer*);
 

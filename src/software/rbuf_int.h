@@ -194,7 +194,7 @@ typedef struct _aaxRingBufferData_t
 
 /* --------------------------------------------------------------------------*/
 
-#define CUBIC_TRESHOLD		0.25f
+#define CUBIC_TRESHOLD		(_aax_cubic_threshold)
 
 /** CODECs */
 typedef struct {

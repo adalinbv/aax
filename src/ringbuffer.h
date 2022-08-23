@@ -122,6 +122,8 @@ enum _aaxRingBufferMode
 # define CONST_MIX_PTRPTR_T     const_int32_ptrptr
 #endif
 
+extern float _aax_cubic_threshold;
+
 /** forwrad declaration */
 typedef struct _aaxRingBuffer_t __aaxRingBuffer;
 
