@@ -512,6 +512,7 @@ stradd(char *src, char *dest)
    return rv;
 }
 
+#ifndef HAVE_STRLCPY
 size_t
 strlcpy(char *dest, const char *src, size_t n)
 {
@@ -524,4 +525,4 @@ strlcpy(char *dest, const char *src, size_t n)
    }
    return rv;
 }
-
+#endif

@@ -64,7 +64,9 @@ char *strnstr(const char*, const char*, size_t);
 char *strncasestr(const char*, const char*, size_t);
 char* stradd(char*, char*);
 
+#ifndef HAVE_STRLCPY
 size_t strlcpy(char*, const char*, size_t);
+#endif
 
 
 #if defined(__cplusplus)
