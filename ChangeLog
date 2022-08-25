@@ -1,11 +1,12 @@
 
-* Tue Aug 16 2022 - tech@adalin.org
+* Sat Aug 27 2022 - tech@adalin.org
 - AeonWave (3.12.1) stable; urgency=low
 
  * Fix Bessel frequency filter rendering speed improvements for SSE2.
- * Mark props3d as changed after creation to set at least the max. gain.
+ * Mark props3d as changed after creation to set the max. gain to non-zero
+ * Fix a mistake where C++ Buffer class references could not be assigned.
 
--- Erik Hofman <tech@adalin.org>  Tue 16 Aug 2022 07:56:24 + 0200
+-- Erik Hofman <tech@adalin.org>  Sat 27 Aug 2022 08:08:27 + 0200
 
 
 * Thu Aug 11 2022 - tech@adalin.org
