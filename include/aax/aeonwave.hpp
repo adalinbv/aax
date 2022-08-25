@@ -358,10 +358,10 @@ public:
     Buffer(aaxConfig c, std::string& name, bool o=true, bool s=false)
         : Buffer(c, name.c_str(), o, s) {}
 
-    Buffer(const Buffer&) = delete;
+    Buffer(const Buffer&) = default;
     Buffer(Buffer&&) = default;
 
-    Buffer& operator=(const Buffer&) = delete;
+    Buffer& operator=(const Buffer&) = default;
     Buffer& operator=(Buffer&&) = default;
 
     inline void set(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) {
