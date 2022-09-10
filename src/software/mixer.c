@@ -109,9 +109,8 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
     */
    maxgain = be->param(hid, DRIVER_MAX_VOLUME);
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
-   if (gain > maxgain) {
-      rb->data_multiply(rb, 0, 0, gain/maxgain);
-   }
+   if (gain > maxgain) gain = maxgain;
+   rb->data_multiply(rb, 0, 0, gain);
 }
 
 void

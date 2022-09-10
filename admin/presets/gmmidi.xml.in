@@ -139,7 +139,7 @@
    <instrument n="122" name="Seashore" file="effects/nature/water-seashore"/>
    <instrument n="123" name="Bird Tweet" file="effects/nature/birds"/>
    <instrument n="124" name="Telephone Ring" file="effects/domestic/telephone-bell"/>
-   <instrument n="125" name="Helicopter" file="effects/transport/rotor-blades"/>
+   <instrument n="125" name="Helicopter" file="instruments/helicopter"/>
    <instrument n="126" name="Applause" file="effects/humans/applause"/>
    <instrument n="127" name="Gunshot" file="effects/weapons/gun-pistol"/>
   </bank>
@@ -159,7 +159,7 @@
 
   <bank n="3">
    <instrument n="122" name="Wind Blowing" file="effects/nature/weather-wind"/>
-   <instrument n="124" name="Creaking Door" file="effects/domestic/creaking-door"/>
+   <instrument n="124" name="Creaking Door" file="effects/domestic/door-creaking"/>
    <instrument n="125" name="Car Pass" file="instruments/car-pass"/>
    <instrument n="126" name="Punch" file="effects/humans/punch-body"/>
    <instrument n="127" name="Explosion" file="effects/weapons/explosion"/>
