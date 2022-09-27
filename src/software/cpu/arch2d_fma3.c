@@ -48,7 +48,8 @@ hsum256_ps_fma3(__m256 v) {
 
 static inline __m256
 _mm256_abs_ps(__m256 x) {
-   return _mm256_andnot_ps(_mm256_set1_ps(-0.0f), x);
+   const __m256 nzero = _mm256_set1_ps(-0.0f);
+   return _mm256_andnot_ps(nzero, x);
 }
 
 static inline int
@@ -58,8 +59,8 @@ _mm256_testz_ps_fma3(__m256 x)
    return _mm256_testz_si256(_mm256_castps_si256(x), zero);
 }
 
-static inline __m256    // range -1.0f .. 1.0f
-fast_sin8_fma3(__m256 x)
+static inline __m256		// range -1.0f .. 1.0f
+fast_sin8_fma3(__m256 x)	// -4.0f*(-x*fabsf(x) + x)
 {
    const __m256 four = _mm256_set1_ps(-4.0f);
    return _mm256_mul_ps(four, _mm256_fmadd_ps(-x, _mm256_abs_ps(x), x));
