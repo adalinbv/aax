@@ -30,6 +30,8 @@ extern "C" {
 #include "config.h"
 #endif
 
+#include <base/databuffer.h>
+
 #include <api.h>
 #include "audio.h"
 

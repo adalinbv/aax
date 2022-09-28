@@ -34,8 +34,8 @@
 # include <rmalloc.h>
 #endif
 
+#include <base/databuffer.h>
 #include <base/memory.h>
-#include <arch.h>
 
 #include "device.h"
 #include "audio.h"

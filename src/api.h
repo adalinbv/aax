@@ -62,39 +62,6 @@ extern "C" {
 #define _NOLOCK			AAX_FALSE
 #define _LOCK			AAX_TRUE
 
-/* --- data buffers -- */
-#define DATA_ID	0xDFA82736
-typedef struct _data_st
-{
-   unsigned int id;
-
-   unsigned int blocksize;
-   unsigned char *data;
-   size_t offset;
-   size_t size;
-
-} _data_t;
-
-_data_t* _aaxDataCreate(size_t, unsigned int);
-int _aaxDataDestroy(_data_t*);
-size_t _aaxDataAdd(_data_t*, const void*, size_t);
-size_t _aaxDataCopy(_data_t*, void*, size_t, size_t);
-size_t _aaxDataMove(_data_t*, void*, size_t);
-size_t _aaxDataMoveOffset(_data_t*, void*, size_t, size_t);
-size_t _aaxDataMoveData(_data_t*, _data_t*, size_t);
-void _aaxDataClear(_data_t*);
-
-size_t _aaxDataGetSize(_data_t*);
-size_t _aaxDataGetFreeSpace(_data_t*);
-size_t _aaxDataGetDataAvail(_data_t*);
-ssize_t _aaxDataIncreaseOffset(_data_t*, size_t);
-ssize_t _aaxDataSetOffset(_data_t*, size_t);
-size_t _aaxDataGetOffset(_data_t*);
-
-void* _aaxDataGetData(_data_t*);
-void* _aaxDataGetPtr(_data_t*);
-
-
 /* --- Error support -- */
 #define _aaxErrorSet(a)		__aaxDriverErrorSet(handle,(a),__func__)
 enum aaxErrorType __aaxDriverErrorSet(void*,enum aaxErrorType, const char*);

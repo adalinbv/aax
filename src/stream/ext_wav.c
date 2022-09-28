@@ -37,11 +37,13 @@
 #include <xml.h>
 
 #include <3rdparty/pdmp3.h>
+
+#include <base/databuffer.h>
 #include <base/memory.h>
-#include <arch.h>
 
 #include "device.h"
 #include "audio.h"
+#include "arch.h"
 #include "api.h"
 
 // Spec:

@@ -20,7 +20,6 @@ set(SRC_SOURCES
   aax_sensor.c
   aax_support.c
   api.c
-  arch.c
   objects.c
 )
 

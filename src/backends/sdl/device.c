@@ -36,6 +36,7 @@
 #include <aax/aax.h>
 #include <xml.h>
 
+#include <base/databuffer.h>
 #include <base/dlsym.h>
 #include <base/logging.h>
 #include <base/memory.h>

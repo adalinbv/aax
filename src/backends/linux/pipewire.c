@@ -44,6 +44,7 @@
 #include <aax/aax.h>
 #include <xml.h>
 
+#include <base/databuffer.h>
 #include <base/memory.h>
 #include <base/dlsym.h>
 
