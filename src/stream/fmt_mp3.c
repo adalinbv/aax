@@ -690,8 +690,8 @@ _mp3_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    blocksize = handle->blocksize;
    bytes = *num*blocksize;
 
-   buf = handle->mp3Buffer->data;
-   bufsize = handle->mp3Buffer->size;
+   buf = _aaxDataGetData(handle->mp3Buffer);
+   bufsize = _aaxDataGetSize(handle->mp3Buffer);
 
    if (bytes > bufsize) {
       bytes = bufsize;
@@ -760,8 +760,8 @@ _mp3_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
    blocksize = handle->blocksize;
    bytes = *num*blocksize;
 
-   buf = handle->mp3Buffer->data;
-   bufsize = handle->mp3Buffer->size;
+   buf = _aaxDataGetData(handle->mp3Buffer);
+   bufsize = _aaxDataGetSize(handle->mp3Buffer);
 
    if (bytes > bufsize) {
       bytes = bufsize;
@@ -817,6 +817,8 @@ size_t
 _mp3_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = fmt->id;
+   void *buf = _aaxDataGetData(handle->mp3Buffer);
+   size_t bufsize = _aaxDataGetSize(handle->mp3Buffer);
    int res;
 
    assert(scratchlen >= *num*handle->no_tracks*sizeof(int32_t));
@@ -824,8 +826,8 @@ _mp3_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    handle->no_samples += *num;
    _batch_cvt16_intl_24(scratch, sptr, offs, handle->no_tracks, *num);
    res = plame_encode_buffer_interleaved(handle->id, scratch, *num,
-                              handle->mp3Buffer->data, handle->mp3Buffer->size);
-   _aax_memcpy(dptr, handle->mp3Buffer->data, res);
+                                         buf, bufsize);
+   _aax_memcpy(dptr, buf, res);
 
    return res;
 }
