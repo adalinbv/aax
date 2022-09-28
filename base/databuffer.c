@@ -36,13 +36,37 @@
 #include "arch.h"
 #include "databuffer.h"
 
+static unsigned char**
+_aaxDataAlloc(uint8_t tracks, size_t tracksize)
+{
+   unsigned char** rv;
+   char *ptr;
+
+// rv->data = _aax_aligned_alloc(size);
+   tracksize = SIZE_ALIGNED(tracksize);
+   rv = (unsigned char**)_aax_malloc(&ptr, tracks*sizeof(unsigned char*), tracksize);
+   if (rv)
+   {
+      int t;
+      for (t=0; t<tracks; ++t)
+      {
+         rv[0] = (unsigned char*)ptr;
+         ptr += tracksize;
+      }
+   }
+
+   return rv;
+}
+
 _data_t*
 _aaxDataCreate(size_t size, unsigned int blocksize)
 {
    _data_t* rv = malloc(sizeof(_data_t));
    if (rv)
    {
-      rv->data = _aax_aligned_alloc(size);
+      int tracks = 1;
+
+      rv->data = _aaxDataAlloc(tracks, size);
       if (rv->data)
       {
          rv->id = DATA_ID;
@@ -74,7 +98,7 @@ _aaxDataDestroy(_data_t* buf)
 
       buf->id = FADEDBAD;
 
-      _aax_aligned_free(buf->data);
+      _aax_free(buf->data);
       free(buf);
    }
 
@@ -96,7 +120,7 @@ _aaxDataAdd(_data_t* buf, const void* data, size_t size)
 
    if (rv)
    {
-      memcpy(buf->data+buf->offset, data, rv);
+      memcpy(buf->data[0]+buf->offset, data, rv);
       buf->offset += rv;
    }
 
@@ -121,7 +145,7 @@ _aaxDataCopy(_data_t* buf, void* data, size_t offset, size_t size)
 
       rv = _MIN((size/buf->blocksize)*buf->blocksize, remain);
       if (rv) {
-         memcpy(data, buf->data+offset, rv);
+         memcpy(data, buf->data[0]+offset, rv);
       }
    }
 
@@ -140,12 +164,12 @@ _aaxDataMove(_data_t* buf, void* data, size_t size)
    {
       rv = _MIN((size/buf->blocksize)*buf->blocksize, buf->offset);
       if (data) {
-         memcpy(data, buf->data, rv);
+         memcpy(data, buf->data[0], rv);
       }
 
       buf->offset -= rv;
       if (buf->offset > 0) {
-         memmove(buf->data, buf->data+rv, buf->offset);
+         memmove(buf->data[0], buf->data[0]+rv, buf->offset);
       }
    }
 
@@ -169,13 +193,13 @@ _aaxDataMoveOffset(_data_t* buf, void* data, size_t offset, size_t size)
 
       rv = _MIN((size/buf->blocksize)*buf->blocksize, remain);
       if (data && rv) {
-         memcpy(data, buf->data+offset, rv);
+         memcpy(data, buf->data[0]+offset, rv);
       }
 
       remain -= rv;
       buf->offset -= rv;
       if (buf->offset > 0 && remain > 0) {
-         memmove(buf->data+offset, buf->data+offset+rv, remain);
+         memmove(buf->data[0]+offset, buf->data[0]+offset+rv, remain);
       }
    }
 
@@ -200,12 +224,12 @@ _aaxDataMoveData(_data_t* src, _data_t* dst, size_t size)
          rv = dst->size - dst->offset;
       }
 
-      memcpy(dst->data+dst->offset, src->data, rv);
+      memcpy(dst->data[0]+dst->offset, src->data[0], rv);
 
       src->offset -= rv;
       dst->offset += rv;
       if (src->offset > 0) {
-         memmove(src->data, src->data+rv, src->offset);
+         memmove(src->data[0], src->data[0]+rv, src->offset);
       }
    }
 
@@ -215,13 +239,13 @@ _aaxDataMoveData(_data_t* src, _data_t* dst, size_t size)
 void*
 _aaxDataGetData(_data_t *buf)
 {
-   return buf->data;
+   return buf->data[0];
 }
 
 void*
 _aaxDataGetPtr(_data_t *buf)
 {
-   return buf->data + buf->offset;
+   return buf->data[0] + buf->offset;
 }
 
 size_t

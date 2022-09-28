@@ -29,8 +29,9 @@ typedef struct _data_st
 {
    unsigned int id;
 
+   unsigned char **data;
+
    unsigned int blocksize;
-   unsigned char *data;
    size_t offset; // or fill-level
    size_t size;   // maximum buffer size
 
