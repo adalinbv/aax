@@ -24,15 +24,15 @@
 
 #include <unistd.h>
 
-#define DATA_ID 0xDFA82736
 typedef struct _data_st
 {
    unsigned int id;
 
    unsigned char **data;
 
+   unsigned char no_tracks;
    unsigned int blocksize;
-   size_t offset; // or fill-level
+   size_t *offset; // or fill-level
    size_t size;   // maximum buffer size
 
 } _data_t;

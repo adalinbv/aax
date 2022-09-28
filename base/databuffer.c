@@ -1,6 +1,6 @@
 /*
- * Copyright 2017 by Erik Hofman.
- * Copyright 2017 by Adalin B.V.
+ * Copyright 2017-2022 by Erik Hofman.
+ * Copyright 2017-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -37,6 +37,8 @@
 #include "memory.h"
 #include "databuffer.h"
 
+#define DATA_ID	0xDFA82736
+
 static unsigned char**
 _aaxDataAlloc(uint8_t tracks, size_t tracksize)
 {
@@ -63,17 +65,25 @@ _data_t*
 _aaxDataCreate(size_t size, unsigned int blocksize)
 {
    _data_t* rv = malloc(sizeof(_data_t));
+   unsigned char tracks = 1;
    if (rv)
    {
-      int tracks = 1;
-
       rv->data = _aaxDataAlloc(tracks, size);
       if (rv->data)
       {
-         rv->id = DATA_ID;
-         rv->size = size;
-         rv->offset = 0;
-         rv->blocksize = blocksize ? blocksize : 1;
+         rv->offset = calloc(tracks, sizeof(size_t));
+         if (rv->offset)
+         {
+            rv->id = DATA_ID;
+            rv->size = size;
+            rv->no_tracks = tracks;
+            rv->blocksize = blocksize ? blocksize : 1;
+         }
+         else
+         {
+            free(rv);
+            rv = NULL;
+         }
       }
       else
       {
@@ -87,7 +97,7 @@ _aaxDataCreate(size_t size, unsigned int blocksize)
 void
 _aaxDataClear(_data_t* buf)
 {
-   buf->offset = 0;
+   buf->offset[0] = 0;
 }
 
 int
@@ -99,7 +109,8 @@ _aaxDataDestroy(_data_t* buf)
 
       buf->id = FADEDBAD;
 
-      _aax_free(buf->data);
+      free(buf->offset);
+      free(buf->data);
       free(buf);
    }
 
@@ -115,14 +126,14 @@ _aaxDataAdd(_data_t* buf, const void* data, size_t size)
    assert(buf->id == DATA_ID);
    assert(data);
 
-   free = buf->size - buf->offset;
+   free = buf->size - buf->offset[0];
    if (size > free) rv = free;
    else rv = size;
 
    if (rv)
    {
-      memcpy(buf->data[0]+buf->offset, data, rv);
-      buf->offset += rv;
+      memcpy(buf->data[0]+buf->offset[0], data, rv);
+      buf->offset[0] += rv;
    }
 
    return rv;
@@ -137,12 +148,12 @@ _aaxDataCopy(_data_t* buf, void* data, size_t offset, size_t size)
    assert(buf->id == DATA_ID);
    assert(data);
 
-   if (!data || offset+size > buf->offset) {
+   if (!data || offset+size > buf->offset[0]) {
       rv = 0;
    }
    else if (size >= buf->blocksize)
    {
-      size_t remain = buf->offset - offset;
+      size_t remain = buf->offset[0] - offset;
 
       rv = _MIN((size/buf->blocksize)*buf->blocksize, remain);
       if (rv) {
@@ -163,14 +174,14 @@ _aaxDataMove(_data_t* buf, void* data, size_t size)
 
    if (size >= buf->blocksize)
    {
-      rv = _MIN((size/buf->blocksize)*buf->blocksize, buf->offset);
+      rv = _MIN((size/buf->blocksize)*buf->blocksize, buf->offset[0]);
       if (data) {
          memcpy(data, buf->data[0], rv);
       }
 
-      buf->offset -= rv;
-      if (buf->offset > 0) {
-         memmove(buf->data[0], buf->data[0]+rv, buf->offset);
+      buf->offset[0] -= rv;
+      if (buf->offset[0] > 0) {
+         memmove(buf->data[0], buf->data[0]+rv, buf->offset[0]);
       }
    }
 
@@ -185,12 +196,12 @@ _aaxDataMoveOffset(_data_t* buf, void* data, size_t offset, size_t size)
    assert(buf);
    assert(buf->id == DATA_ID);
 
-   if (offset+size > buf->offset) {
+   if (offset+size > buf->offset[0]) {
       rv = 0;
    }
    else if (size >= buf->blocksize)
    {
-      ssize_t remain = buf->offset - offset;
+      ssize_t remain = buf->offset[0] - offset;
 
       rv = _MIN((size/buf->blocksize)*buf->blocksize, remain);
       if (data && rv) {
@@ -198,8 +209,8 @@ _aaxDataMoveOffset(_data_t* buf, void* data, size_t offset, size_t size)
       }
 
       remain -= rv;
-      buf->offset -= rv;
-      if (buf->offset > 0 && remain > 0) {
+      buf->offset[0] -= rv;
+      if (buf->offset[0] > 0 && remain > 0) {
          memmove(buf->data[0]+offset, buf->data[0]+offset+rv, remain);
       }
    }
@@ -220,17 +231,17 @@ _aaxDataMoveData(_data_t* src, _data_t* dst, size_t size)
 
    if (size >= src->blocksize && size > dst->blocksize)
    {
-      rv = _MIN((size/src->blocksize)*src->blocksize, src->offset);
-      if (rv > (dst->size - dst->offset)) {
-         rv = dst->size - dst->offset;
+      rv = _MIN((size/src->blocksize)*src->blocksize, src->offset[0]);
+      if (rv > (dst->size - dst->offset[0])) {
+         rv = dst->size - dst->offset[0];
       }
 
-      memcpy(dst->data[0]+dst->offset, src->data[0], rv);
+      memcpy(dst->data[0]+dst->offset[0], src->data[0], rv);
 
-      src->offset -= rv;
-      dst->offset += rv;
-      if (src->offset > 0) {
-         memmove(src->data[0], src->data[0]+rv, src->offset);
+      src->offset[0] -= rv;
+      dst->offset[0] += rv;
+      if (src->offset[0] > 0) {
+         memmove(src->data[0], src->data[0]+rv, src->offset[0]);
       }
    }
 
@@ -246,7 +257,7 @@ _aaxDataGetData(_data_t *buf)
 void*
 _aaxDataGetPtr(_data_t *buf)
 {
-   return buf->data[0] + buf->offset;
+   return buf->data[0] + buf->offset[0];
 }
 
 size_t
@@ -260,13 +271,13 @@ _aaxDataSetOffset(_data_t *buf, size_t offs)
 {
    ssize_t rv = 0;
 
-   if (buf->offset + offs <= buf->size) {
-      buf->offset = offs;
+   if (buf->offset[0] + offs <= buf->size) {
+      buf->offset[0] = offs;
    }
    else
    {
-      rv = buf->size - (buf->offset + offs);
-      buf->offset = buf->size;
+      rv = buf->size - (buf->offset[0] + offs);
+      buf->offset[0] = buf->size;
    }
 
    return rv;
@@ -277,13 +288,13 @@ _aaxDataIncreaseOffset(_data_t *buf, size_t offs)
 {
    ssize_t rv = 0;
 
-   if (buf->offset + offs <= buf->size) {
-      buf->offset += offs;
+   if (buf->offset[0] + offs <= buf->size) {
+      buf->offset[0] += offs;
    }
    else
    {
-      rv = buf->size - (buf->offset + offs);
-      buf->offset = buf->size;
+      rv = buf->size - (buf->offset[0] + offs);
+      buf->offset[0] = buf->size;
    }
 
    return rv;
@@ -292,18 +303,18 @@ _aaxDataIncreaseOffset(_data_t *buf, size_t offs)
 size_t
 _aaxDataGetOffset(_data_t *buf)
 {
-   return buf->offset;
+   return buf->offset[0];
 }
 
 size_t
 _aaxDataGetDataAvail(_data_t *buf)
 {
-   return buf->offset;
+   return buf->offset[0];
 }
 
 size_t
 _aaxDataGetFreeSpace(_data_t *buf)
 {
-   return buf->size - buf->offset;
+   return buf->size - buf->offset[0];
 }
 
