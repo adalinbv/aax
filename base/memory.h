@@ -28,7 +28,16 @@
 extern "C" {
 #endif
 
+#include "types.h"
+
 char is_bigendian();
+
+#define BYTE_ALIGN	1
+#define SIZE_ALIGNED(a)	((a) & MEMMASK) ? ((a)|MEMMASK)+1 : (a)
+void _aax_free_aligned(void*);
+char* _aax_calloc_aligned(char**, size_t, size_t, size_t);
+char* _aax_malloc_aligned(char**, size_t, size_t);
+char* _aax_strdup(const_char_ptr);
 
 /* write */
 void write8(uint8_t**, uint8_t, size_t*);

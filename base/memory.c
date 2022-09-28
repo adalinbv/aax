@@ -33,8 +33,119 @@
 #include <ctype.h>	// toupper
 #include <assert.h>
 
+#include "logging.h"
 #include "types.h"	// _MIN
 #include "memory.h"
+
+#define _DATA_SYSLOG(a)	__aax_log(LOG_SYSLOG, 0, (a), 0, LOG_SYSLOG);
+
+#if !BYTE_ALIGN
+char *
+_aax_malloc_aligned(char **start, size_t offs, size_t size)
+{
+   char *rv = malloc(size);
+   *start = rv+offs;
+   return rv;
+}
+#else
+char *
+_aax_malloc_aligned(char **start, size_t offs, size_t size)
+{
+   int ctr = 3;
+   char *ptr;
+
+   size += offs;
+   size = SIZE_ALIGNED(size + MEMALIGN);
+   do
+   {
+      ptr = (char *)malloc(size);
+      if (ptr)
+      {
+         char *s = ptr + offs;
+         size_t tmp;
+
+         tmp = (size_t)s & MEMMASK;
+         if (tmp)
+         {
+            tmp = MEMALIGN - tmp;
+            s += tmp;
+         }
+         *start = s;
+      }
+   }
+   while (!ptr && --ctr);
+
+   if (!ptr) {
+      _DATA_SYSLOG("Unable to allocate enough memory, giving up after 3 tries");
+   }
+
+   return ptr;
+}
+#endif
+
+#if !BYTE_ALIGN
+char *
+_aax_calloc_aligned(char **start, size_t offs, size_t num, size_t size)
+{
+   char *rv = calloc(num, offs+num*size);
+   *start = rv+offs;
+   return rv;
+}
+#else
+char *
+_aax_calloc_aligned(char **start, size_t offs, size_t num, size_t size)
+{
+   int ctr = 3;
+   char *ptr;
+
+   size += offs;
+   size = SIZE_ALIGNED(size + MEMALIGN);
+   do
+   {
+      ptr = (char*)calloc(1, num*size);
+      if (ptr)
+      {
+         char *s = ptr + offs;
+         size_t tmp;
+
+         tmp = (size_t)s & MEMMASK;
+         if (tmp)
+         {
+            tmp = MEMALIGN - tmp;
+            s += tmp;
+         }
+         *start = s;
+      }
+   }
+   while (!ptr && --ctr);
+
+   if (!ptr) {
+      _DATA_SYSLOG("Unable to allocate enough memory, giving up after 3 tries");
+   }
+
+   return ptr;
+}
+#endif
+
+void
+_aax_free_aligned(void *ptr)
+{
+   free(ptr);
+}
+
+char *
+_aax_strdup(const_char_ptr s)
+{
+   char *ret = 0;
+   if (s) {
+      size_t len = strlen(s);
+      ret = malloc(len+1);
+      if (ret) {
+         memcpy(ret, s, len+1);
+      }
+   }
+   return ret;
+}
 
 
 char

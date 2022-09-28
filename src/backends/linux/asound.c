@@ -44,6 +44,7 @@
 #include <base/dlsym.h>
 #include <base/logging.h>
 #include <base/threads.h>
+#include <base/memory.h>
 #include <base/types.h>
 
 #include <ringbuffer.h>

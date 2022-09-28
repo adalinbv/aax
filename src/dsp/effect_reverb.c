@@ -28,6 +28,7 @@
 #include <aax/aax.h>
 
 #include <base/types.h>		/*  for rintf */
+#include <base/memory.h>
 #include <base/gmath.h>
 
 #include <software/rbuf_int.h>

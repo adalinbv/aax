@@ -34,6 +34,7 @@
 
 #include "api.h"
 #include "arch.h"
+#include "memory.h"
 #include "databuffer.h"
 
 static unsigned char**

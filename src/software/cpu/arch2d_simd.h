@@ -56,9 +56,6 @@ typedef float* (*_aax_generate_waveform_proc)(float32_ptr, size_t, float, float,
 extern _aax_generate_waveform_proc _aax_generate_waveform_float;
 
 /* CPU*/
-void _aax_free_aligned(void*);
-char* _aax_calloc_aligned(char**, size_t, size_t, size_t);
-char* _aax_malloc_aligned(char**, size_t, size_t);
 void _batch_cvt24_24_cpu(void_ptr, const void*, size_t);
 void _batch_roundps_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_cpu(void_ptr, const_void_ptr, size_t);

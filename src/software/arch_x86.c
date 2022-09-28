@@ -33,7 +33,7 @@
 # include <mm_malloc.h>
 #endif
 
-
+#include <base/memory.h>
 #include <base/types.h>
 #include <base/logging.h>
 #include <base/geometry.h>

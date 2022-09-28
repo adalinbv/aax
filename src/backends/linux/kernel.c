@@ -49,6 +49,7 @@
 #include <aax/aax.h>
 #include <xml.h>
 
+#include <base/memory.h>
 #include <base/types.h>
 #include <base/logging.h>
 #include <base/dlsym.h>

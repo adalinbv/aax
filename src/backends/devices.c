@@ -36,6 +36,7 @@
 
 #include <xml.h>
 
+#include <base/memory.h>
 #include <base/logging.h>
 
 #include <stream/device.h>

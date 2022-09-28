@@ -46,7 +46,6 @@ extern "C" {
 // CUBIC_SAMPS was increased to 16 from 4 to handle HRTF properly
 #define CUBIC_SAMPS		4
 #define HISTORY_SAMPS		(4*CUBIC_SAMPS)
-#define BYTE_ALIGN		1
 
 typedef int32_t	_history_t[_AAX_MAX_SPEAKERS][HISTORY_SAMPS];
 

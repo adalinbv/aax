@@ -36,6 +36,7 @@
 #include <assert.h>
 #include <xml.h>
 
+#include <base/memory.h>
 #include <base/gmath.h>
 #include <base/logging.h>
 #include <base/random.h>

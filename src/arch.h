@@ -41,7 +41,6 @@ extern "C" {
 #endif
 
 #define TIME_TO_SAMPLES(a, b)	(size_t)ceilf((a)*(b))
-#define SIZE_ALIGNED(a)	((a) & MEMMASK) ? ((a)|MEMMASK)+1 : (a)
 #if RB_FLOAT_DATA
 # define SIMD_PREFIX	"FP "
 #else
@@ -86,7 +85,6 @@ extern _aax_aligned_free_proc _aax_aligned_free;
 extern _aax_calloc_proc _aax_calloc;
 extern _aax_malloc_proc _aax_malloc;
 extern _aax_free_proc _aax_free;
-extern char* _aax_strdup(const_char_ptr);
 
 extern _batch_mul_value_proc _batch_imul_value;
 extern _batch_mul_value_proc _batch_fmul_value;
