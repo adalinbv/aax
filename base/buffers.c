@@ -433,26 +433,6 @@ _intBufGetNumDebug(_intBuffers *buffer, DISREGARD(unsigned int id), DISREGARD(ch
 
 #ifndef _AL_NOTHREADS
     _aaxMutexLockDebug(buffer->mutex, file, line);
-# ifndef _AAX_PERSISTENT_GETNUM
-    if (lock)
-    {
-        unsigned int i = 0;
-        while((buffer->lock_ctr > 0) && (++i < 20000))
-        {
-            _aaxMutexUnLock(buffer->mutex);
-            _aaxThreadSwitch();
-            _aaxMutexLock(buffer->mutex);
-        }
-        if (i >= 20000) {
-            PRINT("_intBufGetNumNormal timeout\n");
-        }
-    }
-    else
-    {
-        buffer->lock_ctr++;
-        _aaxMutexUnLock(buffer->mutex);
-    }
-# endif
 #endif
 
     return buffer->num_allocated;
@@ -465,26 +445,6 @@ _intBufGetNumNormal(_intBuffers *buffer, DISREGARD(unsigned int id), DISREGARD(c
 {
 #ifndef _AL_NOTHREADS
     _aaxMutexLock(buffer->mutex);
-# ifndef _AAX_PERSISTENT_GETNUM
-    if (lock)
-    {
-        unsigned int i = 0;
-        while((buffer->lock_ctr > 0) && (++i < 20000))
-        {
-            _aaxMutexUnLock(buffer->mutex);
-            _aaxThreadSwitch();
-            _aaxMutexLock(buffer->mutex);
-        }
-        if (i >= 20000) {
-            PRINT("_intBufGetNumNormal timeout\n");
-        }
-    }
-    else
-    {
-        buffer->lock_ctr++;
-        _aaxMutexUnLock(buffer->mutex);
-    }
-# endif
 #endif
 
     return buffer->num_allocated;
@@ -507,22 +467,6 @@ _intBufGetMaxNumNormal(_intBuffers *buffer, DISREGARD(unsigned int id), DISREGAR
 
 #ifndef _AL_NOTHREADS
     _aaxMutexLock(buffer->mutex);
-# ifndef _AAX_PERSISTENT_GETNUM
-    if (lock)
-    {
-        while(buffer->lock_ctr > 0)
-        {
-            _aaxMutexUnLock(buffer->mutex);
-            _aaxThreadSwitch();
-            _aaxMutexLock(buffer->mutex);
-        }
-    }
-    else
-    {
-        buffer->lock_ctr++;
-        _aaxMutexUnLock(buffer->mutex);
-    }
-# endif
 #endif
 
     return buffer->max_allocations;
@@ -535,15 +479,6 @@ _intBufReleaseNumNormal(_intBuffers *buffer, DISREGARD(unsigned int id), DISREGA
     assert(buffer);
     assert(buffer->id == id);
 
-# ifndef _AAX_PERSISTENT_GETNUM
-    if (!lock)
-    {
-        _aaxMutexLock(buffer->mutex);
-
-        assert(buffer->lock_ctr > 0);
-        buffer->lock_ctr--;
-    }
-# endif
     _aaxMutexUnLock(buffer->mutex);
 }
 #endif
@@ -944,11 +879,6 @@ __intBufFreeSpace(_intBuffers *buffer, int id, char locked)
     {
         _intBufferData **ptr = buffer->data;
 
-#ifndef _AAX_PERSISTENT_GETNUM
-        _intBufReleaseNum(buffer, id);
-        _intBufGetNumNormal(buffer, id, 1);
-#endif
-
         if (start)
         {
             max -= start;
@@ -977,11 +907,6 @@ __intBufFreeSpace(_intBuffers *buffer, int id, char locked)
                 rv = -1;
             }
         }
-
-#ifndef _AAX_PERSISTENT_GETNUM
-        _intBufReleaseNumNormal(buffer, id, 1);
-        _intBufGetNum(buffer, id);
-#endif
     }
     else {
         rv = -1;
