@@ -36,16 +36,6 @@
 #include "arch.h"
 #include "databuffer.h"
 
-
-/**
- * Create a new data structure.
- * Data will be manipulated in blocks of blocksize.
- *
- * size: total size of the buffer
- * blocksize: size of the individual blocks.
- *
- * returns an initialized data structure.
- */
 _data_t*
 _aaxDataCreate(size_t size, unsigned int blocksize)
 {
@@ -75,13 +65,6 @@ _aaxDataClear(_data_t* buf)
    buf->offset = 0;
 }
 
-/**
- * Destroy and clean up a data structure.
- *
- * buf: the previously created data structure.
- *
- * return AAX_TRUE
- */
 int
 _aaxDataDestroy(_data_t* buf)
 {
@@ -98,15 +81,6 @@ _aaxDataDestroy(_data_t* buf)
    return AAX_TRUE;
 }
 
-/**
- * Add data to the end of a previously created data structure.
- *
- * buf: the previously created data structure.
- * data: a pointer to the data which should be appended.
- * size: size (in bytes) of the data to be added.
- *
- * returns the actual number of bytes that where added.
- */
 size_t
 _aaxDataAdd(_data_t* buf, const void* data, size_t size)
 {
@@ -129,16 +103,6 @@ _aaxDataAdd(_data_t* buf, const void* data, size_t size)
    return rv;
 }
 
-/**
- * Copy data from an offset of a previously created data structure.
- *
- * buf: the previously created data structure.
- * data: the buffer to move the data to. If NULL the data will just be erased.
- * offset: offset in the data buffer.
- * size: size (in bytes) of the data to be (re)moved.
- *
- * returns the actual number of bytes that where moved.
- */
 size_t
 _aaxDataCopy(_data_t* buf, void* data, size_t offset, size_t size)
 {
@@ -164,15 +128,6 @@ _aaxDataCopy(_data_t* buf, void* data, size_t offset, size_t size)
    return rv;
 }
 
-/**
- * (Re)Move data from the start of a previously created data structure.
- *
- * buf: the previously created data structure.
- * data: the buffer to move the data to. If NULL the data will just be erased.
- * size: size (in bytes) of the data to be (re)moved.
- *
- * returns the actual number of bytes that where moved.
- */
 size_t
 _aaxDataMove(_data_t* buf, void* data, size_t size)
 {
@@ -197,16 +152,6 @@ _aaxDataMove(_data_t* buf, void* data, size_t size)
    return rv;
 }
 
-/**
- * (Re)Move data from an offset of a previously created data structure.
- *
- * buf: the previously created data structure.
- * data: the buffer to move the data to. If NULL the data will just be erased.
- * offset: offset in the data buffer.
- * size: size (in bytes) of the data to be (re)moved.
- *
- * returns the actual number of bytes that where moved.
- */
 size_t
 _aaxDataMoveOffset(_data_t* buf, void* data, size_t offset, size_t size)
 {
@@ -236,16 +181,6 @@ _aaxDataMoveOffset(_data_t* buf, void* data, size_t offset, size_t size)
 
    return rv;
 }
-
-/**
- * Move data from one previously created data structure to another.
- *
- * dst: the previously created destinion data structure.
- * src: the previously created source data structure.
- * size: size (in bytes) of the data to be moved.
- *
- * returns the actual number of bytes that where moved.
- */
 
 size_t
 _aaxDataMoveData(_data_t* src, _data_t* dst, size_t size)
