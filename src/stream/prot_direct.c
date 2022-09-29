@@ -50,7 +50,7 @@ _direct_disconnect(UNUSED(_prot_t *prot)) {
 int
 _direct_process(UNUSED(_prot_t *prot), _data_t *buf)
 {
-   return _aaxDataGetDataAvail(buf);
+   return _aaxDataGetDataAvail(buf, 0);
 }
 
 int

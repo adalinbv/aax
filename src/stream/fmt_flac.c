@@ -113,7 +113,7 @@ _flac_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
       if (!handle->id)
       {
          if (!handle->flacBuffer) {
-            handle->flacBuffer = _aaxDataCreate(MAX_FLACBUFSIZE, 1);
+            handle->flacBuffer = _aaxDataCreate(1, MAX_FLACBUFSIZE, 1);
          }
 
          if (handle->flacBuffer)
@@ -199,7 +199,7 @@ _flac_fill(_fmt_t *fmt, void_ptr sptr, ssize_t *bytes)
    _driver_t *handle = fmt->id;
    size_t rv = __F_PROCESS;
 
-   if (_aaxDataAdd(handle->flacBuffer, sptr, *bytes) == 0) {
+   if (_aaxDataAdd(handle->flacBuffer, 0, sptr, *bytes) == 0) {
       *bytes = 0;
    }
 
@@ -212,10 +212,10 @@ _flac_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    _driver_t *handle = fmt->id;
    size_t bufsize, rv = __F_NEED_MORE;
 
-   bufsize = _aaxDataGetDataAvail(handle->flacBuffer);
+   bufsize = _aaxDataGetDataAvail(handle->flacBuffer, 0);
    if (bufsize)
    {
-      unsigned int bufsize = _aaxDataGetDataAvail(handle->flacBuffer);
+      unsigned int bufsize = _aaxDataGetDataAvail(handle->flacBuffer, 0);
       unsigned int blocksize = handle->blocksize;
       unsigned int blocksmp = handle->blocksmp;
       size_t offs, bytes, n;
@@ -236,7 +236,7 @@ _flac_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
          *num = n*blocksmp;
 
          offs = (dptr_offs/blocksmp)*blocksize;
-         rv = _aaxDataMove(handle->flacBuffer, (char*)dptr+offs, bytes);
+         rv = _aaxDataMove(handle->flacBuffer, 0, (char*)dptr+offs, bytes);
          handle->no_samples += *num;
 
          if (handle->no_samples >= handle->max_samples) {
@@ -248,7 +248,7 @@ _flac_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
       if (bytes <= bufsize)
       {
          size_t offs = (dptr_offs/bytes)*bytes;
-         rv = _aaxDataMove(handle->flacBuffer, (char*)dptr+offs, bytes);
+         rv = _aaxDataMove(handle->flacBuffer, 0, (char*)dptr+offs, bytes);
          handle->no_samples += *num;
       }
 #endif
@@ -441,7 +441,7 @@ _flac_callback_read(void* pUserData, void* pBufferOut, size_t bytesToRead)
    _driver_t *handle = (_driver_t *)pUserData;
    size_t rv;
 
-   rv =  _aaxDataMove(handle->flacBuffer, pBufferOut, bytesToRead);
+   rv =  _aaxDataMove(handle->flacBuffer, 0, pBufferOut, bytesToRead);
    if (rv > 0) handle->rv += rv;
 
    return rv;

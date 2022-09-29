@@ -225,7 +225,7 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             handle->aiffBufSize += 4;
          }
          size = handle->aiffBufSize*sizeof(int32_t);
-         handle->aiffBuffer = _aaxDataCreate(size, 0);
+         handle->aiffBuffer = _aaxDataCreate(1, size, 0);
 
          if (handle->aiffBuffer)
          {
@@ -235,7 +235,7 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             char extended;
             uint8_t *ch;
 
-            header = (uint32_t*)_aaxDataGetData(handle->aiffBuffer);
+            header = (uint32_t*)_aaxDataGetData(handle->aiffBuffer, 0);
             ch = (uint8_t*)header;
 
             writestr(&ch, "FORM", 4, &size);
@@ -281,7 +281,7 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 
             *bufsize = 4*handle->aiffBufSize;
 
-            rv = _aaxDataGetData(handle->aiffBuffer);
+            rv = _aaxDataGetData(handle->aiffBuffer, 0);
          }
          else {
             _AAX_FILEDRVLOG("AIFF: Insufficient memory");
@@ -291,7 +291,7 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
       else if (!handle->fmt || !handle->fmt->open)
       {
          if (!handle->aiffBuffer) {
-            handle->aiffBuffer = _aaxDataCreate(16384, 0);
+            handle->aiffBuffer = _aaxDataCreate(1, 16384, 0);
          }
 
          if (handle->aiffBuffer)
@@ -299,7 +299,7 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             ssize_t size = *bufsize;
             int res;
 
-            res = _aaxDataAdd(handle->aiffBuffer, buf, size);
+            res = _aaxDataAdd(handle->aiffBuffer, 0, buf, size);
             *bufsize = res;
             if (!res) return NULL;
 
@@ -313,7 +313,7 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                size_t step = 0;
                while ((res = _aaxFormatDriverReadHeader(handle, &step)) != __F_EOF)
                {
-                  _aaxDataMove(handle->aiffBuffer, NULL, step);
+                  _aaxDataMove(handle->aiffBuffer, 0, NULL, step);
                   if (res <= 0) break;
                }
 
@@ -322,7 +322,7 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                // Copy the next chunk and process it.
                if (size)
                {
-                  size_t avail = _aaxDataAdd(handle->aiffBuffer, buf, size);
+                  size_t avail = _aaxDataAdd(handle->aiffBuffer, 0, buf, size);
                   *bufsize += avail;
                   if (!avail) break;
 
@@ -380,8 +380,8 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 #endif
             if (handle->fmt)
             {
-               char *dataptr = _aaxDataGetData(handle->aiffBuffer);
-               ssize_t datasize = _aaxDataGetDataAvail(handle->aiffBuffer);
+               char *dataptr = _aaxDataGetData(handle->aiffBuffer, 0);
+               ssize_t datasize = _aaxDataGetDataAvail(handle->aiffBuffer, 0);
                rv = handle->fmt->open(handle->fmt, handle->mode,
                                       dataptr, &datasize,
                                       handle->io.read.datasize);
@@ -389,7 +389,7 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                {
                   if (datasize)
                   {
-                      _aaxDataClear(handle->aiffBuffer);
+                      _aaxDataClear(handle->aiffBuffer, 0);
                       _aiff_fill(ext, dataptr, &datasize);
                   }
                   else {
@@ -429,7 +429,7 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                                 handle->io.read.datasize);
          if (!rv && bufsize)
          {
-            _aaxDataClear(handle->aiffBuffer);
+            _aaxDataClear(handle->aiffBuffer, 0);
             _aiff_fill(ext, buf, bufsize);
          }
       }
@@ -469,7 +469,7 @@ int
 _aiff_flush(_ext_t *ext)
 {
    _driver_t *handle = ext->id;
-   void *header =  _aaxDataGetData(handle->aiffBuffer);
+   void *header =  _aaxDataGetData(handle->aiffBuffer, 0);
    size_t size = _aaxDataGetSize(handle->aiffBuffer);
    int res, rv = AAX_TRUE;
 
@@ -477,10 +477,10 @@ _aiff_flush(_ext_t *ext)
    if (size)
    {
       size_t step = -1;
-      _aaxDataSetOffset(handle->aiffBuffer, size);
+      _aaxDataSetOffset(handle->aiffBuffer, 0, size);
       while ((res = _aaxFormatDriverReadHeader(handle, &step)) != __F_EOF)
       {
-         _aaxDataMove(handle->aiffBuffer, NULL, step);
+         _aaxDataMove(handle->aiffBuffer, 0, NULL, step);
          if (res <= 0) break;
       }
    }
@@ -517,16 +517,16 @@ _aiff_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    _driver_t *handle = ext->id;
    size_t res, rv = __F_PROCESS;
 
-   *bytes = res = _aaxDataAdd(handle->aiffBuffer, sptr, *bytes);
+   *bytes = res = _aaxDataAdd(handle->aiffBuffer, 0, sptr, *bytes);
    if (res > 0)
    {
-      void *data = _aaxDataGetData(handle->aiffBuffer);
-      ssize_t avail = _aaxDataGetDataAvail(handle->aiffBuffer);
+      void *data = _aaxDataGetData(handle->aiffBuffer, 0);
+      ssize_t avail = _aaxDataGetDataAvail(handle->aiffBuffer, 0);
 
       if (avail)
       {
           handle->fmt->fill(handle->fmt, data, &avail);
-         _aaxDataMove(handle->aiffBuffer, NULL, avail);
+         _aaxDataMove(handle->aiffBuffer, 0, NULL, avail);
       }
    }
 
@@ -796,8 +796,8 @@ _aiff_set(_ext_t *ext, int type, off_t value)
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 {
-   size_t bufsize = _aaxDataGetDataAvail(handle->aiffBuffer);
-   uint8_t *buf = _aaxDataGetData(handle->aiffBuffer);
+   size_t bufsize = _aaxDataGetDataAvail(handle->aiffBuffer, 0);
+   uint8_t *buf = _aaxDataGetData(handle->aiffBuffer, 0);
    uint32_t *header = (uint32_t*)buf;
    uint8_t *ch = (uint8_t*)header;
    uint32_t clen, curr;
@@ -1095,7 +1095,7 @@ if (curr == 0x464f524d) // FORM
    }
 
    // sanity check
-   bufsize = _aaxDataGetDataAvail(handle->aiffBuffer);
+   bufsize = _aaxDataGetDataAvail(handle->aiffBuffer, 0);
    if (!flush && ((*step == 0) || (*step > bufsize)))
    {
       *step = 0;
@@ -1112,8 +1112,8 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
 
    if (handle->info.no_samples != 0)
    {
-      uint32_t *header = _aaxDataGetData(handle->aiffBuffer);
-      size_t bufferSize = _aaxDataGetDataAvail(handle->aiffBuffer);
+      uint32_t *header = _aaxDataGetData(handle->aiffBuffer, 0);
+      size_t bufferSize = _aaxDataGetDataAvail(handle->aiffBuffer, 0);
       size_t size, framesize = handle->info.no_tracks*handle->bits_sample/8;
       uint8_t *ch;
       uint32_t s;
@@ -1140,7 +1140,7 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
       write32be(&ch, s, &size);
 
       *bufsize = handle->io.write.data_chunk_offs + 12;
-      res = _aaxDataGetData(handle->aiffBuffer);
+      res = _aaxDataGetData(handle->aiffBuffer, 0);
    }
 
    return res;

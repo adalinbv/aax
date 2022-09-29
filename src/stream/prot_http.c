@@ -144,7 +144,7 @@ _http_connect(_prot_t *prot, _data_t *buf, _io_t *io, char **server, const char 
  printf("url: %s\n", prot->meta.website);
  printf("inteval %li\n", prot->meta_interval);
 #endif
-      _aaxDataMove(buf, NULL, size);
+      _aaxDataMove(buf, 0, NULL, size);
    }
    else {
       res = -res;
@@ -166,14 +166,14 @@ _http_disconnect(_prot_t *prot)
 int
 _http_process(_prot_t *prot, _data_t *buf)
 {
-   int rv = _aaxDataGetDataAvail(buf);
+   int rv = _aaxDataGetDataAvail(buf, 0);
    if (prot->meta_interval)
    {
       // The first byte indicates the meta length devided by 16
       // Empty meta information is indicated by a meta_len of 0
       if (!prot->meta_offset)
       {
-         char *metaptr = _aaxDataGetData(buf);
+         char *metaptr = _aaxDataGetData(buf, 0);
          int meta_len = *metaptr++;
          if (meta_len < rv)
          {
@@ -221,7 +221,7 @@ _http_process(_prot_t *prot, _data_t *buf)
             meta_len++; // meta_len itself is one byte
             rv -= meta_len;
 
-            _aaxDataMove(buf, NULL, meta_len);
+            _aaxDataMove(buf, 0, NULL, meta_len);
          }
          else { // meta_len > size
             rv = __F_NEED_MORE;
@@ -418,7 +418,7 @@ _http_name(_prot_t *prot, enum _aaxStreamParam ptype)
 static int
 _http_get_response_data(_io_t *io, _data_t *databuf)
 {
-   char *response = _aaxDataGetData(databuf);
+   char *response = _aaxDataGetData(databuf, 0);
    size_t size = _aaxDataGetSize(databuf);
    static char end[4] = "\r\n\r\n";
    char *buf = response;
@@ -459,8 +459,8 @@ _http_get_response_data(_io_t *io, _data_t *databuf)
 int
 _http_send_request(_io_t *io, const char *command, const char *server, const char *path, const char *user_agent)
 {
-   _data_t *buf = _aaxDataCreate(MAX_HEADER, 0);
-   char *header = _aaxDataGetData(buf);
+   _data_t *buf = _aaxDataCreate(1, MAX_HEADER, 0);
+   char *header = _aaxDataGetData(buf, 0);
    int hlen, rv = 0;
 
    snprintf(header, MAX_HEADER+1,
@@ -476,7 +476,7 @@ _http_send_request(_io_t *io, const char *command, const char *server, const cha
             command, path, user_agent, server);
 
    hlen = strlen(header);
-   _aaxDataIncreaseOffset(buf, hlen);
+   _aaxDataIncreaseOffset(buf, 0, hlen);
 
    rv = io->write(io, buf);
    if (rv != hlen) {
@@ -497,7 +497,7 @@ _http_get_response(_io_t *io, _data_t *buf, int *code)
    rv = _http_get_response_data(io, buf);
    if (rv > 0)
    {
-      char *ptr = _aaxDataGetData(buf);
+      char *ptr = _aaxDataGetData(buf, 0);
       res = sscanf(ptr, "HTTP/1.%*d %03d", code);
       if (res != 1)
       {
@@ -514,7 +514,7 @@ static const char*
 _get_yaml(_data_t *databuf, const char *needle)
 {
    size_t haystacklen = _aaxDataGetSize(databuf);
-   const char *haystack = _aaxDataGetData(databuf);
+   const char *haystack = _aaxDataGetData(databuf, 0);
    static char buf[1024];
    char *start, *end;
    size_t pos;

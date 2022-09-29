@@ -186,7 +186,7 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
    }
 
    if (!handle->vorbisBuffer) {
-      handle->vorbisBuffer = _aaxDataCreate(VORBIS_BUFFER_SIZE, 1);
+      handle->vorbisBuffer = _aaxDataCreate(1, VORBIS_BUFFER_SIZE, 1);
    }
 
    if (handle && handle->vorbisBuffer)
@@ -202,18 +202,18 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
 
             if (_vorbis_fill(fmt, buf, bufsize) > 0)
             {
-               buf = _aaxDataGetData(handle->vorbisBuffer);
+               buf = _aaxDataGetData(handle->vorbisBuffer, 0);
 
                if (!handle->id)
                {
-                  int max = _aaxDataGetDataAvail(handle->vorbisBuffer);
+                  int max = _aaxDataGetDataAvail(handle->vorbisBuffer, 0);
                   handle->id=stb_vorbis_open_pushdata(buf, max, &used, &err, 0);
                }
 
                if (handle->id)
                {
                   _detect_vorbis_song_info(handle);
-                  _aaxDataMove(handle->vorbisBuffer, NULL, used);
+                  _aaxDataMove(handle->vorbisBuffer, 0, NULL, used);
                   // we're done decoding, return NULL
                }
                else if (err == VORBIS_need_more_data) {
@@ -373,7 +373,7 @@ _vorbis_fill(_fmt_t *fmt, void_ptr sptr, ssize_t *bytes)
    _driver_t *handle = fmt->id;
    size_t rv = __F_PROCESS;
 
-   if (_aaxDataAdd(handle->vorbisBuffer, sptr, *bytes) == 0) {
+   if (_aaxDataAdd(handle->vorbisBuffer, 0, sptr, *bytes) == 0) {
       *bytes = 0;
    }
 
@@ -398,8 +398,8 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    tracks = handle->info.channels;
    *num = 0;
 
-   outbuf = _aaxDataGetData(handle->vorbisBuffer);
-   outbufavail = _aaxDataGetDataAvail(handle->vorbisBuffer);
+   outbuf = _aaxDataGetData(handle->vorbisBuffer, 0);
+   outbufavail = _aaxDataGetDataAvail(handle->vorbisBuffer, 0);
 
    /* there is still data left in the buffer from the previous run */
    if (handle->out_pos > 0)
@@ -429,8 +429,8 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
                                                 NULL, &handle->outputs, &n);
          if (ret > 0)
          {
-            rv += _aaxDataMove(handle->vorbisBuffer, NULL, ret);
-            outbufavail = _aaxDataGetDataAvail(handle->vorbisBuffer);
+            rv += _aaxDataMove(handle->vorbisBuffer, 0, NULL, ret);
+            outbufavail = _aaxDataGetDataAvail(handle->vorbisBuffer, 0);
          }
       }
       while (ret && n == 0);
@@ -487,8 +487,8 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
    tracks = handle->info.channels;
    *num = 0;
 
-   outbuf = _aaxDataGetData(handle->vorbisBuffer);
-   outbufavail = _aaxDataGetDataAvail(handle->vorbisBuffer);
+   outbuf = _aaxDataGetData(handle->vorbisBuffer, 0);
+   outbufavail = _aaxDataGetDataAvail(handle->vorbisBuffer, 0);
 
    /* there is still data left in the buffer from the previous run */
    if (handle->out_pos > 0)
@@ -518,9 +518,9 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
                                                 NULL, &handle->outputs, &n);
          if (ret > 0)
          {
-            rv += _aaxDataMove(handle->vorbisBuffer, NULL, ret);
+            rv += _aaxDataMove(handle->vorbisBuffer, 0, NULL, ret);
 
-            outbufavail = _aaxDataGetDataAvail(handle->vorbisBuffer);
+            outbufavail = _aaxDataGetDataAvail(handle->vorbisBuffer, 0);
          }
       }
       while (ret && n == 0);

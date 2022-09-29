@@ -255,7 +255,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
       if (!handle->capturing)   /* write */
       {
          if (!handle->oggBuffer) {
-            handle->oggBuffer = _aaxDataCreate(OGG_WRITE_BUFFER_SIZE, 1);
+            handle->oggBuffer = _aaxDataCreate(1, OGG_WRITE_BUFFER_SIZE, 1);
          }
 
          if (handle->oggBuffer)
@@ -303,14 +303,14 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                while (pogg_stream_flush(&handle->out->os, &handle->out->og))
                {
                   if (res && handle->out->og.header_len) {
-                     res = _aaxDataAdd(handle->oggBuffer,
+                     res = _aaxDataAdd(handle->oggBuffer, 0,
                                        handle->out->og.header,
                                        handle->out->og.header_len);
                      size += res;
                   }
 
                   if (res && handle->out->og.body_len) {
-                     res = _aaxDataAdd(handle->oggBuffer,
+                     res = _aaxDataAdd(handle->oggBuffer, 0,
                                        handle->out->og.body,
                                        handle->out->og.body_len);
                      size += res;
@@ -341,7 +341,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
          assert(bufsize);
 
          if (!handle->oggBuffer) {
-            handle->oggBuffer = _aaxDataCreate(OGG_WRITE_BUFFER_SIZE, 1);
+            handle->oggBuffer = _aaxDataCreate(1, OGG_WRITE_BUFFER_SIZE, 1);
          }
 
          if (handle->oggBuffer)
@@ -350,7 +350,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             int res;
 
             handle->datasize = fsize;
-            res = _aaxDataAdd(handle->oggBuffer, buf, size);
+            res = _aaxDataAdd(handle->oggBuffer, 0, buf, size);
             *bufsize = res;
 
             res = _aaxFormatDriverReadHeader(handle);
@@ -372,7 +372,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
          size_t size = *bufsize;
          int res;
 
-         res = _aaxDataAdd(handle->oggBuffer, buf, size);
+         res = _aaxDataAdd(handle->oggBuffer, 0, buf, size);
          *bufsize = res;
 
          res = _aaxFormatDriverReadHeader(handle);
@@ -434,13 +434,13 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    handle->need_more = AAX_FALSE;
    if (sptr && bytes)
    {
-      res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
+      res = _aaxDataAdd(handle->oggBuffer, 0, sptr, *bytes);
       *bytes = res;
    }
 
    // vorbis stream may reset the stream at the start of each song with
    // a packet indicated as a first page followed by a new comment page.
-   header = _aaxDataGetData(handle->oggBuffer);
+   header = _aaxDataGetData(handle->oggBuffer, 0);
    if (header[5] == PACKET_FIRST_PAGE || handle->page_sequence_no < 2)
    {
       if (!handle->page_size)
@@ -468,21 +468,21 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    }
    else
    {
-      header = _aaxDataGetData(handle->oggBuffer);
-      avail = _aaxDataGetDataAvail(handle->oggBuffer);
+      header = _aaxDataGetData(handle->oggBuffer, 0);
+      avail = _aaxDataGetDataAvail(handle->oggBuffer, 0);
       if (handle->page_size ||
           (rv = _getOggPageHeader(handle, header, avail, AAX_TRUE)) > 0)
       {
          handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->page_size);
 
-         avail = _aaxDataGetDataAvail(handle->oggBuffer);
+         avail = _aaxDataGetDataAvail(handle->oggBuffer, 0);
          if (avail >= handle->page_size)
          {
             avail = handle->page_size;
             rv = handle->fmt->fill(handle->fmt, header, &avail);
             if (avail)
             {
-               _aaxDataMove(handle->oggBuffer, NULL, avail);
+               _aaxDataMove(handle->oggBuffer, 0, NULL, avail);
                handle->page_size -= avail;
             }
          }
@@ -569,11 +569,11 @@ _ogg_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
 
    do
    {
-      bufsize = _aaxDataGetDataAvail(handle->oggBuffer);
+      bufsize = _aaxDataGetDataAvail(handle->oggBuffer, 0);
       res = _MIN(outsize, bufsize);
       if (res)
       {
-         _aaxDataMove(handle->oggBuffer, buf, res);
+         _aaxDataMove(handle->oggBuffer, 0, buf, res);
          buf += res;
          outsize -= res;
          rv += res;
@@ -582,9 +582,9 @@ _ogg_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
       // inner loop
       if (pogg_stream_pageout(&out->os, &out->og))
       {
-         _aaxDataAdd(handle->oggBuffer, out->og.header,
+         _aaxDataAdd(handle->oggBuffer, 0, out->og.header,
                                         out->og.header_len);
-         _aaxDataAdd(handle->oggBuffer, out->og.body,
+         _aaxDataAdd(handle->oggBuffer, 0, out->og.body,
                                         out->og.body_len);
       }
 
@@ -918,7 +918,7 @@ _aaxOggInitFormat(_driver_t *handle, unsigned char *oggbuf, ssize_t *bufsize)
 static int
 _getOggPageHeader(_driver_t *handle, uint8_t *header, size_t size, char remove_header)
 {
-   size_t bufsize = _aaxDataGetDataAvail(handle->oggBuffer);
+   size_t bufsize = _aaxDataGetDataAvail(handle->oggBuffer, 0);
    uint8_t *ch = header;
    int rv = 0;
 
@@ -1063,7 +1063,7 @@ _getOggPageHeader(_driver_t *handle, uint8_t *header, size_t size, char remove_h
                   if (remove_header && !handle->keep_ogg_header)
                   {
                      size_t hs = handle->header_size;
-                     _aaxDataMove(handle->oggBuffer, NULL, hs);
+                     _aaxDataMove(handle->oggBuffer, 0, NULL, hs);
                      handle->page_size -= hs;
                   }
 
@@ -1114,7 +1114,7 @@ _getOggPageHeader(_driver_t *handle, uint8_t *header, size_t size, char remove_h
 
             if (rv <= (int)bufsize)
             {
-               _aaxDataMove(handle->oggBuffer, NULL, rv);
+               _aaxDataMove(handle->oggBuffer, 0, NULL, rv);
                rv = 0;
             }
             else {
@@ -1660,8 +1660,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
    size_t bufsize;
    int rv = 0;
 
-   header = _aaxDataGetData(handle->oggBuffer);
-   bufsize = _aaxDataGetDataAvail(handle->oggBuffer);
+   header = _aaxDataGetData(handle->oggBuffer, 0);
+   bufsize = _aaxDataGetDataAvail(handle->oggBuffer, 0);
 
    if (handle->page_sequence_no < 2)
    {
@@ -1712,9 +1712,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                      // remove the page from the stream
                      if (page_size)
                      {
-                        _aaxDataMove(handle->oggBuffer, NULL, page_size);
+                        _aaxDataMove(handle->oggBuffer, 0, NULL, page_size);
                         handle->page_size -= page_size;
-                        bufsize = _aaxDataGetDataAvail(handle->oggBuffer);
+                        bufsize = _aaxDataGetDataAvail(handle->oggBuffer, 0);
                      }
                      else if (rv > 0) {
                         rv = __F_NEED_MORE;
@@ -1757,9 +1757,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                      // remove the page from the stream
                      if (!buf && page_size)
                      {
-                        _aaxDataMove(handle->oggBuffer, NULL, page_size);
+                        _aaxDataMove(handle->oggBuffer, 0, NULL, page_size);
                         handle->page_size -= page_size;
-                        bufsize = _aaxDataGetDataAvail(handle->oggBuffer);
+                        bufsize = _aaxDataGetDataAvail(handle->oggBuffer, 0);
                      }
                      else {
                         rv = __F_NEED_MORE;
@@ -1782,7 +1782,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
          else if (!handle->keep_ogg_header && handle->page_sequence_no > 1)
          {
             handle->page_size -= rv;
-            _aaxDataMove(handle->oggBuffer, NULL, rv);
+            _aaxDataMove(handle->oggBuffer, 0, NULL, rv);
          }
          else if (handle->segment_size == 0) {
             rv = __F_EOF;

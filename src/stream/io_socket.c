@@ -320,8 +320,8 @@ _socket_close(_io_t *io)
 ssize_t
 _socket_read(_io_t *io, _data_t *buf, size_t count)
 {
-   size_t size = _MIN(count, _aaxDataGetFreeSpace(buf));
-   void *ptr = _aaxDataGetPtr(buf);
+   size_t size = _MIN(count, _aaxDataGetFreeSpace(buf, 0));
+   void *ptr = _aaxDataGetPtr(buf, 0);
    ssize_t rv = 0;
 
    if (size)
@@ -363,9 +363,9 @@ _socket_read(_io_t *io, _data_t *buf, size_t count)
       if (rv >= 0)
       {
          io->error_ctr = 0;
-         _aaxDataIncreaseOffset(buf, rv);
+         _aaxDataIncreaseOffset(buf, 0, rv);
 #if 0
- printf("fill: %8li (%8li)\r", _aaxDataGetDataAvail(buf), _aaxDataGetSize(buf));
+ printf("fill: %8li (%8li)\r", _aaxDataGetDataAvail(buf, 0), _aaxDataGetSize(buf));
 #endif
 
          if (io->prot) {
@@ -386,10 +386,10 @@ _socket_read(_io_t *io, _data_t *buf, size_t count)
 ssize_t
 _socket_write(_io_t *io, _data_t *buf)
 {
-   ssize_t rv = _aaxDataGetDataAvail(buf);
+   ssize_t rv = _aaxDataGetDataAvail(buf, 0);
    if (rv > 0)
    {
-      void *data = _aaxDataGetData(buf);
+      void *data = _aaxDataGetData(buf, 0);
       ssize_t res = 0;
 
       if (io->ssl)
@@ -427,7 +427,7 @@ _socket_write(_io_t *io, _data_t *buf)
       }
 
       if (res > 0) {
-         rv = _aaxDataMove(buf, NULL, res);
+         rv = _aaxDataMove(buf, 0, NULL, res);
       }
    }
 

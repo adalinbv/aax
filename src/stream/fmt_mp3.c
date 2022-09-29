@@ -332,7 +332,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             if (handle->id)
             {
                if (pmp3_open_feed(handle->id) == MP3_OK) {
-                  handle->mp3Buffer = _aaxDataCreate(16384, 1);
+                  handle->mp3Buffer = _aaxDataCreate(1, 16384, 1);
                }
                else
                {
@@ -387,7 +387,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
 
                if (pmp3_open_feed(handle->id) == MP3_OK)
                {
-                  handle->mp3Buffer = _aaxDataCreate(16384, 1);
+                  handle->mp3Buffer = _aaxDataCreate(1, 16384, 1);
                   if (pmp3_set_filesize) {
                      pmp3_set_filesize(handle->id, fsize);
                   }
@@ -500,7 +500,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
              *
              * mp3buf_size in bytes = 1.25*num_samples + 7200
              */
-            handle->mp3Buffer = _aaxDataCreate(7200+handle->no_samples*5/4, 1);
+            handle->mp3Buffer = _aaxDataCreate(1, 7200+handle->no_samples*5/4, 1);
          }
 
          if (handle->mp3Buffer)
@@ -637,8 +637,8 @@ _mp3_update(_fmt_t *fmt, size_t *offs, ssize_t *size, char close)
    *size = 0;
    if (close && !handle->capturing)
    {
-      unsigned char *buf = _aaxDataGetPtr(handle->mp3Buffer);
-      size_t avail = _aaxDataGetDataAvail(handle->mp3Buffer);
+      unsigned char *buf = _aaxDataGetPtr(handle->mp3Buffer, 0);
+      size_t avail = _aaxDataGetDataAvail(handle->mp3Buffer, 0);
       size_t res = 0;
 
       if (avail >= 7200) {
@@ -646,31 +646,31 @@ _mp3_update(_fmt_t *fmt, size_t *offs, ssize_t *size, char close)
       }
       if (res > 0)
       {
-         _aaxDataIncreaseOffset(handle->mp3Buffer, res);
+         _aaxDataIncreaseOffset(handle->mp3Buffer, 0, res);
          *offs = res;
          *size += res;
 
-         buf = _aaxDataGetPtr(handle->mp3Buffer);
-         avail = _aaxDataGetFreeSpace(handle->mp3Buffer);
+         buf = _aaxDataGetPtr(handle->mp3Buffer, 0);
+         avail = _aaxDataGetFreeSpace(handle->mp3Buffer, 0);
          res = plame_get_lametag_frame(handle->id, buf, avail);
          if (res > 0 && res < avail)
          {
-            _aaxDataIncreaseOffset(handle->mp3Buffer, res);
+            _aaxDataIncreaseOffset(handle->mp3Buffer, 0, res);
             *size += res;
          }
 
-         rv = _aaxDataGetData(handle->mp3Buffer);
+         rv = _aaxDataGetData(handle->mp3Buffer, 0);
       }
       else
       {
-         buf = _aaxDataGetData(handle->mp3Buffer);
+         buf = _aaxDataGetData(handle->mp3Buffer, 0);
          avail = _aaxDataGetSize(handle->mp3Buffer);
          res = plame_get_id3v2_tag(handle->id, buf, avail);
          if (res > 0 && res < avail) {
             *size = res;
          }
 
-         rv = _aaxDataGetData(handle->mp3Buffer);
+         rv = _aaxDataGetData(handle->mp3Buffer, 0);
       }
    }
 
@@ -690,7 +690,7 @@ _mp3_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    blocksize = handle->blocksize;
    bytes = *num*blocksize;
 
-   buf = _aaxDataGetData(handle->mp3Buffer);
+   buf = _aaxDataGetData(handle->mp3Buffer, 0);
    bufsize = _aaxDataGetSize(handle->mp3Buffer);
 
    if (bytes > bufsize) {
@@ -760,7 +760,7 @@ _mp3_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
    blocksize = handle->blocksize;
    bytes = *num*blocksize;
 
-   buf = _aaxDataGetData(handle->mp3Buffer);
+   buf = _aaxDataGetData(handle->mp3Buffer, 0);
    bufsize = _aaxDataGetSize(handle->mp3Buffer);
 
    if (bytes > bufsize) {
@@ -817,7 +817,7 @@ size_t
 _mp3_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = fmt->id;
-   void *buf = _aaxDataGetData(handle->mp3Buffer);
+   void *buf = _aaxDataGetData(handle->mp3Buffer, 0);
    size_t bufsize = _aaxDataGetSize(handle->mp3Buffer);
    int res;
 

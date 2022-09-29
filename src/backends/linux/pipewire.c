@@ -779,7 +779,7 @@ _aaxPipeWireDriverCapture(const void *id, void **data, ssize_t *offset, size_t *
          ppw_stream_queue_buffer(handle->pw, pw_buf);
       }
 
-      handle->dataBuffer = _aaxDataCreate(size, 1);
+      handle->dataBuffer = _aaxDataCreate(1, size, 1);
       if (handle->dataBuffer == 0) return AAX_FALSE;
 
 //    stream_set_read_callback
@@ -789,16 +789,16 @@ _aaxPipeWireDriverCapture(const void *id, void **data, ssize_t *offset, size_t *
    tracks = handle->spec.channels;
    frame_sz = tracks*handle->bits_sample/8;
 
-   len = _aaxDataGetDataAvail(handle->dataBuffer);
+   len = _aaxDataGetDataAvail(handle->dataBuffer, 0);
    if (len > nframes*frame_sz) len = nframes*frame_sz;
    if (len)
    {
-      void *buf = _aaxDataGetData(handle->dataBuffer);
+      void *buf = _aaxDataGetData(handle->dataBuffer, 0);
 
       nframes = len/frame_sz;
 //    _batch_cvt24_16_intl((int32_t**)data, buf, offs, tracks, nframes);
       handle->cvt_from_intl((int32_t**)data, buf, offs, tracks, nframes);
-      _aaxDataMove(handle->dataBuffer, NULL, len);
+      _aaxDataMove(handle->dataBuffer, 0, NULL, len);
 
       gain = _pipewire_set_volume(handle, NULL, offs, nframes, tracks, gain);
       if (gain > LEVEL_96DB && fabsf(gain-1.0f) > LEVEL_96DB)
@@ -843,7 +843,7 @@ _aaxPipeWireDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSE
    if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < size))
    {
       _aaxDataDestroy(handle->dataBuffer);
-      handle->dataBuffer = _aaxDataCreate(size, no_tracks*handle->bits_sample/8);
+      handle->dataBuffer = _aaxDataCreate(1, size, no_tracks*handle->bits_sample/8);
       if (handle->dataBuffer == 0) return -1;
 
       // stream_set_write_callback
@@ -853,7 +853,7 @@ _aaxPipeWireDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSE
    period_frames -= offs;
    size = period_frames*frame_sz;
 
-   free = _aaxDataGetFreeSpace(handle->dataBuffer);
+   free = _aaxDataGetFreeSpace(handle->dataBuffer, 0);
    if (free > size)
    {
       unsigned char *data;
@@ -863,12 +863,12 @@ _aaxPipeWireDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSE
       // store audio data in handle->dataBuffer
       _aaxMutexLock(handle->mutex);
 
-      data = _aaxDataGetPtr(handle->dataBuffer);
+      data = _aaxDataGetPtr(handle->dataBuffer, 0);
       sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
       handle->cvt_to_intl(data, sbuf, offs, no_tracks, period_frames);
       rb->release_tracks_ptr(rb);
 
-      _aaxDataIncreaseOffset(handle->dataBuffer, size);
+      _aaxDataIncreaseOffset(handle->dataBuffer, 0, size);
 
       _aaxMutexUnLock(handle->mutex);
 
@@ -1955,19 +1955,19 @@ stream_playback_cb(void *be_ptr)
          {
             struct spa_buffer *spa_buf = pw_buf->buffer;
             _data_t *buf = be_handle->dataBuffer;
-            uint64_t len = _aaxDataGetDataAvail(buf);
+            uint64_t len = _aaxDataGetDataAvail(buf, 0);
             int frame_sz;
 
             frame_sz = be_handle->spec.channels*be_handle->bits_sample/8;
 
             _aaxMutexLock(be_handle->mutex);
 
-            if (_aaxDataGetDataAvail(be_handle->dataBuffer) < len) {
-               len = _aaxDataGetDataAvail(be_handle->dataBuffer);
+            if (_aaxDataGetDataAvail(be_handle->dataBuffer, 0) < len) {
+               len = _aaxDataGetDataAvail(be_handle->dataBuffer, 0);
             }
 
             be_handle->callback_avail = len;
-            len = _aaxDataMove(buf, spa_buf->datas[0].data,
+            len = _aaxDataMove(buf, 0, spa_buf->datas[0].data,
                                be_handle->period_frames*frame_sz);
 
             _aaxMutexUnLock(be_handle->mutex);
@@ -1999,11 +1999,11 @@ stream_capture_cb(void *be_ptr)
          uint32_t len = SPA_MIN(spa_buf->datas[0].chunk->size,
                                 spa_buf->datas[0].maxsize - offs);
 
-         if (_aaxDataGetOffset(be_handle->dataBuffer)+len
+         if (_aaxDataGetOffset(be_handle->dataBuffer, 0)+len
                                 < _aaxDataGetSize(be_handle->dataBuffer))
          {
             uint8_t *buf = (uint8_t*)spa_buf->datas[0].data + offs;
-            _aaxDataAdd(be_handle->dataBuffer, buf, len);
+            _aaxDataAdd(be_handle->dataBuffer, 0, buf, len);
          }
          ppw_stream_queue_buffer(be_handle->pw, pw_buf);
       }
@@ -2402,7 +2402,7 @@ _aaxPipeWireDriverThread(void* config)
    be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
 
-   be_handle->dataBuffer = _aaxDataCreate(1, 1);
+   be_handle->dataBuffer = _aaxDataCreate(1, 1, 1);
 
    _aaxMutexLock(handle->thread.signal.mutex);
    do

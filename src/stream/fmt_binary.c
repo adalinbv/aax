@@ -108,7 +108,7 @@ _binary_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t f
    if (handle && buf && bufsize)
    {
       if (!handle->rawBuffer) {
-         handle->rawBuffer = _aaxDataCreate(16384, 1);
+         handle->rawBuffer = _aaxDataCreate(1, 16384, 1);
       }
 
       if (handle->rawBuffer)
@@ -168,7 +168,7 @@ _binary_fill(_fmt_t *fmt, void_ptr sptr, ssize_t *bytes)
    _driver_t *handle = fmt->id;
    size_t rv = __F_PROCESS;
 
-   if (_aaxDataAdd(handle->rawBuffer, sptr, *bytes) == 0) {
+   if (_aaxDataAdd(handle->rawBuffer, 0, sptr, *bytes) == 0) {
       *bytes = 0;
    }
 
@@ -180,8 +180,8 @@ _binary_copy(_fmt_t *fmt, int32_ptr dptr, size_t offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t rv = __F_NEED_MORE;
-   if (_aaxDataGetDataAvail(handle->rawBuffer)) {
-      rv = _aaxDataMove(handle->rawBuffer, (char*)dptr+offs, *num); 
+   if (_aaxDataGetDataAvail(handle->rawBuffer, 0)) {
+      rv = _aaxDataMove(handle->rawBuffer, 0, (char*)dptr+offs, *num); 
       *num = rv;
    }
    else {

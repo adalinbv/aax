@@ -181,11 +181,11 @@ _opus_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t fsi
    }
 
    if (!handle->opusBuffer) {
-      handle->opusBuffer = _aaxDataCreate(OPUS_BUFFER_SIZE, 1);
+      handle->opusBuffer = _aaxDataCreate(1, OPUS_BUFFER_SIZE, 1);
    }
 
    if (!handle->pcmBuffer) {
-      handle->pcmBuffer = _aaxDataCreate(MAX_PCMBUFSIZE, 1);
+      handle->pcmBuffer = _aaxDataCreate(1, MAX_PCMBUFSIZE, 1);
    }
 
    if (handle && handle->opusBuffer && handle->pcmBuffer)
@@ -284,7 +284,7 @@ _opus_fill(_fmt_t *fmt, void_ptr sptr, ssize_t *bytes)
    _driver_t *handle = fmt->id;
    size_t rv = __F_PROCESS;
 
-   if (_aaxDataAdd(handle->opusBuffer, sptr, *bytes) == 0) {
+   if (_aaxDataAdd(handle->opusBuffer, 0, sptr, *bytes) == 0) {
       *bytes = 0;
    }
 
@@ -307,17 +307,17 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    packet_sz = FRAME_SIZE;
    *num = 0;
 
-   pcmBuffer = (int16_t*)_aaxDataGetData(handle->pcmBuffer);
+   pcmBuffer = (int16_t*)_aaxDataGetData(handle->pcmBuffer, 0);
    do
    {
-      size_t avail = _aaxDataGetDataAvail(handle->pcmBuffer);
+      size_t avail = _aaxDataGetDataAvail(handle->pcmBuffer, 0);
       if (avail > 0)
       {
          unsigned int max = _MIN(req, avail/framesize);
          if (max)
          {
             _batch_cvt24_ps(dptr+dptr_offs, pcmBuffer, max*tracks);
-            _aaxDataMove(handle->pcmBuffer, NULL, max*framesize);
+            _aaxDataMove(handle->pcmBuffer, 0, NULL, max*framesize);
 
             dptr_offs += max;
             handle->no_samples += max;
@@ -328,18 +328,18 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
       if (req > 0)
       {
-         size_t bufsize  = _MIN(packet_sz, _aaxDataGetDataAvail(handle->opusBuffer));
+         size_t bufsize  = _MIN(packet_sz, _aaxDataGetDataAvail(handle->opusBuffer, 0));
          if (bufsize == packet_sz)
          {
             size_t pcmsmp = _aaxDataGetSize(handle->pcmBuffer)/framesize;
-            unsigned char *buf = _aaxDataGetData(handle->opusBuffer);
+            unsigned char *buf = _aaxDataGetData(handle->opusBuffer, 0);
 
             n = popus_decode(handle->id, buf, bufsize, pcmBuffer, pcmsmp,
                                    0);
             if (n <= 0) break;
 
-            _aaxDataSetOffset(handle->pcmBuffer, n*framesize);
-            rv += _aaxDataMove(handle->opusBuffer, NULL, bufsize);
+            _aaxDataSetOffset(handle->pcmBuffer, 0, n*framesize);
+            rv += _aaxDataMove(handle->opusBuffer, 0, NULL, bufsize);
          }
          else {
             break;
@@ -368,14 +368,14 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
 
    // there is still data left in the buffer from the previous run
    *num = 0;
-   while (req && (pcmBufAvail = _aaxDataGetDataAvail(handle->pcmBuffer)) > 0)
+   while (req && (pcmBufAvail = _aaxDataGetDataAvail(handle->pcmBuffer, 0)) > 0)
    {
       unsigned int max = _MIN(req, pcmBufAvail/bps);
 
-      pcmBuf = _aaxDataGetData(handle->pcmBuffer);
+      pcmBuf = _aaxDataGetData(handle->pcmBuffer, 0);
       _batch_cvt24_16_intl(dptr, pcmBuf, dptr_offs, tracks, max);
 
-      _aaxDataMove(handle->pcmBuffer, NULL, max*bps);
+      _aaxDataMove(handle->pcmBuffer, 0, NULL, max*bps);
       handle->no_samples += max;
       dptr_offs += max;
       req -= max;
@@ -390,11 +390,11 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
          int32_t pcmBufFree;
          size_t frameSpace;
 
-         pcmBuf = _aaxDataGetPtr(handle->pcmBuffer);
-         pcmBufFree = _aaxDataGetFreeSpace(handle->pcmBuffer);
+         pcmBuf = _aaxDataGetPtr(handle->pcmBuffer, 0);
+         pcmBufFree = _aaxDataGetFreeSpace(handle->pcmBuffer, 0);
          frameSpace = pcmBufFree/bps;
 
-         opusBuf = _aaxDataGetData(handle->opusBuffer);
+         opusBuf = _aaxDataGetData(handle->opusBuffer, 0);
 
          if (handle->recover) {
             popus_decoder_ctl(handle->id,
@@ -408,22 +408,22 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
                             pcmBuf, frameSpace, 0);
          if (ret > 0)
          {
-            rv += _aaxDataMove(handle->opusBuffer, NULL, packetSize);
+            rv += _aaxDataMove(handle->opusBuffer, 0, NULL, packetSize);
 
             handle->recover = AAX_FALSE;
-            _aaxDataIncreaseOffset(handle->pcmBuffer, ret*bps);
+            _aaxDataIncreaseOffset(handle->pcmBuffer, 0, ret*bps);
 
             // copy the remaining samples
             {
-               pcmBufAvail = _aaxDataGetDataAvail(handle->pcmBuffer);
+               pcmBufAvail = _aaxDataGetDataAvail(handle->pcmBuffer, 0);
                if (pcmBufAvail)
                {
                   unsigned int max = _MIN(req, pcmBufAvail/bps);
 
-                  pcmBuf = _aaxDataGetData(handle->pcmBuffer);
+                  pcmBuf = _aaxDataGetData(handle->pcmBuffer, 0);
                   _batch_cvt24_16_intl(dptr, pcmBuf, dptr_offs, tracks, max);
 
-                  _aaxDataMove(handle->pcmBuffer, NULL, max*bps);
+                  _aaxDataMove(handle->pcmBuffer, 0, NULL, max*bps);
                   handle->no_samples += max;
                   dptr_offs += max;
                   req -= max;
@@ -458,8 +458,8 @@ _opus_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t of
 
    if (num)
    {
-      size_t size = _aaxDataGetDataAvail(handle->opusBuffer);
-      void *ptr = _aaxDataGetData(handle->opusBuffer);
+      size_t size = _aaxDataGetDataAvail(handle->opusBuffer, 0);
+      void *ptr = _aaxDataGetData(handle->opusBuffer, 0);
 
       assert(scratchlen >= *num*handle->no_tracks*sizeof(int32_t));
 

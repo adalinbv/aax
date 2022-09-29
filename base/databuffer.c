@@ -40,21 +40,20 @@
 #define DATA_ID	0xDFA82736
 
 static unsigned char**
-_aaxDataAlloc(uint8_t tracks, size_t tracksize)
+_aaxDataAlloc(unsigned char no_buffers, size_t buffersize)
 {
    unsigned char** rv;
    char *ptr;
 
-// rv->data = _aax_aligned_alloc(size);
-   tracksize = SIZE_ALIGNED(tracksize);
-   rv = (unsigned char**)_aax_malloc(&ptr, tracks*sizeof(unsigned char*), tracksize);
+   buffersize = SIZE_ALIGNED(buffersize);
+   rv = (unsigned char**)_aax_malloc(&ptr, no_buffers*sizeof(unsigned char*), buffersize);
    if (rv)
    {
       int t;
-      for (t=0; t<tracks; ++t)
+      for (t=0; t<no_buffers; ++t)
       {
-         rv[0] = (unsigned char*)ptr;
-         ptr += tracksize;
+         rv[t] = (unsigned char*)ptr;
+         ptr += buffersize;
       }
    }
 
@@ -62,21 +61,20 @@ _aaxDataAlloc(uint8_t tracks, size_t tracksize)
 }
 
 _data_t*
-_aaxDataCreate(size_t size, unsigned int blocksize)
+_aaxDataCreate(unsigned char no_buffers, size_t size, unsigned int blocksize)
 {
    _data_t* rv = malloc(sizeof(_data_t));
-   unsigned char tracks = 1;
    if (rv)
    {
-      rv->data = _aaxDataAlloc(tracks, size);
+      rv->data = _aaxDataAlloc(no_buffers, size);
       if (rv->data)
       {
-         rv->offset = calloc(tracks, sizeof(size_t));
+         rv->offset = calloc(no_buffers, sizeof(size_t));
          if (rv->offset)
          {
             rv->id = DATA_ID;
             rv->size = size;
-            rv->no_tracks = tracks;
+            rv->no_buffers = no_buffers;
             rv->blocksize = blocksize ? blocksize : 1;
          }
          else
@@ -95,9 +93,13 @@ _aaxDataCreate(size_t size, unsigned int blocksize)
 }
 
 void
-_aaxDataClear(_data_t* buf)
+_aaxDataClear(_data_t* buf, unsigned char buffer_no)
 {
-   buf->offset[0] = 0;
+   if (buffer_no < buf->no_buffers) {
+      buf->offset[buffer_no] = 0;
+   } else if (buffer_no == -1) {
+      memset(buf->offset, 0, buf->no_buffers*sizeof(size_t));
+   }
 }
 
 int
@@ -118,46 +120,53 @@ _aaxDataDestroy(_data_t* buf)
 }
 
 size_t
-_aaxDataAdd(_data_t* buf, const void* data, size_t size)
+_aaxDataAdd(_data_t* buf, unsigned char buffer_no, const void* data, size_t size)
 {
    size_t free, rv = 0;
 
    assert(buf);
    assert(buf->id == DATA_ID);
+   assert(buf->no_buffers > buffer_no);
    assert(data);
 
-   free = buf->size - buf->offset[0];
-   if (size > free) rv = free;
-   else rv = size;
-
-   if (rv)
+   if (buffer_no < buf->no_buffers)
    {
-      memcpy(buf->data[0]+buf->offset[0], data, rv);
-      buf->offset[0] += rv;
+      free = buf->size - buf->offset[buffer_no];
+      if (size > free) rv = free;
+      else rv = size;
+
+      if (rv)
+      {
+         memcpy(buf->data[buffer_no]+buf->offset[buffer_no], data, rv);
+         buf->offset[buffer_no] += rv;
+      }
    }
 
    return rv;
 }
 
 size_t
-_aaxDataCopy(_data_t* buf, void* data, size_t offset, size_t size)
+_aaxDataCopy(_data_t* buf, unsigned char buffer_no, void* data, size_t offset, size_t size)
 {
    size_t rv = size;
 
    assert(buf);
    assert(buf->id == DATA_ID);
+   assert(buf->no_buffers > buffer_no);
    assert(data);
 
-   if (!data || offset+size > buf->offset[0]) {
+   if (!data || buffer_no >= buf->no_buffers ||
+       offset+size > buf->offset[buffer_no])
+   {
       rv = 0;
    }
    else if (size >= buf->blocksize)
    {
-      size_t remain = buf->offset[0] - offset;
+      size_t remain = buf->offset[buffer_no] - offset;
 
       rv = _MIN((size/buf->blocksize)*buf->blocksize, remain);
       if (rv) {
-         memcpy(data, buf->data[0]+offset, rv);
+         memcpy(data, buf->data[buffer_no]+offset, rv);
       }
    }
 
@@ -165,53 +174,61 @@ _aaxDataCopy(_data_t* buf, void* data, size_t offset, size_t size)
 }
 
 size_t
-_aaxDataMove(_data_t* buf, void* data, size_t size)
+_aaxDataMove(_data_t* buf, unsigned char buffer_no, void* data, size_t size)
 {
    size_t rv = size;
 
    assert(buf);
    assert(buf->id == DATA_ID);
+   assert(buf->no_buffers > buffer_no);
 
-   if (size >= buf->blocksize)
+   if (buffer_no < buf->no_buffers)
    {
-      rv = _MIN((size/buf->blocksize)*buf->blocksize, buf->offset[0]);
-      if (data) {
-         memcpy(data, buf->data[0], rv);
-      }
+      if (size >= buf->blocksize)
+      {
+         rv = _MIN((size/buf->blocksize)*buf->blocksize, buf->offset[buffer_no]);
+         if (data) {
+            memcpy(data, buf->data[buffer_no], rv);
+         }
 
-      buf->offset[0] -= rv;
-      if (buf->offset[0] > 0) {
-         memmove(buf->data[0], buf->data[0]+rv, buf->offset[0]);
+         buf->offset[buffer_no] -= rv;
+         if (buf->offset[buffer_no] > 0) {
+            memmove(buf->data[buffer_no], buf->data[buffer_no]+rv, buf->offset[buffer_no]);
+         }
       }
+   }
+   else { 
+      rv = 0;
    }
 
    return rv;
 }
 
 size_t
-_aaxDataMoveOffset(_data_t* buf, void* data, size_t offset, size_t size)
+_aaxDataMoveOffset(_data_t* buf, unsigned char buffer_no, void* data, size_t offset, size_t size)
 {
    size_t rv = size;
 
    assert(buf);
    assert(buf->id == DATA_ID);
+   assert(buf->no_buffers > buffer_no);
 
-   if (offset+size > buf->offset[0]) {
+   if (buffer_no >= buf->no_buffers || offset+size > buf->offset[buffer_no]) {
       rv = 0;
    }
    else if (size >= buf->blocksize)
    {
-      ssize_t remain = buf->offset[0] - offset;
+      ssize_t remain = buf->offset[buffer_no] - offset;
 
       rv = _MIN((size/buf->blocksize)*buf->blocksize, remain);
       if (data && rv) {
-         memcpy(data, buf->data[0]+offset, rv);
+         memcpy(data, buf->data[buffer_no]+offset, rv);
       }
 
       remain -= rv;
-      buf->offset[0] -= rv;
-      if (buf->offset[0] > 0 && remain > 0) {
-         memmove(buf->data[0]+offset, buf->data[0]+offset+rv, remain);
+      buf->offset[buffer_no] -= rv;
+      if (buf->offset[buffer_no] > 0 && remain > 0) {
+         memmove(buf->data[buffer_no]+offset, buf->data[buffer_no]+offset+rv, remain);
       }
    }
 
@@ -219,29 +236,34 @@ _aaxDataMoveOffset(_data_t* buf, void* data, size_t offset, size_t size)
 }
 
 size_t
-_aaxDataMoveData(_data_t* src, _data_t* dst, size_t size)
+_aaxDataMoveData(_data_t* src, unsigned char src_no, _data_t* dst, unsigned char dst_no, size_t size)
 {
    size_t rv = size;
 
    assert(src);
    assert(src->id == DATA_ID);
+   assert(src->no_buffers > src_no);
 
    assert(dst);
    assert(dst->id == DATA_ID);
+   assert(dst->no_buffers > dst_no);
 
-   if (size >= src->blocksize && size > dst->blocksize)
+   if (src->no_buffers > src_no && dst->no_buffers > dst_no)
    {
-      rv = _MIN((size/src->blocksize)*src->blocksize, src->offset[0]);
-      if (rv > (dst->size - dst->offset[0])) {
-         rv = dst->size - dst->offset[0];
-      }
+      if (size >= src->blocksize && size > dst->blocksize)
+      {
+         rv = _MIN((size/src->blocksize)*src->blocksize, src->offset[src_no]);
+         if (rv > (dst->size - dst->offset[dst_no])) {
+            rv = dst->size - dst->offset[dst_no];
+         }
 
-      memcpy(dst->data[0]+dst->offset[0], src->data[0], rv);
+         memcpy(dst->data[dst_no]+dst->offset[dst_no], src->data[src_no], rv);
 
-      src->offset[0] -= rv;
-      dst->offset[0] += rv;
-      if (src->offset[0] > 0) {
-         memmove(src->data[0], src->data[0]+rv, src->offset[0]);
+         src->offset[src_no] -= rv;
+         dst->offset[dst_no] += rv;
+         if (src->offset[src_no] > 0) {
+            memmove(src->data[src_no], src->data[src_no]+rv, src->offset[src_no]);
+         }
       }
    }
 
@@ -249,15 +271,31 @@ _aaxDataMoveData(_data_t* src, _data_t* dst, size_t size)
 }
 
 void*
-_aaxDataGetData(_data_t *buf)
+_aaxDataGetData(_data_t *buf, unsigned char buffer_no)
 {
-   return buf->data[0];
+   void *rv = NULL;
+
+   assert(buf->no_buffers > buffer_no);
+
+   if (buf->no_buffers > buffer_no) {
+      rv = buf->data[buffer_no];
+   }
+
+   return rv;
 }
 
 void*
-_aaxDataGetPtr(_data_t *buf)
+_aaxDataGetPtr(_data_t *buf, unsigned char buffer_no)
 {
-   return buf->data[0] + buf->offset[0];
+   void *rv = NULL;
+
+   assert(buf->no_buffers > buffer_no);
+
+   if (buf->no_buffers > buffer_no) {
+      rv = buf->data[buffer_no] + buf->offset[buffer_no];
+   }
+
+   return rv;
 }
 
 size_t
@@ -267,54 +305,88 @@ _aaxDataGetSize(_data_t *buf)
 }
 
 ssize_t
-_aaxDataSetOffset(_data_t *buf, size_t offs)
+_aaxDataSetOffset(_data_t *buf, unsigned char buffer_no, size_t offs)
 {
    ssize_t rv = 0;
 
-   if (buf->offset[0] + offs <= buf->size) {
-      buf->offset[0] = offs;
-   }
-   else
+   assert(buf->no_buffers > buffer_no);
+
+   if (buf->no_buffers > buffer_no)
    {
-      rv = buf->size - (buf->offset[0] + offs);
-      buf->offset[0] = buf->size;
+      if (buf->offset[buffer_no] + offs <= buf->size) {
+         buf->offset[buffer_no] = offs;
+      }
+      else
+      {
+         rv = buf->size - (buf->offset[buffer_no] + offs);
+         buf->offset[buffer_no] = buf->size;
+      }
    }
 
    return rv;
 }
 
 ssize_t
-_aaxDataIncreaseOffset(_data_t *buf, size_t offs)
+_aaxDataIncreaseOffset(_data_t *buf, unsigned char buffer_no, size_t offs)
 {
    ssize_t rv = 0;
 
-   if (buf->offset[0] + offs <= buf->size) {
-      buf->offset[0] += offs;
-   }
-   else
+   assert(buf->no_buffers > buffer_no);
+
+   if (buf->no_buffers > buffer_no)
    {
-      rv = buf->size - (buf->offset[0] + offs);
-      buf->offset[0] = buf->size;
+      if (buf->offset[buffer_no] + offs <= buf->size) {
+         buf->offset[buffer_no] += offs;
+      }
+      else
+      {
+         rv = buf->size - (buf->offset[buffer_no] + offs);
+         buf->offset[buffer_no] = buf->size;
+      }
    }
 
    return rv;
 }
 
 size_t
-_aaxDataGetOffset(_data_t *buf)
+_aaxDataGetOffset(_data_t *buf, unsigned char buffer_no)
 {
-   return buf->offset[0];
+   size_t rv = 0;
+
+   assert(buf->no_buffers > buffer_no);
+
+   if (buf->no_buffers > buffer_no) {
+      rv = buf->offset[buffer_no];
+   }
+
+   return rv;
 }
 
 size_t
-_aaxDataGetDataAvail(_data_t *buf)
+_aaxDataGetDataAvail(_data_t *buf, unsigned char buffer_no)
 {
-   return buf->offset[0];
+   size_t rv = 0;
+
+   assert(buf->no_buffers > buffer_no);
+
+   if (buf->no_buffers > buffer_no) {
+      rv = buf->offset[buffer_no];
+   }
+
+   return rv;
 }
 
 size_t
-_aaxDataGetFreeSpace(_data_t *buf)
+_aaxDataGetFreeSpace(_data_t *buf, unsigned char buffer_no)
 {
-   return buf->size - buf->offset[0];
+   size_t rv = 0;
+
+   assert(buf->no_buffers > buffer_no);
+
+   if (buf->no_buffers > buffer_no) {
+      rv = buf->size - buf->offset[buffer_no];
+   }
+
+   return rv;
 }
 

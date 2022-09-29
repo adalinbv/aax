@@ -168,7 +168,7 @@ _snd_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
    if (handle)
    {
       if (!handle->sndBuffer) {
-         handle->sndBuffer = _aaxDataCreate(16384, 0);
+         handle->sndBuffer = _aaxDataCreate(1, 16384, 0);
       }
 
       if (!handle->capturing) { // write
@@ -283,16 +283,16 @@ _snd_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    _driver_t *handle = ext->id;
    size_t res, rv = __F_PROCESS;
 
-   *bytes = res = _aaxDataAdd(handle->sndBuffer, sptr, *bytes);
+   *bytes = res = _aaxDataAdd(handle->sndBuffer, 0, sptr, *bytes);
    if (res > 0)
    {
-      void *data = _aaxDataGetData(handle->sndBuffer);
-      ssize_t avail = _aaxDataGetDataAvail(handle->sndBuffer);
+      void *data = _aaxDataGetData(handle->sndBuffer, 0);
+      ssize_t avail = _aaxDataGetDataAvail(handle->sndBuffer, 0);
 
       if (avail)
       {
           handle->fmt->fill(handle->fmt, data, &avail);
-         _aaxDataMove(handle->sndBuffer, NULL, avail);
+         _aaxDataMove(handle->sndBuffer, 0, NULL, avail);
       }
    }
 

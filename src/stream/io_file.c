@@ -73,8 +73,8 @@ _file_close(_io_t *io)
 ssize_t
 _file_read(_io_t *io, _data_t* buf, size_t count)
 {
-   size_t size = _MIN(count, _aaxDataGetFreeSpace(buf));
-   void *ptr = _aaxDataGetPtr(buf);
+   size_t size = _MIN(count, _aaxDataGetFreeSpace(buf, 0));
+   void *ptr = _aaxDataGetPtr(buf, 0);
    ssize_t rv = 0;
 
    if (size)
@@ -84,7 +84,7 @@ _file_read(_io_t *io, _data_t* buf, size_t count)
       } while (rv < 0 && errno == EINTR);
 
       if (rv > 0) {
-         _aaxDataIncreaseOffset(buf, rv);
+         _aaxDataIncreaseOffset(buf, 0, rv);
       } else if (rv == 0) {
          rv = __F_EOF;
       }
@@ -96,16 +96,16 @@ _file_read(_io_t *io, _data_t* buf, size_t count)
 ssize_t
 _file_write(_io_t *io, _data_t *buf)
 {
-   ssize_t res = _aaxDataGetDataAvail(buf);
+   ssize_t res = _aaxDataGetDataAvail(buf, 0);
    ssize_t rv = 0;
 
    if (io->fds.fd >= 0 && res)
    {
-      void *data = _aaxDataGetData(buf);
+      void *data = _aaxDataGetData(buf, 0);
 
       rv = write(io->fds.fd, data, res);
       if (rv > 0) {
-         rv = _aaxDataMove(buf, NULL, rv);
+         rv = _aaxDataMove(buf, 0, NULL, rv);
       }
    }
 

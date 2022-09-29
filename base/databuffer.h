@@ -30,7 +30,7 @@ typedef struct _data_st
 
    unsigned char **data;
 
-   unsigned char no_tracks;
+   unsigned char no_buffers;
    unsigned int blocksize;
    size_t *offset; // or fill-level
    size_t size;   // maximum buffer size
@@ -41,12 +41,14 @@ typedef struct _data_st
  * Create a new data structure.
  * Data will be manipulated in blocks of blocksize.
  *
- * size: total size of the buffer
+ * no_buffers: number of separate buffers each with their own offset but all
+               with the same size.
+ * size: total size of each sepatate buffer
  * blocksize: size of the individual blocks.
  *
  * returns an initialized data structure.
  */
-_data_t* _aaxDataCreate(size_t, unsigned int);
+_data_t* _aaxDataCreate(unsigned char no_buffers, size_t size, unsigned int blocksize);
 
 /**
  * Destroy and clean up a data structure.
@@ -55,118 +57,150 @@ _data_t* _aaxDataCreate(size_t, unsigned int);
  *
  * return AAX_TRUE
  */
-int _aaxDataDestroy(_data_t*);
+int _aaxDataDestroy(_data_t* buf);
 
 /**
  * Add data to the end of a previously created data structure.
  *
  * buf: the previously created data structure.
+ * buffer_no: buffer number to which to add the data.
  * data: a pointer to the data which should be appended.
  * size: size (in bytes) of the data to be added.
  *
  * returns the actual number of bytes that where added.
  */
-size_t _aaxDataAdd(_data_t*, const void*, size_t);
+size_t _aaxDataAdd(_data_t* buf, unsigned char buffer_no, const void* data, size_t size);
 
 /**
  * Copy data from an offset of a previously created data structure.
  *
  * buf: the previously created data structure.
+ * buffer_no: buffer number from which to copy the data.
  * data: the buffer to move the data to. If NULL the data will just be erased.
  * offset: offset in the data buffer.
  * size: size (in bytes) of the data to be (re)moved.
  *
  * returns the actual number of bytes that where moved.
  */
-size_t _aaxDataCopy(_data_t*, void*, size_t, size_t);
+size_t _aaxDataCopy(_data_t* buf, unsigned char buffer_no, void* data, size_t offset, size_t size);
 
 /**
  * (Re)Move data from the start of a previously created data structure.
  *
  * buf: the previously created data structure.
+ * buffer_no: buffer number from which to move the data.
  * data: the buffer to move the data to. If NULL the data will just be erased.
  * size: size (in bytes) of the data to be (re)moved.
  *
  * returns the actual number of bytes that where moved.
  */
-size_t _aaxDataMove(_data_t*, void*, size_t);
+size_t _aaxDataMove(_data_t* buf, unsigned char buffer_no, void* data, size_t size);
 
 /**
  * (Re)Move data from an offset of a previously created data structure.
  *
  * buf: the previously created data structure.
+ * buffer_no: buffer number from which to (re)move the data.
  * data: the buffer to move the data to. If NULL the data will just be erased.
  * offset: offset in the data buffer.
  * size: size (in bytes) of the data to be (re)moved.
  *
  * returns the actual number of bytes that where moved.
  */
-size_t _aaxDataMoveOffset(_data_t*, void*, size_t, size_t);
+size_t _aaxDataMoveOffset(_data_t* buf, unsigned char buffer_no, void* data, size_t offset, size_t size);
 
 /**
  * Move data from one previously created data structure to another.
  *
- * dst: the previously created destinion data structure.
- * src: the previously created source data structure.
+ * src: the previously created destinion data structure.
+ * src_no: buffer number to which to add the data. 
+ * dst: the previously created source data structure.
+ * dst_no: buffer number  from which to move the data.
  * size: size (in bytes) of the data to be moved.
  *
  * returns the actual number of bytes that where moved.
  */
-size_t _aaxDataMoveData(_data_t*, _data_t*, size_t);
+size_t _aaxDataMoveData(_data_t* src, unsigned char src_no, _data_t* dst, unsigned char dst_no, size_t size);
 
 /**
  * clear the buffer for reuse for another task.
+ *
+ * buf: the previously created data structure.
+ * buffer_no: buffer number for which to clear the data. Use -1 for all.
  */
-void _aaxDataClear(_data_t*);
+void _aaxDataClear(_data_t* buf, unsigned char buffer_no);
 
 /**
- * returns the maximum allowd number of bytes for the buffer.
+ * returns the maximum allowd number of bytes for each buffer.
+ *
+ * buf: the previously created data structure.
  */
-size_t _aaxDataGetSize(_data_t*);
+size_t _aaxDataGetSize(_data_t* buf);
 
 /**
  * returns the number of bytes free to use after the assigned area.
+ *
+ * buf: the previously created data structure.
+ * buffer_no: buffer number from which to return the free space.
  */
-size_t _aaxDataGetFreeSpace(_data_t*);
+size_t _aaxDataGetFreeSpace(_data_t* buf, unsigned char buffer_no);
 
 /**
  * returns the number of bytes of data in use in the buffer.
+ *
+ * buf: the previously created data structure.
+ * buffer_no: buffer number from which to return the fill level.
  */
-size_t _aaxDataGetDataAvail(_data_t*);
+size_t _aaxDataGetDataAvail(_data_t* buf, unsigned char buffer_no);
 
 /**
  * try to increase the offset-pointer by offs bytes.
- * this can be useful if additional data was added by the calling process.
+ * this can be useful if additional data was added by the calling process. *
+ *
+ * buf: the previously created data structure.
+ * buffer_no: buffer number for which to increase the offset.
  *
  * returns the actual number of bytes the offset was increased.
  */
-ssize_t _aaxDataIncreaseOffset(_data_t*, size_t offs);
+ssize_t _aaxDataIncreaseOffset(_data_t* buf, unsigned char buffer_no, size_t offs);
 
 /**
  * try to set the offset-pointer offs number of bytes from the start.
  * this can be useful if new data was added by the calling process.
  *
+ * buf: the previously created data structure.
+ * buffer_no: buffer number for which to set the offset.
+ *
  * returns the actual number of bytes the offset was set.
  */
-ssize_t _aaxDataSetOffset(_data_t*, size_t offs);
+ssize_t _aaxDataSetOffset(_data_t* buf, unsigned char buffer_no, size_t offs);
 
 /**
  * returns the current offset-pointer in bytes.
+ *
+ * buf: the previously created data structure.
+ * buffer_no: buffer number from which to return the offset.
  */
-size_t _aaxDataGetOffset(_data_t*);
+size_t _aaxDataGetOffset(_data_t* buf, unsigned char buffer_no);
 
 
 /**
  * returns a pointer to the start of the data-section.
+ *
+ * buf: the previously created data structure.
+ * buffer_no: buffer number from which to return the data pointer.
  */
-void* _aaxDataGetData(_data_t*);
+void* _aaxDataGetData(_data_t* buf, unsigned char buffer_no);
 
 /**
  * returns a pointer to the data-section at the current offset.
  *
+ * buf: the previously created data structure.
+ * buffer_no: buffer number from which to return the data pointer.
+ *
  * this can be used to add additional data to the buffer.
  */
-void* _aaxDataGetPtr(_data_t*);
+void* _aaxDataGetPtr(_data_t* buf, unsigned char buffer_no);
 
 
 #endif /* AAX_DATABUFFER_H */

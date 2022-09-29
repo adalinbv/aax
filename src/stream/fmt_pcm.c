@@ -108,7 +108,7 @@ _pcm_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t fsiz
    if (handle && buf && bufsize)
    {
       if (!handle->pcmBuffer) {
-         handle->pcmBuffer = _aaxDataCreate(16384, 1);
+         handle->pcmBuffer = _aaxDataCreate(1, 16384, 1);
       }
 
       if (!handle->pcmBuffer)
@@ -274,7 +274,7 @@ _pcm_fill(_fmt_t *fmt, void_ptr sptr, ssize_t *bytes)
    _driver_t *handle = fmt->id;
    size_t rv = __F_PROCESS;
 
-   if (_aaxDataAdd(handle->pcmBuffer, sptr, *bytes) == 0) {
+   if (_aaxDataAdd(handle->pcmBuffer, 0, sptr, *bytes) == 0) {
       *bytes = 0;
    }
 
@@ -287,10 +287,10 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    _driver_t *handle = fmt->id;
    size_t bufsize, rv = __F_NEED_MORE;
 
-   bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
+   bufsize = _aaxDataGetDataAvail(handle->pcmBuffer, 0);
    if (dptr_offs == -1)
    {
-      rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr, *num);
+      rv = _aaxDataMove(handle->pcmBuffer, 0, (char*)dptr, *num);
       *num = bufsize;
    }
    else if (bufsize)
@@ -319,7 +319,7 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
          if (bytes)
          {
             offs = (dptr_offs/block_samps)*block_size;
-            rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr+offs, bytes);
+            rv = _aaxDataMove(handle->pcmBuffer, 0, (char*)dptr+offs, bytes);
             handle->no_samples += *num;
 
             if (handle->no_samples >= handle->max_samples) {
@@ -341,11 +341,11 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
    _driver_t *handle = fmt->id;
    size_t bufsize, rv = __F_NEED_MORE;
 
-   bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
+   bufsize = _aaxDataGetDataAvail(handle->pcmBuffer, 0);
    if (bufsize)
    {
-      char *buf = (char*)_aaxDataGetData(handle->pcmBuffer);
-      size_t bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
+      char *buf = (char*)_aaxDataGetData(handle->pcmBuffer, 0);
+//    size_t bufsize = _aaxDataGetDataAvail(handle->pcmBuffer, 0);
       int block_size = handle->block_size;
       int block_samps = handle->block_samps;
       int tracks = handle->no_tracks;
@@ -361,7 +361,7 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
             rv = _batch_cvt24_adpcm_intl(handle, dptr, buf, dptr_offs, tracks,
                                          *num);
             if (rv) {
-               rv = _aaxDataMove(handle->pcmBuffer, NULL, rv);
+               rv = _aaxDataMove(handle->pcmBuffer, 0, NULL, rv);
             }
             handle->no_samples += *num;
          }
@@ -393,7 +393,7 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
                }
 
                /* skip processed data */
-               rv = _aaxDataMove(handle->pcmBuffer, NULL, bytes);
+               rv = _aaxDataMove(handle->pcmBuffer, 0, NULL, bytes);
                handle->no_samples += *num;
             }
             else {

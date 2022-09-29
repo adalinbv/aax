@@ -696,7 +696,7 @@ _aaxSDLDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
    if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < 8*size))
    {
       _aaxDataDestroy(handle->dataBuffer);
-      handle->dataBuffer = _aaxDataCreate(2*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
+      handle->dataBuffer = _aaxDataCreate(1, 2*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
       if (handle->dataBuffer == 0) return -1;
    }
 
@@ -704,7 +704,7 @@ _aaxSDLDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
    period_frames -= offs;
    size = period_frames*frame_sz;
 
-   free = _aaxDataGetFreeSpace(handle->dataBuffer);
+   free = _aaxDataGetFreeSpace(handle->dataBuffer, 0);
    if (free > size)
    {
       unsigned char *data;
@@ -712,12 +712,12 @@ _aaxSDLDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
       _sdl_set_volume(handle, rb, offs, period_frames, no_tracks, gain);
 
       _aaxMutexLock(handle->mutex);
-      data = _aaxDataGetPtr(handle->dataBuffer);
+      data = _aaxDataGetPtr(handle->dataBuffer, 0);
       sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
       _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, period_frames);
       rb->release_tracks_ptr(rb);
 
-      _aaxDataIncreaseOffset(handle->dataBuffer, size);
+      _aaxDataIncreaseOffset(handle->dataBuffer, 0, size);
       _aaxMutexUnLock(handle->mutex);
 
       rv = period_frames;
@@ -1028,12 +1028,12 @@ _sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
 
       _aaxMutexLock(be_handle->mutex);
 
-      if (_aaxDataGetOffset(be_handle->dataBuffer) >= (size_t)len) {
-         _aaxDataMove(be_handle->dataBuffer, dst, len);
+      if (_aaxDataGetOffset(be_handle->dataBuffer, 0) >= (size_t)len) {
+         _aaxDataMove(be_handle->dataBuffer, 0, dst, len);
       }
       else {
 #if 0
- printf("buffer underrun: avail: %zi, len: %i\n", _aaxDataGetOffset(be_handle->dataBuffer), len);
+ printf("buffer underrun: avail: %zi, len: %i\n", _aaxDataGetOffset(be_handle->dataBuffer, 0), len);
 #endif
          _AAX_DRVLOG("buffer underrun\n");
       }
@@ -1107,7 +1107,7 @@ _aaxSDLDriverThread(void* config)
    state = AAX_SUSPENDED;
 
    be_handle = (_driver_t *)handle->backend.handle;
-   be_handle->dataBuffer = _aaxDataCreate(1, 1);
+   be_handle->dataBuffer = _aaxDataCreate(1, 1, 1);
 
    _aaxMutexLock(handle->thread.signal.mutex);
    do
@@ -1140,7 +1140,7 @@ _aaxSDLDriverThread(void* config)
             float target, input, err, P, I;
 
             target = be_handle->fill.aim;
-            input = (float)_aaxDataGetOffset(be_handle->dataBuffer)/freq;
+            input = (float)_aaxDataGetOffset(be_handle->dataBuffer, 0)/freq;
             err = input - target;
 
             /* present error */

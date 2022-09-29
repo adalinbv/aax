@@ -209,11 +209,11 @@ _aaxStreamDriverNewHandle(enum aaxRenderMode mode)
    if (handle)
    {
       handle->mode = mode;
-      handle->rawBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
-      handle->ioBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
+      handle->rawBuffer = _aaxDataCreate(1, IOBUF_SIZE, 1);
+      handle->ioBuffer = _aaxDataCreate(1, IOBUF_SIZE, 1);
 #if USE_CAPTURE_THREAD
       handle->use_iothread = 1;
-      handle->captureBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
+      handle->captureBuffer = _aaxDataCreate(1, IOBUF_SIZE, 1);
 #elif USE_PLAYBACK_THREAD
       handle->use_iothread = 1;
 #endif
@@ -637,7 +637,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
       if (res && ((handle->io->fds.fd >= 0) || m))
       {
-         void *header = _aaxDataGetData(ioBuffer);
+         void *header = _aaxDataGetData(ioBuffer, 0);
          size_t no_samples = period_frames;
          ssize_t reqSize = headerSize;
          void *ptr = NULL;
@@ -672,7 +672,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                ptr = handle->ext->open(handle->ext, header, &reqSize,
                                        handle->no_bytes);
                if (reqSize) {
-                  _aaxDataMove(ioBuffer, NULL, reqSize);
+                  _aaxDataMove(ioBuffer, 0, NULL, reqSize);
                }
             }
             while (ptr && reqSize);
@@ -683,12 +683,12 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             ptr = handle->ext->open(handle->ext, header, &reqSize,
                                     handle->no_bytes);
             if (reqSize) {
-               _aaxDataMove(ioBuffer, NULL, reqSize);
+               _aaxDataMove(ioBuffer, 0, NULL, reqSize);
             }
 
             if (ptr && reqSize > 0)
             {
-               _aaxDataAdd(handle->rawBuffer, ptr, reqSize);
+               _aaxDataAdd(handle->rawBuffer, 0, ptr, reqSize);
                res = reqSize;
                ptr = NULL;
             }
@@ -821,10 +821,10 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
    if ((handle->rawBuffer == 0) || (_aaxDataGetSize(handle->rawBuffer) < 2*outbuf_size))
    {
       _aaxDataDestroy(handle->rawBuffer);
-      handle->rawBuffer = _aaxDataCreate(2*outbuf_size, 1);
+      handle->rawBuffer = _aaxDataCreate(1, 2*outbuf_size, 1);
       if (handle->rawBuffer == 0) return -1;
    }
-   databuf = _aaxDataGetData(handle->rawBuffer);
+   databuf = _aaxDataGetData(handle->rawBuffer, 0);
    scratch = databuf + outbuf_size;
    scratchsize = outbuf_size; // _aaxDataGetSize(handle->rawBuffer)/2;
 
@@ -846,13 +846,13 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
    res = handle->ext->cvt_to_intl(handle->ext, databuf, (const int32_t**)tracks,
                                   offs, &no_samples, scratch, scratchsize);
    rb->release_tracks_ptr(rb);
-   _aaxDataIncreaseOffset(handle->rawBuffer, res);
+   _aaxDataIncreaseOffset(handle->rawBuffer, 0, res);
 
    // Move data from rawBuffer to ioBuffer
    if (!_aaxMutexLockTimed(handle->ioBufLock, handle->dt))
    {
-      res = _aaxDataGetDataAvail(handle->rawBuffer);
-      _aaxDataMoveData(handle->rawBuffer, handle->ioBuffer, res);
+      res = _aaxDataGetDataAvail(handle->rawBuffer, 0);
+      _aaxDataMoveData(handle->rawBuffer, 0, handle->ioBuffer, 0, res);
       _aaxMutexUnLock(handle->ioBufLock);
    }
 
@@ -930,9 +930,9 @@ _aaxStreamDriverCapture(const void *id, void **dst, ssize_t *offset, size_t *fra
             }
             else	/* convert data still in the buffer */
             {
-               ssize_t avail = _aaxDataGetDataAvail(handle->rawBuffer);
+               ssize_t avail = _aaxDataGetDataAvail(handle->rawBuffer, 0);
                res = handle->ext->fill(handle->ext, data, &avail);
-               _aaxDataMove(handle->rawBuffer, NULL, avail);
+               _aaxDataMove(handle->rawBuffer, 0, NULL, avail);
             }
          } /* handle->start_with_fill */
          handle->start_with_fill = AAX_FALSE;
@@ -981,8 +981,8 @@ _aaxStreamDriverCapture(const void *id, void **dst, ssize_t *offset, size_t *fra
                float target, input, err, P, I; // , D
                float freq, delay_sec;
 
-               avail = _aaxDataGetDataAvail(handle->ioBuffer);
-               res = _aaxDataMoveData(handle->ioBuffer, handle->rawBuffer, avail);
+               avail = _aaxDataGetDataAvail(handle->ioBuffer, 0);
+               res = _aaxDataMoveData(handle->ioBuffer, 0, handle->rawBuffer, 0, avail);
                _aaxMutexUnLock(handle->ioBufLock);
 
                delay_sec = 1.0f/handle->refresh_rate;
@@ -1009,7 +1009,7 @@ _aaxStreamDriverCapture(const void *id, void **dst, ssize_t *offset, size_t *fra
  printf("target: %2.1f, avail: %2.1f, err: %2.1f (\033[92;4mP: %2.1f, I: %2.1f\033[0m), fact: %2.1f, xoffs: %li\n", target, input, err, P, I, fact, xoffs);
 # endif
             }
-            data = _aaxDataGetData(handle->rawBuffer); // needed above
+            data = _aaxDataGetData(handle->rawBuffer, 0); // needed above
          }
       }
       while (no_samples > 0 && --num);
@@ -1614,7 +1614,7 @@ _aaxStreamDriverWriteChunk(const void *id)
    if (handle->io)
    {
       _data_t *buf = handle->ioBuffer;
-      while (_aaxDataGetDataAvail(buf))
+      while (_aaxDataGetDataAvail(buf, 0))
       {
          ssize_t res = 0;
 
@@ -1749,7 +1749,7 @@ _aaxStreamDriverThread(void* config)
             float target, input, err, P, I;
 
             target = be_handle->fill.aim;
-            input = (float)_aaxDataGetDataAvail(be_handle->rawBuffer)/freq;
+            input = (float)_aaxDataGetDataAvail(be_handle->rawBuffer, 0)/freq;
             err = input - target;
 
             /* present error */
@@ -1805,8 +1805,8 @@ _aaxStreamDriverWriteThread(void *id)
 
    do
    {
-      size_t res = _aaxDataGetDataAvail(handle->rawBuffer);
-      _aaxDataMoveData(handle->rawBuffer, handle->ioBuffer, res);
+      size_t res = _aaxDataGetDataAvail(handle->rawBuffer, 0);
+      _aaxDataMoveData(handle->rawBuffer, 0, handle->ioBuffer, 0, res);
    }
    while (_aaxStreamDriverWriteChunk(id));
    _aaxMutexUnLock(handle->iothread.signal.mutex);
@@ -1823,7 +1823,7 @@ _aaxStreamDriverReadChunk(const void *id)
    ssize_t res;
 
    _aaxMutexLock(handle->ioBufLock);
-   size = _aaxDataGetFreeSpace(ioBuffer);
+   size = _aaxDataGetFreeSpace(ioBuffer, 0);
    res = handle->io->read(handle->io, ioBuffer, size);
    _aaxMutexUnLock(handle->ioBufLock);
 
@@ -1842,18 +1842,18 @@ _aaxStreamDriverThreadReadChunk(const void *id)
    ssize_t res = 0;
    size_t size;
 
-   size = _aaxDataGetFreeSpace(captureBuffer);
+   size = _aaxDataGetFreeSpace(captureBuffer, 0);
    if (size) {
       res = handle->io->read(handle->io, captureBuffer, size);
    }
 
-   size = _aaxDataGetDataAvail(captureBuffer);
+   size = _aaxDataGetDataAvail(captureBuffer, 0);
    if (size)
    {
       // Move data from captureBuffer to ioBuffer
       if (!_aaxMutexLockTimed(handle->ioBufLock, handle->dt))
       {
-         res = _aaxDataMoveData(captureBuffer, handle->ioBuffer, size);
+         res = _aaxDataMoveData(captureBuffer, 0, handle->ioBuffer, 0, size);
          _aaxMutexUnLock(handle->ioBufLock);
       }
    }
@@ -1877,7 +1877,7 @@ _aaxStreamDriverReadThread(void *id)
    {
       do
       {
-         _aaxDataSetOffset(handle->ioBuffer, 0);
+         _aaxDataSetOffset(handle->ioBuffer, 0, 0);
          res = _aaxStreamDriverThreadReadChunk(id);
       }
       while (res > IOBUF_THRESHOLD);
