@@ -839,11 +839,11 @@ _aaxPipeWireDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSE
    period_frames = rb->get_parami(rb, RB_NO_SAMPLES);
    frame_sz = no_tracks*handle->bits_sample/8;
 
-   size = BUFFER_SIZE_FACTOR*period_frames*frame_sz;
-   if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < size))
+   size = BUFFER_SIZE_FACTOR*period_frames;
+   if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < size*frame_sz))
    {
       _aaxDataDestroy(handle->dataBuffer);
-      handle->dataBuffer = _aaxDataCreate(1, size, no_tracks*handle->bits_sample/8);
+      handle->dataBuffer = _aaxDataCreate(1, size, frame_sz);
       if (handle->dataBuffer == 0) return -1;
 
       // stream_set_write_callback

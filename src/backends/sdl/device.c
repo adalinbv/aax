@@ -693,10 +693,10 @@ _aaxSDLDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
    frame_sz = no_tracks*handle->bits_sample/8;
 
    size = period_frames*frame_sz;
-   if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < 8*size))
+   if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < 2*FILL_FACTOR*size*frame_sz))
    {
       _aaxDataDestroy(handle->dataBuffer);
-      handle->dataBuffer = _aaxDataCreate(1, 2*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
+      handle->dataBuffer = _aaxDataCreate(1, 2*FILL_FACTOR*size, frame_sz);
       if (handle->dataBuffer == 0) return -1;
    }
 

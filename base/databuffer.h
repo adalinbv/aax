@@ -39,7 +39,9 @@ typedef struct _data_st
 
 /**
  * Create a new data structure.
+ * If blocksize is zero it will be internally set to one.
  * Data will be manipulated in blocks of blocksize.
+ * The number of allocated bytes will be size*blocksize.
  *
  * no_buffers: number of separate buffers each with their own offset but all
                with the same size.
@@ -72,15 +74,19 @@ int _aaxDataDestroy(_data_t* buf);
 size_t _aaxDataAdd(_data_t* buf, unsigned char buffer_no, const void* data, size_t size);
 
 /**
- * Copy data from an offset of a previously created data structure.
+ * Copy data from an offset to the start of the internal data buffer of a
+ * previously created data structure. No data will me removed from the
+ * internal data buffer.
  *
  * buf: the previously created data structure.
  * buffer_no: buffer number from which to copy the data.
- * data: the buffer to move the data to. If NULL the data will just be erased.
- * offset: offset in the data buffer.
+ * data: the buffer to move the data to.
+ * offset: offset in the internal data buffer.
  * size: size (in bytes) of the data to be (re)moved.
  *
- * returns the actual number of bytes that where moved.
+ * returns the actual number of bytes that where copied rounded of to blocksize,
+ * or 0 if dat == NULL, buffer_no >= no_buffers, size < blocksize or 
+ *      offset+size > available number of bytes.
  */
 size_t _aaxDataCopy(_data_t* buf, unsigned char buffer_no, void* data, size_t offset, size_t size);
 
@@ -89,23 +95,30 @@ size_t _aaxDataCopy(_data_t* buf, unsigned char buffer_no, void* data, size_t of
  *
  * buf: the previously created data structure.
  * buffer_no: buffer number from which to move the data.
- * data: the buffer to move the data to. If NULL the data will just be erased.
+ * data: the buffer to move the data to. If NULL the data will just be erased
+ *       from the internal buffer.
  * size: size (in bytes) of the data to be (re)moved.
  *
- * returns the actual number of bytes that where moved.
+ * returns the actual number of bytes that where moved rounded of to blocksize,
+ * or 0 if buffer_no >= no_buffers, size < blocksize or 
+ *      offset+size > available number of bytes.
  */
 size_t _aaxDataMove(_data_t* buf, unsigned char buffer_no, void* data, size_t size);
 
 /**
- * (Re)Move data from an offset of a previously created data structure.
+ * (Re)Move data from an offset to the start of the internal data buffer of a
+ * previously created data structure.
  *
  * buf: the previously created data structure.
  * buffer_no: buffer number from which to (re)move the data.
- * data: the buffer to move the data to. If NULL the data will just be erased.
+ * data: the buffer to move the data to. If NULL the data will just be erased
+ *       from the internal buffer.
  * offset: offset in the data buffer.
  * size: size (in bytes) of the data to be (re)moved.
  *
- * returns the actual number of bytes that where moved.
+ * returns the actual number of bytes that where moved rounded of to blocksize,
+ * or 0 if buffer_no >= no_buffers, size < blocksize or 
+ *      offset+size > available number of bytes.
  */
 size_t _aaxDataMoveOffset(_data_t* buf, unsigned char buffer_no, void* data, size_t offset, size_t size);
 
@@ -118,7 +131,9 @@ size_t _aaxDataMoveOffset(_data_t* buf, unsigned char buffer_no, void* data, siz
  * dst_no: buffer number  from which to move the data.
  * size: size (in bytes) of the data to be moved.
  *
- * returns the actual number of bytes that where moved.
+ * returns the actual number of bytes that where moved rounded of to blocksize,
+ * or 0 if src_no > no_buffers in the source buffer, dst_no > no_buffers in
+ *         the destination buffer or size < the source or destination blocksize.
  */
 size_t _aaxDataMoveData(_data_t* src, unsigned char src_no, _data_t* dst, unsigned char dst_no, size_t size);
 
