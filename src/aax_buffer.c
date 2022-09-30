@@ -2255,8 +2255,9 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
    else if (handle && handle->mixer_info && (*handle->mixer_info && ((*handle->mixer_info)->id == INFO_ID)))
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, pitch_level);
-      float samps_period, fs, fw, fs_mixer, rate, *scratch;
+      float samps_period, fs, fw, fs_mixer, rate;
       int no_samples, i, bit = 1;
+      _data_t *scratch;
       int q, hvoices;
       uint64_t seed;
       unsigned skip;
@@ -2324,7 +2325,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
 
       phasing = (spread <0.0f);
       spread = fabsf(spread);
-      scratch = _aax_aligned_alloc(2*(no_samples+NOISE_PADDING)*sizeof(float));
+      scratch = _aaxDataCreate(2, no_samples+NOISE_PADDING, sizeof(float));
       if (scratch)
       {
          // AAX_CONSTANT_VALUE == 0
@@ -2362,7 +2363,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
             }
             bit <<= 1;
          }
-         _aax_aligned_free(scratch);
+         _aaxDataDestroy(scratch);
       }
    }
    else {

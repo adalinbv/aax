@@ -1256,7 +1256,7 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format, int mixer)
 }
 
 int
-_aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformType type, int track, float f, float ratio, float phase, unsigned char modulate, unsigned char limiter)
+_aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxWaveformType type, int track, float f, float ratio, float phase, unsigned char modulate, unsigned char limiter)
 {
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
@@ -1312,7 +1312,7 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, float *scratch, enum aaxWavefo
 }
 
 int
-_aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformType type, int track, float fs, float rate, float ratio, uint64_t seed, char skip, unsigned char modulate, unsigned char limiter)
+_aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, _data_t *scratch, enum aaxWaveformType type, int track, float fs, float rate, float ratio, uint64_t seed, char skip, unsigned char modulate, unsigned char limiter)
 {
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
@@ -1323,26 +1323,25 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformT
    {
       unsigned char bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
       size_t no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-      int32_t **data;
+      int32_t **data = rb->get_tracks_ptr(rb, RB_WRITE);
+      int32_t *ptr = data[track];
       float pitch;
 
       pitch = _MINMAX(rate, 0.01f, 1.0f);
-
-      data = rb->get_tracks_ptr(rb, RB_WRITE);
       switch (type)
       {
       case AAX_WHITE_NOISE:
-         _bufferMixWhiteNoise(data[track], scratch, no_samples, bps, pitch,
+         _bufferMixWhiteNoise(ptr, scratch, no_samples, bps, pitch,
                               ratio, fs, seed, skip, modulate, limiter);
          rv = AAX_TRUE;
          break;
       case AAX_PINK_NOISE:
-         _bufferMixPinkNoise(data[track], scratch, no_samples, bps, pitch,
+         _bufferMixPinkNoise(ptr, scratch, no_samples, bps, pitch,
                              ratio, fs, seed, skip, modulate, limiter);
          rv = AAX_TRUE;
          break;
       case AAX_BROWNIAN_NOISE:
-         _bufferMixBrownianNoise(data[track], scratch, no_samples, bps, pitch,
+         _bufferMixBrownianNoise(ptr, scratch, no_samples, bps, pitch,
                                  ratio, fs, seed, skip, modulate, limiter);
          rv = AAX_TRUE;
          break;
