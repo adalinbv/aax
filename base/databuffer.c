@@ -46,7 +46,8 @@ _aaxDataAlloc(unsigned char no_buffers, size_t buffersize)
    char *ptr;
 
    buffersize = SIZE_ALIGNED(buffersize);
-   rv = (unsigned char**)_aax_malloc(&ptr, no_buffers*sizeof(unsigned char*), buffersize);
+   rv = (unsigned char**)_aax_malloc(&ptr, no_buffers*sizeof(unsigned char*),
+                                           no_buffers*buffersize);
    if (rv)
    {
       int t;
