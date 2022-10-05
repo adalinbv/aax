@@ -74,75 +74,78 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
 {
    _handle_t* handle = (_handle_t*)config;
    unsigned int native_fmt = format & AAX_FORMAT_NATIVE;
-   aaxBuffer rv = NULL;
+   int rv = __release_mode;
+   _buffer_t *buf = NULL;
 
-   if ((native_fmt < AAX_FORMAT_MAX) && (samples*tracks > 0))
+   if (!rv)
    {
-      _buffer_t* buf = calloc(1, sizeof(_buffer_t));
-      if (buf)
-      {
-         int blocksize;
-         char *env;
-
-         switch(native_fmt)
-         {
-         case AAX_IMA4_ADPCM:
-            blocksize = DEFAULT_IMA4_BLOCKSIZE;
-            break;
-         default:
-            blocksize = 1;
-         }
-
-         buf->id = BUFFER_ID;
-         buf->ref_counter = 1;
-         buf->mip_levels = 1;
-
-         buf->info.no_tracks = tracks;
-         buf->info.no_samples = samples;
-         buf->info.blocksize = blocksize;
-         buf->info.pitch_fraction = 1.0f;
-         buf->midi_mode = AAX_RENDER_NORMAL;
-         buf->mipmap = AAX_FALSE;
-         buf->pos = 0;
-         buf->info.fmt = format;
-         buf->info.rate = 0.0f;
-         buf->gain = 1.0f;
-         buf->mixer_info = VALID_HANDLE(handle) ? &handle->info : &_info;
-         buf->root = handle;
-         buf->ringbuffer[0] = _bufGetRingBuffer(buf, handle, 0);
-         buf->to_mixer = AAX_FALSE;
-
-         /* explicit request not to convert */
-         env = getenv("AAX_USE_MIXER_FMT");
-         if (env && !_aax_getbool(env)) {
-            buf->to_mixer = AAX_FALSE;
-         }
-
-         /* sound is not mono */
-         else if (tracks != 1) {
-            buf->to_mixer = AAX_FALSE;
-         }
-
-         /* more than 500Mb free memory is available, convert */
-         else if (_aax_get_free_memory() > (500*1024*1024)) {
-            buf->to_mixer = AAX_TRUE;
-         }
-
-         rv = (aaxBuffer)buf;
+      if (native_fmt >= AAX_FORMAT_MAX) {
+         _aaxErrorSet(AAX_INVALID_ENUM);
+      } else if (samples*tracks == 0)  {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
+   }
+
+   if (rv)
+   {
+      buf = calloc(1, sizeof(_buffer_t));
       if (buf == NULL) {
          _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
       }
    }
-   else
+
+   if (buf)
    {
-      if (native_fmt >= AAX_FORMAT_MAX) {
-         _aaxErrorSet(AAX_INVALID_ENUM);
-      } else {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      int blocksize;
+      char *env;
+
+      switch(native_fmt)
+      {
+      case AAX_IMA4_ADPCM:
+         blocksize = DEFAULT_IMA4_BLOCKSIZE;
+         break;
+      default:
+         blocksize = 1;
+      }
+
+      buf->id = BUFFER_ID;
+      buf->ref_counter = 1;
+      buf->mip_levels = 1;
+
+      buf->info.no_tracks = tracks;
+      buf->info.no_samples = samples;
+      buf->info.blocksize = blocksize;
+      buf->info.pitch_fraction = 1.0f;
+      buf->midi_mode = AAX_RENDER_NORMAL;
+      buf->mipmap = AAX_FALSE;
+      buf->pos = 0;
+      buf->info.fmt = format;
+      buf->info.rate = 0.0f;
+      buf->gain = 1.0f;
+      buf->mixer_info = VALID_HANDLE(handle) ? &handle->info : &_info;
+      buf->root = handle;
+      buf->ringbuffer[0] = _bufGetRingBuffer(buf, handle, 0);
+      buf->to_mixer = AAX_FALSE;
+
+      /* explicit request not to convert */
+      env = getenv("AAX_USE_MIXER_FMT");
+      if (env && !_aax_getbool(env)) {
+         buf->to_mixer = AAX_FALSE;
+      }
+
+      /* sound is not mono */
+      else if (tracks != 1) {
+         buf->to_mixer = AAX_FALSE;
+      }
+
+      /* more than 500Mb free memory is available, convert */
+      else if (_aax_get_free_memory() > (500*1024*1024)) {
+         buf->to_mixer = AAX_TRUE;
       }
    }
-   return rv;
+   return (aaxBuffer)buf;
 }
 
 AAX_API int AAX_APIENTRY
@@ -2243,16 +2246,22 @@ static int
 _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float pitch, float staticity, float random, unsigned char pitch_level, int voices, float spread, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype, limitType limiter)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
-   int rv = AAX_FALSE;
+   int rv = __release_mode;
 
-   if (wtype > AAX_LAST_WAVEFORM) {
-      _aaxErrorSet(AAX_INVALID_PARAMETER + 3);
-   } else if ((ptype == AAX_MIX) && (ratio > 1.0f || ratio < -1.0f)) {
-      _aaxErrorSet(AAX_INVALID_PARAMETER + 4);
-   } else if (ptype >= AAX_PROCESSING_MAX) {
-      _aaxErrorSet(AAX_INVALID_PARAMETER + 5);
+   if (!rv)
+   {
+      if (wtype > AAX_LAST_WAVEFORM) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER + 3);
+      } else if ((ptype == AAX_MIX) && (ratio > 1.0f || ratio < -1.0f)) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER + 4);
+      } else if (ptype >= AAX_PROCESSING_MAX) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER + 5);
+      }
+      else if (handle && handle->mixer_info && (*handle->mixer_info && ((*handle->mixer_info)->id == INFO_ID)))
+         rv = AAX_TRUE;
    }
-   else if (handle && handle->mixer_info && (*handle->mixer_info && ((*handle->mixer_info)->id == INFO_ID)))
+
+   if (rv)
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, pitch_level);
       float samps_period, fs, fw, fs_mixer, rate;
@@ -2317,7 +2326,6 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
          break;
       }
 
-      rv = AAX_TRUE;
       fs_mixer = _info->frequency;
       if (handle->mixer_info && *handle->mixer_info) {
          fs_mixer = (*handle->mixer_info)->frequency;
