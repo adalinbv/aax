@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2007-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -228,107 +228,6 @@ ALIGN float _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS] =
     1.f/16.f, 1.f/16.f
   }
 };
-
-#if 0
-static float *
-_aax_generate_sine(size_t no_samples, float freq, float phase)
-{
-   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
-   if (rv)
-   {
-      int i = no_samples;
-      float hdt = GMATH_2PI/freq;
-      float s = phase;
-      float *ptr = rv;
-
-      memset(rv, 0, no_samples*sizeof(float));
-      do
-      {
-         *ptr++ += fast_sin(s);
-         s = fmodf(s+hdt, GMATH_2PI);
-      }
-      while (--i);
-   }
-   return rv;
-}
-
-static float *
-_aax_generate_triangle(size_t no_samples, float freq, float phase)
-{
-   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
-   if (rv)
-   {
-      memset(rv, 0, no_samples*sizeof(float));
-      if (1)
-      {
-         int i = no_samples;
-         float hdt = GMATH_2PI/freq;
-         float s = phase;
-         float *ptr = rv;
-
-         do
-         {
-            *ptr++ += tanf(fast_sin(s));
-            s = fmodf(s+hdt, GMATH_2PI);
-         }
-         while (--i);
-      }
-   }
-   return rv;
-}
-
-static float *
-_aax_generate_square(size_t no_samples, float freq, float phase)
-{
-   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
-   if (rv)
-   {
-      float (*_aax_limit)(float) = _aax_atanf;
-      memset(rv, 0, no_samples*sizeof(float));
-      if (1)
-      {
-         int i = no_samples;
-         float hdt = GMATH_2PI/freq;
-         float s = phase;
-         float *ptr = rv;
-
-         do
-         {
-            *ptr++ += _aax_limit(20.0f*fast_sin(s));
-            s = fmodf(s+hdt, GMATH_2PI);
-         }
-         while (--i);
-      }
-   }
-   return rv;
-}
-
-static float *
-_aax_generate_sawtooth(size_t no_samples, float freq, float phase)
-{
-   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
-   if (rv)
-   {
-      memset(rv, 0, no_samples*sizeof(float));
-      if (1)
-      {
-         int i = no_samples;
-         float hdt = GMATH_2PI/freq;
-         float s = GMATH_PI+phase;
-         float *ptr = rv;
-
-         // y=sin(tan((x)/2.4884)
-         do
-         {
-            *ptr++ += fast_sin(tanf((s-GMATH_PI)/2.4884f));
-            s = fmodf(s+hdt, GMATH_2PI);
-         }
-         while (--i);
-      }
-   }
-   return rv;
-}
-#endif
 
 /**
  * Generate an array of random samples
