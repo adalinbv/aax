@@ -93,10 +93,13 @@ char _aaxArchDetectVFPV4();
 char _aaxArchDetectNEON();
 #endif
 
+// #define CLOCK_ID	CLOCK_PROCESS_CPUTIME_ID
+#define CLOCK_ID	CLOCK_THREAD_CPUTIME_ID
+
 struct timespec timer_start()
 {
    struct timespec start_time;
-   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start_time);
+   clock_gettime(CLOCK_ID, &start_time);
    return start_time;
 }
 
@@ -104,7 +107,7 @@ struct timespec timer_start()
 long timer_end(struct timespec start_time)
 {
    struct timespec end_time;
-   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end_time);
+   clock_gettime(CLOCK_ID, &end_time);
    return (end_time.tv_sec - start_time.tv_sec) * (long)1e9 + (end_time.tv_nsec - start_time.tv_nsec);
 }
 
