@@ -76,7 +76,7 @@ static inline __m256
 fast_atan8_avx(__m256 x)
 {
 #if 1
-      const __m256 pi_4_mul = _mm256_set1_ps(GMATH_PI_4+0.2447);
+   const __m256 pi_4_mul = _mm256_set1_ps(GMATH_PI_4+0.2447);
    const __m256 add = _mm256_set1_ps(0.1784);
    const __m256 mull = _mm256_set1_ps(0.0663);
 
@@ -1047,17 +1047,17 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
    i = num/step;
    if (i)
    {
-      __m256 ymm0, dv, tv, dvstep;
+      __m256 dvstep = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
+      __m256 ymm0, ymm1, dv, tv;
       __m256* sptr = (__m256*)s;
       __m256* dptr = (__m256*)d;
 
       assert(step == 8);
-      dvstep = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
       dvstep = _mm256_mul_ps(dvstep, _mm256_set1_ps(vstep));
 
       dv = _mm256_set1_ps(vstep*step);
       tv = _mm256_add_ps(_mm256_set1_ps(v), dvstep);
-      v += i*step*vstep;
+      v += step*vstep;
 
       num -= i*step;
       s += i*step;
@@ -1067,7 +1067,7 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
          do
          {
             ymm0 = _mm256_mul_ps(tv, _mm256_loadu_ps((const float*)sptr++));
-            ymm0 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)dptr));
+            ymm1 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)dptr));
 
             tv = _mm256_add_ps(tv, dv);
 
@@ -1080,11 +1080,11 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
          do
          {
             ymm0 = _mm256_mul_ps(tv, _mm256_load_ps((const float*)sptr++));
-            ymm0 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)dptr));
+            ymm1 = _mm256_add_ps(ymm0, _mm256_load_ps((const float*)dptr));
 
             tv = _mm256_add_ps(tv, dv);
 
-            _mm256_store_ps((float*)dptr++, ymm0);
+            _mm256_store_ps((float*)dptr++, ymm1);
          }
          while(--i);
       }

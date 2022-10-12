@@ -224,13 +224,13 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    i = num/step;
    if (i)
    {
-      __m256 ymm0, ymm1, dv, tv0, tv1, dvstep0, dvstep1;
+      const __m256 dvstep0 = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
+      const __m256 dvstep1 = _mm256_set_ps(15.0f, 14.0f, 13.0f, 12.0f, 11.0f, 10.0f, 9.0f, 8.0f);
+      __m256 ymm0, ymm1, dv, tv0, tv1;
       __m256 *sptr = (__m256 *)s;
       __m256 *dptr = (__m256 *)d;
 
       assert(step == 2*8);
-      dvstep0 = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
-      dvstep1 = _mm256_set_ps(15.0f, 14.0f, 13.0f, 12.0f, 11.0f, 10.0f, 9.0f, 8.0f);
       dv = _mm256_set1_ps(vstep*step);
       tv0 = _mm256_fmadd_ps(dvstep0, _mm256_set1_ps(vstep), _mm256_set1_ps(v));
       tv1 = _mm256_fmadd_ps(dvstep1, _mm256_set1_ps(vstep), _mm256_set1_ps(v));

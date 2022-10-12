@@ -1120,9 +1120,9 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    {
       /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
       dtmp = (size_t)d & MEMMASK16;
-      if (dtmp)
+      if (dtmp && num)
       {
-         i = (MEMALIGN16 - dtmp)/sizeof(int32_t);
+         i = (MEMALIGN16 - dtmp)/sizeof(float);
          if (i <= num)
          {
             num -= i;
@@ -1139,19 +1139,17 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       i = num/step;
       if (i)
       {
-         __m128 xmm0, xmm1, dv, tv, dvstep;
+         __m128 dvstep = _mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f);
+         __m128 xmm0, xmm1, dv, tv;
          __m128* sptr = (__m128*)s;
          __m128* dptr = (__m128*)d;
 
          assert(step == 4);
-         dvstep = _mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f);
          dvstep = _mm_mul_ps(dvstep, _mm_set1_ps(vstep));
 
-         vstep *= step;
-         dv = _mm_set1_ps(vstep);
+         dv = _mm_set1_ps(vstep*step);
          tv = _mm_add_ps(_mm_set1_ps(v), dvstep);
-         v += i*vstep;
-         vstep /= step;
+         v += i*step*vstep;
 
          num -= i*step;
          s += i*step;
