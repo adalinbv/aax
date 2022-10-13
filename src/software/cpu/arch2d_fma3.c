@@ -199,6 +199,12 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
 
    if (!num || (fabsf(v) <= LEVEL_128DB && !need_step)) return;
 
+   // volume ~= 1.0f and no change requested: just add both buffers
+   if (fabsf(v - 1.0f) < LEVEL_90DB && !need_step) {
+      _batch_fadd_avx(dst, src, num);
+      return;
+   }
+
    /*
     * Always assume need_step since it doesn't make any difference
     * in rendering speed.
