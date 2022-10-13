@@ -17,24 +17,28 @@
 #define FACTOR		0.7723678263f
 
 // Depends on the timer resolution for an acurate comparison
-#define MAXNUM		(CLOCKS_PER_SEC/100)
+#define MAXNUM		1024
 
 
 #define DIFF(a,b)	((fabsf(a)-fabsf(b))/fabsf(a))
-#define TESTFN(a,d1,d2,m) { double max = 0.0f; \
+#define TESTFN(a,d1,d2,m) do { double max = 0.0f; \
    for (i=0; i<MAXNUM; ++i) { double diff = DIFF(d1[i], d2[i]); \
        if (diff > max) { max = diff; } } \
    if (max > 1e-4f) printf("\t| max error <= %3.2f%%\n", max*100.0f); \
    else if (max > 0) printf("\t| max error < 0.01%%\n"); else printf("\n"); \
-}
+} while(0)
 #define TESTF(a,d1,d2)	TESTFN(a,d1,d2,4.0f)
 
-#define TESTLF(a,d1,d2) { double max = 0.0; \
+#define TESTLF(a,d1,d2) do { double max = 0.0; \
    for (i=0; i<MAXNUM; ++i) { double diff = DIFF(d1[i], d2[i]); \
       if (diff > max) max = diff; } \
    if (max > 1e-4) printf("\t| error <= %3.2f%%\n", max*100.0); \
    else if (max > 0) printf("\t| error, but marginal\n"); else printf("\n"); \
-}
+} while(0)
+
+#define TIMEFN(a,b,c) do { int i = (c); \
+   _aaxTimerStart(ts); do { (a); } while(--i); (b) = _aaxTimerElapsed(ts); \
+} while(0)
 
 #define PHASE			0.1f
 #define FREQ			220.0f
@@ -107,6 +111,7 @@ int main()		// x86		ARM
    float *src, *dst1, *dst2, *dst3;
    float freq_factor;
    _aaxTimer *ts;
+   _data_t *buf;
 
 #if defined(__i386__)
    simd = _aaxArchDetectSSE2();
@@ -130,10 +135,11 @@ int main()		// x86		ARM
    ts = _aaxTimerCreate();
    srand(time(NULL));
 
-   src = (float*)_aax_aligned_alloc(MAXNUM*sizeof(double));
-   dst1 = (float*)_aax_aligned_alloc(MAXNUM*sizeof(double));
-   dst2 = (float*)_aax_aligned_alloc(MAXNUM*sizeof(double));
-   dst3 = (float*)_aax_aligned_alloc(MAXNUM*sizeof(double));
+   buf = _aaxDataCreate(4, MAXNUM*sizeof(double)/sizeof(float), sizeof(float));
+   src = (float*)_aaxDataGetData(buf, 0);
+   dst1 = (float*)_aaxDataGetData(buf, 1);
+   dst2 = (float*)_aaxDataGetData(buf, 2);
+   dst3 = (float*)_aaxDataGetData(buf, 3);
 
    if (src && dst1 && dst2 && dst3)
    {
@@ -160,10 +166,8 @@ int main()		// x86		ARM
       _batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f);
       memcpy(dst1, src, MAXNUM*sizeof(float));
 
-      _aaxTimerStart(ts);
-      _batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f);
-      cpu = _aaxTimerElapsed(ts);
-      printf("\nfadd " CPU ":\t%f us\n", cpu*1e6);
+      TIMEFN(_batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f), cpu, MAXNUM);
+      printf("\nfadd " CPU ":\t%f ms\n", cpu*1e3);
 
       if (simd)
       {
@@ -174,10 +178,8 @@ int main()		// x86		ARM
          _batch_fmadd(dst2, dst2, MAXNUM, 1.0, 0.0f);
          memcpy(dst2, src, MAXNUM*sizeof(float));
 
-         _aaxTimerStart(ts);
-         _batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f);
-         eps = _aaxTimerElapsed(ts);
-         printf("fadd %s:\t%f us - cpu x %3.2f",  MKSTR(SIMD), eps*1e6, cpu/eps);
+         TIMEFN(_batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f), eps, MAXNUM);
+         printf("fadd %s:\t%f ms - cpu x %3.2f",  MKSTR(SIMD), eps*1e3, cpu/eps);
          TESTF("fadd "MKSTR(SIMD), dst1, dst2);
       }
       if (simd2)
@@ -189,10 +191,8 @@ int main()		// x86		ARM
          _batch_fmadd(dst2, dst2, MAXNUM, 1.0, 0.0f);
          memcpy(dst2, src, MAXNUM*sizeof(float));
 
-         _aaxTimerStart(ts);
-         _batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f);
-         eps = _aaxTimerElapsed(ts);
-         printf("fadd "MKSTR(SIMD2)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f), eps, MAXNUM);
+         printf("fadd "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTF("fadd "MKSTR(SIMD2), dst1, dst2);
       }
       if (fma)
@@ -204,10 +204,8 @@ int main()		// x86		ARM
          _batch_fmadd(dst2, dst2, MAXNUM, 1.0, 0.0f);
          memcpy(dst2, src, MAXNUM*sizeof(float));
 
-         _aaxTimerStart(ts);
-         _batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f);
-         eps = _aaxTimerElapsed(ts);
-         printf("fadd "MKSTR(FMA3)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f), eps, MAXNUM);
+         printf("fadd "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTF("fadd "MKSTR(FMA3), dst1, dst2);
       }
 
@@ -218,20 +216,16 @@ int main()		// x86		ARM
       memcpy(dst1, src, MAXNUM*sizeof(float));
       _batch_fmadd = _batch_fmadd_cpu;
 
-      _aaxTimerStart(ts);
-      _batch_fmadd(dst1, dst1, MAXNUM, FACTOR, 0.0f);
-      eps = _aaxTimerElapsed(ts);
-      printf("\nfmadd " CPU ":\t%f us\n", cpu*1e6);
+      TIMEFN(_batch_fmadd(dst1, dst1, MAXNUM, FACTOR, 0.0f), eps, MAXNUM);
+      printf("\nfmadd " CPU ":\t%f ms\n", cpu*1e3);
 
       if (simd)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_fmadd = GLUE(_batch_fmadd, SIMD);
 
-         _aaxTimerStart(ts);
-         _batch_fmadd(dst2, dst2, MAXNUM, FACTOR, 0.0f);
-         eps = _aaxTimerElapsed(ts);
-         printf("fmadd %s:\t%f us - cpu x %3.2f", MKSTR(SIMD), eps*1e6, cpu/eps);
+         TIMEFN(_batch_fmadd(dst2, dst2, MAXNUM, FACTOR, 0.0f), eps, MAXNUM);
+         printf("fmadd %s:\t%f ms - cpu x %3.2f", MKSTR(SIMD), eps*1e3, cpu/eps);
          TESTF("fmadd simd", dst1, dst2);
       }
       if (simd2)
@@ -239,10 +233,8 @@ int main()		// x86		ARM
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_fmadd = GLUE(_batch_fmadd, SIMD2);
 
-         _aaxTimerStart(ts);
-         _batch_fmadd(dst2, dst2, MAXNUM, FACTOR, 0.0f);
-         eps = _aaxTimerElapsed(ts);
-         printf("fmadd "MKSTR(SIMD2)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_fmadd(dst2, dst2, MAXNUM, FACTOR, 0.0f), eps, MAXNUM);
+         printf("fmadd "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTF("fmadd "MKSTR(SIMD2), dst1, dst2);
       }
       if (fma)
@@ -250,11 +242,8 @@ int main()		// x86		ARM
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_fmadd = GLUE(_batch_fmadd, FMA3);
 
-         _aaxTimerStart(ts);
-         _batch_fmadd(dst2, dst2, MAXNUM, FACTOR, 0.0f);
-         eps = _aaxTimerElapsed(ts);
-
-         printf("fmadd "MKSTR(FMA3)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_fmadd(dst2, dst2, MAXNUM, FACTOR, 0.0f), eps, MAXNUM);
+         printf("fmadd "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTF("fmadd "MKSTR(FMA3), dst1, dst2);
       }
 
@@ -265,20 +254,16 @@ int main()		// x86		ARM
       memcpy(dst1, src, MAXNUM*sizeof(float));
       _batch_fmadd = _batch_fmadd_cpu;
 
-      _aaxTimerStart(ts);
-      _batch_fmadd(dst1, dst1, MAXNUM, FACTOR, VSTEP);
-      cpu = _aaxTimerElapsed(ts);
-      printf("\nfmadd " CPU ":\t%f us\n", cpu*1e6);
+      TIMEFN(_batch_fmadd(dst1, dst1, MAXNUM, FACTOR, VSTEP), cpu, MAXNUM);
+      printf("\nfmadd " CPU ":\t%f ms\n", cpu*1e3);
 
       if (simd)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_fmadd = GLUE(_batch_fmadd, SIMD);
 
-         _aaxTimerStart(ts);
-         _batch_fmadd(dst2, dst2, MAXNUM, FACTOR, VSTEP);
-         eps = _aaxTimerElapsed(ts);
-         printf("fmadd %s:\t%f us - cpu x %3.2f", MKSTR(SIMD), eps*1e6, cpu/eps);
+         TIMEFN(_batch_fmadd(dst2, dst2, MAXNUM, FACTOR, VSTEP), eps, MAXNUM);
+         printf("fmadd %s:\t%f ms - cpu x %3.2f", MKSTR(SIMD), eps*1e3, cpu/eps);
          TESTF("fmadd simd", dst1, dst2);
       }
       if (simd2)
@@ -286,10 +271,8 @@ int main()		// x86		ARM
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_fmadd = GLUE(_batch_fmadd, SIMD2);
 
-         _aaxTimerStart(ts);
-         _batch_fmadd(dst2, dst2, MAXNUM, FACTOR, VSTEP);
-         eps = _aaxTimerElapsed(ts);
-         printf("fmadd "MKSTR(SIMD2)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_fmadd(dst2, dst2, MAXNUM, FACTOR, VSTEP), eps, MAXNUM);
+         printf("fmadd "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTF("fmadd "MKSTR(SIMD2), dst1, dst2);
       }
       if (fma)
@@ -297,11 +280,8 @@ int main()		// x86		ARM
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_fmadd = GLUE(_batch_fmadd, FMA3);
 
-         _aaxTimerStart(ts);
-         _batch_fmadd(dst2, dst2, MAXNUM, FACTOR, VSTEP);
-         eps = _aaxTimerElapsed(ts);
-
-         printf("fmadd "MKSTR(FMA3)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_fmadd(dst2, dst2, MAXNUM, FACTOR, VSTEP), eps, MAXNUM);
+         printf("fmadd "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTF("fmadd "MKSTR(FMA3), dst1, dst2);
       }
 
@@ -311,20 +291,16 @@ int main()		// x86		ARM
       memcpy(dst1, src, MAXNUM*sizeof(float));
       _batch_fmul_value = _batch_fmul_value_cpu;
 
-      _aaxTimerStart(ts);
-      _batch_fmul_value(dst1, dst1, sizeof(float), MAXNUM, FACTOR);
-      cpu = _aaxTimerElapsed(ts);
-      printf("\nfmul " CPU ":\t%f us\n", cpu*1e6);
+      TIMEFN(_batch_fmul_value(dst1, dst1, sizeof(float), MAXNUM, FACTOR), cpu, MAXNUM);
+      printf("\nfmul " CPU ":\t%f ms\n", cpu*1e3);
 
       if (simd)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_fmul_value = GLUE(_batch_fmul_value, SIMD);
 
-         _aaxTimerStart(ts);
-         _batch_fmul_value(dst2, dst2, sizeof(float), MAXNUM, FACTOR);
-         eps = _aaxTimerElapsed(ts);
-         printf("fmul %s:\t%f us - cpu x %3.2f", MKSTR(SIMD), eps*1e6, cpu/eps);
+         TIMEFN(_batch_fmul_value(dst2, dst2, sizeof(float), MAXNUM, FACTOR), eps, MAXNUM);
+         printf("fmul %s:\t%f ms - cpu x %3.2f", MKSTR(SIMD), eps*1e3, cpu/eps);
          TESTF("float fmul simd", dst1, dst2);
       }
       if (simd2)
@@ -332,10 +308,8 @@ int main()		// x86		ARM
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_fmul_value = GLUE(_batch_fmul_value, SIMD2);
 
-         _aaxTimerStart(ts);
-         _batch_fmul_value(dst2, dst2, sizeof(float), MAXNUM, FACTOR);
-         eps = _aaxTimerElapsed(ts);
-         printf("fmul "MKSTR(SIMD2)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_fmul_value(dst2, dst2, sizeof(float), MAXNUM, FACTOR), eps, MAXNUM);
+         printf("fmul "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTF("float fmul "MKSTR(SIMD2), dst1, dst2);
       }
 
@@ -352,20 +326,16 @@ int main()		// x86		ARM
       }
       memcpy(ddst1, dsrc, MAXNUM*sizeof(double));
 
-      _aaxTimerStart(ts);
-      _batch_fmul_value_cpu(ddst1, ddst1, sizeof(double), MAXNUM, FACTOR);
-      cpu = _aaxTimerElapsed(ts);
-      printf("\ndmul " CPU ":\t%f us\n", cpu*1e6);
+      TIMEFN(_batch_fmul_value_cpu(ddst1, ddst1, sizeof(double), MAXNUM, FACTOR), cpu, MAXNUM);
+      printf("\ndmul " CPU ":\t%f ms\n", cpu*1e3);
 
       if (simd)
       {
          memcpy(ddst2, dsrc, MAXNUM*sizeof(double));
          _batch_fmul_value = GLUE(_batch_fmul_value, SIMD);
 
-         _aaxTimerStart(ts);
-         _batch_fmul_value(dst2, ddst2, sizeof(double), MAXNUM, FACTOR);
-         eps = _aaxTimerElapsed(ts);
-         printf("dmul "MKSTR(SIMD)":\%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_fmul_value(dst2, ddst2, sizeof(double), MAXNUM, FACTOR), eps, MAXNUM);
+         printf("dmul "MKSTR(SIMD)":\%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTLF("double fmul "MKSTR(SIMD), (float)ddst1, (float)ddst2);
       }
 
@@ -374,10 +344,8 @@ int main()		// x86		ARM
          memcpy(ddst2, dsrc, MAXNUM*sizeof(double));
          _batch_fmul_value = GLUE(_batch_fmul_value, SIMD2);
 
-         _aaxTimerStart(ts);
-         _batch_fmul_value(dst2, ddst2, sizeof(double), MAXNUM, FACTOR);
-         eps = _aaxTimerElapsed(ts);
-         printf("dmul "MKSTR(SIMD2)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_fmul_value(dst2, ddst2, sizeof(double), MAXNUM, FACTOR), ep, MAXNUM);
+         printf("dmul "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTLF("double fmul "MKSTR(SIMD2), (float)ddst1, (float)ddst2);
       }
 #endif
@@ -388,19 +356,15 @@ int main()		// x86		ARM
       memcpy(dst1, src, MAXNUM*sizeof(float));
       _batch_roundps = _batch_roundps_cpu;
 
-      _aaxTimerStart(ts);
-      _batch_roundps(dst1, dst1, MAXNUM);
-      cpu = _aaxTimerElapsed(ts);
-      printf("\nround " CPU ":\t%f\n", cpu*1e6);
+      TIMEFN(_batch_roundps(dst1, dst1, MAXNUM), cpu, MAXNUM);
+      printf("\nround " CPU ":\t%f\n", cpu*1e3);
       if (simd)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_roundps = GLUE(_batch_roundps, SIMD);
 
-         _aaxTimerStart(ts);
-         _batch_roundps(dst2, dst2, MAXNUM);
-         eps = _aaxTimerElapsed(ts);
-         printf("round %s:\t%f us - cpu x %3.2f", MKSTR(SIMD), eps*1e6, cpu/eps);
+         TIMEFN(_batch_roundps(dst2, dst2, MAXNUM), eps, MAXNUM);
+         printf("round %s:\t%f ms - cpu x %3.2f", MKSTR(SIMD), eps*1e3, cpu/eps);
          TESTF("round "MKSTR(SIMD), dst1, dst2);
       }
       if (simd2)
@@ -408,10 +372,8 @@ int main()		// x86		ARM
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_roundps = GLUE(_batch_roundps, SIMD1);
 
-         _aaxTimerStart(ts);
-         _batch_roundps(dst2, dst2, MAXNUM);
-         eps = _aaxTimerElapsed(ts);
-         printf("round %s:\t%f us - cpu x %3.2f", MKSTR(SIMD1), eps*1e6, cpu/eps);
+         TIMEFN(_batch_roundps(dst2, dst2, MAXNUM), eps, MAXNUM);
+         printf("round %s:\t%f ms - cpu x %3.2f", MKSTR(SIMD1), eps*1e3, cpu/eps);
          TESTF("round "MKSTR(SIMD1), dst1, dst2);
       }
 #if !defined(__x86_64__) && !(defined(__arm__) || defined(_M_ARM))
@@ -420,10 +382,8 @@ int main()		// x86		ARM
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_roundps = GLUE(_batch_roundps, SIMD2);
 
-         _aaxTimerStart(ts);
-         _batch_roundps(dst2, dst2, MAXNUM);
-         eps = _aaxTimerElapsed(ts);
-         printf("round %s:\t%f us - cpu x %3.2f", MKSTR(SIMD2), eps*1e6, cpu/eps);
+         TIMEFN(_batch_roundps(dst2, dst2, MAXNUM), eps, MAXNUM);
+         printf("round %s:\t%f ms - cpu x %3.2f", MKSTR(SIMD2), eps*1e3, cpu/eps);
          TESTF("round "MKSTR(SIMD2), dst1, dst2);
       }
 #endif
@@ -432,10 +392,8 @@ int main()		// x86		ARM
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_roundps = GLUE(_batch_roundps, SIMD4);
 
-         _aaxTimerStart(ts);
-         _batch_roundps(dst2, dst2, MAXNUM);
-         eps = _aaxTimerElapsed(ts);
-         printf("round %s:\t%f us - cpu x %3.2f", MKSTR(SIMD4), eps*1e6, cpu/eps);
+         TIMEFN(_batch_roundps(dst2, dst2, MAXNUM), eps, MAXNUM);
+         printf("round %s:\t%f ms - cpu x %3.2f", MKSTR(SIMD4), eps*1e3, cpu/eps);
          TESTF("round "MKSTR(SIMD4), dst1, dst2);
       }
 
@@ -444,18 +402,14 @@ int main()		// x86		ARM
        */
       memcpy(dst1, src, MAXNUM*sizeof(float));
 
-      _aaxTimerStart(ts);
-      _batch_atan_cpu(dst1, dst1, MAXNUM);
-      cpu = _aaxTimerElapsed(ts);
-      printf("\natanf:\t\t%f us\n", cpu*1e6);
+      TIMEFN(_batch_atan_cpu(dst1, dst1, MAXNUM), cpu, MAXNUM);
+      printf("\natanf:\t\t%f ms\n", cpu*1e3);
 
       memcpy(dst2, src, MAXNUM*sizeof(float));
       _batch_atanps = _batch_atanps_cpu;
 
-      _aaxTimerStart(ts);
-      _batch_atanps(dst2, dst2, MAXNUM);
-      eps = _aaxTimerElapsed(ts);
-      printf("atan " CPU ":\t%f us - atanf x %3.2f", eps*1e6, cpu/eps);
+      TIMEFN(_batch_atanps(dst2, dst2, MAXNUM), eps, MAXNUM);
+      printf("atan " CPU ":\t%f ms - atanf x %3.2f", eps*1e3, cpu/eps);
       TESTF("atan "MKSTR(SIMD), dst1, dst2);
 
       if (simd)
@@ -463,10 +417,8 @@ int main()		// x86		ARM
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_atanps = GLUE(_batch_atanps, SIMD);
 
-         _aaxTimerStart(ts);
-         _batch_atanps(dst2, dst2, MAXNUM);
-         eps = _aaxTimerElapsed(ts);
-         printf("atan %s:\t%f us - atanf x %3.2f", MKSTR(SIMD), eps*1e6, cpu/eps);
+         TIMEFN(_batch_atanps(dst2, dst2, MAXNUM), eps, MAXNUM);
+         printf("atan %s:\t%f ms - atanf x %3.2f", MKSTR(SIMD), eps*1e3, cpu/eps);
          TESTF("atan "MKSTR(SIMD), dst1, dst2);
       }
       if (simd2)
@@ -474,10 +426,8 @@ int main()		// x86		ARM
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_atanps = GLUE(_batch_atanps, SIMD2);
 
-         _aaxTimerStart(ts);
-         _batch_atanps(dst2, dst2, MAXNUM);
-         eps = _aaxTimerElapsed(ts);
-         printf("atan %s:\t%f us - atanf x %3.2f", MKSTR(SIMD2), eps*1e6, cpu/eps);
+         TIMEFN(_batch_atanps(dst2, dst2, MAXNUM), eps, MAXNUM);
+         printf("atan %s:\t%f ms - atanf x %3.2f", MKSTR(SIMD2), eps*1e3, cpu/eps);
          TESTF("atan "MKSTR(SIMD2), dst1, dst2);
       }
       if (fma)
@@ -485,10 +435,8 @@ int main()		// x86		ARM
          memcpy(dst2, src, MAXNUM*sizeof(float));
          _batch_atanps = GLUE(_batch_atanps, FMA3);
 
-         _aaxTimerStart(ts);
-         _batch_atanps(dst2, dst2, MAXNUM);
-         eps = _aaxTimerElapsed(ts);
-         printf("atan %s:\t%f us - atanf x %3.2f", MKSTR(FMA3), eps*1e6, cpu/eps);
+         TIMEFN(_batch_atanps(dst2, dst2, MAXNUM), eps, MAXNUM);
+         printf("atan %s:\t%f ms - atanf x %3.2f", MKSTR(FMA3), eps*1e3, cpu/eps);
          TESTF("atan "MKSTR(FMA3), dst1, dst2);
       }
 
@@ -497,19 +445,15 @@ int main()		// x86		ARM
        */
       _batch_get_average_rms = _batch_get_average_rms_cpu;
 
-      _aaxTimerStart(ts);
-      _batch_get_average_rms(src, MAXNUM, &rms1, &peak1);
-      cpu = _aaxTimerElapsed(ts);
-      printf("\nrms " CPU ":\t%f\n", cpu*1e6);
+      TIMEFN(_batch_get_average_rms(src, MAXNUM, &rms1, &peak1), cpu, MAXNUM);
+      printf("\nrms " CPU ":\t%f\n", cpu*1e3);
 
       if (simd)
       {
          _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD);
 
-         _aaxTimerStart(ts);
-         _batch_get_average_rms(src, MAXNUM, &rms1, &peak1);
-         eps = _aaxTimerElapsed(ts);
-         printf("rms %s:\t%f us - cpu x %3.2f\n", MKSTR(SIMD), eps*1e6, cpu/eps);
+         TIMEFN(_batch_get_average_rms(src, MAXNUM, &rms1, &peak1), eps, MAXNUM);
+         printf("rms %s:\t%f ms - cpu x %3.2f\n", MKSTR(SIMD), eps*1e3, cpu/eps);
 
          if (simd2)
          {
@@ -517,10 +461,8 @@ int main()		// x86		ARM
 
             _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD2);
 
-            _aaxTimerStart(ts);
-            _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
-            eps = _aaxTimerElapsed(ts);
-            printf("rms "MKSTR(SIMD2)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+            TIMEFN(_batch_get_average_rms(src, MAXNUM, &rms2, &peak2), eps, MAXNUM);
+            printf("rms "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
             rmse = fabsf(rms1-rms2);
             peake = fabsf(peak1-peak2);
             if (rmse > 1e-4f || peake > 1e-4f)
@@ -541,13 +483,11 @@ int main()		// x86		ARM
 
             _batch_get_average_rms = GLUE(_batch_get_average_rms, FMA3);
 
-            _aaxTimerStart(ts);
-            _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
-            eps = _aaxTimerElapsed(ts);
-            printf("rms "MKSTR(FMA3)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+            TIMEFN(_batch_get_average_rms(src, MAXNUM, &rms2, &peak2), eps, MAXNUM);
+            printf("rms "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
             rmse = fabsf(rms1-rms2);
             peake = fabsf(peak1-peak2);
-            if (rmse > 1e-4f || peake > 1e-4f) 
+            if (rmse > 1e-4f || peake > 1e-4f)
              {
                printf("\t| error");
                if (rmse > 1e-4f) {
@@ -568,19 +508,15 @@ int main()		// x86		ARM
       _batch_resample_float = _batch_resample_float_cpu;
 
       printf("\n== Resample:\n");
-      _aaxTimerStart(ts);
-      _batch_resample_float(dst1, src, 0, MAXNUM, 0.0, freq_factor);
-      cpu = _aaxTimerElapsed(ts);
-      printf("cubic " CPU ":\t%f us\n", cpu*1e6);
+      TIMEFN(_batch_resample_float(dst1, src, 0, MAXNUM, 0.0, freq_factor), cpu, MAXNUM);
+      printf("cubic " CPU ":\t%f ms\n", cpu*1e3);
 
       if (simd)
       {
          _batch_resample_float = GLUE(_batch_resample_float, SIMD);
 
-         _aaxTimerStart(ts);
-         _batch_resample_float(dst2, src, 0, MAXNUM, 0.0, freq_factor);
-         eps = _aaxTimerElapsed(ts);
-         printf("cubic "MKSTR(SIMD)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_resample_float(dst2, src, 0, MAXNUM, 0.0, freq_factor), eps, MAXNUM);
+         printf("cubic "MKSTR(SIMD)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTFN("cubic "MKSTR(SIMD), dst1, dst2, 1e-3f);
       }
 
@@ -588,10 +524,8 @@ int main()		// x86		ARM
       {
          _batch_resample_float = GLUE(_batch_resample_float, SIMD1);
 
-         _aaxTimerStart(ts);
-         _batch_resample_float(dst2, src, 0, MAXNUM, 0.0, freq_factor);
-         eps = _aaxTimerElapsed(ts);
-         printf("cubic "MKSTR(SIMD1)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_resample_float(dst2, src, 0, MAXNUM, 0.0, freq_factor), eps, MAXNUM);
+         printf("cubic "MKSTR(SIMD1)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTFN("cubic "MKSTR(SIMD1), dst1, dst2, 1e-3f);
       }
 
@@ -599,10 +533,8 @@ int main()		// x86		ARM
       {
          _batch_resample_float = GLUE(_batch_resample_float, FMA3);
 
-         _aaxTimerStart(ts);
-         _batch_resample_float(dst2, src, 0, MAXNUM, 0.0, freq_factor);
-         eps = _aaxTimerElapsed(ts);
-         printf("cubic "MKSTR(FMA3)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_resample_float(dst2, src, 0, MAXNUM, 0.0, freq_factor), eps, MAXNUM);
+         printf("cubic "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTFN("cubic "MKSTR(FMA3), dst1, dst2, 1e-3f);
       }
 
@@ -625,10 +557,8 @@ int main()		// x86		ARM
       memset(&history, 0, sizeof(history));
       _batch_freqfilter_float = _batch_freqfilter_float_cpu;
 
-      _aaxTimerStart(ts);
-      _batch_freqfilter_float(dst1, src, 0, MAXNUM, &flt);
-      cpu = _aaxTimerElapsed(ts);
-      printf("freq " CPU ":\t%f\n", cpu*1e6);
+      TIMEFN(_batch_freqfilter_float(dst1, src, 0, MAXNUM, &flt), cpu, MAXNUM);
+      printf("freq " CPU ":\t%f\n", cpu*1e3);
       cpu2 = cpu;
 
       if (simd)
@@ -636,11 +566,8 @@ int main()		// x86		ARM
          memset(&history, 0, sizeof(history));
          _batch_freqfilter_float = GLUE(_batch_freqfilter_float, SIMD);
 
-         _aaxTimerStart(ts);
-         _batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt);
-         eps = _aaxTimerElapsed(ts);
-         
-         printf("freq %s:\t%f us - cpu x %3.2f", MKSTR(SIMD), eps*1e6, cpu/eps);
+         TIMEFN(_batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt), eps, MAXNUM);
+         printf("freq %s:\t%f ms - cpu x %3.2f", MKSTR(SIMD), eps*1e3, cpu/eps);
          TESTF("freq "MKSTR(SIMD), dst1, dst2);
       }
       if (simd2)
@@ -648,10 +575,8 @@ int main()		// x86		ARM
          memset(&history, 0,sizeof(history));
          _batch_freqfilter_float = GLUE(_batch_freqfilter_float, SIMD1);
 
-         _aaxTimerStart(ts);
-         _batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt);
-         eps = _aaxTimerElapsed(ts);
-         printf("freq "MKSTR(SIMD1)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt), eps, MAXNUM);
+         printf("freq "MKSTR(SIMD1)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTF("freq "MKSTR(SIMD1), dst1, dst2);
       }
       if (fma)
@@ -659,10 +584,8 @@ int main()		// x86		ARM
          memset(&history, 0,sizeof(history));
          _batch_freqfilter_float = GLUE(_batch_freqfilter_float, FMA3);
 
-         _aaxTimerStart(ts);
-         _batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt);
-         eps = _aaxTimerElapsed(ts);
-         printf("freq "MKSTR(FMA3)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt), eps, MAXNUM);
+         printf("freq "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTF("freq "MKSTR(FMA3), dst1, dst2);
       }
 
@@ -682,20 +605,16 @@ int main()		// x86		ARM
       memset(&history, 0, sizeof(history));
       _batch_freqfilter_float = _batch_freqfilter_float_cpu;
 
-      _aaxTimerStart(ts);
-      _batch_freqfilter_float(dst1, src, 0, MAXNUM, &flt);
-      cpu = _aaxTimerElapsed(ts);
-      printf("freq " CPU ":\t%f - Butterworth x %3.2f\n", cpu*1e6, cpu2/cpu);
+      TIMEFN(_batch_freqfilter_float(dst1, src, 0, MAXNUM, &flt), cpu, MAXNUM);
+      printf("freq " CPU ":\t%f - Butterworth x %3.2f\n", cpu*1e3, cpu2/cpu);
 
       if (simd)
       {
          memset(&history, 0, sizeof(history));
          _batch_freqfilter_float = GLUE(_batch_freqfilter_float, SIMD);
 
-         _aaxTimerStart(ts);
-         _batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt);
-         eps = _aaxTimerElapsed(ts);
-         printf("freq %s:\t%f us - cpu x %3.2f", MKSTR(SIMD), eps*1e6, cpu/eps);
+         TIMEFN(_batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt), eps, MAXNUM);
+         printf("freq %s:\t%f ms - cpu x %3.2f", MKSTR(SIMD), eps*1e3, cpu/eps);
          TESTF("freq "MKSTR(SIMD), dst1, dst2);
       }
       if (simd2)
@@ -703,10 +622,8 @@ int main()		// x86		ARM
          memset(&history, 0,sizeof(history));
          _batch_freqfilter_float = GLUE(_batch_freqfilter_float, SIMD1);
 
-         _aaxTimerStart(ts);
-         _batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt);
-         eps = _aaxTimerElapsed(ts);
-         printf("freq "MKSTR(SIMD1)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt), eps, MAXNUM);
+         printf("freq "MKSTR(SIMD1)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTF("freq "MKSTR(SIMD1), dst1, dst2);
       }
       if (fma)
@@ -714,10 +631,8 @@ int main()		// x86		ARM
          memset(&history, 0,sizeof(history));
          _batch_freqfilter_float = GLUE(_batch_freqfilter_float, FMA3);
 
-         _aaxTimerStart(ts);
-         _batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt);
-         eps = _aaxTimerElapsed(ts);
-         printf("freq "MKSTR(FMA3)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt), eps, MAXNUM);
+         printf("freq "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTF("freq "MKSTR(FMA3), dst1, dst2);
       }
 
@@ -726,19 +641,15 @@ int main()		// x86		ARM
        */
       _aax_generate_waveform_float = _aax_generate_waveform_cpu;
 
-      _aaxTimerStart(ts);
-      _aax_generate_waveform_float(dst1, MAXNUM, FREQ, PHASE, WAVE_TYPE);
-      cpu = _aaxTimerElapsed(ts);
-      printf("\nwaveform " CPU ":\t%f us\n", cpu*1e6);
+      TIMEFN(_aax_generate_waveform_float(dst1, MAXNUM, FREQ, PHASE, WAVE_TYPE), cpu, MAXNUM);
+      printf("\nwaveform " CPU ":\t%f ms\n", cpu*1e3);
 
       if (simd)
       {
          _aax_generate_waveform_float = GLUE(_aax_generate_waveform, SIMD);
 
-         _aaxTimerStart(ts);
-         _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE);
-         eps = _aaxTimerElapsed(ts);
-         printf("waveform "MKSTR(SIMD)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE), eps, MAXNUM);
+         printf("waveform "MKSTR(SIMD)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTFN("waveform "MKSTR(SIMD), dst1, dst2, 1e-3f);
       }
 
@@ -746,10 +657,8 @@ int main()		// x86		ARM
       {
          _aax_generate_waveform_float = GLUE(_aax_generate_waveform, SIMD2);
 
-         _aaxTimerStart(ts);
-         _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE);
-         eps = _aaxTimerElapsed(ts);
-         printf("waveform "MKSTR(SIMD2)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE), eps, MAXNUM);
+         printf("waveform "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTFN("waveform "MKSTR(SIMD2), dst1, dst2, 1e-3f);
       }
 
@@ -758,10 +667,8 @@ int main()		// x86		ARM
       {
          _aax_generate_waveform_float = GLUE(_aax_generate_waveform, FMA3);
 
-         _aaxTimerStart(ts);
-         _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE);
-         eps = _aaxTimerElapsed(ts);
-         printf("waveform "MKSTR(FMA3)":\t%f us - cpu x %3.2f", eps*1e6, cpu/eps);
+         TIMEFN(_aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE), eps, MAXNUM);
+         printf("waveform "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTFN("waveform "MKSTR(FMA3), dst1, dst2, 1e-3f);
       }
 #endif
@@ -772,18 +679,12 @@ int main()		// x86		ARM
        */
       _batch_convolution = _batch_convolution_cpu;
 
-      _aaxTimerStart(ts);
-      _batch_convolution(dst1, dst2, src, MAXNUM/16, MAXNUM/8, 2, 1.0f, 0.0);
-      cpu = _aaxTimerElapsed(ts);
-      printf("\nconvolution (uses fastest fmadd):  %f us\n", cpu*1e6);
+      TIMEFN(_batch_convolution(dst1, dst2, src, MAXNUM/16, MAXNUM/8, 2, 1.0f, 0.0), cpu, MAXNUM);
+      printf("\nconvolution (uses fastest fmadd):  %f ms\n", cpu*1e3);
    }
 
+   _aaxDataDestroy(buf);
    _aaxTimerDestroy(ts);
-
-   _aax_aligned_free(dst3);
-   _aax_aligned_free(dst2);
-   _aax_aligned_free(dst1);
-   _aax_aligned_free(src);
 
    return 0;
 }
