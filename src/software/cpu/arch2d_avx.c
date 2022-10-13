@@ -922,7 +922,7 @@ _batch_hmadd_avx(float32_ptr dst, const_float16_ptr src, size_t num, float v, fl
 }
 #endif
 
-FN_PREALIGN static void
+FN_PREALIGN void
 _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
 {
    float32_ptr s = (float32_ptr)src;
