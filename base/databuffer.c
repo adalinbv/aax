@@ -101,7 +101,7 @@ _aaxDataClear(_data_t* buf, unsigned char buffer_no)
 {
    if (buffer_no < buf->no_buffers) {
       buf->offset[buffer_no] = 0;
-   } else if (buffer_no == -1) {
+   } else if (buffer_no == (unsigned char)-1) {
       memset(buf->offset, 0, buf->no_buffers*sizeof(size_t));
    }
 }

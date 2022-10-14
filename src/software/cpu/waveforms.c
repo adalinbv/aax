@@ -235,7 +235,7 @@ ALIGN float _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS] =
  */
 static float
 _aax_seeded_random() {
-   return (float)_aax_rand()/INT64_MAX;
+   return (float)((double)_aax_rand()/(double)INT64_MAX);
 }
 
 

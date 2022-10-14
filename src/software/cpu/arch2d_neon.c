@@ -929,7 +929,7 @@ _batch_cvt16_intl_24_neon(void_ptr dst, const_int32_ptrptr src,
 }
 
 void
-_batch_fmul_value_neon(void* dptr, const void* sptr, unsigned bps, size_t num, float f)
+_batch_fmul_value_neon(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_t num, float f)
 {
    if (!num) return;
 

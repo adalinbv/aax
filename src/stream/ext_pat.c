@@ -1,6 +1,6 @@
 /*
- * Copyright 2019-2020 by Erik Hofman.
- * Copyright 2019-2020 by Adalin B.V.
+ * Copyright 2019-2022 by Erik Hofman.
+ * Copyright 2019-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -645,7 +645,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    offs = (handle->patch.start_loop << 4) + (handle->patch.fractions >> 4);
    handle->info.loop_start = SIZE2SAMPLES(handle, offs)/16.0f;
 
-   offs = (handle->patch.end_loop << 4) + (handle->patch.fractions && 0xF);
+   offs = (handle->patch.end_loop << 4) + (handle->patch.fractions & 0xF);
    handle->info.loop_end = SIZE2SAMPLES(handle, offs)/16.0f;
 
    handle->info.base_frequency = 0.001f*handle->patch.root_frequency;

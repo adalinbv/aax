@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2021 by Erik Hofman.
- * Copyright 2009-2021 by Adalin B.V.
+ * Copyright 2005-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -1660,7 +1660,7 @@ _aaxRouterFromMSChannelMask(uint32_t mask, uint8_t no_channels)
             rv = (rv & 0xFFFFF0FF) | (AAX_TRACK_REAR_LEFT << 8);
             rv = (rv & 0xFFFF0FFF) | (AAX_TRACK_REAR_RIGHT << 12);
          }
-         if (mask & (SPEAKER_FRONT_CENTER||SPEAKER_LOW_FREQUENCY))
+         if (mask & (SPEAKER_FRONT_CENTER|SPEAKER_LOW_FREQUENCY))
          {
             rv = (rv & 0xFFF0FFFF) | (AAX_TRACK_CENTER_FRONT << 16);
             rv = (rv & 0xFF0FFFFF) | (AAX_TRACK_SUBWOOFER << 20);

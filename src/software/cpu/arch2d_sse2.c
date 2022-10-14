@@ -952,7 +952,7 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
 
 
 void
-_batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, float f)
+_batch_fmul_value_sse2(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_t num, float f)
 {
    if (!num) return;
 

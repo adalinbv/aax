@@ -1,6 +1,6 @@
  /*
- * Copyright 2007-2021 by Erik Hofman.
- * Copyright 2009-2021 by Adalin B.V.
+ * Copyright 2007-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -1120,9 +1120,9 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
             if (ptr)
             {
                void **dst = (void **)ptr;
-               ssize_t res, offset = 0;
+               ssize_t res; // offset = 0;
                ssize_t offs_packets = 0;
-               size_t size;
+//             size_t size;
                int i;
 
                dst[0] = ptr2;
@@ -1131,7 +1131,7 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
 
                // capture now returns native file format instead of PCM24S
                // in batched capturing mode
-               size = 0;
+//             size = 0;
                do
                {
                   ssize_t offs = offs_packets;
@@ -1141,11 +1141,11 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
 
                   res = stream->capture(id, dst, &offs, &packets,
                                             dst[1], datasize, 1.0f, AAX_TRUE);
-                  if (res > 0) size += res;
+//                if (res > 0) size += res;
                   offs_packets += packets;
-                  if (res > 0) {
-                     offset += res*8/(bits*info->no_tracks);
-                  }
+//                if (res > 0) {
+//                   offset += res*8/(bits*info->no_tracks);
+//                }
                }
                while (res >= 0);
 
@@ -2276,7 +2276,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
       modulate = 0;
       rate = freq * pitch;
       fw = FNMINMAX(rate, 1.0f, 22050.0f);
-      seed = FNMINMAX(random, 0.0f, 1.0f) * UINT64_MAX;
+      seed = (FNMINMAX((double)random, 0.0, 1.0) * (double)UINT64_MAX);
       skip = (unsigned char)(1.0f + 99.0f*_MINMAX(staticity, 0.0f, 1.0f));
 
       phase *= GMATH_PI;
@@ -3092,7 +3092,7 @@ _bufApplyBitCrusherFilter(_buffer_t* handle, _filter_t *filter, int layer)
       {
          unsigned int i;
 
-         ratio *= (0.25f * AAX_PEAK_MAX)/UINT64_MAX;
+         ratio *= ((0.25 * (double)AAX_PEAK_MAX)/(double)UINT64_MAX);
          for (i=0; i<no_samples; ++i) {
             dptr[i] += ratio*xoroshiro128plus();
          }

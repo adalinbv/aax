@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2021 by Erik Hofman.
- * Copyright 2009-2021 by Adalin B.V.
+ * Copyright 2007-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -299,7 +299,7 @@ _bitcrush_add_noise(MIX_PTR_T s, size_t end, size_t no_samples,
    {
       int i;
 
-      ratio *= (0.25f * AAX_PEAK_MAX)/UINT64_MAX;
+      ratio *= ((double)(0.25f * AAX_PEAK_MAX)/(double)UINT64_MAX);
       for (i=0; i<no_samples; ++i) {
          s[i] += ratio*xoroshiro128plus();
       }

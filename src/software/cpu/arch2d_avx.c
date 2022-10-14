@@ -561,7 +561,7 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
 }
 
 FN_PREALIGN void
-_batch_fmul_value_avx(void* dptr, const void *sptr, unsigned bps, size_t num, float f)
+_batch_fmul_value_avx(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_t num, float f)
 {
    if (!num) return;
 

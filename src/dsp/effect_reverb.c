@@ -428,7 +428,7 @@ _reverb_destroy(void *ptr)
    {
       _occlusion_destroy(reverb->occlusion);
       _freqfilter_destroy(reverb->freq_filter);
-      if (reverb->direct_path->history) free(reverb->direct_path->history);
+      if (reverb->direct_path) free(reverb->direct_path);
       if (reverb->reflections)
       {
          reverb->reflections->no_delays = 0;

@@ -1,6 +1,6 @@
 /*
- * Copyright 2011-2020 by Erik Hofman.
- * Copyright 2011-2020 by Adalin B.V.
+ * Copyright 2011-2022 by Erik Hofman.
+ * Copyright 2011-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -209,7 +209,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
       }
 
       /* frees EQUALIZER_LF, EQUALIZER_MF and EQUALIZER_HF */
-      if (fmixer->filter)
+      if (fmixer->filter[0].data)
       {
          if (fmixer->filter[EQUALIZER_LF].data) {
             _aaxMutexDestroy(handle->mutex);
@@ -508,20 +508,10 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
       {
 //    case AAX_GRAPHIC_EQUALIZER:
       case AAX_EQUALIZER:
-         if (!handle->submix->filter) { /* EQUALIZER_LF, EQUALIZER_MF & EQUALIZER_HF */
-            handle->mutex = _aaxMutexCreate(NULL);
-         }
-
-         if (handle->submix->filter)
-         {
-            _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_LF, filter, 0);
-            _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_MF, filter, 1);
-            _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_HF, filter, 2);
-            break;
-         }
-         else {
-            _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-         }
+         handle->mutex = _aaxMutexCreate(NULL);
+         _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_LF, filter, 0);
+         _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_MF, filter, 1);
+         _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_HF, filter, 2);
          break;
       case AAX_FREQUENCY_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:

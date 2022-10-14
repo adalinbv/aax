@@ -331,7 +331,7 @@ int usecSleep(unsigned int dt_us)
 
 unsigned int
 getTimerResolution() {
-   return 0;
+   return 1000*CLOCKS_PER_SEC;
 }
 
 int
@@ -351,13 +351,13 @@ __aaxTimerSub(struct timespec *tso,
 {
    double dt1, dt2;
 
-   dt2 = ts2->tv_sec + ts2->tv_nsec/1000000000.0;
-   dt1 = ts1->tv_sec + ts1->tv_nsec/1000000000.0;
+   dt2 = ts2->tv_sec + ts2->tv_nsec*1e-9;
+   dt1 = ts1->tv_sec + ts1->tv_nsec*1e-9;
    dt1 -= dt2;
 
    dt2 = floor(dt1);
    tso->tv_sec = dt2;
-   tso->tv_nsec = rint((dt1-dt2)*1000000000.0);
+   tso->tv_nsec = rint((dt1-dt2)*1e9);
 }
 
 static void
@@ -366,13 +366,13 @@ __aaxTimerAdd(struct timespec *tso,
 {
    double dt1, dt2;
 
-   dt2 = ts2->tv_sec + ts2->tv_nsec/1000000000.0;
-   dt1 = ts1->tv_sec + ts1->tv_nsec/1000000000.0;
+   dt2 = ts2->tv_sec + ts2->tv_nsec*1e-9;
+   dt1 = ts1->tv_sec + ts1->tv_nsec*1e-9;
    dt1 -= dt2;
 
    dt2 = floor(dt1);
    tso->tv_sec = dt2;
-   tso->tv_nsec = rint((dt1-dt2)*1000000000.0);
+   tso->tv_nsec = rint((dt1-dt2)*1e9);
 
    if (tso->tv_nsec >= 1000000000L)
    {
@@ -446,8 +446,8 @@ _aaxTimerElapsed(_aaxTimer *tm)
       {
          double t1, t2;
 
-         t1 = tm->prevTimerCount.tv_sec+tm->prevTimerCount.tv_nsec/1000000000.0;
-         t2 = tm->timerCount.tv_sec + tm->timerCount.tv_nsec/1000000000.0;
+         t1 = tm->prevTimerCount.tv_sec + tm->prevTimerCount.tv_nsec*1e-9;
+         t2 = tm->timerCount.tv_sec + tm->timerCount.tv_nsec*1e-9;
          rv = (t2-t1);
       }
    }

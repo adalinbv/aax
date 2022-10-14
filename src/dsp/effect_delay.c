@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2021 by Erik Hofman.
- * Copyright 2009-2021 by Adalin B.V.
+ * Copyright 2007-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -694,7 +694,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          if (flt)
          {
             flt->run(rbd, dptr, nsptr-offs, 0, no_samples, 0, track, flt, env, 1.0f, 0);
-         }  else if (fabsf(volume - 1.0) > LEVEL_96DB) {
+         }  else if (fabsf(volume - 1.0f) > LEVEL_96DB) {
             rbd->multiply(dptr, nsptr-offs, bps, no_samples, volume);
          }
       }
@@ -706,7 +706,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          if (flt)
          {
             flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, flt, env, 1.0f, 0);
-         } else if (fabsf(volume - 1.0) > LEVEL_96DB) {
+         } else if (fabsf(volume - 1.0f) > LEVEL_96DB) {
             rbd->multiply(dptr, dptr, bps, no_samples, volume);
          }
       }
