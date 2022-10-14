@@ -371,7 +371,7 @@ FN(batch_cvtps24_24,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
 // twice as fast, twice less-accurate:
 //     GMATH_PI_4*x + 0.273f*x * (1.0f-fabsf(x));
 //
-// Use the faster, less accurate algorithm:
+// Use the faster, less accurate algorithm for CPU's:
 static inline float fast_atanf(float x) {
 #if 0
    return x*((GMATH_PI_4 + 0.2447) - x*((0.2447 - 0.0663) + 0.0663*x));

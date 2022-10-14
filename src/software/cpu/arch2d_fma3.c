@@ -75,11 +75,19 @@ static inline __m256
 fast_atan8_fma3(__m256 x)
 {
    const __m256 pi_4_mul = _mm256_set1_ps(GMATH_PI_4+0.2447);
-   const __m256 add = _mm256_set1_ps(-0.1784);
-   const __m256 mull = _mm256_set1_ps(-0.0663);
+   const __m256 add = _mm256_set1_ps(0.1784);
+   const __m256 mull = _mm256_set1_ps(0.0663);
 
+   // somehow the non FMA3 code path is faster
+#if 1
+   return _mm256_mul_ps(x, _mm256_sub_ps(pi_4_mul,
+                              _mm256_mul_ps(x,
+                                 _mm256_add_ps(add,
+                                    _mm256_mul_ps(mull, x)))));
+#else
    return _mm256_mul_ps(x,
              _mm256_fmadd_ps(x, _mm256_fmadd_ps(mull, x, add), pi_4_mul));
+#endif
 }
 
 void
@@ -834,8 +842,8 @@ _batch_atanps_fma3(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
-//       const __m256 xmin = _mm256_set1_ps(-1.94139795f);
-//       const __m256 xmax = _mm256_set1_ps(1.94139795f);
+         const __m256 xmin = _mm256_set1_ps(-1.94139795f);
+         const __m256 xmax = _mm256_set1_ps(1.94139795f);
          const __m256 mul = _mm256_set1_ps(MUL*GMATH_1_PI_2);
          const __m256 imul = _mm256_set1_ps(IMUL);
          __m256 xmm0, xmm1;
@@ -848,7 +856,7 @@ _batch_atanps_fma3(void_ptr dst, const_void_ptr src, size_t num)
             xmm0 = _mm256_load_ps((const float*)sptr++);
 
             xmm0 = _mm256_mul_ps(xmm0, imul);
-//          xmm0 = _mm256_min_ps(_mm256_max_ps(xmm0, xmin), xmax);
+            xmm0 = _mm256_min_ps(_mm256_max_ps(xmm0, xmin), xmax);
             xmm1 = _mm256_mul_ps(mul, fast_atan8_fma3(xmm0));
 
             _mm256_store_ps((float*)dptr++, xmm1);
