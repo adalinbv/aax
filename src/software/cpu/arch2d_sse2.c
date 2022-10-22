@@ -1127,6 +1127,7 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    // volume change requested
    if (need_step)
    {
+#if defined(__i386__)
       /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
       dtmp = (size_t)d & MEMMASK16;
       if (dtmp && num)
@@ -1196,6 +1197,7 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
             while(--i);
          }
       }
+#endif
 
       if (num)
       {
@@ -1208,6 +1210,7 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    }
    else
    {
+#if defined(__i386__)
       /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
       dtmp = (size_t)d & MEMMASK16;
       if (dtmp)
@@ -1264,6 +1267,7 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
             while(--i);
          }
       }
+#endif
 
       if (num)
       {
