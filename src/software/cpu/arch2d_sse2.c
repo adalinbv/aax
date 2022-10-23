@@ -1113,7 +1113,7 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    int need_step = (fabsf(vstep) <= LEVEL_90DB) ? 0 : 1;
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
-   size_t i, step, dtmp, stmp;
+   size_t i;
 
    // nothing to do
    if (!num || (fabsf(v) <= LEVEL_96DB && !need_step)) return;
@@ -1128,6 +1128,8 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    if (need_step)
    {
 #if defined(__i386__)
+      size_t step, dtmp, stmp;
+
       /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
       dtmp = (size_t)d & MEMMASK16;
       if (dtmp && num)
@@ -1211,6 +1213,8 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    else
    {
 #if defined(__i386__)
+      size_t step, dtmp, stmp;
+
       /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
       dtmp = (size_t)d & MEMMASK16;
       if (dtmp)
