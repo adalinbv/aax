@@ -151,7 +151,7 @@ int main()		// x86		ARM
       int i;
 
       for (i=0; i<MAXNUM; ++i) {
-         src[i] = (float)(1<<23) * (float)rand()/(float)(RAND_MAX);
+         src[i] = (double)(1<<23) * (double)rand()/(double)(RAND_MAX);
       }
       memset(dst1, 0, MAXNUM*sizeof(double));
       memset(dst2, 0, MAXNUM*sizeof(double));
@@ -471,8 +471,9 @@ int main()		// x86		ARM
                if (rmse > 1e-4f) {
                   printf(" rms: %3.2f%% ", 100.0f*fabsf((rms1-rms2)/rms1));
                }
-               if (rmse > 1e-4f);
-               printf(" peak: %3.2f%%", 100.0f*fabsf((peak1-peak2)/peak1));
+               if (rmse > 1e-4f) {
+                  printf(" peak: %3.2f%%", 100.0f*fabsf((peak1-peak2)/peak1));
+               }
             }
             printf("\n");
          }
@@ -493,8 +494,9 @@ int main()		// x86		ARM
                if (rmse > 1e-4f) {
                   printf(" rms: %3.2f%% ", 100.0f*fabsf((rms1-rms2)/rms1));
                }
-               if (rmse > 1e-4f);
-               printf(" peak: %3.2f%%", 100.0f*fabsf((peak1-peak2)/peak1));
+               if (rmse > 1e-4f) {
+                  printf(" peak: %3.2f%%", 100.0f*fabsf((peak1-peak2)/peak1));
+               }
             }
             printf("\n");
          }
