@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.0)
 set(cmake_verbose_makefile TRUE)
 
 set(CMAKE_MAKEFILE_DEPENDS
@@ -364,10 +364,10 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -O2"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -mfma -march=haswell -O3 -ffast-math"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfma -march=haswell -O3 -ffast-math"
        )
        set_property(SOURCE src/software/cpu/arch3d_fma3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -mfma -march=haswell -O2"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfma -march=haswell -O2"
        )
        set_property(SOURCE src/software/cpu/rbuf_effects.c  APPEND
                    PROPERTY COMPILE_FLAGS "${OpenACC_C_FLAGS}"
