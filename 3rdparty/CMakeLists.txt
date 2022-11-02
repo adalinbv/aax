@@ -3,13 +3,11 @@ set(THIRDPARTY_HEADERS
   MurmurHash3.h
   minimp3.h
   dr_flac.h
-  pffft.h
 )
 
 set(THIRDPARTY_SOURCES
   MurmurHash3.c
   pdmp3.c
-  pffft.c
   stb_vorbis.c
 )
 
