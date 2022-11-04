@@ -108,7 +108,6 @@ int main()		// x86		ARM
 #if defined(__x86_64__)
 #endif
    char fma = 0;	// FMA3		VFPV4
-   float *src, *dst1, *dst2, *dst3;
    float freq_factor;
    _aaxTimer *ts;
    _data_t *buf;
@@ -136,19 +135,19 @@ int main()		// x86		ARM
    srand(time(NULL));
 
    buf = _aaxDataCreate(4, MAXNUM*sizeof(double)/sizeof(float), sizeof(float));
-   src = (float*)_aaxDataGetData(buf, 0);
-   dst1 = (float*)_aaxDataGetData(buf, 1);
-   dst2 = (float*)_aaxDataGetData(buf, 2);
-   dst3 = (float*)_aaxDataGetData(buf, 3);
-
-   if (src && dst1 && dst2 && dst3)
+   if (buf)
    {
       _aaxRingBufferFreqFilterHistoryData history;
       _aaxRingBufferFreqFilterData flt;
+      float *src, *dst1, *dst2, *dst3;
       float rms1, rms2, peak1, peak2;
-//    double *dsrc, *ddst1, *ddst2;
       double cpu, cpu2, eps;
       int i;
+
+      src = (float*)_aaxDataGetData(buf, 0);
+      dst1 = (float*)_aaxDataGetData(buf, 1);
+      dst2 = (float*)_aaxDataGetData(buf, 2);
+      dst3 = (float*)_aaxDataGetData(buf, 3);
 
       for (i=0; i<MAXNUM; ++i) {
          src[i] = (double)(1<<23) * (double)rand()/(double)(RAND_MAX);
@@ -641,18 +640,19 @@ int main()		// x86		ARM
       /*
        * waveform generation
        */
+      printf("\n== waveform generation:\n");
       _aax_generate_waveform_float = _aax_generate_waveform_cpu;
 
       TIMEFN(_aax_generate_waveform_float(dst1, MAXNUM, FREQ, PHASE, WAVE_TYPE), cpu, MAXNUM);
-      printf("\nwaveform " CPU ":\t%f ms\n", cpu*1e3);
+      printf("wave " CPU ":\t%f ms\n", cpu*1e3);
 
       if (simd)
       {
          _aax_generate_waveform_float = GLUE(_aax_generate_waveform, SIMD);
 
          TIMEFN(_aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE), eps, MAXNUM);
-         printf("waveform "MKSTR(SIMD)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
-         TESTFN("waveform "MKSTR(SIMD), dst1, dst2, 1e-3f);
+         printf("wave "MKSTR(SIMD)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
+         TESTFN("wave "MKSTR(SIMD), dst1, dst2, 1e-3f);
       }
 
       if (simd2)
@@ -660,8 +660,8 @@ int main()		// x86		ARM
          _aax_generate_waveform_float = GLUE(_aax_generate_waveform, SIMD2);
 
          TIMEFN(_aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE), eps, MAXNUM);
-         printf("waveform "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
-         TESTFN("waveform "MKSTR(SIMD2), dst1, dst2, 1e-3f);
+         printf("wave "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
+         TESTFN("wave "MKSTR(SIMD2), dst1, dst2, 1e-3f);
       }
 
 #if 0
@@ -670,8 +670,8 @@ int main()		// x86		ARM
          _aax_generate_waveform_float = GLUE(_aax_generate_waveform, FMA3);
 
          TIMEFN(_aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE), eps, MAXNUM);
-         printf("waveform "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
-         TESTFN("waveform "MKSTR(FMA3), dst1, dst2, 1e-3f);
+         printf("wave "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
+         TESTFN("wave "MKSTR(FMA3), dst1, dst2, 1e-3f);
       }
 #endif
 
