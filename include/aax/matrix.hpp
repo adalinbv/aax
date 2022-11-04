@@ -605,7 +605,7 @@ private:
         else std::copy(v+0, v+3, _m[p]);
     }
     void get(unsigned p, aaxVec3f& v) {
-        std::copy(_m[p], _m[p]+4, v+0);
+        std::copy(_m[p], _m[p]+3, v+0);
     }
 };
 
