@@ -2,8 +2,9 @@
 * Sat Sep 10 2022 - tech@adalin.org
 - AeonWave (3.12.2) stable; urgency=low
 
+ * Improved ARM64 support.
  * Correctly apply the master gain.
- * Fix a out of bound error, vec3 had only 3 members, not 4
+ * Fix a out of bound error, vec3 had only 3 members, not 4.
 
 -- Erik Hofman <tech@adalin.org>  Sat 10 sep 2022 12:48:33 + 0100
 
