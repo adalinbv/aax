@@ -87,7 +87,11 @@ char _aaxArchDetectFMA3();
 char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
 #elif defined(__ARM_ARCH) || defined(_M_ARM)
-# define CPU    "cpu"
+# ifdef __arm__
+#  define CPU    "cpu"
+# else
+#  define CPU    "cpu/neon"
+# endif
 # define SIMD   vfpv3
 # define SIMD1  vfpv4
 # define SIMD2  vfpv4

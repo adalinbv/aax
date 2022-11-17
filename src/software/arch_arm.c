@@ -258,9 +258,11 @@ _aaxGetSIMDSupportLevel()
       {
          _aax_generate_waveform_float = _aax_generate_waveform_vfpv3;
 //       _batch_imadd = _batch_imadd_vfpv3;
+#ifdef __arm__
          _batch_fmadd = _batch_fmadd_vfpv3;
          _batch_imul_value = _batch_imul_value_vfpv3;
          _batch_fmul_value = _batch_fmul_value_vfpv3;
+#endif
 //       _batch_cvt24_24 = _batch_cvt24_24_vfpv3;
 //       _batch_cvt24_32 = _batch_cvt24_32_vfpv3;
 //       _batch_cvt32_24 = _batch_cvt32_24_vfpv3;
@@ -346,16 +348,18 @@ _aaxGetSIMDSupportLevel()
       {
          _aax_generate_waveform_float = _aax_generate_waveform_vfpv4;
 //       _batch_imadd = _batch_imadd_vfpv4;
+#ifdef __arm__
          _batch_fmadd = _batch_fmadd_vfpv4;
          _batch_imul_value = _batch_imul_value_vfpv4;
          _batch_fmul_value = _batch_fmul_value_vfpv4;
+	 _batch_roundps = _batch_roundps_vfpv4;
+#endif
 //       _batch_cvt24_24 = _batch_cvt24_24_vfpv4;
 //       _batch_cvt24_32 = _batch_cvt24_32_vfpv4;
 //       _batch_cvt32_24 = _batch_cvt32_24_vfpv4;
          _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv4;
          _batch_cvtps24_24 = _batch_cvtps24_24_vfpv4;
          _batch_atanps = _batch_atanps_vfpv4;
-         _batch_roundps = _batch_roundps_vfpv4;
          _batch_cvt24_ps = _batch_cvt24_ps_vfpv4;
          _batch_cvtps_24 = _batch_cvtps_24_vfpv4;
          _batch_cvt24_pd = _batch_cvt24_pd_vfpv4;
@@ -460,9 +464,11 @@ _aaxGetSIMDSupportLevel()
          _batch_fmul_value = _batch_fmul_value_neon;
 
 # if RB_FLOAT_DATA
+#ifdef __arm__
          _batch_fmadd = _batch_fmadd_neon;
+	 _batch_roundps = _batch_roundps_neon;
+#endif
          _batch_atanps = _batch_atanps_neon;
-         _batch_roundps = _batch_roundps_neon;
          _batch_cvtps24_24 = _batch_cvtps24_24_neon;
          _batch_cvt24_ps24 = _batch_cvt24_ps24_neon;
 # else
