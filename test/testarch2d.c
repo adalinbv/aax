@@ -102,16 +102,16 @@ char _aaxArchDetectVFPV4();
 char _aaxArchDetectNEON();
 #endif
 
-int main()		// x86		ARM
-{			// -------	-------
-   char simd = 0;	// SSE2		VFPV3
-   char simd1 = 0;	// SSE_VEX      VFPV4
-   char simd2 = 0;	// AVX		NEON
-// char simd3 = 0;	// SSE3
-   char simd4 = 0;	// SSE4
+int main()		// x86		X86_64		ARM
+{			// -------	-------		-------
+   char simd = 0;	// SSE2		SSE2		VFPV3
+   char simd1 = 0;	// SSE2		SSE_VEX 	VFPV4
+   char simd2 = 0;	// SSE2		AVX		VFPV4
+// char simd3 = 0;	// SSE3		SSE3		VFPV3
+   char simd4 = 0;	// SSE4		SSE4		NEON
 #if defined(__x86_64__)
 #endif
-   char fma = 0;	// FMA3		VFPV4
+   char fma = 0;	// SSE2		FMA3		VFPV4
    float freq_factor;
    _aaxTimer *ts;
    _data_t *buf;
@@ -668,7 +668,6 @@ int main()		// x86		ARM
          TESTFN("wave "MKSTR(SIMD2), dst1, dst2, 1e-3f);
       }
 
-#if 0
       if (fma)
       {
          _aax_generate_waveform_float = GLUE(_aax_generate_waveform, FMA3);
@@ -677,7 +676,6 @@ int main()		// x86		ARM
          printf("wave "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
          TESTFN("wave "MKSTR(FMA3), dst1, dst2, 1e-3f);
       }
-#endif
 
       /*
        * convolution
