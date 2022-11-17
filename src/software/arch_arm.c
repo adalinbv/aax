@@ -156,6 +156,13 @@ _aaxArchDetectFeatures()
                   else res = AAX_SIMD_NEON;
                }
 
+	       ptr = strstr(features, " asimd");
+               if (ptr && (ptr[6] == ' ' || ptr[6] == '\0'))
+               {
+                  _aax_arch_capabilities |= AAX_ARCH_NEON;
+                  res = AAX_SIMD_VFPV4_NEON;
+               }
+
                ptr = strstr(features, " helium");
                if (ptr && (ptr[7] == ' ' || ptr[7] == '\0'))
                {
