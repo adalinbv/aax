@@ -3,8 +3,9 @@
 - AeonWave (3.12.2) stable; urgency=low
 
  * Correctly apply the master gain.
+ * Fix a out of bound error, vec3 had only 3 members, not 4
 
--- Erik Hofman <tech@adalin.org>  Sat 10 sep 2022 12:48:33 + 0200
+-- Erik Hofman <tech@adalin.org>  Sat 10 sep 2022 12:48:33 + 0100
 
 
 * Sat Aug 27 2022 - tech@adalin.org
