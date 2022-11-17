@@ -46,7 +46,7 @@
 #include "cpu/arch2d_simd.h"
 #include "cpu/arch3d_simd.h"
 
-#if defined(__arm__) || defined(_M_ARM)
+#if defined(__ARM_ARCH) || defined(_M_ARM)
 
 #define MAX_CPUINFO	4096
 
@@ -515,7 +515,7 @@ _aaxGetNoCores()
    return (cores > 0) ? cores : 1;
 }
 
-#else // defined(__arm__) || defined(_M_ARM)
+#else // defined(__ARM_ARCH) || defined(_M_ARM)
 
 char
 _aaxArchDetectHF() {
@@ -545,4 +545,4 @@ char _aaxArchDetectHelium() {
    return 0;
 }
 
-#endif // defined(__arm__) || defined(_M_ARM)
+#endif // defined(_ARM_ARCH) || defined(_M_ARM)

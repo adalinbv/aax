@@ -48,7 +48,11 @@ if(NOT X86_64 AND SSE2_FOUND)
                PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m"
   )
 endif()
-if(ARM)
+if(ARM64)
+  set_property(SOURCE matrix_test.c APPEND
+                PROPERTY COMPILE_FLAGS "-march=armv8-a -funsafe-math-optimizations"
+  )
+elseif(ARM)
   set_property(SOURCE matrix_test.c APPEND
                 PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -funsafe-math-optimizations"
   )

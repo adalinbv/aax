@@ -23,7 +23,7 @@
 #include "config.h"
 #endif
 
-#ifdef __ARM_NEON__
+#if defined __ARM_NEON__ || defined __aarch64__
 #include "arch3d_simd.h"
 
 # define vandq_f32(a,b) vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(a), vreinterpretq_u32_f32(b)))

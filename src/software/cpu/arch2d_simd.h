@@ -437,7 +437,7 @@ float* _aax_generate_waveform_neon(float32_ptr, size_t, float, float, enum wave_
 void _batch_get_average_rms_neon(const_float32_ptr, size_t, float*, float*);
 void _batch_imadd_neon(int32_ptr, const_int32_ptr, size_t, float, float);
 // void _batch_hmadd_neon(float32_ptr, const_float16_ptr, unsigned in, float, float);
-void _batch_fmadd_neon(float32_ptr, const_float32_ptr, unsigned in, float, float);
+void _batch_fmadd_neon(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_ema_iir_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
 void _batch_freqfilter_neon(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_neon(float32_ptr, const_float32_ptr, int, size_t, void*);

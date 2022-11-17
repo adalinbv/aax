@@ -28,11 +28,11 @@ extern "C" {
 
 #include <assert.h>
 
-#if defined(_MSC_VER)
+#if defined _MSC_VER 
 # include <intrin.h>
-#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
+#elif defined __GNUC__  && (defined __x86_64__  || defined __i386__) 
 # include <x86intrin.h>
-#elif defined(__GNUC__) && defined(__ARM_NEON__)
+#elif defined __GNUC__  && (defined __ARM_NEON__  || defined __aarch64__)
 # include <arm_neon.h>
 #endif
 
@@ -72,7 +72,7 @@ typedef ALIGN32 double	dx4_t[4] ALIGN32C;
 typedef ALIGN16 float	fx4x4_t[4][4] ALIGN16C;
 typedef ALIGN32 double	dx4x4_t[4][4] ALIGN32C;
 
-#ifdef __ARM_NEON__
+#if defined __ARM_NEON__ || defined __aarch64__
 typedef double		simd4d_t[4];
 typedef float32x4_t	simd4f_t;
 typedef int32x4_t	simd4i_t;

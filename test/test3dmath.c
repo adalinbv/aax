@@ -49,7 +49,7 @@ char _aaxArchDetectAVX2();
 char _aaxArchDetectFMA3();
 char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
-#elif defined(__arm__) || defined(_M_ARM)
+#elif defined(__ARM_ARCH) || defined(_M_ARM)
 # define CPU	"cpu\t"
 # define SIMD   vfpv3
 # define SIMD1	vfpv4
@@ -114,7 +114,7 @@ int main()
     simd3 = _aaxArchDetectSSE3();
     simd4 = _aaxArchDetectAVX();
     fma = _aaxArchDetectFMA3() ? 3 : 0;
-#elif defined(__arm__) || defined(_M_ARM)
+#elif defined(__ARM_ARCH) || defined(_M_ARM)
     simd = simd2 = simd3 = _aaxArchDetectNeon();
     simd4 = _aaxArchDetectVFPV3();
     fma = _aaxArchDetectVFPV4();
@@ -187,7 +187,7 @@ int main()
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("mtx4fMul " CPU ":\t%f ms\n", cpu*1000.0f);
 
-#if defined(__arm__) || defined(_M_ARM)
+#if defined(__ARM_ARCH) || defined(_M_ARM)
         m4fMul = _mtx4fMul_vfpv3;
         t = clock();
         for (i=0; i<MAXNUM; ++i) {
@@ -246,7 +246,7 @@ int main()
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\nmtx4dMul " CPU ":\t%f ms\n", cpu*1000.0f);
 
-#if defined(__arm__) || defined(_M_ARM)
+#if defined(__ARM_ARCH) || defined(_M_ARM)
         m4dMul = _mtx4dMul_vfpv3;
         t = clock();
         for (i=0; i<MAXNUM; ++i) {

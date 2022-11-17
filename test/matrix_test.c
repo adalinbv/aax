@@ -5,7 +5,7 @@
 
 #include <base/geometry.h>
 
-#ifdef __ARM_NEON__
+#if defined __ARM_NEON__ || defined __aarch64__
 
 void
 _mtx4fMul(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)

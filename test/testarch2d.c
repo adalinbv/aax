@@ -86,7 +86,7 @@ char _aaxArchDetectAVX();
 char _aaxArchDetectFMA3();
 char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
-#elif defined(__arm__) || defined(_M_ARM)
+#elif defined(__ARM_ARCH) || defined(_M_ARM)
 # define CPU    "cpu"
 # define SIMD   vfpv3
 # define SIMD1  vfpv4
@@ -123,7 +123,7 @@ int main()		// x86		ARM
 // simd3 = _aaxArchDetectSSE3();
    simd4 = _aaxArchDetectSSE4();
    fma = _aaxArchDetectFMA3() ? 3 : 0;
-#elif defined(__arm__) || defined(_M_ARM)
+#elif defined(__ARM_ARCH) || defined(_M_ARM)
    simd = _aaxArchDetectVFPV3();
    simd1 = _aaxArchDetectVFPV4();
    simd2 = _aaxArchDetectNeon();
@@ -375,7 +375,7 @@ int main()		// x86		ARM
          printf("round %s:\t%f ms - cpu x %3.2f", MKSTR(SIMD1), eps*1e3, cpu/eps);
          TESTF("round "MKSTR(SIMD1), dst1, dst2);
       }
-#if !defined(__x86_64__) && !(defined(__arm__) || defined(_M_ARM))
+#if !defined(__x86_64__) && !(defined(__ARM_ARCH) || defined(_M_ARM))
       if (simd2)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
