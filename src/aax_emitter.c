@@ -446,8 +446,15 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             if (!handle->sampled_release &&
                 !_PROP_DISTDELAY_IS_DEFINED(src->props3d))
             {
+#if 0
                _SET_PROCESSED(src->props3d);
                src->buffer_pos = UINT_MAX;
+#else
+               // MIDI needs this to prevent a note being started and stopped
+               // again before actual playback began to not be audible.
+               // (Jazz_-_Cabaret.mid example, toms at the start of the song)
+               _SET_STOPPED(src->props3d);
+#endif
             }
             else {
                _SET_STOPPED(src->props3d);
