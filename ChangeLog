@@ -3,8 +3,11 @@
 - AeonWave (3.12.2) stable; urgency=low
 
  * Improved ARM64 support.
+ * Add double precision NEON support.
  * Correctly apply the master gain.
  * Fix a out of bound error, vec3 had only 3 members, not 4.
+ * Prevent notes which are set to started and stopped again before actual
+   playback began to not be audible.
 
 -- Erik Hofman <tech@adalin.org>  Sat 10 sep 2022 12:48:33 + 0100
 

@@ -41,6 +41,26 @@ hsum_float32x4_neon(float32x4_t v) {
     return vget_lane_f32(vpadd_f32(r, r), 0);
 }
 
+static inline void
+_vec3fNegate_neon(vec3f_ptr d, const vec3f_ptr v) {
+   d->s4 = vneg_f32(v->s4);
+}
+
+static inline void
+_vec3fAdd_neon(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2) {
+   d->s4 = vadd_f32(v1->s4, v2->s4);
+}
+
+static inline void
+_vec3fSub_neon(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2) {
+   d->s4 = vsub_f32(v1->s4, v2->s4);
+}
+
+static inline void
+_vec3fScalarMul_neon(vec3f_ptr d, const vec3f_ptr r, float f) {
+   d->s4 = vmul_f32(r->s4, vmovq_n_f32(f));
+}
+
 float
 _vec3fMagnitudeSquared_neon(const vec3f_ptr v)
 {
@@ -133,6 +153,45 @@ _mtx4fMulVec4_neon(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v)
       d->s4 = vaddq_f32(d->s4, row);
    }
 #endif
+}
+
+int
+_vec3fAltitudeVector_neon(vec3f_ptr altvec, const mtx4f_ptr ifmtx, const vec3f_ptr ppos, const vec3f_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
+{
+   vec4f_t pevec, fevec;
+   vec3f_t npevec, fpevec;
+   float mag_pe, dot_fpe;
+   int ahead;
+
+   fevec.s4 = load_vec3f(epos);
+   if (!ppos) {
+      _vec3fNegate_neon(&pevec.v3, &fevec.v3);
+   }
+   else
+   {
+      pevec.s4 = load_vec3f(ppos);
+      _vec3fSub_neon(&pevec.v3, &pevec.v3, &fevec.v3);
+   }
+   _mtx4fMulVec4_neon(&pevec, ifmtx, &pevec);
+
+   fevec.v4[3] = 1.0;
+   _mtx4fMulVec4_neon(&fevec, ifmtx, &fevec);
+
+   mag_pe = _vec3fNormalize_neon(&npevec, &pevec.v3);
+   dot_fpe = _vec3fDotProduct_neon(&fevec.v3, &npevec);
+
+   _vec3fScalarMul_neon(&fpevec, &npevec, dot_fpe);
+
+   _vec3fSub_neon(&fpevec, &fevec.v3, &fpevec);
+   _vec3fAdd_neon(&npevec, &fevec.v3, &pevec.v3);
+
+   _vec3fAbsolute_neon(afevec, &fevec.v3);
+   _vec3fAbsolute_neon(altvec, &fpevec);
+   _vec3fAbsolute_neon(fpvec, &npevec);
+
+   ahead = (dot_fpe >= 0.0f || (mag_pe+dot_fpe) <= FLT_EPSILON);
+
+   return ahead;
 }
 
 #else
