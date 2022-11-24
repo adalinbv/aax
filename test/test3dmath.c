@@ -32,7 +32,7 @@ char _aaxArchDetectSSE();
 char _aaxArchDetectSSE2();
 char _aaxArchDetectSSE3();
 #elif defined(__x86_64__)
-# define CPU	"cpu+sse2"
+# define CPU	"cpu/sse2"
 # define SIMD   sse
 # define SIMD1  sse_vex
 # define SIMD2	sse2
@@ -49,6 +49,15 @@ char _aaxArchDetectAVX2();
 char _aaxArchDetectFMA3();
 char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
+#elif __aarch64__
+# define CPU    "cpu/neon"
+# define SIMD   vfpv3
+# define SIMD1  vfpv4
+# define SIMD2  vfpv4
+# define SIMD3  vfpv4
+# define SIMD4  vfpv4
+# define FMA3_1 neon
+# define FMA3_2 neon64
 #elif defined(__ARM_ARCH) || defined(_M_ARM)
 # define CPU	"cpu\t"
 # define SIMD   vfpv3
@@ -101,11 +110,11 @@ int main()
     float f;
     int i;
 
-#if defined(__i386__)
+#if defined __i386__
     simd = _aaxArchDetectSSE();
     simd2 = _aaxArchDetectSSE2();
     simd3 = _aaxArchDetectSSE3();
-#elif defined(__x86_64__)
+#elif defined __x86_64__
     simd = simd1 = simd2 = simd4 = _aaxArchDetectAVX();
     if (!simd) {
         simd = _aaxArchDetectSSE();
@@ -114,7 +123,9 @@ int main()
     simd3 = _aaxArchDetectSSE3();
     simd4 = _aaxArchDetectAVX();
     fma = _aaxArchDetectFMA3() ? 3 : 0;
-#elif defined(__ARM_ARCH) || defined(_M_ARM)
+#elif defined __aarch64__
+    simd = simd2 = simd3 = simd4 = fma = 1;
+#elif defined __ARM_ARCH || defined _M_ARM
     simd = simd2 = simd3 = _aaxArchDetectNeon();
     simd4 = _aaxArchDetectVFPV3();
     fma = _aaxArchDetectVFPV4();
@@ -227,7 +238,7 @@ int main()
                 m4fMul(&l, &m, &n);
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("mtx4dMul "MKSTR(FMA3_1)":\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("mtx4fMul "MKSTR(FMA3_1)":\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TESTM4(k,l);
         }
     }

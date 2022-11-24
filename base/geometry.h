@@ -73,7 +73,10 @@ typedef ALIGN16 float	fx4x4_t[4][4] ALIGN16C;
 typedef ALIGN32 double	dx4x4_t[4][4] ALIGN32C;
 
 #if defined __ARM_NEON__ || defined __aarch64__
-typedef double		simd4d_t[4];
+typedef union {
+   float64x4_t f64x4;
+   float64x2_t f64x2[2];
+} simd4d_t;
 typedef float32x4_t	simd4f_t;
 typedef int32x4_t	simd4i_t;
 #elif defined __x86_64__ || defined __i386__

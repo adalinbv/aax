@@ -37,28 +37,32 @@ load_vec3f(const vec3f_ptr v)
 
 static inline float
 hsum_float32x4_neon(float32x4_t v) {
-    float32x2_t r = vadd_f32(vget_high_f32(v), vget_low_f32(v));
-    return vget_lane_f32(vpadd_f32(r, r), 0);
+#if defined __aarch64__
+   return vaddvq_f32(v);
+#else
+   float32x2_t r = vadd_f32(vget_high_f32(v), vget_low_f32(v));
+   return vget_lane_f32(vpadd_f32(r, r), 0);
+#endif
 }
 
 static inline void
 _vec3fNegate_neon(vec3f_ptr d, const vec3f_ptr v) {
-   d->s4 = vneg_f32(v->s4);
+   d->s4 = vnegq_f32(v->s4);
 }
 
 static inline void
 _vec3fAdd_neon(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2) {
-   d->s4 = vadd_f32(v1->s4, v2->s4);
+   d->s4 = vaddq_f32(v1->s4, v2->s4);
 }
 
 static inline void
 _vec3fSub_neon(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2) {
-   d->s4 = vsub_f32(v1->s4, v2->s4);
+   d->s4 = vsubq_f32(v1->s4, v2->s4);
 }
 
 static inline void
 _vec3fScalarMul_neon(vec3f_ptr d, const vec3f_ptr r, float f) {
-   d->s4 = vmul_f32(r->s4, vmovq_n_f32(f));
+   d->s4 = vmulq_f32(r->s4, vmovq_n_f32(f));
 }
 
 float
@@ -73,6 +77,22 @@ _vec3fMagnitude_neon(const vec3f_ptr v3)
 {
    float32x4_t v = load_vec3f(v3);
    return sqrtf(hsum_float32x4_neon(vmulq_f32(v, v)));
+}
+
+static inline  float
+_vec3fNormalize_neon(vec3f_ptr d, const vec3f_ptr v) {
+   float mag = vec3fMagnitude(v);
+   if (mag) {
+      d->s4 = vmulq_f32(v->s4, vdupq_n_f32(1.0/mag));
+   } else {
+      d->s4 = vdupq_n_f32(0.0);
+   }
+   return mag;
+}
+
+void
+_vec3fAbsolute_neon(vec3f_ptr d, const vec3f_ptr v) {
+   d->s4 = vabsq_f32(v->s4);
 }
 
 float
