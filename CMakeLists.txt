@@ -423,24 +423,27 @@ else(MSVC)
          )
        elseif(ARM64)
          message("Build environment: ARM")
-         set(C_FLAGS "${C_FLAGS} -march=armv6 -marm -mfloat-abi=hard -DARCH32=1")
+         set(C_FLAGS "${C_FLAGS} -march=armv8-a -mfpu=neon-vfpv4 -marm -mfloat-abi=hard -DARCH32=1")
          set_property(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
-                      PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -O2 -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
+                      PROPERTY COMPILE_FLAGS "-O2 -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
          )
          set_property(SOURCE src/software/cpu/arch2d_vfpv3.c APPEND
-                      PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -O3 -ffast-math -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
+                      PROPERTY COMPILE_FLAGS "-O3 -ffast-math -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
          )
          set_property(SOURCE src/software/cpu/arch3d_vfpv4.c APPEND
-                      PROPERTY COMPILE_FLAGS "-march=armv8-a -mfpu=vfpv4-d16 -O2 -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
+                      PROPERTY COMPILE_FLAGS "-O2 -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
          )
          set_property(SOURCE src/software/cpu/arch2d_vfpv4.c APPEND
-                      PROPERTY COMPILE_FLAGS "-march=armv8-a -mfpu=vfpv4 -O3 -ffast-math -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
+                      PROPERTY COMPILE_FLAGS "-O3 -ffast-math -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
          )
          set_property(SOURCE src/software/cpu/arch3d_neon.c APPEND
-                      PROPERTY COMPILE_FLAGS "-march=armv8-a -mfpu=neon-vfpv4 -O2 -ftree-vectorize -ftree-slp-vectorize"
+                      PROPERTY COMPILE_FLAGS "-O2 -ftree-vectorize -ftree-slp-vectorize"
          )
          set_property(SOURCE src/software/cpu/arch2d_neon.c APPEND
-                      PROPERTY COMPILE_FLAGS "-march=armv8-a -mfpu=neon-vfpv4 -O3  -ffast-math -ftree-vectorize -ftree-slp-vectorize"
+                      PROPERTY COMPILE_FLAGS "-O3  -ffast-math -ftree-vectorize -ftree-slp-vectorize"
+         )
+         set_property(SOURCE src/software/cpu/arch3d_neon64.c APPEND
+                      PROPERTY COMPILE_FLAGS "-O2 -ftree-vectorize -ftree-slp-vectorize"
          )
        endif(ARM64)
        set_property(SOURCE 3rdparty/pffft.c APPEND
