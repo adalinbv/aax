@@ -82,7 +82,11 @@ static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
    SIMD_PREFIX"VFPv3",
    SIMD_PREFIX"VFPv4",
    SIMD_PREFIX"Neon",
+#if defined __aarch64__
+   SIMD_PREFIX"Neon64",
+#else
    SIMD_PREFIX"VFPv4/Neon",
+#endif
    SIMD_PREFIX"Helium",
    SIMD_PREFIX"VFPv4/Helium"
 };
