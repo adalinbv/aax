@@ -78,8 +78,8 @@ fast_atan8_fma3(__m256 x)
    const __m256 add = _mm256_set1_ps(0.1784);
    const __m256 mull = _mm256_set1_ps(0.0663);
 
-   // somehow the non FMA3 code path is faster
 #if 1
+   // faster than using fmadd
    return _mm256_mul_ps(x, _mm256_sub_ps(pi_4_mul,
                               _mm256_mul_ps(x,
                                  _mm256_add_ps(add,

@@ -331,46 +331,46 @@ else(MSVC)
      if(X86_64)
        set(C_FLAGS "${C_FLAGS} -march=athlon64 -DARCH64=1 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize ")
        set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
-                    PROPERTY COMPILE_FLAGS "-O3 -ffast-math"
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -O3 -ffast-math"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse.c APPEND
-                    PROPERTY COMPILE_FLAGS "-O2"
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -O2"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-O3 -ffast-math"
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -O3 -ffast-math"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-O2"
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -O2"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -O3 -ffast-math"
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse3 -O3 -ffast-math"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -O2"
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse3 -O2"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse4.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse4.1 -march=silvermont -O3 -ffast-math"
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse4.1 -march=silvermont -O3 -ffast-math"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -O3 -ffast-math"
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -march=sandybridge -O3 -ffast-math"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -O2"
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -march=sandybridge -O2"
        )
        set_property(SOURCE src/software/cpu/arch2d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -O3 -ffast-math"
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -march=sandybridge -O3 -ffast-math"
        )
        set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -O2"
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -march=sandybridge -O2"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfma -march=haswell -O3 -ffast-math"
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -mfma -march=haswell -O3 -ffast-math"
        )
        set_property(SOURCE src/software/cpu/arch3d_fma3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfma -march=haswell -O2"
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -mfma -march=haswell -O2"
        )
        set_property(SOURCE src/software/cpu/rbuf_effects.c  APPEND
-                   PROPERTY COMPILE_FLAGS "${OpenACC_C_FLAGS}"
+                   PROPERTY COMPILE_FLAGS "${C_FLAGS} ${OpenACC_C_FLAGS}"
        )
      elseif(X86)
        message("Build environment: X86")
