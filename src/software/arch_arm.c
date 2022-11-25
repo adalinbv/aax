@@ -440,10 +440,6 @@ _aaxGetSIMDSupportLevel()
 
       if (support_simd && _aax_arch_capabilities & AAX_ARCH_NEON)
       {
-         _batch_get_average_rms = _batch_get_average_rms_neon;
-         _aax_generate_waveform_float = _aax_generate_waveform_neon;
-         _batch_freqfilter_float = _batch_freqfilter_float_neon;
-
          vec3fMagnitude = _vec3fMagnitude_neon;
          vec3fMagnitudeSquared = _vec3fMagnitudeSquared_neon;
          vec3fDotProduct = _vec3fDotProduct_neon;
@@ -476,8 +472,20 @@ _aaxGetSIMDSupportLevel()
 #ifdef __arm__
          _batch_fmadd = _batch_fmadd_neon;
 	 _batch_roundps = _batch_roundps_neon;
+	 l
+#else
+         _batch_get_average_rms = _batch_get_average_rms_neon;
+         _aax_generate_waveform_float = _aax_generate_waveform_neon;
+         _batch_freqfilter_float = _batch_freqfilter_float_neon;
+
+	 _batch_fmadd = _batch_fmadd_neon64;
+         _batch_roundps = _batch_roundps_neon64;
+	 _batch_atanps = _batch_atanps_neon64;
 #endif
-         _batch_atanps = _batch_atanps_neon;
+         _batch_get_average_rms = _batch_get_average_rms_neon64;
+         _aax_generate_waveform_float = _aax_generate_waveform_neon64;
+         _batch_freqfilter_float = _batch_freqfilter_float_neon64;
+
          _batch_cvtps24_24 = _batch_cvtps24_24_neon;
          _batch_cvt24_ps24 = _batch_cvt24_ps24_neon;
 # else

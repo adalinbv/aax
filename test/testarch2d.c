@@ -60,7 +60,7 @@ extern _batch_convolution_proc _batch_convolution;
 void _batch_atan_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt);
 
-#if defined(__i386__)
+#if defined __i386__
 # define CPU    "cpu"
 # define SIMD   sse2
 # define SIMD1  sse2
@@ -71,7 +71,7 @@ void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, i
 char _aaxArchDetectSSE3();
 char _aaxArchDetectSSE2();
 char _aaxArchDetectSSE4();
-#elif defined(__x86_64__)
+#elif defined __x86_64__
 # define CPU   "cpu+sse2"
 # define SIMD   sse2
 # define SIMD1  sse_vex
@@ -86,12 +86,16 @@ char _aaxArchDetectAVX();
 char _aaxArchDetectFMA3();
 char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
-#elif defined(__ARM_ARCH) || defined(_M_ARM)
-# ifdef __arm__
-#  define CPU    "cpu"
-# else
-#  define CPU    "cpu/neon"
-# endif
+#elif defined __aarch64__
+# define CPU    "cpu/neon"
+# define SIMD   vfpv3
+# define SIMD1  vfpv4
+# define SIMD2  vfpv4
+# define SIMD3  vfpv3
+# define SIMD4  neon64
+# define FMA3   neon64
+#elif defined __ARM_ARCH || defined _M_ARM
+# define CPU    "cpu"
 # define SIMD   vfpv3
 # define SIMD1  vfpv4
 # define SIMD2  vfpv4
@@ -127,7 +131,9 @@ int main()		// x86		X86_64		ARM
 // simd3 = _aaxArchDetectSSE3();
    simd4 = _aaxArchDetectSSE4();
    fma = _aaxArchDetectFMA3() ? 3 : 0;
-#elif defined(__ARM_ARCH) || defined(_M_ARM)
+#elif defined __aarch64__
+   simd4 = fma = 1;
+#elif defined __ARM_ARCH || defined _M_ARM
    simd = _aaxArchDetectVFPV3();
    simd1 = _aaxArchDetectVFPV4();
    simd2 = _aaxArchDetectNeon();
@@ -457,52 +463,51 @@ int main()		// x86		X86_64		ARM
 
          TIMEFN(_batch_get_average_rms(src, MAXNUM, &rms1, &peak1), eps, MAXNUM);
          printf("rms %s:\t%f ms - cpu x %3.2f\n", MKSTR(SIMD), eps*1e3, cpu/eps);
+      }
+      if (simd2)
+      {
+         float rmse, peake;
 
-         if (simd2)
-         {
-            float rmse, peake;
+         _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD2);
 
-            _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD2);
-
-            TIMEFN(_batch_get_average_rms(src, MAXNUM, &rms2, &peak2), eps, MAXNUM);
-            printf("rms "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
-            rmse = fabsf(rms1-rms2);
-            peake = fabsf(peak1-peak2);
-            if (rmse > 1e-4f || peake > 1e-4f)
-             {
-               printf("\t| error");
-               if (rmse > 1e-4f) {
-                  printf(" rms: %3.2f%% ", 100.0f*fabsf((rms1-rms2)/rms1));
-               }
-               if (rmse > 1e-4f) {
-                  printf(" peak: %3.2f%%", 100.0f*fabsf((peak1-peak2)/peak1));
-               }
+         TIMEFN(_batch_get_average_rms(src, MAXNUM, &rms2, &peak2), eps, MAXNUM);
+         printf("rms "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
+         rmse = fabsf(rms1-rms2);
+         peake = fabsf(peak1-peak2);
+         if (rmse > 1e-4f || peake > 1e-4f)
+          {
+            printf("\t| error");
+            if (rmse > 1e-4f) {
+               printf(" rms: %3.2f%% ", 100.0f*fabsf((rms1-rms2)/rms1));
             }
-            printf("\n");
-         }
-
-         if (fma)
-         {
-            float rmse, peake;
-
-            _batch_get_average_rms = GLUE(_batch_get_average_rms, FMA3);
-
-            TIMEFN(_batch_get_average_rms(src, MAXNUM, &rms2, &peak2), eps, MAXNUM);
-            printf("rms "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
-            rmse = fabsf(rms1-rms2);
-            peake = fabsf(peak1-peak2);
-            if (rmse > 1e-4f || peake > 1e-4f)
-             {
-               printf("\t| error");
-               if (rmse > 1e-4f) {
-                  printf(" rms: %3.2f%% ", 100.0f*fabsf((rms1-rms2)/rms1));
-               }
-               if (rmse > 1e-4f) {
-                  printf(" peak: %3.2f%%", 100.0f*fabsf((peak1-peak2)/peak1));
-               }
+            if (rmse > 1e-4f) {
+               printf(" peak: %3.2f%%", 100.0f*fabsf((peak1-peak2)/peak1));
             }
-            printf("\n");
          }
+         printf("\n");
+      }
+
+      if (fma)
+      {
+         float rmse, peake;
+
+         _batch_get_average_rms = GLUE(_batch_get_average_rms, FMA3);
+
+         TIMEFN(_batch_get_average_rms(src, MAXNUM, &rms2, &peak2), eps, MAXNUM);
+         printf("rms "MKSTR(FMA3)":\t%f ms - cpu x %3.2f", eps*1e3, cpu/eps);
+         rmse = fabsf(rms1-rms2);
+         peake = fabsf(peak1-peak2);
+         if (rmse > 1e-4f || peake > 1e-4f)
+          {
+            printf("\t| error");
+            if (rmse > 1e-4f) {
+               printf(" rms: %3.2f%% ", 100.0f*fabsf((rms1-rms2)/rms1));
+            }
+            if (rmse > 1e-4f) {
+               printf(" peak: %3.2f%%", 100.0f*fabsf((peak1-peak2)/peak1));
+            }
+         }
+         printf("\n");
       }
 
       /*

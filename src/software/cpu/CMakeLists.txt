@@ -7,6 +7,7 @@ set(CPU_HEADERS
 set(CPU_SOURCES
   arch2d_cpu.c
   arch2d_neon.c
+  arch2d_neon64.c
   arch2d_vfpv3.c
   arch2d_vfpv4.c
   arch2d_sse2.c

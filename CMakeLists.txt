@@ -404,22 +404,28 @@ else(MSVC)
 	 message("Build environment: ARM64")
          set(C_FLAGS "${C_FLAGS} -march=armv8-a -DARCH64=1")
          set_property(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
-                      PROPERTY COMPILE_FLAGS "-O2 -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
+                      PROPERTY COMPILE_FLAGS "${C_FLAGS} -O2 -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
          )
          set_property(SOURCE src/software/cpu/arch2d_vfpv3.c APPEND
-                      PROPERTY COMPILE_FLAGS "-O3 -ffast-math -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
+                      PROPERTY COMPILE_FLAGS "${C_FLAGS} -O3 -ffast-math -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
          )
          set_property(SOURCE src/software/cpu/arch3d_vfpv4.c APPEND
-                      PROPERTY COMPILE_FLAGS "-O2 -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
+                      PROPERTY COMPILE_FLAGS "${C_FLAGS} -O2 -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
          )
          set_property(SOURCE src/software/cpu/arch2d_vfpv4.c APPEND
-                      PROPERTY COMPILE_FLAGS "-O3 -ffast-math -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
+                      PROPERTY COMPILE_FLAGS "${C_FLAGS} -O3 -ffast-math -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
          )
          set_property(SOURCE src/software/cpu/arch3d_neon.c APPEND
-                      PROPERTY COMPILE_FLAGS "-O2 -ftree-vectorize -ftree-slp-vectorize"
+                      PROPERTY COMPILE_FLAGS "${C_FLAGS} -O2 -ftree-vectorize -ftree-slp-vectorize"
          )
          set_property(SOURCE src/software/cpu/arch2d_neon.c APPEND
-                      PROPERTY COMPILE_FLAGS "-O3  -ffast-math -ftree-vectorize -ftree-slp-vectorize"
+                      PROPERTY COMPILE_FLAGS "${C_FLAGS} -O3 -ffast-math -ftree-vectorize -ftree-slp-vectorize"
+         )
+         set_property(SOURCE src/software/cpu/arch3d_neon64.c APPEND
+                      PROPERTY COMPILE_FLAGS "${C_FLAGS} -O2 -ftree-vectorize -ftree-slp-vectorize"
+         )
+         set_property(SOURCE src/software/cpu/arch2d_neon64.c APPEND
+                      PROPERTY COMPILE_FLAGS "${C_FLAGS} -O3  -ffast-math -ftree-vectorize -ftree-slp-vectorize"
          )
        elseif(ARM64)
          message("Build environment: ARM")
