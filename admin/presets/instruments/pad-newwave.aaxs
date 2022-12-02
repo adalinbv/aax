@@ -20,7 +20,7 @@
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="2.50" db="1.4" frequency="1760" duration="0.33" voices="5" spread="0.51" phasing="true">
+ <sound gain="3.75" db="-1.2" frequency="1760" duration="0.33" voices="5" spread="0.51" phasing="true">
   <waveform src="triangle"/>
   <waveform src="sine" processing="mix" ratio="0.2" pitch="2.9399"/>
   <waveform src="sine" processing="mix" ratio="0.02" pitch="7.9399"/>
@@ -31,7 +31,7 @@
    <slot n="0">
     <param n="0">0.471</param>
     <param n="1">0.24</param>
-    <param n="2">1.154</param>
+    <param n="2">1.15</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">

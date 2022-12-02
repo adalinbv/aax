@@ -20,7 +20,7 @@
   <note polyphony="1" min="39" max="45" step="12"/>
  </info>
 
- <sound gain="2.30" db="7.1" frequency="77.7817" duration="0.3">
+ <sound gain="3.45" db="7.1" frequency="77.7817" duration="0.3">
   <waveform src="white-noise" ratio="2.0" pitch="0.25" staticity="0.15"/>
   <filter type="bitcrusher">
    <slot n="0">

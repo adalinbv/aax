@@ -20,7 +20,7 @@
   <note polyphony="16" min="28" max="127" step="12"/>
  </info>
 
- <sound gain="0.88" db="-1.0" frequency="220">
+ <sound gain="1.32" db="-0.2" frequency="220">
   <waveform src="sawtooth" pitch="0.78" voices="7" spread="0.21"/>
   <waveform src="impulse" processing="modulate" pitch="4.0"/>
   <waveform src="sawtooth" processing="add" voices="7" spread="0.51"/>

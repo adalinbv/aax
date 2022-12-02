@@ -20,7 +20,7 @@
   <note polyphony="2" min="48" max="94" step="12"/>
  </info>
 
- <sound gain="0.88" db="4.5" frequency="880" duration="0.5">
+ <sound gain="1.32" db="-1.5" frequency="880" duration="0.5">
   <waveform src="impulse"/>
  </sound>
 
@@ -29,13 +29,13 @@
    <slot n="0">
     <param n="0">0.926</param>
     <param n="1">0.02</param>
-    <param n="2">1.192</param>
+    <param n="2">1.19</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
     <param n="0">0.822</param>
     <param n="1">7.5</param>
-    <param n="2">1.086</param>
+    <param n="2">1.09</param>
     <param n="3">3.2</param>
    </slot>
   </filter>
