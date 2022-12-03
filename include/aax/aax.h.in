@@ -604,11 +604,6 @@ enum aaxProcessingType
    AAX_PROCESSING_MAX
 };
 
-struct aax_handle_t;
-struct aax_buffer_t;
-struct aax_emitter_t;
-struct aax_frame_t;
-
 typedef struct aax_handle_t* aaxConfig;
 typedef struct aax_buffer_t* aaxBuffer;
 typedef struct aax_emitter_t* aaxEmitter;
