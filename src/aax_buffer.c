@@ -1815,11 +1815,11 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       xmlFree(xiid);
    }
 
-   if (midi_mode == AAX_RENDER_SYNTHESIZER ||
-       midi_mode == AAX_RENDER_ARCADE) {
-      handle->gain = _db2lin(xmlAttributeGetDouble(xsid, "db"));
-   }
-   else
+// if (midi_mode == AAX_RENDER_SYNTHESIZER ||
+//     midi_mode == AAX_RENDER_ARCADE) {
+//    handle->gain = _db2lin(xmlAttributeGetDouble(xsid, "db"));
+// }
+// else
    {
       if (xmlAttributeExists(xsid, "gain")) {
          handle->gain = xmlAttributeGetDouble(xsid, "gain");
@@ -1986,7 +1986,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          {
             int i;
 
-            for (i=0; i<num; i++)
+            for (i=num-waves; i<num; i++)
             {
                char *type;
 
@@ -2026,9 +2026,9 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          if (!b && rb->get_state(rb, RB_IS_VALID))
          {
             float gain = handle->gain;
-            if (handle->midi_mode == AAX_RENDER_ARCADE) {
-                gain *= 0.5f;
-            }
+//          if (handle->midi_mode == AAX_RENDER_ARCADE) {
+//              gain *= 0.5f;
+//          }
             handle->gain = _bufNormalize(rb, gain);
          }
       }
