@@ -1896,7 +1896,8 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       if (bits != 16) bits = 24;
    }
 
-   if (!env) {
+   if (!env && handle->midi_mode != AAX_RENDER_ARCADE &&
+              handle->midi_mode != AAX_RENDER_SYNTHESIZER ) {
       limiter = xmlAttributeGetInt(xsid, "mode");
    }
 
