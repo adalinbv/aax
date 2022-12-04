@@ -417,8 +417,12 @@ _aaxGetSIMDSupportLevel()
             _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse2;
 
 #  if RB_FLOAT_DATA
-            _batch_fmul_value = _batch_fmul_value_sse2;
+#   if !defined __x86_64__
+            // CPU is faster on __x86_64__ as it already supports SSE2
+            // could be as much as 4.8x speedup
             _batch_fmadd = _batch_fmadd_sse2;
+#   endif
+            _batch_fmul_value = _batch_fmul_value_sse2;
             _batch_cvtps24_24 = _batch_cvtps24_24_sse2;
             _batch_cvt24_ps24 = _batch_cvt24_ps24_sse2;
             _batch_movingaverage_float = _batch_ema_iir_float_sse2;
