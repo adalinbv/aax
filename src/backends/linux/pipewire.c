@@ -38,6 +38,7 @@
 
 #include <pipewire/pipewire.h>
 #include <pipewire/extensions/metadata.h>
+#include <pipewire/properties.h>
 #include <spa/param/audio/format-utils.h>
 #include <spa/param/props.h>
 
@@ -1227,6 +1228,7 @@ struct io_node
 
    uint32_t id;
    char is_capture;
+   char is_lazy;
 
    struct {
       int32_t rate;
@@ -1686,8 +1688,9 @@ registry_event_global_callback(void *object, uint32_t id, uint32_t permissions, 
       {
          const char *node_desc;
          struct io_node *io;
-         char is_capture;
          int str_buffer_len;
+         char is_capture;
+         char is_lazy;
 
          /* Just want sink and capture */
          if (!strcasecmp(media_class, "Audio/Sink")) {
@@ -1698,8 +1701,16 @@ registry_event_global_callback(void *object, uint32_t id, uint32_t permissions, 
             return;
          }
 
-         node_desc = spa_dict_lookup(props, PW_KEY_NODE_DESCRIPTION);
+         node_desc = spa_dict_lookup(props, PW_KEY_NODE_NAME);
+         if (node_desc && (strcasestr(node_desc, "usb") ||
+                           strcasestr(node_desc, "bluetooth")))
+         {
+            is_lazy = AAX_TRUE;
+         } else {
+            is_lazy = AAX_FALSE;
+         }
 
+         node_desc = spa_dict_lookup(props, PW_KEY_NODE_DESCRIPTION);
          if (node_desc)
          {
             node = node_object_new(id, type, version, &interface_node_events, &interface_core_events);
@@ -1721,6 +1732,7 @@ registry_event_global_callback(void *object, uint32_t id, uint32_t permissions, 
 
             /* Begin setting the node properties */
             io->id = id;
+            io->is_lazy = is_lazy;
             io->is_capture = is_capture;
             io->spec.format = SPA_AUDIO_FORMAT_S16;
             strlcpy(io->name, node_desc, str_buffer_len);
@@ -1915,8 +1927,11 @@ _pipewire_detect_devices(char description[2][MAX_DEVICES_LIST])
 
       spa_list_for_each (io, &hotplug_io_list, link)
       {
-         int m = io->is_capture ? 0 : 1;
-         driver_list_add(description[m], io->name);
+         if (!io->is_lazy)
+         {
+            int m = io->is_capture ? 0 : 1;
+            driver_list_add(description[m], io->name);
+         }
       }
 
       hotplug_events_enabled = AAX_TRUE;
