@@ -1551,6 +1551,7 @@ sink_device_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, v
    _sink_info_t *handle = si;
    char *sptr, *ptr;
    size_t slen, len;
+   char is_lazy;
 
    if (eol)
    {
@@ -1558,33 +1559,18 @@ sink_device_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, v
       return;
    }
 
-   sptr = ptr = handle->descriptions;
-   slen = strlen(sptr);
-   if (slen)
+   if (info->name && (strcasestr(info->name, "usb") ||
+                      strcasestr(info->name, "bluetooth")))
    {
-      char *p = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
-      if (p)
-      {
-         slen = p - sptr;
-         ptr = p+1;
-      }
+      is_lazy = AAX_TRUE;
+   } else {
+      is_lazy = AAX_FALSE;
    }
 
-   len = (MAX_DEVICES_LIST-2) - slen;
-   slen = strlen(info->description);
-   if (len > slen)
+   if (is_lazy)
    {
-      sprintf(ptr, "%s", info->description);
-//    printf("# '%s'\n", info->description);
-      ptr += slen;
-      *ptr++ = '\0';
-      *ptr = '\0';
-   }
-
-   sptr = ptr = handle->names;
-   if (sptr)
-   {
-      slen = strlen(ptr);
+      sptr = ptr = handle->descriptions;
+      slen = strlen(sptr);
       if (slen)
       {
          char *p = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
@@ -1596,13 +1582,39 @@ sink_device_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, v
       }
 
       len = (MAX_DEVICES_LIST-2) - slen;
-      slen = strlen(info->name);
+      slen = strlen(info->description);
       if (len > slen)
       {
-         sprintf(ptr, "%s", info->name);
+         sprintf(ptr, "%s", info->description);
+//       printf("# '%s'\n", info->description);
          ptr += slen;
          *ptr++ = '\0';
          *ptr = '\0';
+      }
+
+      sptr = ptr = handle->names;
+      if (sptr)
+      {
+         slen = strlen(ptr);
+         if (slen)
+         {
+            char *p = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
+            if (p)
+            {
+               slen = p - sptr;
+               ptr = p+1;
+            }
+         }
+
+         len = (MAX_DEVICES_LIST-2) - slen;
+         slen = strlen(info->name);
+         if (len > slen)
+         {
+            sprintf(ptr, "%s", info->name);
+            ptr += slen;
+            *ptr++ = '\0';
+            *ptr = '\0';
+         }
       }
    }
 }
@@ -1613,6 +1625,7 @@ source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eo
     _sink_info_t *handle = si;
    char *sptr, *ptr;
    size_t slen, len;
+   char is_lazy;
 
    if (eol)
    {
@@ -1620,32 +1633,18 @@ source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eo
       return;
    }
 
-   sptr = ptr = handle->descriptions;
-   slen = strlen(sptr);
-   if (slen)
+   if (info->name && (strcasestr(info->name, "usb") ||
+                      strcasestr(info->name, "bluetooth")))
    {
-      char *p = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
-      if (p)
-      {
-         slen = p - sptr;
-         ptr = p+1;
-      }
+      is_lazy = AAX_TRUE;
+   } else {
+      is_lazy = AAX_FALSE;
    }
 
-   len = (MAX_DEVICES_LIST-2) - slen;
-   slen = strlen(info->description);
-   if (len > slen)
+   if (is_lazy)
    {
-      sprintf(ptr, "%s", info->description);
-      ptr += slen;
-      *ptr++ = '\0';
-      *ptr = '\0';
-   }
-
-   sptr = ptr = handle->names;
-   if (sptr)
-   {
-      slen = strlen(ptr);
+      sptr = ptr = handle->descriptions;
+      slen = strlen(sptr);
       if (slen)
       {
          char *p = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
@@ -1657,13 +1656,38 @@ source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eo
       }
 
       len = (MAX_DEVICES_LIST-2) - slen;
-      slen = strlen(info->name);
+      slen = strlen(info->description);
       if (len > slen)
       {
-         sprintf(ptr, "%s", info->name);
+         sprintf(ptr, "%s", info->description);
          ptr += slen;
          *ptr++ = '\0';
          *ptr = '\0';
+      }
+
+      sptr = ptr = handle->names;
+      if (sptr)
+      {
+         slen = strlen(ptr);
+         if (slen)
+         {
+            char *p = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
+            if (p)
+            {
+               slen = p - sptr;
+               ptr = p+1;
+            }
+         }
+
+         len = (MAX_DEVICES_LIST-2) - slen;
+         slen = strlen(info->name);
+         if (len > slen)
+         {
+            sprintf(ptr, "%s", info->name);
+            ptr += slen;
+            *ptr++ = '\0';
+            *ptr = '\0';
+         }
       }
    }
 }
