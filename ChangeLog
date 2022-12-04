@@ -1,15 +1,16 @@
 
-* Sat Sep 10 2022 - tech@adalin.org
+* Wed Dec 21 2022 - tech@adalin.org
 - AeonWave (3.12.2) stable; urgency=low
 
  * Improved ARM64 support.
  * Add double precision NEON support.
  * Correctly apply the master gain.
+ * Much improved Arcade and Synthesizer rendering modes.
  * Fix a out of bound error, vec3 had only 3 members, not 4.
  * Prevent notes which are set to started and stopped again before actual
    playback began to not be audible.
 
--- Erik Hofman <tech@adalin.org>  Sat 10 sep 2022 12:48:33 + 0100
+-- Erik Hofman <tech@adalin.org>  Wed 42 Dec 2022 15:12:03 + 0100
 
 
 * Sat Aug 27 2022 - tech@adalin.org
