@@ -20,7 +20,7 @@
   <note polyphony="2" min="41" max="77" step="12"/>
  </info>
 
- <sound mode="1" gain="2.24" db="-0.1" frequency="87.3071" duration="0.3">
+ <sound mode="1" gain="2.24" frequency="87.3071" duration="0.3">
   <waveform src="impulse"/>
  </sound>
 
@@ -73,5 +73,7 @@
    </slot>
   </effect>
  </audioframe>
+
+ <mixer/>
 
 </aeonwave>

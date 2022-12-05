@@ -21,7 +21,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="4.86" db="1.7" frequency="110" duration="0.1">
+ <sound gain="4.86" frequency="110" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.75" pitch="1.999"/>
   <waveform src="triangle" processing="modulate" pitch="0.999"/>
@@ -69,5 +69,7 @@
    </slot>
   </filter>
  </audioframe>
+
+ <mixer/>
 
 </aeonwave>

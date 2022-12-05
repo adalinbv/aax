@@ -20,7 +20,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.88" db="-9.0" frequency="150" duration="0.3">
+ <sound gain="0.88" frequency="150" duration="0.3">
   <waveform src="white-noise" ratio="1.2" pitch="0.25"/>
   <filter type="frequency">
    <slot n="0">
@@ -66,5 +66,7 @@
  </emitter>
 
  <audioframe/>
+
+ <mixer/>
 
 </aeonwave>

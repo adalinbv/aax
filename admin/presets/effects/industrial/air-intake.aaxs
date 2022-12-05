@@ -20,12 +20,14 @@
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="1.60" db="0.0" frequency="1900" duration="3.33">
+ <sound fixed-gain="1.60" frequency="1900" duration="3.33">
   <waveform src="white-noise" processing="mix" ratio="0.9" pitch="0.08"/>
  </sound>
 
  <emitter looping="true"/>
 
  <audioframe/>
+
+ <mixer/>
 
 </aeonwave>

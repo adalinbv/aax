@@ -1,20 +1,37 @@
 <?xml version="1.0"?>
 
+<!--
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
 <aeonwave>
 
  <info name="Feedback Chorus">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2021" by="Erik Hofman"/>
-  <copyright from="2017" until="2021" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <description text="General MIDI 2.0 specification"/>
+  <note polyphony="1"/>
  </info>
+
+ <sound gain="0.00">
+ </sound>
+
+ <emitter/>
 
  <audioframe>
   <effect type="phasing" src="sine">
    <slot n="0">
-    <param n="0">0.30</param>
+    <param n="0">0.3</param>
     <param n="1">0.2</param>
-    <param n="2" type="usec">7800.0</param>
+    <param n="2">7800.0</param>
     <param n="3">0.0</param>
    </slot>
    <slot n="1">
@@ -29,9 +46,9 @@
  <mixer>
   <effect type="phasing" src="sine">
    <slot n="0">
-    <param n="0">0.30</param>
+    <param n="0">0.3</param>
     <param n="1">0.2</param>
-    <param n="2" type="usec">7800.0</param>
+    <param n="2">7800.0</param>
     <param n="3">0.0</param>
    </slot>
    <slot n="1">

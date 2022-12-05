@@ -21,7 +21,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="0.62" db="-7.5" frequency="220">
+ <sound gain="0.62" frequency="220">
   <waveform src="square"/>
   <waveform src="sine" processing="modulate" pitch="3.0"/>
  </sound>
@@ -46,5 +46,7 @@
  </emitter>
 
  <audioframe/>
+
+ <mixer/>
 
 </aeonwave>

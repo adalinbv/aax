@@ -20,7 +20,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.33" db="0.0" frequency="66" duration="0.1">
+ <sound gain="1.33" frequency="66" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="modulate" ratio="7.0" pitch="7.0"/>
   <waveform src="sine" processing="modulate" ratio="2.5" pitch="20.0"/>
@@ -55,5 +55,7 @@
  </emitter>
 
  <audioframe/>
+
+ <mixer/>
 
 </aeonwave>

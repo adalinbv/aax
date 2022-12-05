@@ -20,7 +20,7 @@
   <note polyphony="4" min="52" max="76" step="6"/>
  </info>
 
- <sound gain="1.86" db="-0.6" frequency="164.814" duration="0.75">
+ <sound gain="1.86" frequency="164.814" duration="0.75">
   <waveform src="sawtooth"/>
   <waveform src="sawtooth" processing="add" ratio="0.75" pitch="6.987"/>
   <waveform src="sawtooth" processing="modulate" pitch="5.0"/>
@@ -87,5 +87,7 @@
    </slot>
   </filter>
  </audioframe>
+
+ <mixer/>
 
 </aeonwave>

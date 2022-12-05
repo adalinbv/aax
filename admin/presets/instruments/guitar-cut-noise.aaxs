@@ -21,7 +21,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="0.90" db="-5.0" frequency="110" duration="0.1">
+ <sound gain="0.90" frequency="110" duration="0.1">
   <waveform src="sine"/>
   <waveform src="sine" processing="add" pitch="1.5"/>
   <waveform src="sine" processing="add" pitch="2.0"/>
@@ -50,5 +50,7 @@
  </emitter>
 
  <audioframe/>
+
+ <mixer/>
 
 </aeonwave>

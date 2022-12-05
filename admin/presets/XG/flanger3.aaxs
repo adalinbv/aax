@@ -1,14 +1,36 @@
 <?xml version="1.0"?>
 
+<!--
+ * Copyright (C) 2017-2022 by Erik Hofman.
+ * Copyright (C) 2017-2022 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
 <aeonwave>
+
+ <info bank="0" program="0">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2022" by="Adalin B.V."/>
+  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+ </info>
+
+ <sound gain="0.00">
+ </sound>
+
+ <emitter/>
 
  <audioframe>
   <effect type="chorus" src="sine">
    <slot n="0">
     <param n="0">0.992</param>
-    <param n="1">0.160</param>
+    <param n="1">0.16</param>
     <param n="2">0.429</param>
-    <param n="3" type="usec">200.0</param>
+    <param n="3">200.0</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>
@@ -23,9 +45,9 @@
   <effect type="chorus" src="sine">
    <slot n="0">
     <param n="0">0.992</param>
-    <param n="1">0.160</param>
+    <param n="1">0.16</param>
     <param n="2">0.429</param>
-    <param n="3" type="usec">200.0</param>
+    <param n="3">200.0</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>

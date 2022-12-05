@@ -20,7 +20,7 @@
   <note polyphony="88" min="21" max="108" step="12"/>
  </info>
 
- <sound gain="0.83" db="-7.7" frequency="1760" duration="0.5">
+ <sound gain="0.83" frequency="1760" duration="0.5">
   <waveform src="sine"/>
   <waveform src="sine" processing="modulate" pitch="3.0"/>
  </sound>
@@ -52,5 +52,7 @@
    </slot>
   </filter>
  </audioframe>
+
+ <mixer/>
 
 </aeonwave>

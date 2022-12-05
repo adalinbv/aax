@@ -20,7 +20,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound mode="2" gain="1.33" db="0.1" frequency="286" duration="0.5">
+ <sound mode="2" gain="1.33" frequency="286" duration="0.5">
   <waveform src="white-noise" ratio="0.5" pitch="0.4" staticity="0.025"/>
   <filter type="bitcrusher">
    <slot n="0">
@@ -52,5 +52,7 @@
  </emitter>
 
  <audioframe/>
+
+ <mixer/>
 
 </aeonwave>

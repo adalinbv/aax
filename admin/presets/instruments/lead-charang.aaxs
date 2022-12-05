@@ -20,7 +20,7 @@
   <note polyphony="8" min="48" max="96" step="12"/>
  </info>
 
- <sound gain="1.82" db="-5.2" frequency="130.813" duration="0.1">
+ <sound gain="1.82" frequency="130.813" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="add" ratio="0.7" pitch="8.0"/>
   <waveform src="impulse" processing="add" ratio="0.4" pitch="2.987"/>
@@ -82,5 +82,7 @@
    </slot>
   </effect>
  </audioframe>
+
+ <mixer/>
 
 </aeonwave>

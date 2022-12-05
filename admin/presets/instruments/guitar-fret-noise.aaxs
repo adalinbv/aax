@@ -21,7 +21,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="0.33" db="-9.4" frequency="261.626" duration="0.1">
+ <sound gain="0.33" frequency="261.626" duration="0.1">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
   <waveform src="sine" processing="modulate" pitch="8.0"/>
@@ -60,5 +60,7 @@
  </emitter>
 
  <audioframe pan="-0.35"/>
+
+ <mixer/>
 
 </aeonwave>
