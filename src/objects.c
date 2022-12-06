@@ -364,10 +364,10 @@ _aaxDecreaseEmitterCounter(const _aaxDriverBackend *be) {
 }
 
 static void
-_aaxSetSlotFromAAXSOld(const char *xid, int (*setSlotFn)(void*, unsigned, int, aaxVec4f), void *id)
+_aaxSetSlotFromAAXSOld(const xmlId *xid, int (*setSlotFn)(void*, unsigned, int, aaxVec4f), void *id)
 {
    unsigned int s, snum = xmlNodeGetNum(xid, "slot");
-   void *xsid;
+   xmlId *xsid;
 
    xsid = xmlMarkId(xid);
    if (!xsid) return;
@@ -427,11 +427,11 @@ _aaxSetEffectSlotState(const aaxEffect e, int slot, int state)
 }
 
 static int
-_aaxSetSlotFromAAXS(const char *xid, int (*setStateFn)(void*, int, int), int (*setParamFn)(void*, int, int, float), void *id, float freq, float min, float max, _midi_t *midi)
+_aaxSetSlotFromAAXS(const xmlId *xid, int (*setStateFn)(void*, int, int), int (*setParamFn)(void*, int, int, float), void *id, float freq, float min, float max, _midi_t *midi)
 {
    unsigned int s, snum = xmlNodeGetNum(xid, "slot");
    int rv = AAX_FALSE;
-   void *xsid;
+   xmlId *xsid;
 
    xsid = xmlMarkId(xid);
    if (!xsid) return rv;
@@ -458,7 +458,7 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setStateFn)(void*, int, int), int (*s
          {
             enum aaxType type = AAX_LINEAR;
             long int sn = s;
-            void *xpid;
+            xmlId *xpid;
 
             if (xmlAttributeExists(xsid, "n")) {
                sn = xmlAttributeGetInt(xsid, "n");
@@ -542,7 +542,7 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setStateFn)(void*, int, int), int (*s
 }
 
 aaxFilter
-_aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, float max, _midi_t *midi)
+_aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min, float max, _midi_t *midi)
 {
    aaxFilter rv = NULL;
    char src[65];
@@ -669,7 +669,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
 }
 
 aaxEffect
-_aaxGetEffectFromAAXS(aaxConfig config, const char *xid, float freq, float min, float max, _midi_t *midi)
+_aaxGetEffectFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min, float max, _midi_t *midi)
 {
    aaxEffect rv = NULL;
    char src[65];
