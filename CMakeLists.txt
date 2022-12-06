@@ -402,7 +402,7 @@ else(MSVC)
      elseif(ARM)
        if(ARM64)
 	 message("Build environment: ARM64")
-         set(C_FLAGS "${C_FLAGS} -march=armv8-a -DARCH64=1")
+         set(C_FLAGS "${C_FLAGS} -march=armv8-a -moutline-atomics -DARCH64=1")
          set_property(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
                       PROPERTY COMPILE_FLAGS "${C_FLAGS} -O2 -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
          )
