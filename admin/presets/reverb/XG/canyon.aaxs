@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<aeonwave>
+
+ <audioframe>
+  <effect type="reverb" src="true">
+   <slot n="0">
+    <param n="0">2520.0</param>
+    <param n="1">0.0993</param>
+    <param n="2">0.953</param>
+    <param n="3">0.420</param>
+   </slot>
+   <slot n="1">
+    <param n="0">9.4</param>
+    <param n="1">17.3</param>
+    <param n="2">28.1</param>
+    <param n="3">0.000</param>
+   </slot>
+  </effect>
+ </audioframe>
+
+ <mixer>
+  <effect type="reverb" src="true">
+   <slot n="0">
+    <param n="0">2520.0</param>
+    <param n="1">0.0993</param>
+    <param n="2">0.953</param>
+    <param n="3">0.420</param>
+   </slot>
+   <slot n="1">
+    <param n="0">9.4</param>
+    <param n="1">17.3</param>
+    <param n="2">28.1</param>
+    <param n="3">0.000</param>
+   </slot>
+  </effect>
+ </mixer>
+
+</aeonwave>
