@@ -20,31 +20,23 @@
   <note polyphony="1" pitch-fraction="0.2"/>
  </info>
 
- <sound gain="1.46" frequency="100" duration="3.3">
-  <waveform src="white-noise" ratio="12.5" pitch="0.2"/>
-  <waveform src="pink-noise" processing="modulate" ratio="3.0" pitch="0.1"/>
-  <filter type="bitcrusher">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.75</param>
-   </slot>
-  </filter>
+ <sound gain="1.62" frequency="100" duration="3.3">
+  <waveform src="white-noise" ratio="12.5" pitch="0.1" staticity="0.085"/>
+  <waveform src="pink-noise" processing="modulate" ratio="3.0" pitch="0.1" staticity="0.15"/>
   <filter type="frequency" src="48db">
    <slot n="0">
     <param n="0" pitch="3.0">300.0</param>
     <param n="1">0.1</param>
-    <param n="2">0.8</param>
-    <param n="3">1.1</param>
+    <param n="2">1.0</param>
+    <param n="3">1.13</param>
    </slot>
   </filter>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="30.0">3000.0</param>
+    <param n="0" pitch="40.0">4000.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">3.0</param>
+    <param n="3">3.5</param>
    </slot>
   </filter>
  </sound>

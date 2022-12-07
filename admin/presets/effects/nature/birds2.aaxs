@@ -43,24 +43,7 @@
   </filter>
  </emitter>
 
- <audioframe>
-  <filter type="frequency" optional="true">
-   <slot n="0">
-    <param n="0" pitch="1.0">880.0</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">8.2</param>
-   </slot>
-  </filter>
-  <filter type="dynamic-gain" src="square">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">8.0</param>
-    <param n="2">2.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
- </audioframe>
+ <audioframe/>
 
  <mixer/>
 

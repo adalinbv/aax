@@ -20,7 +20,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound mode="1" fixed-gain="2.50" frequency="330" duration="3.3">
+ <sound mode="1" fixed-gain="2.00" frequency="330" duration="3.3">
   <waveform src="white-noise"/>
   <filter type="frequency">
    <slot n="0">
@@ -51,16 +51,7 @@
   </effect>
  </emitter>
 
- <audioframe>
-  <effect type="distortion">
-   <slot n="0">
-    <param n="0">0.1</param>
-    <param n="1">0.7</param>
-    <param n="2">0.3</param>
-    <param n="3">0.3</param>
-   </slot>
-  </effect>
- </audioframe>
+ <audioframe/>
 
  <mixer/>
 

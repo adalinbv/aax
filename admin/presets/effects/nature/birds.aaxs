@@ -51,24 +51,7 @@
   </filter>
  </emitter>
 
- <audioframe>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0">1200.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
-  <filter type="dynamic-gain" src="impulse">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">1.9</param>
-    <param n="2">0.6</param>
-    <param n="3">0.4</param>
-   </slot>
-  </filter>
- </audioframe>
+ <audioframe/>
 
  <mixer/>
 
