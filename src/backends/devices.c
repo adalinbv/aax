@@ -600,6 +600,30 @@ _aaxDriverBackendReadConfigSettings(const xmlId *xid, char **devname, _aaxConfig
       xmlFree(xdid);
       xmlFree(xcid);
    }
+
+#if 0
+ if (config)
+ {
+   int q;
+   printf("Config:\n");
+   printf(" no. nodes: %i\n", config->no_nodes);
+   printf(" no_backends: %i\n", config->no_backends);
+   for(q=0; q<config->no_nodes; ++q) {
+     printf(" Node: %i\n", q+1);
+     printf("  devname: '%s'\n", config->node[q].devname);
+     printf("  setup: '%s'\n", config->node[q].setup);
+     printf("  no. speakers: %i\n", config->node[q].no_speakers);
+     printf("  bitrate: %i\n", config->node[q].bitrate);
+     printf("  frequency: %f\n", config->node[q].frequency);
+     printf("  interval: %f\n", config->node[q].interval);
+     printf("  update: %f\n", config->node[q].update);
+     printf("  no. emitters: %i\n", config->node[q].no_emitters);
+   }
+   printf(" Backend:\n");
+   printf("  driver: '%s'\n", config->backend.driver);
+ }
+ else printf("config == NULL\n");
+#endif
 }
 
 void
