@@ -571,7 +571,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
    _driver_t *handle = (_driver_t *)id;
    unsigned int period_samples;
    struct spa_audio_info_raw req;
-   int rate, frame_sz;
+   int frame_sz;
    int rv = AAX_FALSE;
 
    *fmt = AAX_PCM16S;
@@ -587,11 +587,10 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       *refresh_rate = 100;
    }
 
-   rate = handle->spec.rate;
    if (!registered) {
-      period_samples = get_pow2((size_t)rintf(rate/(*refresh_rate)));
+      period_samples = get_pow2((size_t)rintf(req.rate/(*refresh_rate)));
    } else {
-      period_samples = get_pow2((size_t)rintf(rate/period_rate));
+      period_samples = get_pow2((size_t)rintf(req.rate/period_rate));
    }
    req.format = is_bigendian() ? SPA_AUDIO_FORMAT_F32_BE
                                : SPA_AUDIO_FORMAT_F32_LE;
@@ -655,23 +654,23 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
          break;
       }
 
-      /* recalculate period_frames and latency */
-      if (!registered) {
-         period_samples = get_pow2((size_t)rintf(rate/(*refresh_rate)));
-      } else {
-         period_samples = get_pow2((size_t)rintf(rate/period_rate));
-      }
-      handle->period_frames = period_samples;
-      handle->bits_sample = aaxGetBitsPerSample(handle->format);
-
       *fmt = handle->format;
       *speed = handle->spec.rate;
       *tracks = handle->spec.channels;
       if (!registered) {
-         *refresh_rate = rate/(float)period_samples;
+         *refresh_rate = handle->spec.rate/(float)period_samples;
       } else {
          *refresh_rate = period_rate;
       }
+
+      /* recalculate period_frames and latency */
+      if (!registered) {
+         period_samples = get_pow2((size_t)rintf(handle->spec.rate/(*refresh_rate)));
+      } else {
+         period_samples = get_pow2((size_t)rintf(handle->spec.rate/period_rate));
+      }
+      handle->period_frames = period_samples;
+      handle->bits_sample = aaxGetBitsPerSample(handle->format);
       handle->refresh_rate = *refresh_rate;
 
       frame_sz = handle->spec.channels*handle->bits_sample/8;
