@@ -275,6 +275,9 @@ static const char *_const_pulseaudio_default_name = DEFAULT_DEVNAME;
 const char *_const_pulseaudio_default_device = NULL;
 static void *audio = NULL;
 
+
+static const char *env = "true";
+
 int
 _aaxPulseAudioDriverDetect(UNUSED(int mode))
 {
@@ -283,16 +286,9 @@ _aaxPulseAudioDriverDetect(UNUSED(int mode))
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
-#if 0
-#if HAVE_PIPEWIRE_H
-# if RELEASE
-   const char *env = getenv("AAX_SHOW_PULSEAUDIO_DEVICES");
-   if (!env || !_aax_getbool(env)) {
-      return AAX_FALSE;
+   if (_aaxPipeWireDriverDetect(mode)) {
+      env = getenv("AAX_SHOW_PULSEAUDIO_DEVICES");
    }
-# endif
-#endif
-#endif
 
    if (TEST_FOR_FALSE(rv) && !audio) {
       audio = _aaxIsLibraryPresent("pulse", "0");
@@ -1559,12 +1555,12 @@ sink_device_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, v
       return;
    }
 
-   if (info->name && (strcasestr(info->name, "usb") ||
-                      strcasestr(info->name, "bluetooth")))
+   is_lazy = AAX_FALSE;
+   if ((env && _aax_getbool(env)) ||
+       (info->name && (strcasestr(info->name, "usb") ||
+                      strcasestr(info->name, "bluetooth"))))
    {
       is_lazy = AAX_TRUE;
-   } else {
-      is_lazy = AAX_FALSE;
    }
 
    if (is_lazy)
@@ -1633,12 +1629,12 @@ source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eo
       return;
    }
 
-   if (info->name && (strcasestr(info->name, "usb") ||
-                      strcasestr(info->name, "bluetooth")))
+   is_lazy = AAX_FALSE;
+   if ((env && _aax_getbool(env)) ||
+       (info->name && (strcasestr(info->name, "usb") ||
+                      strcasestr(info->name, "bluetooth"))))
    {
       is_lazy = AAX_TRUE;
-   } else {
-      is_lazy = AAX_FALSE;
    }
 
    if (is_lazy)
