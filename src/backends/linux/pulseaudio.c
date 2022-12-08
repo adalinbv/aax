@@ -1087,9 +1087,10 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
 static char *
 _aaxPulseAudioDriverGetDevices(const void *id, int mode)
 {
-   static char names[2][1024] = { DEFAULT_DEVNAME"\0\0", DEFAULT_DEVNAME"\0\0" };
+   static char names[2][16] = {
+     DEFAULT_DEVNAME"\0\0", DEFAULT_DEVNAME"\0\0"
+   };
    static time_t t_previous[2] = { 0, 0 };
-   _driver_t *handle = (_driver_t *)id;
    int m = (mode == AAX_MODE_READ) ? 1 : 0;
    char *rv = (char*)&names[m];
    time_t t_now;
@@ -1097,8 +1098,10 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
    t_now = time(NULL);
    if (t_now > (t_previous[m]+5))
    {
+      _driver_t *handle = (_driver_t *)id;
+
       t_previous[m] = t_now;
-      if (id) {
+      if (handle) {
          rv = handle->descriptions[m];
       }
       else
@@ -1116,7 +1119,10 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
 
          t_previous[m] = t_now;
 
-         si.names = NULL;
+         // The callback function append to si.descriptions so remove "default"
+         rv[0] = '\0';
+
+         si.names = handle->names[m];
          si.descriptions = rv;
          si.loop = handle->ml;
 
@@ -1557,8 +1563,8 @@ sink_device_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, v
 
    is_lazy = AAX_FALSE;
    if ((env && _aax_getbool(env)) ||
-       (info->name && (strcasestr(info->name, "usb") ||
-                      strcasestr(info->name, "bluetooth"))))
+       (info->name && (!strncmp(info->name, "alsa_output.usb", 15) ||
+                       !strncmp(info->name, "alsa_output.bluetooth", 21))))
    {
       is_lazy = AAX_TRUE;
    }
@@ -1631,8 +1637,8 @@ source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eo
 
    is_lazy = AAX_FALSE;
    if ((env && _aax_getbool(env)) ||
-       (info->name && (strcasestr(info->name, "usb") ||
-                      strcasestr(info->name, "bluetooth"))))
+       (info->name && (!strncmp(info->name, "alsa_output.usb", 15) ||
+                       !strncmp(info->name, "alsa_output.bluetooth", 21))))
    {
       is_lazy = AAX_TRUE;
    }
