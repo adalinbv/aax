@@ -1087,7 +1087,7 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
 static char *
 _aaxPulseAudioDriverGetDevices(const void *id, int mode)
 {
-   static char names[2][16] = {
+   static char names[2][MAX_DEVICES_LIST] = {
      DEFAULT_DEVNAME"\0\0", DEFAULT_DEVNAME"\0\0"
    };
    static time_t t_previous[2] = { 0, 0 };
@@ -1116,11 +1116,10 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
       {
          pa_operation *opr;
          _sink_info_t si;
+         size_t sl;
+         char *s;
 
          t_previous[m] = t_now;
-
-         // The callback function append to si.descriptions so remove "default"
-         rv[0] = '\0';
 
          si.names = handle->names[m];
          si.descriptions = rv;
@@ -1144,6 +1143,12 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
 
          if (!id) {
             _aaxPulseAudioDriverDisconnect(handle);
+         }
+
+         sl = strlen(rv);
+         s = rv + sl+1;
+         if (*s != '\0') {
+            memmove(rv, s, MAX_DEVICES_LIST-sl);;
          }
       }
    }
