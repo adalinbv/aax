@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2019 by Erik Hofman.
- * Copyright 2009-2019 by Adalin B.V.
+ * Copyright 2007-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -1622,14 +1622,14 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aax
 {
    aaxConfig config = handle->root;
    int rv = AAX_TRUE;
-   void *xid;
+   xmlId *xid;
 
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
       _aax2dProps *ep2d = handle->source->props2d;
       float pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
-      void *xmid = xmlNodeGet(xid, "aeonwave/sound");
+      xmlId *xmid = xmlNodeGet(xid, "aeonwave/sound");
       float freq = 0.0f;
 
       if (xmid)
@@ -1643,7 +1643,7 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aax
       {
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
          int clear = AAX_FALSE;
-         void *xeid, *xfid;
+         xmlId *xeid, *xfid;
 
          if (xmlAttributeExists(xmid, "mode")) {
             clear = xmlAttributeCompareString(xmid, "mode", "append");

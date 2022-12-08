@@ -1488,7 +1488,7 @@ _aaxFormatDriverReadID3Header(pdmp3_handle *id, struct _meta_t *handle)
    if ((ret = Read_Header(id)) == PDMP3_OK)
    {
       pdmp3_id3v2 *v2 = id->id3v2;
-      void *xid = NULL, *xmid = NULL, *xgid = NULL;
+      xmlId *xid = NULL, *xmid = NULL, *xgid = NULL;
       char *lang = systemLanguage(NULL);
       char *path, fname[81];
 
@@ -1525,7 +1525,7 @@ _aaxFormatDriverReadID3Header(pdmp3_handle *id, struct _meta_t *handle)
             unsigned char genre = strtol((char*)&v2->genre->p[1], &end, 10);
             if (xgid && (genre < MAX_ID3V1_GENRES) && (*end == ')'))
             {
-               void *xnid = xmlNodeGetPos(xmid, xgid, "name", genre);
+               xmlId *xnid = xmlNodeGetPos(xmid, xgid, "name", genre);
                char *g = xmlGetString(xnid);
                handle->genre = strdup(g);
                xmlFree(g);

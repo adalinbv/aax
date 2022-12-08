@@ -53,7 +53,7 @@
 static _intBuffers* get_backends();
 static _handle_t* _open_handle(aaxConfig);
 static _aaxConfig* _aaxReadConfig(_handle_t*, const char*, int, char);
-static void _aaxSetupHRTF(void *, unsigned int);
+static void _aaxSetupHRTF(xmlId*, unsigned int);
 static void _aaxSetupSpeakers(void **, unsigned char *router, unsigned int);
 static void _aaxFreeSensor(void *);
 
@@ -428,7 +428,7 @@ aaxDriverOpen(aaxConfig config)
       enum aaxRenderMode mode = handle->info->mode;
       _aaxConfig *cfg = _aaxReadConfig(handle, NULL, mode, AAX_TRUE);
       const _aaxDriverBackend *be = handle->backend.ptr;
-      void *xoid, *nid = 0;
+      xmlId *xoid, *nid = 0;
 
       // for debugging purposes
       env = getenv("AAX_CUBIC_THRESHOLD");
@@ -626,7 +626,7 @@ aaxDriverGetDeviceCount(const aaxConfig config, enum aaxRenderMode mode)
       if (mode < AAX_MODE_WRITE_MAX)
       {
          const _aaxDriverBackend *be = handle->backend.ptr;
-         void* be_handle = handle->backend.handle;
+         void *be_handle = handle->backend.handle;
          char *ptr;
 
          ptr = be->get_devices(be_handle, mode);
@@ -1180,8 +1180,9 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode, char setup)
       _aaxMixerInfo* info;
       long tract_now;
       char *path, *name;
-      void *xid, *be;
       float fq, iv;
+      xmlId *xid;
+      void *be;
 
       /* read the default setup */
       tract_now = _aaxDriverBackendSetConfigSettings(handle->backends,
@@ -1450,7 +1451,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode, char setup)
 }
 
 static void
-_aaxSetupHRTF(void *xid, UNUSED(unsigned int n))
+_aaxSetupHRTF(xmlId *xid, UNUSED(unsigned int n))
 {
    if (xid)
    {
@@ -1484,7 +1485,7 @@ _aaxSetupSpeakers(void **speaker, unsigned char *router, unsigned int n)
 
    for (i=0; i<n; i++)
    {
-      void *xsid = speaker[i];
+      xmlId *xsid = speaker[i];
 
       if (xsid)
       {

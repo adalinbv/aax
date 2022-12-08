@@ -549,7 +549,7 @@ _aaxALSADriverFreeHandle(UNUSED(void *id))
 }
 
 static void *
-_aaxALSADriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxALSADriverConnect(void *config, const void *id, xmlId *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    int rdr_aax_fmt;

@@ -345,7 +345,7 @@ _aaxLinuxDriverFreeHandle(UNUSED(void *id))
 }
 
 static void *
-_aaxLinuxDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxLinuxDriverConnect(void *config, const void *id, xmlId *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
 

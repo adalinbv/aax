@@ -335,7 +335,7 @@ _aaxDMediaDriverFreeHandle(UNUSED(void *id))
 }
 
 static void *
-_aaxDMediaDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxDMediaDriverConnect(void *config, const void *id, xmlId *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    ALpv params[2];

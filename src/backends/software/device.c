@@ -194,7 +194,7 @@ _aaxNoneDriverFreeHandle(UNUSED(void *id))
 }
 
 static void *
-_aaxNoneDriverConnect(UNUSED(void *config), UNUSED(const void *id), UNUSED(void *xid), UNUSED(const char *renderer), enum aaxRenderMode mode)
+_aaxNoneDriverConnect(UNUSED(void *config), UNUSED(const void *id), UNUSED(xmlId *xid), UNUSED(const char *renderer), enum aaxRenderMode mode)
 {
    if (mode == AAX_MODE_READ) return NULL;
    return (void *)&_aaxNoneDriverBackend;
@@ -382,7 +382,7 @@ _aaxLoopbackDriverNewHandle(enum aaxRenderMode mode)
 }
 
 static void *
-_aaxLoopbackDriverConnect(void *config, const void *id, UNUSED(void *xid), UNUSED(const char *renderer), enum aaxRenderMode mode)
+_aaxLoopbackDriverConnect(void *config, const void *id, UNUSED(xmlId *xid), UNUSED(const char *renderer), enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    if (!handle) {

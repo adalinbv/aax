@@ -308,7 +308,7 @@ _aaxSDLDriverFreeHandle(UNUSED(void *id))
 }
 
 static void *
-_aaxSDLDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxSDLDriverConnect(void *config, const void *id, xmlId *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    int m = (mode == AAX_MODE_READ) ? 1 : 0;
