@@ -265,14 +265,16 @@ _aaxPipeWireDriverDetect(UNUSED(int mode))
 {
    static int rv = AAX_FALSE;
    char *error = NULL;
-   const char *env;
-
-   _AAX_LOG(LOG_DEBUG, __func__);
-
-   env = getenv("AAX_SHOW_PIPEWIRE_DEVICES");
+#if HAVE_PULSEAUDIO_H
+   const char *env = getenv("AAX_SHOW_PIPEWIRE_DEVICES");
    if (env && _aax_getbool(env)) {
       pulseaudio = 0;
    }
+#else
+   pulseaudio = 0;
+#endif
+
+   _AAX_LOG(LOG_DEBUG, __func__);
 
    if (TEST_FOR_FALSE(rv) && !audio) {
       audio = _aaxIsLibraryPresent(PIPEWIRE_LIBRARY, "0");
@@ -1708,7 +1710,9 @@ registry_event_global_callback(void *object, uint32_t id, uint32_t permissions, 
          }
 
          if (pulseaudio == -1) {
+#if HAVE_PULSEAUDIO_H
              pulseaudio = _aaxPulseAudioDriverDetect(is_capture ? 0 : 1);
+#endif
          }
 
          is_lazy = AAX_FALSE;
