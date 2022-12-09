@@ -472,7 +472,6 @@ _aaxGetSIMDSupportLevel()
 #ifdef __arm__
          _batch_fmadd = _batch_fmadd_neon;
 	 _batch_roundps = _batch_roundps_neon;
-	 l
 #else
          _batch_get_average_rms = _batch_get_average_rms_neon;
          _aax_generate_waveform_float = _aax_generate_waveform_neon;
