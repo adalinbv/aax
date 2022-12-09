@@ -1709,17 +1709,17 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
    _frame_t* handle = get_frame(frame, _NOLOCK, __func__);
    aaxConfig config = handle->root;
    int rv = AAX_TRUE;
-   void *xid;
+   xmlId *xid;
 
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
-      void *xmid = xmlNodeGet(xid, "aeonwave/info");
+      xmlId *xmid = xmlNodeGet(xid, "aeonwave/info");
       float freq = 0.0f;
 
       if (xmid)
       {
-         void *xnid = xmlNodeGet(xmid, "note");
+         xmlId *xnid = xmlNodeGet(xmid, "note");
          if (xnid)
          {
             if (xmlAttributeExists(xnid, "polyphony"))
@@ -1747,7 +1747,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
          int clear = AAX_FALSE;
          _aaxAudioFrame* fmixer;
-         void *xeid, *xfid;
+         xmlId *xeid, *xfid;
 
          if (xmlAttributeExists(xmid, "mode")) {
             clear = xmlAttributeCompareString(xmid, "mode", "append");

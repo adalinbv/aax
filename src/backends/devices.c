@@ -57,7 +57,7 @@
 
 
 static _intBuffers *_aaxIntDriverGetBackends();
-static char* _aaxDriverDetectConfigConnector(char*, char**, char*, char*);
+static xmlId* _aaxDriverDetectConfigConnector(xmlId*, char**, char*, char*);
 
 _intBuffers *
 _aaxGetDriverBackends()
@@ -323,9 +323,9 @@ _aaxDriverBackendSetConfigSettings(_intBuffers *bs, char** devname, _aaxConfig *
 }
 
 void
-_aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *config, char **path, int m)
+_aaxDriverBackendReadConfigSettings(const xmlId *xid, char **devname, _aaxConfig *config, char **path, int m)
 {
-   void *xcid = xmlNodeGet(xid, "/configuration");
+   xmlId *xcid = xmlNodeGet(xid, "/configuration");
 
    assert(devname);
    assert(config);
@@ -333,7 +333,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
    if (xcid != NULL && config != NULL)
    {
       unsigned int n, num;
-      void *xoid, *xiid;
+      xmlId *xoid, *xiid;
 
       if (path) {
          *path = xmlNodeGetString(xcid, "data-dir");
@@ -439,7 +439,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
       unsigned int dev, dev_num;
       char device_name[255];
       int curlevel;
-      void *xdid;
+      xmlId *xdid;
 
       /*
        * find a mathcing backend
@@ -456,7 +456,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
       {
          unsigned int con, con_num;
          int level;
-         void *xiid;
+         xmlId *xiid;
          char *ptr;
 
          xmlNodeGetPos(xcid, xdid, "device", dev);
@@ -553,7 +553,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
 
                if (m)
                {
-                  void *xsid;
+                  xmlId *xsid;
 
                   i = xmlNodeGetInt(xiid, "channels");
                   if (i > _AAX_MAX_SPEAKERS) i = _AAX_MAX_SPEAKERS;
@@ -600,6 +600,30 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
       xmlFree(xdid);
       xmlFree(xcid);
    }
+
+#if 0
+ if (config)
+ {
+   int q;
+   printf("Config:\n");
+   printf(" no. nodes: %i\n", config->no_nodes);
+   printf(" no_backends: %i\n", config->no_backends);
+   for(q=0; q<config->no_nodes; ++q) {
+     printf(" Node: %i\n", q+1);
+     printf("  devname: '%s'\n", config->node[q].devname);
+     printf("  setup: '%s'\n", config->node[q].setup);
+     printf("  no. speakers: %i\n", config->node[q].no_speakers);
+     printf("  bitrate: %i\n", config->node[q].bitrate);
+     printf("  frequency: %f\n", config->node[q].frequency);
+     printf("  interval: %f\n", config->node[q].interval);
+     printf("  update: %f\n", config->node[q].update);
+     printf("  no. emitters: %i\n", config->node[q].no_emitters);
+   }
+   printf(" Backend:\n");
+   printf("  driver: '%s'\n", config->backend.driver);
+ }
+ else printf("config == NULL\n");
+#endif
 }
 
 void
@@ -670,8 +694,8 @@ _aaxIntDriverGetBackends()
    return _aaxIntBackends;
 }
 
-static char*
-_aaxDriverDetectConfigConnector(char *xid, char **devname, char *l, char *cl)
+static xmlId*
+_aaxDriverDetectConfigConnector(xmlId *xid, char **devname, char *l, char *cl)
 {
    size_t size;
    char curlevel = *cl;

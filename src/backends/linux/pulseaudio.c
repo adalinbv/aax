@@ -275,6 +275,9 @@ static const char *_const_pulseaudio_default_name = DEFAULT_DEVNAME;
 const char *_const_pulseaudio_default_device = NULL;
 static void *audio = NULL;
 
+
+static const char *env = "true";
+
 int
 _aaxPulseAudioDriverDetect(UNUSED(int mode))
 {
@@ -283,16 +286,9 @@ _aaxPulseAudioDriverDetect(UNUSED(int mode))
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
-#if 0
-#if HAVE_PIPEWIRE_H
-# if RELEASE
-   const char *env = getenv("AAX_SHOW_PULSEAUDIO_DEVICES");
-   if (!env || !_aax_getbool(env)) {
-      return AAX_FALSE;
+   if (_aaxPipeWireDriverDetect(mode)) {
+      env = getenv("AAX_SHOW_PULSEAUDIO_DEVICES");
    }
-# endif
-#endif
-#endif
 
    if (TEST_FOR_FALSE(rv) && !audio) {
       audio = _aaxIsLibraryPresent("pulse", "0");
@@ -460,7 +456,7 @@ _aaxPulseAudioDriverFreeHandle(UNUSED(void *id))
 }
 
 static void *
-_aaxPulseAudioDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxPulseAudioDriverConnect(void *config, const void *id, xmlId *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
 
@@ -1091,9 +1087,10 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
 static char *
 _aaxPulseAudioDriverGetDevices(const void *id, int mode)
 {
-   static char names[2][1024] = { DEFAULT_DEVNAME"\0\0", DEFAULT_DEVNAME"\0\0" };
+   static char names[2][MAX_DEVICES_LIST] = {
+     DEFAULT_DEVNAME"\0\0", DEFAULT_DEVNAME"\0\0"
+   };
    static time_t t_previous[2] = { 0, 0 };
-   _driver_t *handle = (_driver_t *)id;
    int m = (mode == AAX_MODE_READ) ? 1 : 0;
    char *rv = (char*)&names[m];
    time_t t_now;
@@ -1101,8 +1098,10 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
    t_now = time(NULL);
    if (t_now > (t_previous[m]+5))
    {
+      _driver_t *handle = (_driver_t *)id;
+
       t_previous[m] = t_now;
-      if (id) {
+      if (handle) {
          rv = handle->descriptions[m];
       }
       else
@@ -1117,10 +1116,12 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
       {
          pa_operation *opr;
          _sink_info_t si;
+         size_t sl;
+         char *s;
 
          t_previous[m] = t_now;
 
-         si.names = NULL;
+         si.names = handle->names[m];
          si.descriptions = rv;
          si.loop = handle->ml;
 
@@ -1142,6 +1143,12 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
 
          if (!id) {
             _aaxPulseAudioDriverDisconnect(handle);
+         }
+
+         sl = strlen(rv);
+         s = rv + sl+1;
+         if (*s != '\0') {
+            memmove(rv, s, MAX_DEVICES_LIST-sl);;
          }
       }
    }
@@ -1559,12 +1566,12 @@ sink_device_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, v
       return;
    }
 
-   if (info->name && (strcasestr(info->name, "usb") ||
-                      strcasestr(info->name, "bluetooth")))
+   is_lazy = AAX_FALSE;
+   if ((env && _aax_getbool(env)) ||
+       (info->name && (!strncmp(info->name, "alsa_output.usb", 15) ||
+                       !strncmp(info->name, "alsa_output.bluetooth", 21))))
    {
       is_lazy = AAX_TRUE;
-   } else {
-      is_lazy = AAX_FALSE;
    }
 
    if (is_lazy)
@@ -1633,12 +1640,12 @@ source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eo
       return;
    }
 
-   if (info->name && (strcasestr(info->name, "usb") ||
-                      strcasestr(info->name, "bluetooth")))
+   is_lazy = AAX_FALSE;
+   if ((env && _aax_getbool(env)) ||
+       (info->name && (!strncmp(info->name, "alsa_output.usb", 15) ||
+                       !strncmp(info->name, "alsa_output.bluetooth", 21))))
    {
       is_lazy = AAX_TRUE;
-   } else {
-      is_lazy = AAX_FALSE;
    }
 
    if (is_lazy)

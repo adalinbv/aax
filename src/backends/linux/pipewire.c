@@ -258,12 +258,21 @@ static const enum spa_audio_channel channel_map[] = {
 };
 
 static void *audio = NULL;
+static char pulseaudio = -1;
 
 int
 _aaxPipeWireDriverDetect(UNUSED(int mode))
 {
    static int rv = AAX_FALSE;
    char *error = NULL;
+#if HAVE_PULSEAUDIO_H
+   const char *env = getenv("AAX_SHOW_PIPEWIRE_DEVICES");
+   if (env && _aax_getbool(env)) {
+      pulseaudio = 0;
+   }
+#else
+   pulseaudio = 0;
+#endif
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -409,7 +418,7 @@ _aaxPipeWireDriverFreeHandle(UNUSED(void *id))
 }
 
 static void *
-_aaxPipeWireDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxPipeWireDriverConnect(void *config, const void *id, xmlId *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
 
@@ -571,7 +580,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
    _driver_t *handle = (_driver_t *)id;
    unsigned int period_samples;
    struct spa_audio_info_raw req;
-   int rate, frame_sz;
+   int frame_sz;
    int rv = AAX_FALSE;
 
    *fmt = AAX_PCM16S;
@@ -587,11 +596,10 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       *refresh_rate = 100;
    }
 
-   rate = handle->spec.rate;
    if (!registered) {
-      period_samples = get_pow2((size_t)rintf(rate/(*refresh_rate)));
+      period_samples = get_pow2((size_t)rintf(req.rate/(*refresh_rate)));
    } else {
-      period_samples = get_pow2((size_t)rintf(rate/period_rate));
+      period_samples = get_pow2((size_t)rintf(req.rate/period_rate));
    }
    req.format = is_bigendian() ? SPA_AUDIO_FORMAT_F32_BE
                                : SPA_AUDIO_FORMAT_F32_LE;
@@ -655,23 +663,23 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
          break;
       }
 
-      /* recalculate period_frames and latency */
-      if (!registered) {
-         period_samples = get_pow2((size_t)rintf(rate/(*refresh_rate)));
-      } else {
-         period_samples = get_pow2((size_t)rintf(rate/period_rate));
-      }
-      handle->period_frames = period_samples;
-      handle->bits_sample = aaxGetBitsPerSample(handle->format);
-
       *fmt = handle->format;
       *speed = handle->spec.rate;
       *tracks = handle->spec.channels;
       if (!registered) {
-         *refresh_rate = rate/(float)period_samples;
+         *refresh_rate = handle->spec.rate/(float)period_samples;
       } else {
          *refresh_rate = period_rate;
       }
+
+      /* recalculate period_frames and latency */
+      if (!registered) {
+         period_samples = get_pow2((size_t)rintf(handle->spec.rate/(*refresh_rate)));
+      } else {
+         period_samples = get_pow2((size_t)rintf(handle->spec.rate/period_rate));
+      }
+      handle->period_frames = period_samples;
+      handle->bits_sample = aaxGetBitsPerSample(handle->format);
       handle->refresh_rate = *refresh_rate;
 
       frame_sz = handle->spec.channels*handle->bits_sample/8;
@@ -1077,15 +1085,15 @@ _aaxPipeWireDriverGetDevices(const void *id, int mode)
    static char names[2][MAX_DEVICES_LIST] = {
      DEFAULT_DEVNAME"\0\0", DEFAULT_DEVNAME"\0\0"
    };
-   static time_t t_previous = 0;
+   static time_t t_previous[2] = { 0, 0 };
    int m = (mode == AAX_MODE_READ) ? 0 : 1;
    char *rv = (char*)&names[m];
    time_t t_now;
 
    t_now = time(NULL);
-   if (t_now > (t_previous+5))
+   if (t_now > (t_previous[m]+5))
    {
-      t_previous = t_now;
+      t_previous[m] = t_now;
       _pipewire_detect_devices(names);
    }
 
@@ -1701,13 +1709,21 @@ registry_event_global_callback(void *object, uint32_t id, uint32_t permissions, 
             return;
          }
 
-         node_desc = spa_dict_lookup(props, PW_KEY_NODE_NAME);
-         if (node_desc && (strcasestr(node_desc, "usb") ||
-                           strcasestr(node_desc, "bluetooth")))
+         if (pulseaudio == -1) {
+#if HAVE_PULSEAUDIO_H
+             pulseaudio = _aaxPulseAudioDriverDetect(is_capture ? 0 : 1);
+#endif
+         }
+
+         is_lazy = AAX_FALSE;
+         if (pulseaudio)
          {
-            is_lazy = AAX_TRUE;
-         } else {
-            is_lazy = AAX_FALSE;
+            node_desc = spa_dict_lookup(props, PW_KEY_NODE_NAME);
+            if (node_desc && (!strncmp(node_desc, "alsa_output.usb", 15) ||
+                              !strncmp(node_desc, "alsa_output.bluetooth", 21)))
+            {
+               is_lazy = AAX_TRUE;
+            }
          }
 
          node_desc = spa_dict_lookup(props, PW_KEY_NODE_DESCRIPTION);

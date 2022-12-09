@@ -230,7 +230,7 @@ _aaxALSADriverFreeHandle(UNUSED(void *id))
 
 
 static void *
-_aaxStreamDriverConnect(void *config, const void *id, void *xid, const char *device, enum aaxRenderMode mode)
+_aaxStreamDriverConnect(void *config, const void *id, xmlId *xid, const char *device, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *renderer = (char *)device;

@@ -22,18 +22,10 @@
 
  <sound gain="0.51" frequency="1244.51" duration="0.1">
   <waveform src="square" pitch="0.985"/>
-  <waveform src="sawtooth" processing="mix" pitch="2.9"/>
+  <waveform src="sawtooth" processing="mix" pitch="3.0"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-gain" src="sawtooth">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">15.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" repeat="max">
    <slot n="0">
     <param n="0">0.0</param>
@@ -46,6 +38,14 @@
     <param n="1">0.01</param>
     <param n="2">0.095</param>
     <param n="3">1.8</param>
+   </slot>
+  </filter>
+  <filter type="dynamic-gain" src="square|exponential">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">15.0</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

@@ -20,14 +20,14 @@
   <note polyphony="1" pitch-fraction="0.2"/>
  </info>
 
- <sound gain="0.29" frequency="100" duration="0.3">
-  <waveform src="white-noise" ratio="5.0" pitch="0.2"/>
+ <sound gain="1.20" frequency="100" duration="0.3">
+  <waveform src="white-noise" pitch="0.2"/>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0" pitch="8.0">800.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">30.0</param>
+    <param n="3">55.0</param>
    </slot>
   </filter>
  </sound>

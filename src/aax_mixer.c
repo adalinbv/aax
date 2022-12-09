@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2021 by Erik Hofman.
- * Copyright 2009-2021 by Adalin B.V.
+ * Copyright 2007-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -1608,6 +1608,45 @@ _aaxMixerInit(_handle_t *handle)
    else {
       _aaxErrorSet(AAX_INVALID_STATE);
    }
+
+#if 0
+ int q;
+ printf("Mixer info:\n");
+ printf(" HRTF: [0]:  %9.6f %9.6f %9.6f %9.6f\n",
+         info->hrtf[0].v4[0], info->hrtf[0].v4[1],
+         info->hrtf[0].v4[2], info->hrtf[0].v4[3]);
+ printf("       [1]:  %9.6f %9.6f %9.6f %9.6f\n",
+         info->hrtf[1].v4[0], info->hrtf[1].v4[1],
+         info->hrtf[1].v4[2], info->hrtf[1].v4[3]);
+ for (q=0; q<2*_AAX_MAX_SPEAKERS; ++q) {
+   printf(" Speaker %2i: ", q);
+   printf("% 9.6lf % 9.6lf % 9.6lf % 9.6lf\n",
+     info->speaker[q].v4[0], info->speaker[q].v4[1],
+     info->speaker[q].v4[2], info->speaker[q].v4[3]);
+ }
+ if (info->delay) {
+   printf(" delay: %lf %lf %lf %lf\n",
+     info->delay->v4[0], info->delay->v4[1],
+     info->delay->v4[2], info->delay->v4[3]);
+ }
+ printf(" no. samples: %i\n", info->no_samples);
+ printf(" no. tracks: %i\n", info->no_tracks);
+ printf(" bitrate: %i\n", info->bitrate);
+ printf(" track: %i\n", info->track);
+ printf(" pitch: %f\n", info->pitch);
+ printf(" frequency: %f\n", info->frequency);
+ printf(" preioid rate: %f\n", info->period_rate);
+ printf(" refresh rate: %f\n", info->refresh_rate);
+ printf(" unit_m: %f\n", info->unit_m);
+ printf(" format: %x\n", info->format);
+ printf(" mode: %i\n", info->mode);
+ printf(" midi mode: %i\n", info->midi_mode);
+ printf(" max. emitters: %i\n", info->max_emitters);
+ printf(" max. registered: %i\n", info->max_registered);
+ printf(" capabilities: %i\n", info->capabilities);
+ printf(" update rate: %i\n", info->update_rate);
+ printf(" id: %x\n", info->id);
+#endif
    return res;
 }
 
@@ -1772,12 +1811,12 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
    _handle_t *handle = get_handle(config, __func__);
    const char *aaxs = buffer->aaxs;
    int rv = AAX_TRUE;
-   void *xid;
+   xmlId *xid;
 
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
-      void *xmid = xmlNodeGet(xid, "aeonwave/sound");
+      xmlId *xmid = xmlNodeGet(xid, "aeonwave/sound");
       float freq = 0.0f;
 
       if (xmid)
@@ -1791,7 +1830,7 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
       {
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
          int clear = AAX_FALSE;
-         void *xeid, *xfid;
+         xmlId *xeid, *xfid;
 
          if (xmlAttributeExists(xmid, "mode")) {
             clear = xmlAttributeCompareString(xmid, "mode", "append");

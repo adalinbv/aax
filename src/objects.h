@@ -30,6 +30,8 @@ extern "C" {
 #include "config.h"
 #endif
 
+#include <xml.h>
+
 #include <base/geometry.h>
 #include <dsp/common.h>
 
@@ -469,8 +471,8 @@ unsigned int _aaxSetNoEmitters(const _aaxDriverBackend*, unsigned int);
 unsigned int _aaxIncreaseEmitterCounter(const _aaxDriverBackend*);
 unsigned int _aaxDecreaseEmitterCounter(const _aaxDriverBackend*);
 
-aaxFilter _aaxGetFilterFromAAXS(aaxConfig, const char*, float, float, float, _midi_t*);
-aaxEffect _aaxGetEffectFromAAXS(aaxConfig, const char*, float, float, float, _midi_t*);
+aaxFilter _aaxGetFilterFromAAXS(aaxConfig, const xmlId*, float, float, float, _midi_t*);
+aaxEffect _aaxGetEffectFromAAXS(aaxConfig, const xmlId*, float, float, float, _midi_t*);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

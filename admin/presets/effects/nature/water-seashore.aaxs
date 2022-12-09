@@ -21,7 +21,7 @@
  </info>
 
  <sound fixed-gain="0.30" frequency="220" duration="3.33">
-  <waveform src="white-noise" pitch="0.33"/>
+  <waveform src="white-noise" pitch="0.33" staticity="0.035"/>
  </sound>
 
  <emitter looping="true">
@@ -39,54 +39,17 @@
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="sawtooth">
+  <filter type="dynamic-gain" src="sine|logarithmic">
    <slot n="0">
     <param n="0">2.0</param>
-    <param n="1">0.1</param>
-    <param n="2">0.7</param>
-    <param n="3">0.3</param>
+    <param n="1">0.4</param>
+    <param n="2">0.5</param>
+    <param n="3">0.5</param>
    </slot>
   </filter>
  </emitter>
 
- <audioframe>
-  <filter type="equalizer">
-   <slot n="0">
-    <param n="0">200.0</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">1.1</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">1.5</param>
-    <param n="3">1.1</param>
-   </slot>
-   <slot n="2">
-    <param n="0">5000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.1</param>
-   </slot>
-  </filter>
-  <filter type="dynamic-gain" src="randomness">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.224</param>
-    <param n="2">0.173</param>
-    <param n="3">0.827</param>
-   </slot>
-  </filter>
-  <effect type="distortion">
-   <slot n="0">
-    <param n="0">0.8</param>
-    <param n="1">0.8</param>
-    <param n="2">0.8</param>
-    <param n="3">0.3</param>
-   </slot>
-  </effect>
- </audioframe>
+ <audioframe/>
 
  <mixer/>
 

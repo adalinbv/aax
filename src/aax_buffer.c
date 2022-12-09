@@ -1074,7 +1074,7 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
    {
       static const char *xcfg = "<?xml?><"COPY_TO_BUFFER">1</"COPY_TO_BUFFER">";
       void *id = stream->new_handle(AAX_MODE_READ);
-      void *xid = xmlInitBuffer(xcfg, strlen(xcfg));
+      xmlId *xid = xmlInitBuffer(xcfg, strlen(xcfg));
 
       // xid makes the stream return sound data in file format when capturing
       id = stream->connect(NULL, id, xid, url, AAX_MODE_READ);
@@ -1318,7 +1318,7 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
 }
 
 static int
-_bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, int track, float ratio_factor, float pitch_factor, float freq, unsigned int pitch_level, int voices, float spread, limitType limiter)
+_bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, float ratio_factor, float pitch_factor, float freq, unsigned int pitch_level, int voices, float spread, limitType limiter)
 {
    enum aaxProcessingType ptype = AAX_OVERWRITE;
    enum aaxWaveformType wtype = AAX_SINE_WAVE;
@@ -1475,7 +1475,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, int track, float
 }
 
 static int
-_bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, int layer, float frequency)
+_bufCreateFilterFromAAXS(_buffer_t* handle, const xmlId *xfid, int layer, float frequency)
 {
    aaxFilter flt;
    _midi_t midi;
@@ -1516,7 +1516,7 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, int layer, float f
 }
 
 static int
-_bufCreateEffectFromAAXS(_buffer_t* handle, const void *xeid, int layer, float frequency, float min, float max)
+_bufCreateEffectFromAAXS(_buffer_t* handle, const xmlId *xeid, int layer, float frequency, float min, float max)
 {
    aaxEffect eff;
    _midi_t midi;
@@ -1686,7 +1686,7 @@ _bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fs
 }
 
 static int
-_bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
+_bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
 {
    _buffer_t* handle = aax_buf->parent;
    double duration = 1.0f;
@@ -1700,8 +1700,8 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    int midi_mode;
    int rv = AAX_FALSE;
    limitType limiter;
-   void *xaid, *xiid;
-   void *xsid, *xlid;
+   xmlId *xaid, *xiid;
+   xmlId *xsid, *xlid;
    char *env;
 
    xaid = xmlNodeGet(xid, "aeonwave");
@@ -1732,7 +1732,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    if (xiid)
    {
       char s[1024] = "";
-      void *xnid;
+      xmlId *xnid;
       int res;
 
       do
@@ -1950,7 +1950,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          float pitch = 1.0f;
          float ratio = 1.0f;
          int num, waves;
-         void *xwid;
+         xmlId *xwid;
 
          if (xlid != xsid) {
             if (!xmlNodeGetPos(xsid, xlid, "layer", layer)) continue;
@@ -2066,7 +2066,7 @@ _bufAAXSThread(void *d)
    _buffer_t* handle = aax_buf->parent;
    const void *aaxs =  aax_buf->aaxs;
    int rv = AAX_FALSE;
-   void *xid, *xiid;
+   xmlId *xid, *xiid;
 
    assert(handle);
    assert(aaxs);

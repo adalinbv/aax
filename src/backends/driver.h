@@ -54,6 +54,7 @@ extern "C" {
 #define _AAX_MAX_SPEAKERS		8
 
 
+#include <xml.h>
 #include <aax/aax.h>
 #include <base/types.h>
 #include <base/buffers.h>
@@ -137,7 +138,7 @@ typedef char *_aaxDriverLog(const void*, int, int, const char *);
 
 typedef int _aaxDriverDetect(int mode);
 typedef void *_aaxDriverNewHandle(enum aaxRenderMode);
-typedef void *_aaxDriverConnect(void*, const void*, void*, const char*, enum aaxRenderMode);
+typedef void *_aaxDriverConnect(void*, const void*, xmlId*, const char*, enum aaxRenderMode);
 typedef int _aaxDriverDisconnect(void*);
 typedef int _aaxDriverFreeHandle(void*);
 typedef int _aaxDriverSetup(const void*, float*, int*, unsigned int*, float*, int*, int, float);

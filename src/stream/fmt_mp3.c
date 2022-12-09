@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2021 by Erik Hofman.
- * Copyright 2009-2021 by Adalin B.V.
+ * Copyright 2005-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -1098,7 +1098,7 @@ _detect_mp3_song_info(_driver_t *handle)
       mp3_id3v2 *v2 = NULL;
       if ((meta & MP3_ID3) && (pmp3_id3(handle->id, &v1, &v2) == MP3_OK))
       {
-         void *xid = NULL, *xmid = NULL, *xgid = NULL;
+         xmlId *xid = NULL, *xmid = NULL, *xgid = NULL;
          char *lang = systemLanguage(NULL);
          char *path, fname[81];
 
@@ -1135,7 +1135,7 @@ _detect_mp3_song_info(_driver_t *handle)
                unsigned char genre = strtol((char*)&v2->genre->p[1], &end, 10);
                if (xgid && (genre < MAX_ID3V1_GENRES) && (*end == ')'))
                {
-                  void *xnid = xmlNodeGetPos(xmid, xgid, "name", genre);
+                  xmlId *xnid = xmlNodeGetPos(xmid, xgid, "name", genre);
                   char *g = xmlGetString(xnid);
                   handle->meta.genre = strdup(g);
                   xmlFree(g);
@@ -1209,7 +1209,7 @@ _detect_mp3_song_info(_driver_t *handle)
                __COPY(handle->meta.trackno, (char*)&v1->comment[29]);
             }
             if (xgid && v1->genre < MAX_ID3V1_GENRES) {
-               void *xnid = xmlNodeGetPos(xid, xgid, "name", v1->genre);
+               xmlId *xnid = xmlNodeGetPos(xid, xgid, "name", v1->genre);
                char *g = xmlGetString(xnid);
                handle->meta.genre = strdup(g);
                xmlFree(g);
