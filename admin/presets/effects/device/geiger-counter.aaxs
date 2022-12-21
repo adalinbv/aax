@@ -42,8 +42,4 @@
 
  <emitter looping="true"/>
 
- <audioframe/>
-
- <mixer/>
-
 </aeonwave>
