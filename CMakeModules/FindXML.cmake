@@ -13,32 +13,33 @@
 set(ProgramFilesx86 "PROGRAMFILES(x86)")
 
 FIND_PATH(XML_INCLUDE_DIR xml.h
+  HINTS
+  $ENV{XMLDIR}
+  $ENV{PROGRAMFILES}/ZeroXML
+  $ENV{${ProgramFilesx86}}/ZeroXML
+  PATH_SUFFIXES include
   PATHS
   ~/Library/Frameworks
   /Library/Frameworks
   /usr/local
   /usr
   /opt
-  PATH_SUFFIXES include
 )
-
-if(CMAKE_SIZEOF_VOID_P MATCHES "8")
-   set(path_suffixes "lib64")
-else(CMAKE_SIZEOF_VOID_P MATCHES "8")
-   set(path_suffixes "lib")
-endif(CMAKE_SIZEOF_VOID_P MATCHES "8")
 
 IF(RMALLOC)
   FIND_LIBRARY(XML_LIBRARY 
     NAMES XML-rmalloc zeroxml-rmalloc ZeroXML-rmalloc libZeroXML-rmalloc
+    HINTS
+    $ENV{XMLDIR}
+    $ENV{ProgramFiles}/ZeroXML
+    $ENV{${ProgramFilesx86}}/ZeroXML
+    PATH_SUFFIXES lib64
     PATHS
     ~/Library/Frameworks
     /Library/Frameworks
     /usr/local
     /usr
     /opt
-    PATH_SUFFIXES ${path_suffixes}
-    NO_DEFAULT_PATH
   )
 
   CHECK_INCLUDE_FILE(${XML_INCLUDE_DIR}/rmalloc.h HAVE_RMALLOC_H)
@@ -49,14 +50,17 @@ IF(RMALLOC)
 ELSE(RMALLOC)
   FIND_LIBRARY(XML_LIBRARY 
     NAMES XML zeroxml ZeroXML libZeroXML
+    HINTS
+    $ENV{XMLDIR}
+    $ENV{ProgramFiles}/ZeroXML
+    $ENV{${ProgramFilesx86}}/ZeroXML
+    PATH_SUFFIXES lib64
     PATHS
     ~/Library/Frameworks
     /Library/Frameworks
     /usr/local
     /usr
     /opt
-    PATH_SUFFIXES ${path_suffixes}
-    NO_DEFAULT_PATH
   )
 ENDIF(RMALLOC)
 

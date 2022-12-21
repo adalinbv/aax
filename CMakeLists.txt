@@ -63,7 +63,7 @@ else ()
   set(SIZEOF_SIZE_T 4)
 endif ()
 
-#Set the include directory so that the porject can be used as a sub project
+#Set the include directory so that the project can be used as a sub project
 if( NOT(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME}) )
     set(AeonWave_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src" PARENT_SCOPE)
     set(AeonWave_LIBRARIES "AeonWave" PARENT_SCOPE)
@@ -158,9 +158,9 @@ if(NOT XML_FOUND)
 endif(NOT XML_FOUND)
 
 # Add definitions, compiler switches, etc.
-include_DIRECTORIES("${AeonWave_SOURCE_DIR}/src"
+include_directories("${AeonWave_SOURCE_DIR}/src"
   ${AeonWave_SOURCE_DIR}
-  ${XML_include_DIR}
+  ${XML_INCLUDE_DIR}
   include
   base
   ${AeonWave_BINARY_DIR}/include
