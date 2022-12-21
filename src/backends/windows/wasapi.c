@@ -44,6 +44,7 @@
 #include <base/timer.h>
 #include <base/logging.h>
 #include <base/threads.h>
+#include <base/memory.h>
 
 #include <software/renderer.h>
 #include <dsp/effects.h>
@@ -389,7 +390,7 @@ _aaxWASAPIDriverFreeHandle(UNUSED(void *id))
 }
 
 static void *
-_aaxWASAPIDriverConnect(void *config, const void *id, void *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxWASAPIDriverConnect(void *config, const void *id, xmlId *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    WAVEFORMATEXTENSIBLE fmt;
