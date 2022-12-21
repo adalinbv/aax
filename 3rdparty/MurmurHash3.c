@@ -16,7 +16,7 @@
 
 #if defined(_MSC_VER)
 
-#define inline	__forceinline
+#define INLINE	__forceinline
 
 #include <stdlib.h>
 
@@ -29,14 +29,14 @@
 
 #else	// defined(_MSC_VER)
 
-#define	inline inline __attribute__((always_inline))
+#define INLINE	inline __attribute__((always_inline))
 
-inline uint32_t rotl32 ( uint32_t x, int8_t r )
+INLINE uint32_t rotl32 ( uint32_t x, int8_t r )
 {
   return (x << r) | (x >> (32 - r));
 }
 
-inline uint64_t rotl64 ( uint64_t x, int8_t r )
+INLINE uint64_t rotl64 ( uint64_t x, int8_t r )
 {
   return (x << r) | (x >> (64 - r));
 }
@@ -52,12 +52,12 @@ inline uint64_t rotl64 ( uint64_t x, int8_t r )
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
-inline uint32_t getblock32 ( const uint32_t * p, int i )
+INLINE uint32_t getblock32 ( const uint32_t * p, int i )
 {
   return p[i];
 }
 
-inline uint64_t getblock64 ( const uint64_t * p, int i )
+INLINE uint64_t getblock64 ( const uint64_t * p, int i )
 {
   return p[i];
 }
@@ -65,7 +65,7 @@ inline uint64_t getblock64 ( const uint64_t * p, int i )
 //-----------------------------------------------------------------------------
 // Finalization mix - force all bits of a hash block to avalanche
 
-inline uint32_t fmix32 ( uint32_t h )
+INLINE uint32_t fmix32 ( uint32_t h )
 {
   h ^= h >> 16;
   h *= 0x85ebca6b;
@@ -78,7 +78,7 @@ inline uint32_t fmix32 ( uint32_t h )
 
 //----------
 
-inline uint64_t fmix64 ( uint64_t k )
+INLINE uint64_t fmix64 ( uint64_t k )
 {
   k ^= k >> 33;
   k *= BIG_CONSTANT(0xff51afd7ed558ccd);
