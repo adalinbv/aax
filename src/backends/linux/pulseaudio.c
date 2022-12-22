@@ -286,9 +286,11 @@ _aaxPulseAudioDriverDetect(UNUSED(int mode))
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
+#if HAVE_PIPEWIRE_H
    if (_aaxPipeWireDriverDetect(mode)) {
       env = getenv("AAX_SHOW_PULSEAUDIO_DEVICES");
    }
+#endif
 
    if (TEST_FOR_FALSE(rv) && !audio) {
       audio = _aaxIsLibraryPresent("pulse", "0");
