@@ -35,7 +35,7 @@ extern "C" {
 # include <intrin.h>
 #elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
 # include <x86intrin.h>
-#elif defined(__GNUC__) && defined(__ARM_NEON__)
+#elif defined(__GNUC__) && defined(__ARM_NEON)
 # include <arm_neon.h>
 #endif
 

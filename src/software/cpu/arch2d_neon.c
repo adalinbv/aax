@@ -26,7 +26,7 @@
 #include "software/rbuf_int.h"
 #include "arch2d_simd.h"
 
-#if defined __ARM_NEON__ || defined __aarch64__
+#if defined __ARM_NEON
 
 /*
  * http://gcc.gnu.org/projects/prefetch.html

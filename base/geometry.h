@@ -32,7 +32,7 @@ extern "C" {
 # include <intrin.h>
 #elif defined __GNUC__  && (defined __x86_64__  || defined __i386__) 
 # include <x86intrin.h>
-#elif defined __GNUC__  && (defined __ARM_NEON__  || defined __aarch64__)
+#elif defined __GNUC__  && defined __ARM_NEON
 # include <arm_neon.h>
 #endif
 
@@ -72,7 +72,7 @@ typedef ALIGN32 double	dx4_t[4] ALIGN32C;
 typedef ALIGN16 float	fx4x4_t[4][4] ALIGN16C;
 typedef ALIGN32 double	dx4x4_t[4][4] ALIGN32C;
 
-#if defined __ARM_NEON__ || defined __aarch64__
+#if defined __ARM_NEON
 typedef union {
    float64x4_t f64x4;
    float64x2_t f64x2[2];
