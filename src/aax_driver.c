@@ -54,7 +54,7 @@ static _intBuffers* get_backends();
 static _handle_t* _open_handle(aaxConfig);
 static _aaxConfig* _aaxReadConfig(_handle_t*, const char*, int, char);
 static void _aaxSetupHRTF(xmlId*, unsigned int);
-static void _aaxSetupSpeakers(void **, unsigned char *router, unsigned int);
+static void _aaxSetupSpeakers(char **, unsigned char *router, unsigned int);
 static void _aaxFreeSensor(void *);
 
 static const char* _aax_default_devname;
@@ -428,7 +428,6 @@ aaxDriverOpen(aaxConfig config)
       enum aaxRenderMode mode = handle->info->mode;
       _aaxConfig *cfg = _aaxReadConfig(handle, NULL, mode, AAX_TRUE);
       const _aaxDriverBackend *be = handle->backend.ptr;
-      xmlId *xoid, *nid = 0;
 
       // for debugging purposes
       env = getenv("AAX_CUBIC_THRESHOLD");
@@ -436,18 +435,22 @@ aaxDriverOpen(aaxConfig config)
 
       if (cfg)
       {
-         if (handle->info->mode == AAX_MODE_READ) {
-            xoid = cfg->backend.input;
-         } else {
-            xoid = cfg->backend.output;
-         }
          if (be)
          {
+            xmlId *xoid, *nid = 0;
             const char* name = handle->devname[1];
             char *renderer;
 
+            if (handle->info->mode == AAX_MODE_READ) {
+               xoid = xmlInitBuffer(cfg->backend.input, strlen(cfg->backend.input));
+            } else {
+               xoid = xmlInitBuffer(cfg->backend.output, strlen(cfg->backend.output));
+            }
+
             if (!name) name = "default";
             handle->backend.handle = be->connect(handle, nid, xoid, name, mode);
+            xmlFree(xoid);
+
             if (!handle->backend.handle)
             {
                _AAX_SYSLOG(be->log(NULL, 0, 0, NULL));
@@ -1479,14 +1482,17 @@ _aaxSetupHRTF(xmlId *xid, UNUSED(unsigned int n))
 }
 
 static void
-_aaxSetupSpeakers(void **speaker, unsigned char *router, unsigned int n)
+_aaxSetupSpeakers(char **speaker, unsigned char *router, unsigned int n)
 {
    unsigned int i;
 
    for (i=0; i<n; i++)
    {
-      xmlId *xsid = speaker[i];
+      xmlId *xsid;
 
+      if (!speaker[i]) continue;
+
+      xsid = xmlInitBuffer(speaker[i], strlen(speaker[i]));
       if (xsid)
       {
          unsigned int channel;
@@ -1509,6 +1515,8 @@ _aaxSetupSpeakers(void **speaker, unsigned char *router, unsigned int n)
          v.v3[1] = -(float)xmlNodeGetDouble(xsid, "pos-y");
          v.v3[2] = (float)xmlNodeGetDouble(xsid, "pos-z");
          vec3fFill(_aaxDefaultSpeakersVolume[channel], v.v3);
+
+         xmlFree(xsid);
       }
    }
 }

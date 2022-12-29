@@ -1983,12 +1983,9 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
 
             for (i=num-waves; i<num; i++)
             {
-               char *type;
-
                if (!xmlNodeGetPos(xlid, xwid, "*", i)) continue;
 
-               type = xmlNodeGetName(xwid);
-               if (!strcasecmp(type, "waveform"))
+               if (!xmlNodeCompareName(xwid, "waveform"))
                {
                   if (waves) {
 
@@ -2001,14 +1998,13 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
                }
                else
                {
-                  if (!strcasecmp(type, "filter")) {
+                  if (!xmlNodeCompareName(xwid, "filter")) {
                      rv = _bufCreateFilterFromAAXS(handle, xwid, layer, frequency);
-                  } else if (!strcasecmp(type, "effect")) {
+                  } else if (!xmlNodeCompareName(xwid, "effect")) {
                      rv = _bufCreateEffectFromAAXS(handle, xwid, layer,
                                       frequency, low_frequency, high_frequency);
                   }
                }
-               xmlFree(type);
 
                if (rv == AAX_FALSE) break;
             }

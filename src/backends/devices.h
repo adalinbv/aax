@@ -46,15 +46,15 @@ typedef struct
       int no_speakers;
       int no_emitters;
       int bitrate;
-      void *speaker[_AAX_MAX_SPEAKERS];
+      char *speaker[_AAX_MAX_SPEAKERS];
       float frequency;
       float interval;
       float update;
    } node[_AAX_MAX_SLAVES];
    struct {
       char *driver;
-      void *output;
-      void *input;
+      char *output;
+      char *input;
    } backend; // [_AAX_MAX_BACKENDS];
 } _aaxConfig;
 

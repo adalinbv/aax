@@ -363,7 +363,6 @@ _aaxDriverBackendReadConfigSettings(const xmlId *xid, char **devname, _aaxConfig
          char *dev;
 
          xmlNodeGetPos(xcid, xoid, "output", n);
-
          if (n < _AAX_MAX_SLAVES)
          {
             unsigned int i;
@@ -442,7 +441,7 @@ _aaxDriverBackendReadConfigSettings(const xmlId *xid, char **devname, _aaxConfig
       xmlId *xdid;
 
       /*
-       * find a mathcing backend
+       * find a matching backend
        * level == 0, not fout
        * level == 1, defaul device found
        * level == 2, requested device found
@@ -523,15 +522,19 @@ _aaxDriverBackendReadConfigSettings(const xmlId *xid, char **devname, _aaxConfig
                   free(ptr);
                }
 
-               if (m)
+               xmlNodeGetPos(xdid, xiid, "connector", con);
+               if ((ptr = xmlGetString(xiid)) != NULL)
                {
-                  xmlFree(config->backend.output);
-                  config->backend.output = xmlNodeCopyPos(xdid, xiid, "connector", con);
-               }
-               else
-               {
-                  xmlFree(config->backend.input);
-                  config->backend.input = xmlNodeCopyPos(xdid, xiid, "connector", con);
+                  if (m)
+                  {
+                     xmlFree(config->backend.output);
+                     config->backend.output = ptr;
+                  }
+                  else
+                  {
+                     xmlFree(config->backend.input);
+                     config->backend.input = ptr;
+                  }
                }
 
                i = xmlNodeGetInt(xiid, "bitrate");
@@ -571,9 +574,9 @@ _aaxDriverBackendReadConfigSettings(const xmlId *xid, char **devname, _aaxConfig
                   if (i > _AAX_MAX_SPEAKERS) i = _AAX_MAX_SPEAKERS;
                   for (q=0; q<i; q++)
                   {
-                     char s[10];
                      size_t len;
-                     void *ptr;
+                     char s[10];
+                     char *ptr;
 
                      xmlNodeGetPos(xiid, xsid, "speaker", q);
                      len = xmlAttributeCopyString(xsid, "n", (char*)&s, 10);
@@ -587,9 +590,12 @@ _aaxDriverBackendReadConfigSettings(const xmlId *xid, char **devname, _aaxConfig
                         index = _AAX_MAX_SPEAKERS;
                      }
 
-                     xmlFree(config->node[0].speaker[index]);
-                     ptr = xmlNodeCopyPos(xiid, xsid, "speaker", q);
-                     config->node[0].speaker[index] = ptr;
+                     xmlNodeGetPos(xiid, xsid, "speaker", q);
+                     if ((ptr = xmlGetString(xsid)) != NULL)
+                     {
+                        xmlFree(config->node[0].speaker[index]);
+                        config->node[0].speaker[index] = ptr;
+                     }
                   }
                   xmlFree(xsid);
                }
@@ -605,7 +611,7 @@ _aaxDriverBackendReadConfigSettings(const xmlId *xid, char **devname, _aaxConfig
  if (config)
  {
    int q;
-   printf("Config:\n");
+   printf("Config: %s\n", m ? "Write" : "Read");
    printf(" no. nodes: %i\n", config->no_nodes);
    printf(" no_backends: %i\n", config->no_backends);
    for(q=0; q<config->no_nodes; ++q) {
@@ -614,9 +620,9 @@ _aaxDriverBackendReadConfigSettings(const xmlId *xid, char **devname, _aaxConfig
      printf("  setup: '%s'\n", config->node[q].setup);
      printf("  no. speakers: %i\n", config->node[q].no_speakers);
      printf("  bitrate: %i\n", config->node[q].bitrate);
-     printf("  frequency: %f\n", config->node[q].frequency);
-     printf("  interval: %f\n", config->node[q].interval);
-     printf("  update: %f\n", config->node[q].update);
+     printf("  frequency: %7.1f\n", config->node[q].frequency);
+     printf("  interval: %4.1f\n", config->node[q].interval);
+     printf("  update: %4.1f\n", config->node[q].update);
      printf("  no. emitters: %i\n", config->node[q].no_emitters);
    }
    printf(" Backend:\n");
