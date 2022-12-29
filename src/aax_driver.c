@@ -441,10 +441,12 @@ aaxDriverOpen(aaxConfig config)
             const char* name = handle->devname[1];
             char *renderer;
 
-            if (handle->info->mode == AAX_MODE_READ) {
+            if (handle->info->mode == AAX_MODE_READ && cfg->backend.input) {
                xoid = xmlInitBuffer(cfg->backend.input, strlen(cfg->backend.input));
-            } else {
+            } else if (cfg->backend.output) {
                xoid = xmlInitBuffer(cfg->backend.output, strlen(cfg->backend.output));
+            } else {
+               xoid = NULL;
             }
 
             if (!name) name = "default";
