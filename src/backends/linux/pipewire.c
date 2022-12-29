@@ -2019,24 +2019,27 @@ stream_capture_cb(void *be_ptr)
    if (be_ptr)
    {
       _driver_t *be_handle = (_driver_t *)be_ptr;
-      struct pw_buffer  *pw_buf;
-
-      pw_buf = ppw_stream_dequeue_buffer(be_handle->pw);
-      if (pw_buf)
+      if (be_handle->dataBuffer)
       {
-         struct spa_buffer *spa_buf = pw_buf->buffer;
-         uint32_t offs = SPA_MIN(spa_buf->datas[0].chunk->offset,
-                                 spa_buf->datas[0].maxsize);
-         uint32_t len = SPA_MIN(spa_buf->datas[0].chunk->size,
-                                spa_buf->datas[0].maxsize - offs);
+         struct pw_buffer  *pw_buf;
 
-         if (_aaxDataGetOffset(be_handle->dataBuffer, 0)+len
-                                < _aaxDataGetSize(be_handle->dataBuffer))
+         pw_buf = ppw_stream_dequeue_buffer(be_handle->pw);
+         if (pw_buf)
          {
-            uint8_t *buf = (uint8_t*)spa_buf->datas[0].data + offs;
-            _aaxDataAdd(be_handle->dataBuffer, 0, buf, len);
+            struct spa_buffer *spa_buf = pw_buf->buffer;
+            uint32_t offs = SPA_MIN(spa_buf->datas[0].chunk->offset,
+                                    spa_buf->datas[0].maxsize);
+            uint32_t len = SPA_MIN(spa_buf->datas[0].chunk->size,
+                                   spa_buf->datas[0].maxsize - offs);
+
+            if (_aaxDataGetOffset(be_handle->dataBuffer, 0)+len
+                                   < _aaxDataGetSize(be_handle->dataBuffer))
+            {
+               uint8_t *buf = (uint8_t*)spa_buf->datas[0].data + offs;
+               _aaxDataAdd(be_handle->dataBuffer, 0, buf, len);
+            }
+            ppw_stream_queue_buffer(be_handle->pw, pw_buf);
          }
-         ppw_stream_queue_buffer(be_handle->pw, pw_buf);
       }
    }
 }
