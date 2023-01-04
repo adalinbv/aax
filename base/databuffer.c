@@ -182,8 +182,7 @@ _aaxDataMove(_data_t* buf, unsigned char buffer_no, void* data, size_t size)
    assert(buf->id == DATA_ID);
    assert(buf->no_buffers > buffer_no);
 
-   if (buffer_no < buf->no_buffers && size >= buf->blocksize &&
-       size <= buf->offset[buffer_no])
+   if (buffer_no < buf->no_buffers && size >= buf->blocksize)
    {
       size_t remain = buf->offset[buffer_no];
 
