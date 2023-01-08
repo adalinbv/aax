@@ -373,6 +373,7 @@ public:
         }
     }
 
+    inline float get_gain() { return gain; }
     inline void set_gain(float v) {
         gain = v; set_volume();
     }
@@ -487,6 +488,7 @@ public:
         aax::dsp dsp = Mixer::get(AAX_REVERB_EFFECT);
         reverb_decay_level = dsp.get(AAX_DECAY_LEVEL);
     }
+    inline float get_reverb_level() { return reverb_level/reverb_decay_level; }
     void set_reverb_level(float lvl) {
         if (lvl > 1e-5f) {
             reverb_level = lvl*reverb_decay_level;
@@ -501,9 +503,9 @@ public:
         reverb_decay_level = powf(LEVEL_60DB, 0.5f*reverb_decay_depth/v);
     }
 
+    inline float get_chorus_level() { return chorus_level; }
     void set_chorus_level(float lvl) {
-        if (lvl > 0) {
-            chorus_level = lvl;
+        if ((chorus_level = lvl) > 0) {
             if (!chorus_state) chorus_state = AAX_TRUE;
         } else if (chorus_state) chorus_state = AAX_FALSE;
     }
