@@ -397,7 +397,7 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-msse4.1 -mfpmath=sse -O3 -ffast-math -march=silvermont -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
      elseif(ARM)
-       if(ARM64 AND NOT ARCH32)
+       if(ARM64) # AND NOT ARCH32)
 	 message("Build environment: ARM64")
          set(C_FLAGS "${C_FLAGS} -march=armv8-a -moutline-atomics -DARCH64=1")
          set_property(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
