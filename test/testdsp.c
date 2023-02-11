@@ -10,6 +10,7 @@ static const char* aaxs = \
     <sound frequency=\"440\">			\
       <waveform src=\"sine\"/>			\
     </sound>					\
+    <emitter looping\"true\"/>                  \
   </aeonwave>";
 
 int main()
@@ -29,17 +30,30 @@ int main()
       TRY( aaxBufferSetData(buffer, aaxs) );
 
       TRY( aaxMixerSetState(config, AAX_INITIALIZED) );
-      TRY( aaxMixerSetState(config, AAX_PLAYING) );
+//    TRY( aaxMixerSetState(config, AAX_PLAYING) );
 
       TRY( emitter = aaxEmitterCreate() );
       TRY( aaxEmitterAddBuffer(emitter, buffer) );
-      TRY( aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE) );
       TRY( aaxEmitterSetState(emitter, AAX_PLAYING) );
 
       TRY( frame = aaxAudioFrameCreate(config) );
       TRY( aaxAudioFrameSetState(frame, AAX_PLAYING) );
       TRY( aaxMixerRegisterAudioFrame(config, frame) );
       TRY( aaxAudioFrameRegisterEmitter(frame, emitter) );
+
+      for (i=AAX_VOLUME_FILTER; i<AAX_GRAPHIC_EQUALIZER; i++)
+      {
+          const char *s = aaxFilterGetNameByType(config, i);
+          printf("supp. filter: %-32s: ", s);
+          printf("%s\n", aaxIsFilterSupported(config, s) ? "ok" : "no");
+      }
+
+      for (i=AAX_PITCH_EFFECT; i<AAX_RINGMODULATOR_EFFECT; i++)
+      {
+          const char *s = aaxEffectGetNameByType(config, i);
+          printf("supp. effect: %-32s: ", s);
+          printf("%s\n", aaxIsEffectSupported(config, s) ? "ok" : "no");
+      }
 
       /* emitters */
       for (i=AAX_VOLUME_FILTER; i<AAX_GRAPHIC_EQUALIZER; i++)
@@ -252,17 +266,6 @@ int main()
          printf("ok\n");
       }
       printf("\n");
-
-      for (i=AAX_VOLUME_FILTER; i<AAX_GRAPHIC_EQUALIZER; i++)
-      {
-          printf("supp. filter: %-32s: ", aaxFilterGetNameByType(config, i));
-          printf("%s\n", aaxIsFilterSupported(config, aaxFilterGetNameByType(config, i)) ? "ok" : "no");
-      }
-      for (i=AAX_PITCH_EFFECT; i<AAX_RINGMODULATOR_EFFECT; i++)
-      {
-          printf("supp. effect: %-32s: ", aaxEffectGetNameByType(config, i));
-          printf("%s\n", aaxIsEffectSupported(config, aaxEffectGetNameByType(config, i)) ? "ok" : "no");
-      }
 
       TRY( aaxEmitterSetState(emitter, AAX_PROCESSED) );
       TRY( aaxAudioFrameSetState(frame, AAX_STOPPED) );
