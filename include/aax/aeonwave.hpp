@@ -30,6 +30,7 @@
 #include <utility>
 #include <memory>
 #include <vector>
+#include <cstring>	// strstr
 
 #include <aax/matrix.hpp>
 #include <aax/aax.h>
