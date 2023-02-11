@@ -451,7 +451,7 @@ aaxDriverOpen(aaxConfig config)
 
             if (!name) name = "default";
             handle->backend.handle = be->connect(handle, nid, xoid, name, mode);
-            xmlFree(xoid);
+            xmlClose(xoid);
 
             if (!handle->backend.handle)
             {
@@ -1518,7 +1518,7 @@ _aaxSetupSpeakers(char **speaker, unsigned char *router, unsigned int n)
          v.v3[2] = (float)xmlNodeGetDouble(xsid, "pos-z");
          vec3fFill(_aaxDefaultSpeakersVolume[channel], v.v3);
 
-         xmlFree(xsid);
+         xmlClose(xsid);
       }
    }
 }
@@ -1558,7 +1558,6 @@ _aaxFreeSensor(void *ssr)
 
    _aaxMutexDestroy(sensor->mutex);
    _FILTER_FREE_DATA(sensor->mixer, EQUALIZER_LF);
-   _FILTER_FREE_DATA(sensor->mixer, EQUALIZER_HF);
    _FILTER_FREE_DATA(sensor->mixer, HRTF_HEADSHADOW);
 
    _aaxMutexLock(smixer->props2d->mutex);
