@@ -206,6 +206,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             {
                size_t i;
 
+               if (reverb->track_prev) _aax_free(reverb->track_prev);
                reverb->track_prev = (void **)ptr;
                for (i=0; i<no_tracks; i++)
                {
