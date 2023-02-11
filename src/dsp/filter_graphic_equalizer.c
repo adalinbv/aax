@@ -137,10 +137,10 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
          else
          {
             _aax_aligned_free(eq);
+            _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
             return rv;
          }
       }
-      else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
 
       if (eq)	/* fill in the fixed frequencies */
       {
