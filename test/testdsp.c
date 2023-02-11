@@ -253,6 +253,17 @@ int main()
       }
       printf("\n");
 
+      for (i=AAX_VOLUME_FILTER; i<AAX_GRAPHIC_EQUALIZER; i++)
+      {
+          printf("supp. filter: %-32s: ", aaxFilterGetNameByType(config, i));
+          printf("%s\n", aaxIsFilterSupported(config, aaxFilterGetNameByType(config, i)) ? "ok" : "no");
+      }
+      for (i=AAX_PITCH_EFFECT; i<AAX_RINGMODULATOR_EFFECT; i++)
+      {
+          printf("supp. effect: %-32s: ", aaxEffectGetNameByType(config, i));
+          printf("%s\n", aaxIsEffectSupported(config, aaxEffectGetNameByType(config, i)) ? "ok" : "no");
+      }
+
       TRY( aaxEmitterSetState(emitter, AAX_PROCESSED) );
       TRY( aaxAudioFrameSetState(frame, AAX_STOPPED) );
       TRY( aaxMixerSetState(config, AAX_STOPPED) );
