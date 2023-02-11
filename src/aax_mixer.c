@@ -574,10 +574,13 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
             }
             break;
          case AAX_EQUALIZER:
-         case AAX_GRAPHIC_EQUALIZER:
             _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_LF, filter, 0);
             _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_MF, filter, 1);
             _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_HF, filter, 2);
+            break;
+         case AAX_GRAPHIC_EQUALIZER:
+            _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_LF, filter, 0);
+//          _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_HF, filter, 2);
             break;
          default:
             _aaxErrorSet(AAX_INVALID_ENUM);
