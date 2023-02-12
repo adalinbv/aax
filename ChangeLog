@@ -2,7 +2,7 @@
 - AeonWave (3.12.3) stable; urgency=low
 
  * Switch tot ZeroXML version 2.0+
- * Add the get_gain, get_reverb_level and get_chorus_level to the AeoNWave class
+ * Add the get_gain, get_reverb_level and get_chorus_level to the AeonWave class
  * Use xmlNodeCompareName when processing the sound section of AAXS files.
  * Use xmlNodeCompareName when processing backends.
  * Fix a possible segmentation fault in the PipeWire backend.
