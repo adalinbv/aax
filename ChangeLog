@@ -1,3 +1,11 @@
+* Mon Mar 13 2023 - tech@adalin.org
+- AeonWave (3.12.4) stable; urgency=low
+
+ * Move audio-frame filter and effect processing to the renderer.
+
+-- Erik Hofman <tech@adalin.org>  Mon 13 Mar 2023 11:03:14 + 0100
+
+
 * Fri Feb 10 2023 - tech@adalin.org
 - AeonWave (3.12.3) stable; urgency=low
 
