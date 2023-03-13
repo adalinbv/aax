@@ -233,19 +233,22 @@ _aaxWorkerInfo(void *id)
 static int
 _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
 {
-   _render_t *handle = renderer->id;
-   _intBuffers *he = data->e3d;
-   int stage;
    int rv = AAX_FALSE;
 
-   assert(data);
-
-   /*
-    * process emitters
-    */
-   if (he)
+   switch(data->mode)
    {
-      stage = 2;
+   case THREAD_PROCESS_AUDIOFRAME:
+      data->be->effects(data->be, data->be_handle, data->drb, data->fp2d, 
+                        data->mono, data->ssr);
+      data->be->postprocess(data->be, data->be_handle, data->drb, 
+                            data->sensor, data->subframe, data->info);
+      rv = AAX_TRUE;
+      break;
+   case THREAD_PROCESS_EMITTER:
+   {
+      _render_t *handle = renderer->id;
+      _intBuffers *he = data->e3d;
+      int stage = 2;
       do
       {
          int no_emitters, max_emitters;
@@ -301,20 +304,18 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
          }
       }
       while (--stage); /* process 3d positional and stereo emitters */
+      break;
    }
-
-   /*
-    * process convolution
-    */
-   else
+   case THREAD_PROCESS_CONVOLUTION:
    {
+      _render_t *handle = renderer->id;
       _aaxRingBuffer *rb = data->drb;
-      int no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
+      int t, no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
 
       _aaxAtomicIntAdd(&handle->workers_busy, no_tracks);
 
       // wake up the worker threads
-      for (stage=0; stage<no_tracks; ++stage)
+      for (t=0; t<no_tracks; ++t)
       {
          handle->he = NULL;
          handle->stage = 0;
@@ -328,6 +329,10 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
       _aaxSemaphoreWait(handle->worker_ready);
 
       rv = AAX_TRUE;
+      break;
+   }
+   default:
+      break;
    }
 
    return rv;

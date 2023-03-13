@@ -62,6 +62,8 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
    _aaxRenderer *render = be->render(be_handle);
    _aaxRendererData data;
 
+   data.mode = THREAD_PROCESS_EMITTER;
+
    data.drb = drb;
    data.info = info;
    data.fp3d = fp3d;

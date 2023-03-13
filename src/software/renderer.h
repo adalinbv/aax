@@ -29,6 +29,12 @@ extern "C" {
 #include "ringbuffer.h"
 #include "arch.h"
 
+enum {
+   THREAD_PROCESS_AUDIOFRAME = 0,
+   THREAD_PROCESS_EMITTER,
+   THREAD_PROCESS_CONVOLUTION
+};
+
 /* forward declaration */
 struct _aaxRendererData_t;
 typedef int (_aaxRendererCallback)(_aaxRingBuffer*, struct _aaxRendererData_t*, _intBufferData*, unsigned int);
@@ -37,6 +43,13 @@ _aaxRendererCallback _aaxProcessEmitter;
 
 typedef struct _aaxRendererData_t
 {
+   char mode;
+
+   char ssr;
+   char mono;
+   void *subframe;
+   void *sensor;
+
    _aaxRingBuffer *drb;
    const _aaxMixerInfo *info;
    _aax2dProps *fp2d;

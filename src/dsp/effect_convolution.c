@@ -472,23 +472,16 @@ _convolution_run(const _aaxDriverBackend *be, const void *be_handle, void *rbd, 
    if (convolution->delay_gain > convolution->threshold)
    {
       _aaxRenderer *render = be->render(be_handle);
-      _aaxRendererData d;
+      _aaxRendererData data;
 
-      d.drb = rb;
-      d.info = NULL;
-      d.fp3d = NULL;
-      d.fp2d = NULL;
-      d.e2d = NULL;
-      d.e3d = NULL;
-      d.be = NULL;
-      d.be_handle = convolution;
+      data.mode = THREAD_PROCESS_CONVOLUTION;
 
-      d.ssv = 0.0f;
-      d.sdf = 0.0f;
+      data.drb = rb;
+      data.be_handle = convolution;
 
-      d.callback = _convolution_thread;
+      data.callback = _convolution_thread;
 
-      render->process(render, &d);
+      render->process(render, &data);
 
       rv = AAX_TRUE;
    }

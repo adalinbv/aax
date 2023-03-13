@@ -134,16 +134,20 @@ _aaxCPUInfo(UNUSED(void *id))
 static int
 _aaxCPUProcess(UNUSED(struct _aaxRenderer_t *render), _aaxRendererData *data)
 {
-   _intBuffers *he = data->e3d;
-   int stage;
    int rv = AAX_TRUE;
 
-   /*
-    * process emitters
-    */
-   if (he)
+   switch(data->mode)
    {
-      stage = 2;
+   case THREAD_PROCESS_AUDIOFRAME:
+      data->be->effects(data->be, data->be_handle, data->drb, data->fp2d,
+                        data->mono, data->ssr);
+      data->be->postprocess(data->be, data->be_handle, data->drb,
+                            data->sensor, data->subframe, data->info);
+      break;
+   case THREAD_PROCESS_EMITTER:
+   {
+      _intBuffers *he = data->e3d;
+      int stage = 2;
       do
       {
          int no_emitters;
@@ -176,12 +180,9 @@ _aaxCPUProcess(UNUSED(struct _aaxRenderer_t *render), _aaxRendererData *data)
          }
       }
       while (--stage); /* process 3d positional and stereo emitters */
+      break;
    }
-
-   /*
-    * process convolution
-    */
-   else
+   case THREAD_PROCESS_CONVOLUTION:
    {
       _aaxRingBufferConvolutionData *convolution = data->be_handle;
       _aaxRingBuffer *rb = data->drb;
@@ -202,6 +203,10 @@ _aaxCPUProcess(UNUSED(struct _aaxRenderer_t *render), _aaxRendererData *data)
       }
 
       rv = AAX_TRUE;
+      break;
+   }
+   default:
+      break;
    }
 
    return rv;

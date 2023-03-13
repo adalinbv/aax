@@ -39,11 +39,13 @@
 
 #include "arch.h"
 #include "ringbuffer.h"
+#include "renderer.h"
 #include "rbuf_int.h"
 #include "audio.h"
 
 static char _aaxAudioFrameRender(_aaxRingBuffer*, _aaxAudioFrame*, _aax2dProps*, _aax3dProps*, _intBuffers*, unsigned int, float, float, const _aaxDriverBackend*,  void*, char);
 static void* _aaxAudioFrameSwapBuffers(void*, _intBuffers*, char);
+
 
 /**
  * ssv: sensor sound velocity
@@ -213,8 +215,23 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
 
    if (process)
    {
-      be->effects(be, be_handle, dest_rb, fp2d, mono, ssr);
-      be->postprocess(be, be_handle, dest_rb, sensor, subframe, fmixer->info);
+      _aaxRenderer *render = be->render(be_handle);
+      _aaxRendererData data;
+
+      data.mode = THREAD_PROCESS_AUDIOFRAME;
+
+      data.ssr = ssr;
+      data.mono = mono;
+      data.subframe = subframe;
+      data.sensor = sensor;
+
+      data.drb = dest_rb;
+      data.info = fmixer->info;
+      data.fp2d = fp2d;
+      data.be = be;
+      data.be_handle = be_handle;
+
+      return render->process(render, &data);
    }
 
    return process;

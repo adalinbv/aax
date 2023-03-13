@@ -229,7 +229,7 @@ _aaxNoneDriverPrepare(UNUSED(const void *id), UNUSED(const void *hid), UNUSED(vo
 }
 
 static void
-_aaxNoneDriverPostProcess(UNUSED(const void *id), UNUSED(const void *hid), UNUSED(void *s), UNUSED(const void *l), UNUSED(const void *f), UNUSED(void *i))
+_aaxNoneDriverPostProcess(UNUSED(const void *id), UNUSED(const void *hid), UNUSED(void *s), UNUSED(const void *l), UNUSED(const void *f), UNUSED(const void *i))
 {
 }
 

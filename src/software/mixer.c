@@ -43,7 +43,7 @@
 
 
 static void _aaxSubFramePostProcess(void*, const void*);
-static void _aaxSensorPostProcess(const void*, const void*, void*, const void*, void*);
+static void _aaxSensorPostProcess(const void*, const void*, void*, const void*, const void*);
 
 void
 _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const void *props2d, char mono, UNUSED(char order))
@@ -114,7 +114,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
 }
 
 void
-_aaxSoftwareMixerPostProcess(const void *id, const void *hid, void *d, const void *s, const void *f, void *i)
+_aaxSoftwareMixerPostProcess(const void *id, const void *hid, void *d, const void *s, const void *f, const void *i)
 {
    const _frame_t *subframe = (_frame_t*)f;
    _sensor_t *sensor = (_sensor_t*)s;
@@ -199,7 +199,7 @@ _aaxSubFramePostProcess(void *d, const void *f)
 
 
 static void
-_aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, void *i)
+_aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, const void *i)
 {
    _aaxRingBufferConvolutionData *convolution;
    _aaxRingBuffer *rb = (_aaxRingBuffer*)d;
