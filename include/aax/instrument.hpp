@@ -229,7 +229,7 @@ class Instrument : public Mixer
 {
 public:
     Instrument(AeonWave& ptr, bool drums = false, int wide = 0)
-        : Mixer(ptr), aax(ptr), is_drums(drums)
+        : Mixer(ptr), aax(ptr), is_drum_channel(drums)
     {
         pan.wide = wide;
 
@@ -264,7 +264,7 @@ public:
         Mixer::matrix(pan.mtx_init);
         Mixer::set(AAX_POSITION, AAX_RELATIVE);
         Mixer::set(AAX_PLAYING);
-        if (is_drums) {
+        if (is_drum_channel) {
             Mixer::set(AAX_MONO_EMITTERS, 10);
         }
     }
@@ -297,7 +297,7 @@ public:
     void play(uint32_t key_no, float velocity, Buffer& buffer, float pitch=1.0f)
     {
         float frequency = buffer.get(AAX_UPDATE_RATE);
-        if (!is_drums) {
+        if (!is_drum_channel) {
             float fraction = 1e-6f*buffer.get(AAX_REFRESH_RATE);
             float f = note2freq(key_no);
             f = (f - frequency)*fraction + frequency;
@@ -322,11 +322,11 @@ public:
         if (it == key.end()) {
             auto ret = key.insert({key_no, std::shared_ptr<Note>{new Note(frequency,pitch,pan)}});
             note = ret.first->second;
-            if (!playing && !is_drums) {
+            if (!playing && !is_drum_channel) {
                 Mixer::add(buffer);
                 playing = true;
             }
-            if (is_drums && !pan.panned) note->matrix(pan.mtx_init);
+            if (is_drum_channel && !pan.panned) note->matrix(pan.mtx_init);
             else if (pan.panned && abs(pan.wide) > 1) note->matrix(pan.mtx);
             note->buffer(buffer);
         }
@@ -357,7 +357,7 @@ public:
 
     inline void set_key_finish(bool finish) { key_finish = finish; }
 
-    inline void set_monophonic(bool m) { if (!is_drums) monophonic = m; }
+    inline void set_monophonic(bool m) { if (!is_drum_channel) monophonic = m; }
 
     inline void set_detune(float level) {
     }
@@ -383,7 +383,7 @@ public:
     }
 
     inline void set_soft(float s) {
-        soft = (!is_drums) ? 1.0f - 0.5f*s : 1.0f; set_filter_cutoff();
+        soft = (!is_drum_channel) ? 1.0f - 0.5f*s : 1.0f; set_filter_cutoff();
         for (auto& it : key) it.second->set_soft(soft);
     }
 
@@ -402,7 +402,7 @@ public:
         p = floorf(p*PAN_LEVELS)/PAN_LEVELS;
         if (p != pan_prev) {
             pan.set(p);
-            if (!is_drums && !pan.wide) {
+            if (!is_drum_channel && !pan.wide) {
                 Mixer::matrix(pan.mtx);
             } else {
                 for (auto& it : key) it.second->matrix(pan.mtx);
@@ -423,13 +423,13 @@ public:
     }
 
     inline void set_sustain(bool s) {
-        if (!is_drums) {
+        if (!is_drum_channel) {
             for (auto& it : key) it.second->set_sustain(s);
         }
     }
 
     void set_modulation(float m) {
-        if (!is_drums) {
+        if (!is_drum_channel) {
             bool enabled = (m != 0.0f);
             vibrato_depth = m; tremolo_depth = m; tremolo_offset - 1.0f - m;
             if (enabled)
@@ -446,13 +446,13 @@ public:
     // set_pitch_rate(bool) is deprecated in favor of set_pitch_slide_state
     // set_pitch_rate(float) is deprecated in favor of set_pitch_transition_time
     inline void set_pitch_start(float p) {
-        if (!is_drums) { pitch_start = p; }
+        if (!is_drum_channel) { pitch_start = p; }
     }
     inline void set_pitch_slide_state(bool s) {
-        if (!is_drums) { slide_state = s; }
+        if (!is_drum_channel) { slide_state = s; }
     }
     inline void set_pitch_transition_time(float t) {
-        if (!is_drums) { transition_time = t; }
+        if (!is_drum_channel) { transition_time = t; }
     }
 
     void set_vibrato_rate(float r) {}
@@ -463,17 +463,17 @@ public:
     void set_phaser_depth(float d) {}
 
     void set_attack_time(unsigned t) {
-        if (!is_drums) { attack_time = t;
+        if (!is_drum_channel) { attack_time = t;
             for (auto& it : key) it.second->set_attack_time(t);
         }
     }
     void set_release_time(unsigned t) {
-        if (!is_drums) { release_time = t;
+        if (!is_drum_channel) { release_time = t;
             for (auto& it : key) it.second->set_release_time(t);
         }
     }
     void set_decay_time(unsigned t) {
-        if (!is_drums) { decay_time = t;
+        if (!is_drum_channel) { decay_time = t;
             for (auto& it : key) it.second->set_decay_time(t);
         }
     }
@@ -529,6 +529,9 @@ public:
 
     inline void set_wide(int s = 1) { pan.wide = s; }
     inline int get_wide(void) { return pan.wide; }
+
+    inline void set_drums(bool d = true) { is_drum_channel = d; }
+    inline bool is_drums() { return is_drum_channel; }
 
 private:
     inline float note2freq(uint32_t d) {
@@ -594,7 +597,7 @@ private:
     float pitch_start = 1.0f;
     uint32_t key_prev = 0;
 
-    bool is_drums;
+    bool is_drum_channel = false;
     bool monophonic = false;
     bool playing = false;
     bool slide_state = false;
