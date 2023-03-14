@@ -237,13 +237,6 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
 
    switch(data->mode)
    {
-   case THREAD_PROCESS_AUDIOFRAME:
-      data->be->effects(data->be, data->be_handle, data->drb, data->fp2d, 
-                        data->mono, data->ssr);
-      data->be->postprocess(data->be, data->be_handle, data->drb, 
-                            data->sensor, data->subframe, data->info);
-      rv = AAX_TRUE;
-      break;
    case THREAD_PROCESS_EMITTER:
    {
       _render_t *handle = renderer->id;
@@ -306,6 +299,23 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
       while (--stage); /* process 3d positional and stereo emitters */
       break;
    }
+   case THREAD_PROCESS_AUDIOFRAME:
+   {
+      _render_t *handle = renderer->id;
+
+      handle->max_emitters = 0;
+      handle->data = data;
+
+      _aaxAtomicIntAdd(&handle->workers_busy, 1);
+
+      _aaxSemaphoreRelease(handle->worker_start);
+
+      // Wait until al worker threads are finished
+      _aaxSemaphoreWait(handle->worker_ready);
+
+      rv = AAX_TRUE;
+      break;
+   }
    case THREAD_PROCESS_CONVOLUTION:
    {
       _render_t *handle = renderer->id;
@@ -317,8 +327,6 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
       // wake up the worker threads
       for (t=0; t<no_tracks; ++t)
       {
-         handle->he = NULL;
-         handle->stage = 0;
          handle->max_emitters = no_tracks;
          handle->data = data;
 
@@ -373,20 +381,9 @@ _aaxWorkerThread(void *id)
       do
       {
          data = handle->data;
-
-         /*
-          * process convolution
-          */
-         if (!handle->he)
+         switch(data->mode)
          {
-            int track = _aaxAtomicIntSub(num, 1) - 1;
-            data->callback(data->drb, data, NULL, track);
-         }
-
-         /*
-          * else: process up to 32 emitters at a time
-          */
-         else if (handle->max_emitters)
+         case THREAD_PROCESS_EMITTER:
          {
             int max = _aaxAtomicIntSub(num, _AAX_MIN_EMITTERS_PER_WORKER);
             int r = AAX_FALSE;
@@ -430,6 +427,25 @@ _aaxWorkerThread(void *id)
                drb->set_state(drb, RB_CLEARED);
                drb->set_state(drb, RB_REWINDED);
             }
+            break;
+         }
+         case THREAD_PROCESS_AUDIOFRAME:
+         {
+            _aaxAtomicIntSub(num, 1);
+            data->be->effects(data->be, data->be_handle, data->drb, data->fp2d,
+                              data->mono, data->ssr);
+            data->be->postprocess(data->be, data->be_handle, data->drb,
+                                  data->sensor, data->subframe, data->info);
+            break;
+         }
+         case THREAD_PROCESS_CONVOLUTION:
+         {
+            int track = _aaxAtomicIntSub(num, 1) - 1;
+            data->callback(data->drb, data, NULL, track);
+            break;
+         }
+         default:
+            break;
          }
 
          /* if we're the last active worker trigger the signal */
