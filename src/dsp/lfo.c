@@ -773,7 +773,7 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
          }
       }
       else if (stopped && !env->sustain) {
-         env->value += 5*env->step_finish;
+         env->value += 2.5f*env->step_finish;
       }
 
       *velocity *= fabsf((rv != 0.0f) ? env->value/rv : env->value);
