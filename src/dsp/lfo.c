@@ -772,20 +772,8 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
             }
          }
       }
-      else if (stopped && !env->sustain)
-      {
-         float step = env->step[stage];
-         float fact = 1.0f;
-         if (fabsf(step) > LEVEL_128DB && env->state & AAX_ENVELOPE_FOLLOW_MASK)
-         {
-             if (rv > 1.0f) {
-                fact = _MIN(powf(rv, GMATH_E1), GMATH_E1);
-             } else if (rv > 0.0f) {
-                fact = powf(rv, GMATH_1_E1);
-             }
-             if (step > 0.0f) fact = 1.0f/fact;
-         }
-         env->value += env->step_finish*fact;
+      else if (stopped && !env->sustain) {
+         env->value += 5*env->step_finish;
       }
 
       *velocity *= fabsf((rv != 0.0f) ? env->value/rv : env->value);
