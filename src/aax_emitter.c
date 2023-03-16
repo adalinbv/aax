@@ -1624,6 +1624,10 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aax
    int rv = AAX_TRUE;
    xmlId *xid;
 
+   if (!config) {
+      config = handle->root = embuf->buffer->root;
+   }
+
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
