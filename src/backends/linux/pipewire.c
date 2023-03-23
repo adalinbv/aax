@@ -672,19 +672,8 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
          *refresh_rate = period_rate;
       }
 
-      /* recalculate period_frames and latency */
-      if (!registered) {
-         period_samples = get_pow2((size_t)rintf(handle->spec.rate/(*refresh_rate)));
-      } else {
-         period_samples = get_pow2((size_t)rintf(handle->spec.rate/period_rate));
-      }
-      handle->period_frames = period_samples;
-      handle->bits_sample = aaxGetBitsPerSample(handle->format);
       handle->refresh_rate = *refresh_rate;
-
-      frame_sz = handle->spec.channels*handle->bits_sample/8;
-      handle->fill.aim = (float)frame_sz*period_samples/handle->spec.rate;
-      handle->latency = handle->fill.aim/frame_sz;
+      handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
 #if 0
  printf("spec:\n");
@@ -2264,6 +2253,16 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, enum pw_stream_flags flags, co
 
                   if (ppw_stream_get_state(handle->pw, error) != PW_STREAM_STATE_ERROR)
                   {
+                     const char *s, *p;
+
+                     s = ppw_properties_get(props, PW_KEY_NODE_LATENCY);
+                     p = strchr(s, '/');
+                     if (p)
+                     {
+                        handle->period_frames = atoi(s);
+                        handle->spec.rate = atoi(p+1);
+                        handle->latency = (float)handle->period_frames/handle->spec.rate;
+                     }
                      rv = AAX_TRUE;
                   }
                }
