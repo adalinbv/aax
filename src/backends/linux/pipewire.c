@@ -63,7 +63,7 @@
 #define DEFAULT_DEVNAME		"default"
 #define MAX_ID_STRLEN		96
 
-#define DEFAULT_PERIODS		2
+#define DEFAULT_PERIODS		1
 #define DEFAULT_OUTPUT_RATE	48000
 #define DEFAULT_REFRESH		25.0
 
@@ -161,6 +161,7 @@ typedef struct
    char bits_sample;
    unsigned int format;
    unsigned int period_frames;
+   unsigned int no_periods;
    enum aaxRenderMode mode;
    float refresh_rate;
    float latency;
@@ -372,6 +373,7 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
       handle->period_frames = get_pow2(handle->spec.rate/DEFAULT_REFRESH);
       handle->fill.aim = (float)handle->period_frames/handle->spec.rate;
       handle->latency = handle->fill.aim/frame_sz;
+      handle->no_periods = DEFAULT_PERIODS;
 
       if (!m) {
          handle->mutex = _aaxMutexCreate(handle->mutex);
@@ -509,8 +511,32 @@ _aaxPipeWireDriverConnect(void *config, const void *id, xmlId *xid, const char *
                i = 16;
             }
          }
+
+         i = xmlNodeGetInt(xid, "periods");
+         if (i)
+         {
+            if (i < 1)
+            {
+               _AAX_DRVLOG("no periods too small.");
+               i = 1;
+            }
+            else if (i > 4)
+            {
+               _AAX_DRVLOG("no. periods too larget.");
+               i = 4;
+            }
+            handle->no_periods = i;
+         }
       }
    }
+#if 0
+ printf("\nrenderer: %s\n", handle->name);
+ printf("frequency-hz: %f\n", handle->frequency_hz);
+ printf("channels: %i\n", handle->no_tracks);
+ printf("bits-per-sample: %i\n", handle->bits_sample);
+ printf("periods: %i\n", handle->no_periods);
+ printf("\n");
+#endif
 
    return (void *)handle;
 }
@@ -580,7 +606,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
    _driver_t *handle = (_driver_t *)id;
    unsigned int period_samples;
    struct spa_audio_info_raw req;
-   int frame_sz;
+   int periods; // frame_sz;
    int rv = AAX_FALSE;
 
    *fmt = AAX_PCM16S;
@@ -592,18 +618,19 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       req.channels = handle->spec.channels;
    }
 
-   if (*refresh_rate > 100) {
-      *refresh_rate = 100;
+   if (*refresh_rate > 200) {
+      *refresh_rate = 200;
    }
 
+   periods = handle->no_periods;
    if (!registered) {
-      period_samples = get_pow2((size_t)rintf(req.rate/(*refresh_rate)));
+      period_samples = get_pow2((size_t)rintf(req.rate/(*refresh_rate*periods)));
    } else {
-      period_samples = get_pow2((size_t)rintf(req.rate/period_rate));
+      period_samples = get_pow2((size_t)rintf((req.rate*periods)/period_rate));
    }
    req.format = is_bigendian() ? SPA_AUDIO_FORMAT_F32_BE
                                : SPA_AUDIO_FORMAT_F32_LE;
-   frame_sz = req.channels*handle->bits_sample/8;
+// frame_sz = req.channels*handle->bits_sample/8;
 
    if (spa_audio_info_raw_valid(&req))
    {
@@ -667,7 +694,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       *speed = handle->spec.rate;
       *tracks = handle->spec.channels;
       if (!registered) {
-         *refresh_rate = handle->spec.rate/(float)period_samples;
+         *refresh_rate = handle->spec.rate/(float)period_samples/periods;
       } else {
          *refresh_rate = period_rate;
       }
@@ -773,7 +800,7 @@ _aaxPipeWireDriverCapture(const void *id, void **data, ssize_t *offset, size_t *
       {
          struct spa_buffer *spa_buf = pw_buf->buffer;
 
-         size = DEFAULT_PERIODS*spa_buf->datas[0].chunk->size;
+         size = handle->no_periods*spa_buf->datas[0].chunk->size;
          ppw_stream_queue_buffer(handle->pw, pw_buf);
       }
 
@@ -1040,10 +1067,10 @@ _aaxPipeWireDriverParam(const void *id, enum _aaxDriverParam param)
          rv = (float)handle->max_tracks;
          break;
       case DRIVER_MIN_PERIODS:
-         rv = 2.0f;
+         rv = 1.0f;
          break;
       case DRIVER_MAX_PERIODS:
-         rv = 2.0f;
+         rv = 4.0f;
          break;
       case DRIVER_MAX_SOURCES:
          rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
