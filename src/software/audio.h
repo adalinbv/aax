@@ -64,7 +64,7 @@ void _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *);
 
 /* emitter */
 char _aaxEmittersProcess(_aaxRingBuffer*, const _aaxMixerInfo*, float, float, _aax2dProps*, _aax3dProps*, _intBuffers*, _intBuffers*, const _aaxDriverBackend*, void*);
-void _aaxEmitterPrepare3d(_aaxEmitter*, const _aaxMixerInfo*, float, float, vec4f_t*, _aax3dProps*);
+void _aaxEmitterPrepare3d(_aaxEmitter*, const void*);
 
 
 

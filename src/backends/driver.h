@@ -155,7 +155,7 @@ typedef char *_aaxDriverGetInterfaces(const void*, const char*, int mode);
 typedef size_t _aaxDriverPlaybackCallback(const void*, void*, float, float, char);
 typedef ssize_t _aaxDriverCaptureCallback(const void*, void**, ssize_t*, size_t*, void*, size_t, float, char);
 
-typedef void _aaxDriverPrepare3d(void*, const void*, float, float, void*, void*);
+typedef void _aaxDriverPrepare3d(void*, const void*);
 typedef void _aaxDriverPostProcess(const void*, const void*, void*, const void*, const void*, const void*);
 typedef void _aaxDriverPrepare(const void*, const void*, void*, const void*, char, char);
 

@@ -536,7 +536,7 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_ptr rpos, float dist_fact,
 }
 
 float
-_distance_prepare(_aax2dProps *ep2d, _aax3dProps *ep3d, _aaxDelayed3dProps *fdp3d_m, vec3f_ptr epos, float dist_ef, vec4f_ptr speaker, const _aaxMixerInfo* info)
+_distance_prepare(_aax2dProps *ep2d, _aax3dProps *ep3d, _aaxDelayed3dProps *fdp3d_m, vec3f_ptr epos, float dist_ef, const vec4f_ptr speaker, const _aaxMixerInfo* info)
 {
    _aaxRingBufferDistanceData *data;
    float refdist, maxdist, rolloff;

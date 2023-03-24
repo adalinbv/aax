@@ -34,6 +34,7 @@
 
 #include "cpu/arch2d_simd.h"
 #include "rbuf_int.h"
+#include "renderer.h"
 #include "audio.h"
 
 char
@@ -191,6 +192,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
          if (sptr_rb)
          {
             _aaxRingBuffer *ssr_rb = _intBufGetDataPtr(sptr_rb);
+            _aaxRendererData renderer;
             size_t res = 0;
 
             do
@@ -212,7 +214,10 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
                } else {
                   p2d->final.gain_lfo = 1.0f;
                }
-               res = drb->mix2d(drb, ssr_rb, smixer->info, smixer->props2d, p2d, 0, 1.0f, NULL);
+
+               renderer.info = smixer->info;
+               renderer.fp2d = p2d;
+               res = drb->mix2d(drb, ssr_rb, &renderer, smixer->props2d, 0, 1.0f, NULL);
                _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
 
                if (res) /* true if a new buffer is required */

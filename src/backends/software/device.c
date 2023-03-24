@@ -219,7 +219,7 @@ _aaxNoneDriverPlayback(UNUSED(const void *id), UNUSED(void *s), UNUSED(float pit
 }
 
 static void
-_aaxNoneDriver3dPrepare(UNUSED(void* src), UNUSED(const void *info), UNUSED(float ssv), UNUSED(float sdf), UNUSED(void *fp2dpos), UNUSED( void *fp3d))
+_aaxNoneDriver3dPrepare(UNUSED(void* src), UNUSED(const void *daat))
 {
 }
 
@@ -439,14 +439,14 @@ _aaxLoopbackDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned 
 }
 
 void
-_aaxSoftwareDriver3dPrepare(void* src, const void *info, float ssv, float sdf, void* fp2dpos, void *fp3d)
+_aaxSoftwareDriver3dPrepare(void* src, const void *data)
 {
    assert(fp2dpos);
    assert(fp3d);
    assert(info);
    assert(src);
 
-   _aaxEmitterPrepare3d(src, info, ssv, sdf, fp2dpos, fp3d);
+   _aaxEmitterPrepare3d(src, data);
 }
 
 static float

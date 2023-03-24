@@ -40,6 +40,7 @@
 #include <ringbuffer.h>
 
 #include "rbuf_int.h"
+#include "renderer.h"
 #include "audio.h"
 
 /**
@@ -60,8 +61,11 @@
  * @history source history buffer
  */
 int
-_aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ctr, float buffer_gain, _history_t history)
+_aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *data, _aax2dProps *ep2d, unsigned char ctr, float buffer_gain, _history_t history)
 {
+    const _aaxRendererData *renderer = (const _aaxRendererData*)data;
+    const _aaxMixerInfo *info = renderer->info;
+    _aax2dProps *fp2d = renderer->fp2d;
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd, *srbd;
    _aaxEnvelopeData *penv, *pslide;
@@ -203,6 +207,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
 
 // if (!ep2d->final.silence)
    {
+      const _aaxRendererData *renderer = (const _aaxRendererData*)data;
       float svol, evol;
 
       /* Automatic volume ramping to avoid clicking */
@@ -215,7 +220,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
       }
 
       gain *= gnvel;
-      drbd->mixmn(drbd, srbd, sptr, info->router, ep2d, offs, dno_samples,
+      drbd->mixmn(drbd, srbd, sptr, renderer->info->router, ep2d, offs, dno_samples,
                   gain, svol, evol, ctr);
    }
 

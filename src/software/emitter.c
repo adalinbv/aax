@@ -126,11 +126,8 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
          ctr = 0;
          if (ctr == 0)
          {
-            if (stage == 2)
-            {
-               data->be->prepare3d(src, data->info, data->ssv, data->sdf,
-                                data->fp2d->speaker, data->fp3d);
-
+            if (stage == 2) {
+               data->be->prepare3d(src, data);
             }
             src->update_ctr = src->update_rate;
          }
@@ -168,7 +165,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
             else
             {
                assert(!_IS_POSITIONAL(src->props3d));
-               res = drb->mix2d(drb, srb, data->info, ep2d, data->fp2d,  ctr,
+               res = drb->mix2d(drb, srb, data, ep2d, ctr,
                                           buffer_gain, src->history);
             }
 
@@ -234,8 +231,14 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
  * fdp3d_m: frame dp3d->dprops3d
  */
 void
-_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aax3dProps *fp3d)
+_aaxEmitterPrepare3d(_aaxEmitter *src, const void *data)
 {
+   const _aaxRendererData *renderer = (const _aaxRendererData*)data;
+   const _aaxMixerInfo* info = renderer->info;
+   const _aax3dProps *fp3d = renderer->fp3d;
+   const vec4f_t *speaker = info->speaker;
+   float ssv = renderer->ssv;
+   float sdf = renderer->sdf;
    _aaxDelayed3dProps *sdp3d_m, *fdp3d_m;
    _aaxDelayed3dProps *edp3d, *edp3d_m;
    _aax3dProps *ep3d;
