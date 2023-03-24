@@ -647,8 +647,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       //
       // PW_STREAM_FLAG_EXCLUSIVE 		// require exclusive access
       flags = PW_STREAM_FLAG_AUTOCONNECT |	// try to automatically connect
-              PW_STREAM_FLAG_MAP_BUFFERS |	// mmap the buffers
-              PW_STREAM_FLAG_DONT_RECONNECT;    // don't try to reconnect
+              PW_STREAM_FLAG_MAP_BUFFERS;  	// mmap the buffers
       if (handle->mode != AAX_MODE_READ) {
 //       flags |= PW_STREAM_FLAG_INACTIVE;	// start the stream inactive
       }
