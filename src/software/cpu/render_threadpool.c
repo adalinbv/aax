@@ -370,18 +370,21 @@ _aaxWorkerThread(void *id)
       int *num = &handle->max_emitters;
       _aaxRendererData *data;
       _aaxRingBuffer *drb;
+      MIX_T **scratch;
 
       data = handle->data;
       assert(data);
 
+      scratch = _aaxRingBufferCreateScratch(data->drb);
+
       drb = data->drb->duplicate(data->drb, AAX_TRUE, AAX_TRUE);
       drb->set_state(drb, RB_STARTED);
-      data->scratch = _aaxRingBufferCreateScratch(drb);
 
       _aaxThreadSetPriority(thread->ptr, AAX_HIGH_PRIORITY);
       do
       {
          data = handle->data;
+         data->scratch = scratch;
          switch(data->mode)
          {
          case THREAD_PROCESS_EMITTER:
@@ -463,7 +466,7 @@ _aaxWorkerThread(void *id)
       }
       while (thread->started == AAX_TRUE);
 
-      free(data->scratch);
+      free(scratch);
       drb->destroy(drb);
    }
 
