@@ -224,12 +224,12 @@ _aaxNoneDriver3dPrepare(UNUSED(void* src), UNUSED(const void *daat))
 }
 
 static void
-_aaxNoneDriverPrepare(UNUSED(const void *id), UNUSED(const void *hid), UNUSED(void *s), UNUSED(const void *l), UNUSED(char mono), UNUSED(char order))
+_aaxNoneDriverPrepare(UNUSED(const void *id))
 {
 }
 
 static void
-_aaxNoneDriverPostProcess(UNUSED(const void *id), UNUSED(const void *hid), UNUSED(void *s), UNUSED(const void *l), UNUSED(const void *f), UNUSED(const void *i))
+_aaxNoneDriverPostProcess(UNUSED(const void *id))
 {
 }
 

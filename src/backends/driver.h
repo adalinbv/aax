@@ -156,8 +156,8 @@ typedef size_t _aaxDriverPlaybackCallback(const void*, void*, float, float, char
 typedef ssize_t _aaxDriverCaptureCallback(const void*, void**, ssize_t*, size_t*, void*, size_t, float, char);
 
 typedef void _aaxDriverPrepare3d(void*, const void*);
-typedef void _aaxDriverPostProcess(const void*, const void*, void*, const void*, const void*, const void*);
-typedef void _aaxDriverPrepare(const void*, const void*, void*, const void*, char, char);
+typedef void _aaxDriverPostProcess(const void*);
+typedef void _aaxDriverPrepare(const void*);
 
 typedef unsigned int _aaxDriverGetSetSources(unsigned int, int);
 
@@ -224,8 +224,8 @@ void _aaxNoneDriverProcessFrame(void*);
 
 void* _aaxSoftwareMixerThread(void*);
 int _aaxSoftwareMixerThreadUpdate(void*, void*);
-void _aaxSoftwareMixerPostProcess(const void *, const void *, void *, const void *, const void*, const void*);
-void _aaxSoftwareMixerApplyEffects(const void *, const void *, void *, const void *, char, char);
+void _aaxSoftwareMixerPostProcess(const void *);
+void _aaxSoftwareMixerApplyEffects(const void *);
 
 
 uint32_t getMSChannelMask(uint16_t);

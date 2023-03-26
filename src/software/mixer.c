@@ -39,6 +39,7 @@
 #include <ringbuffer.h>
 
 #include "rbuf_int.h"
+#include "renderer.h"
 #include "audio.h"
 
 
@@ -46,8 +47,14 @@ static void _aaxSubFramePostProcess(void*, const void*);
 static void _aaxSensorPostProcess(const void*, const void*, void*, const void*, const void*);
 
 void
-_aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const void *props2d, char mono, UNUSED(char order))
+_aaxSoftwareMixerApplyEffects(const void *data)
 {
+   const _aaxRendererData *renderer = (_aaxRendererData*)data;
+   const void *id = renderer->be;
+   const void *hid = renderer->be_handle;
+   void *drb = renderer->drb;
+   const void *props2d = renderer->fp2d;
+   char mono = renderer->mono;
    _aaxDriverBackend *be = (_aaxDriverBackend*)id;
    _aaxRingBufferDelayEffectData* delay_effect;
    _aaxRingBufferFreqFilterData* freq_filter;
@@ -114,15 +121,20 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
 }
 
 void
-_aaxSoftwareMixerPostProcess(const void *id, const void *hid, void *d, const void *s, const void *f, const void *i)
+_aaxSoftwareMixerPostProcess(const void *data)
 {
-   const _frame_t *subframe = (_frame_t*)f;
-   _sensor_t *sensor = (_sensor_t*)s;
+   const _aaxRendererData *renderer = (_aaxRendererData*)data;
+   const void *id = renderer->be;
+   const void *hid = renderer->be_handle;
+   void *drb = renderer->drb;
+   const void *info = renderer->info;
+   const _frame_t *subframe = (_frame_t*)renderer->subframe;
+   _sensor_t *sensor = (_sensor_t*)renderer->sensor;
 
    if (subframe) {
-      _aaxSubFramePostProcess(d, subframe);
+      _aaxSubFramePostProcess(drb, subframe);
    } else if (sensor) {
-      _aaxSensorPostProcess(id, hid, d, sensor, i);
+      _aaxSensorPostProcess(id, hid, drb, sensor, info);
    }
 }
 

@@ -59,6 +59,7 @@ typedef struct _aaxRendererData_t
    _aaxRendererCallback *callback;
    const _aaxDriverBackend *be;
    void *be_handle;
+   MIX_T **scratch;
 
    float ssv;
    float sdf;

@@ -39,6 +39,8 @@ extern "C" {
 #include <arch.h>
 #include <api.h>
 
+MIX_T** _aaxRingBufferCreateScratch(_aaxRingBuffer*);
+
 
 /** forwrad declaration */
 typedef struct _aaxRingBufferData_t __aaxRingBufferData;

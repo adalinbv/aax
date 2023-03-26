@@ -295,6 +295,52 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
    while (0);
 }
 
+MIX_T**
+_aaxRingBufferCreateScratch(_aaxRingBuffer *rb)
+{
+   size_t i, offs, tracks, no_samples, tracksize, dde_bytes;
+   _aaxRingBufferSample *rbd;
+   _aaxRingBufferData *rbi;
+   char bps, *ptr, *ptr2;
+   MIX_T **rv = NULL;
+
+   _AAX_LOG(LOG_DEBUG, __func__);
+
+   assert(rb != NULL);
+
+   rbi = rb->handle;
+   assert(rbi != NULL);
+   assert(rbi->parent == rb);
+
+   rbd = rbi->sample;
+
+   bps = rbd->bits_sample;
+   no_samples = rbd->no_samples_avail;
+   dde_bytes = rbd->dde_samples*bps/8;
+   dde_bytes = SIZE_ALIGNED(dde_bytes);
+
+   // scratch buffers have two delay effects sections
+   tracksize = 2*dde_bytes + no_samples*bps/8;
+   tracks = MAX_SCRATCH_BUFFERS;
+
+   /* align every buffer */
+   tracksize = SIZE_ALIGNED(tracksize);
+
+   offs = tracks * sizeof(void*);
+   ptr = _aax_calloc(&ptr2, offs, tracks, tracksize);
+   if (ptr)
+   {
+      rv = (MIX_T**)ptr;
+      for (i=0; i<tracks; i++)
+      {
+         rv[i] = (MIX_T*)ptr2 + dde_bytes;
+         ptr2 += tracksize;
+      }
+   }
+
+   return rv;
+}
+
 void
 _aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
 {
@@ -312,35 +358,8 @@ _aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
    rbd = rbi->sample;
    _aaxRingBufferInitTracks(rbi);
 
-   if (add_scratchbuf && rbd->scratch == NULL)
-   {
-      size_t i, offs, tracks, no_samples, tracksize, dde_bytes;
-      char *ptr, *ptr2;
-      char bps;
-
-      bps = rbd->bits_sample;
-      no_samples = rbd->no_samples_avail;
-      dde_bytes = rbd->dde_samples*bps/8;
-      dde_bytes = SIZE_ALIGNED(dde_bytes);
-
-      // scratch buffers have two delay effects sections
-      tracksize = 2*dde_bytes + no_samples*bps/8;
-      tracks = MAX_SCRATCH_BUFFERS;
-
-      /* align every buffer */
-      tracksize = SIZE_ALIGNED(tracksize);
-
-      offs = tracks * sizeof(void*);
-      ptr = _aax_calloc(&ptr2, offs, tracks, tracksize);
-      if (ptr)
-      {
-         rbd->scratch = (void **)ptr;
-         for (i=0; i<tracks; i++)
-         {
-            rbd->scratch[i] = ptr2 + dde_bytes;
-            ptr2 += tracksize;
-         }
-      }
+   if (add_scratchbuf && rbd->scratch == NULL) {
+      rbd->scratch = (void**)_aaxRingBufferCreateScratch(rb);
    }
 }
 

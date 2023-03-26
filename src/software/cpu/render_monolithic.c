@@ -136,13 +136,15 @@ _aaxCPUProcess(UNUSED(struct _aaxRenderer_t *render), _aaxRendererData *data)
 {
    int rv = AAX_TRUE;
 
+   if (data->scratch == NULL) {
+      data->scratch = (void**)data->drb->get_scratch(data->drb);
+   }
+
    switch(data->mode)
    {
    case THREAD_PROCESS_AUDIOFRAME:
-      data->be->effects(data->be, data->be_handle, data->drb, data->fp2d,
-                        data->mono, data->ssr);
-      data->be->postprocess(data->be, data->be_handle, data->drb,
-                            data->sensor, data->subframe, data->info);
+      data->be->effects(data);
+      data->be->postprocess(data);
       break;
    case THREAD_PROCESS_EMITTER:
    {

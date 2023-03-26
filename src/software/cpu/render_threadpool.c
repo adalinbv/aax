@@ -376,6 +376,7 @@ _aaxWorkerThread(void *id)
 
       drb = data->drb->duplicate(data->drb, AAX_TRUE, AAX_TRUE);
       drb->set_state(drb, RB_STARTED);
+      data->scratch = _aaxRingBufferCreateScratch(drb);
 
       _aaxThreadSetPriority(thread->ptr, AAX_HIGH_PRIORITY);
       do
@@ -432,10 +433,15 @@ _aaxWorkerThread(void *id)
          case THREAD_PROCESS_AUDIOFRAME:
          {
             _aaxAtomicIntSub(num, 1);
+#if 1
+            data->be->effects(data);
+            data->be->postprocess(data);
+#else
             data->be->effects(data->be, data->be_handle, data->drb, data->fp2d,
                               data->mono, data->ssr);
             data->be->postprocess(data->be, data->be_handle, data->drb,
                                   data->sensor, data->subframe, data->info);
+#endif
             break;
          }
          case THREAD_PROCESS_CONVOLUTION:
@@ -457,6 +463,7 @@ _aaxWorkerThread(void *id)
       }
       while (thread->started == AAX_TRUE);
 
+      free(data->scratch);
       drb->destroy(drb);
    }
 
