@@ -137,7 +137,7 @@ _aaxCPUProcess(UNUSED(struct _aaxRenderer_t *render), _aaxRendererData *data)
    int rv = AAX_TRUE;
 
    if (data->scratch == NULL) {
-      data->scratch = (void**)data->drb->get_scratch(data->drb);
+      data->scratch = data->drb->get_scratch(data->drb);
    }
 
    switch(data->mode)

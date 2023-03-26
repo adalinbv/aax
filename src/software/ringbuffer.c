@@ -333,7 +333,7 @@ _aaxRingBufferCreateScratch(_aaxRingBuffer *rb)
       rv = (MIX_T**)ptr;
       for (i=0; i<tracks; i++)
       {
-         rv[i] = (MIX_T*)ptr2 + dde_bytes;
+         rv[i] = (MIX_T*)(ptr2 + dde_bytes);
          ptr2 += tracksize;
       }
    }

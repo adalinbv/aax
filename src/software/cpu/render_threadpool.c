@@ -436,15 +436,8 @@ _aaxWorkerThread(void *id)
          case THREAD_PROCESS_AUDIOFRAME:
          {
             _aaxAtomicIntSub(num, 1);
-#if 1
             data->be->effects(data);
             data->be->postprocess(data);
-#else
-            data->be->effects(data->be, data->be_handle, data->drb, data->fp2d,
-                              data->mono, data->ssr);
-            data->be->postprocess(data->be, data->be_handle, data->drb,
-                                  data->sensor, data->subframe, data->info);
-#endif
             break;
          }
          case THREAD_PROCESS_CONVOLUTION:
