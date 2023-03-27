@@ -43,26 +43,22 @@
 #include "audio.h"
 
 
-static void _aaxSubFramePostProcess(void*, const void*);
-static void _aaxSensorPostProcess(const void*, const void*, void*, const void*, const void*);
+static void _aaxSubFramePostProcess(const _aaxRendererData*);
+static void _aaxSensorPostProcess(const _aaxRendererData*);
 
 void
 _aaxSoftwareMixerApplyEffects(const void *data)
 {
    const _aaxRendererData *renderer = (_aaxRendererData*)data;
-   const void *id = renderer->be;
-   const void *hid = renderer->be_handle;
-   void *drb = renderer->drb;
-   const void *props2d = renderer->fp2d;
-   char mono = renderer->mono;
-   _aaxDriverBackend *be = (_aaxDriverBackend*)id;
+   const _aaxDriverBackend *be = renderer->be;
+   _aaxRingBuffer *rb = renderer->drb;
+   _aax2dProps *p2d = renderer->fp2d;
    _aaxRingBufferDelayEffectData* delay_effect;
    _aaxRingBufferFreqFilterData* freq_filter;
    _aaxRingBufferOcclusionData *occlusion;
    _aaxRingBufferReverbData *reverb;
-   _aaxRingBuffer *rb = (_aaxRingBuffer *)drb;
-   _aax2dProps *p2d = (_aax2dProps*)props2d;
    int bps, dist_state, ringmodulator;
+   char mono = renderer->mono;
    float maxgain, gain;
 
    assert(rb != 0);
@@ -114,7 +110,7 @@ _aaxSoftwareMixerApplyEffects(const void *data)
     * hardware volume support, adjust the difference here (before the
     * compressor/limiter)
     */
-   maxgain = be->param(hid, DRIVER_MAX_VOLUME);
+   maxgain = be->param(renderer->be_handle, DRIVER_MAX_VOLUME);
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
    if (gain > maxgain) gain = maxgain;
    rb->data_multiply(rb, 0, 0, gain);
@@ -124,17 +120,10 @@ void
 _aaxSoftwareMixerPostProcess(const void *data)
 {
    const _aaxRendererData *renderer = (_aaxRendererData*)data;
-   const void *id = renderer->be;
-   const void *hid = renderer->be_handle;
-   void *drb = renderer->drb;
-   const void *info = renderer->info;
-   const _frame_t *subframe = (_frame_t*)renderer->subframe;
-   _sensor_t *sensor = (_sensor_t*)renderer->sensor;
-
-   if (subframe) {
-      _aaxSubFramePostProcess(drb, subframe);
-   } else if (sensor) {
-      _aaxSensorPostProcess(id, hid, drb, sensor, info);
+   if (renderer->subframe) {
+      _aaxSubFramePostProcess(renderer);
+   } else if (renderer->sensor) {
+      _aaxSensorPostProcess(renderer);
    }
 }
 
@@ -194,10 +183,10 @@ _aaxFrameProcessEqualizer(_aaxRingBuffer *rb, _aaxAudioFrame *mixer)
 }
 
 static void
-_aaxSubFramePostProcess(void *d, const void *f)
+_aaxSubFramePostProcess(const _aaxRendererData *renderer)
 {
-   _aaxRingBuffer *rb = (_aaxRingBuffer*)d;
-   const _frame_t *subframe = (_frame_t*)f;
+   _aaxRingBuffer *rb = renderer->drb;
+   const _frame_t *subframe = renderer->subframe;
 
    assert(rb != 0);
    assert(rb->handle != 0);
@@ -211,13 +200,13 @@ _aaxSubFramePostProcess(void *d, const void *f)
 
 
 static void
-_aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, const void *i)
+_aaxSensorPostProcess(const _aaxRendererData *renderer)
 {
    _aaxRingBufferConvolutionData *convolution;
-   _aaxRingBuffer *rb = (_aaxRingBuffer*)d;
-   _aaxMixerInfo *info = (_aaxMixerInfo*)i;
-   _sensor_t *sensor = (_sensor_t*)s;
-   unsigned char *router = info->router;
+   const _aaxMixerInfo *info = renderer->info;
+   const unsigned char *router = info->router;
+   _sensor_t *sensor = renderer->sensor;
+   _aaxRingBuffer *rb = renderer->drb;
    unsigned char lfe_track, t, no_tracks;
    size_t no_samples, track_len_bytes;
    MIX_T **tracks, **scratch;
@@ -288,7 +277,7 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, c
 
    _aaxMutexLock(sensor->mutex);
    if (convolution) {
-      convolution->run(id, hid, rb, convolution);
+      convolution->run(renderer->be, renderer->be_handle, rb, convolution);
    }
 
    if (compressor && compressor->envelope)
