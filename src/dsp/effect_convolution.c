@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2021 by Erik Hofman.
- * Copyright 2009-2021 by Adalin B.V.
+ * Copyright 2007-2023 by Erik Hofman.
+ * Copyright 2009-2023 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -387,7 +387,7 @@ _convolution_destroy(void *ptr)
 //    rbd->add(hptr++, cptr, irnum, volume, 0.0f);
 // }
 static int
-_convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferData *dptr_src), unsigned int track)
+_convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *data, UNUSED(_intBufferData *dptr_src), unsigned int track)
 {
    _aaxRingBufferConvolutionData *convolution;
    _aaxRingBufferOcclusionData *occlusion;
@@ -397,7 +397,7 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
 
-   convolution = d->be_handle;
+   convolution = data->be_handle;
    hptr = (MIX_T*)convolution->history->history[track];
    hpos = convolution->history_start[track];
    cnum = convolution->no_samples - hpos;
@@ -407,7 +407,7 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
    rbi = rb->handle;
    rbd = rbi->sample;
    dptr = sptr = rbd->track[track];
-   scratch = rbd->scratch[0];
+   scratch = data->scratch[track];
    dnum = rb->get_parami(rb, RB_NO_SAMPLES);
    {
       MIX_T *cptr;

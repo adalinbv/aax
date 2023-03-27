@@ -1,6 +1,6 @@
 /*
- * Copyright 2012-2018 by Erik Hofman.
- * Copyright 2012-2018 by Adalin B.V.
+ * Copyright 2012-2023 by Erik Hofman.
+ * Copyright 2012-2023 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -231,7 +231,8 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
       data.be = be;
       data.be_handle = be_handle;
 
-      return render->process(render, &data);
+      be->effects(&data);
+      be->postprocess(&data);
    }
 
    return process;

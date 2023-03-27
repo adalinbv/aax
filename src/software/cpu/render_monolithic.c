@@ -1,6 +1,6 @@
 /*
- * Copyright 2013-2018 by Erik Hofman.
- * Copyright 2013-2018 by Adalin B.V.
+ * Copyright 2013-2023 by Erik Hofman.
+ * Copyright 2013-2023 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -136,16 +136,10 @@ _aaxCPUProcess(UNUSED(struct _aaxRenderer_t *render), _aaxRendererData *data)
 {
    int rv = AAX_TRUE;
 
-   if (data->scratch == NULL) {
-      data->scratch = data->drb->get_scratch(data->drb);
-   }
+   data->scratch = (MIX_T**)data->drb->get_scratch(data->drb);
 
    switch(data->mode)
    {
-   case THREAD_PROCESS_AUDIOFRAME:
-      data->be->effects(data);
-      data->be->postprocess(data);
-      break;
    case THREAD_PROCESS_EMITTER:
    {
       _intBuffers *he = data->e3d;
@@ -182,6 +176,20 @@ _aaxCPUProcess(UNUSED(struct _aaxRenderer_t *render), _aaxRendererData *data)
          }
       }
       while (--stage); /* process 3d positional and stereo emitters */
+      break;
+   }
+   case THREAD_PROCESS_AUDIOFRAME:
+   {
+      _aaxRingBuffer *rb = data->drb;
+      int t, no_tracks;
+
+      data->scratch = (MIX_T**)data->drb->get_scratch(rb);
+      no_tracks = data->mono ? 1 : rb->get_parami(rb, RB_NO_TRACKS);
+      for (t=0; t<no_tracks; ++t) {
+         data->callback(rb, data, NULL, t);
+      }
+
+      rv = AAX_TRUE;
       break;
    }
    case THREAD_PROCESS_CONVOLUTION:

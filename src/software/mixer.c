@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2023 by Erik Hofman.
+ * Copyright 2009-2023 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -46,12 +46,11 @@
 static void _aaxSubFramePostProcess(const _aaxRendererData*);
 static void _aaxSensorPostProcess(const _aaxRendererData*);
 
-void
-_aaxSoftwareMixerApplyEffects(const void *data)
+static int
+_aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *data, UNUSED(_intBufferData *dptr_src), unsigned int track)
 {
    const _aaxRendererData *renderer = (_aaxRendererData*)data;
    const _aaxDriverBackend *be = renderer->be;
-   _aaxRingBuffer *rb = renderer->drb;
    _aax2dProps *p2d = renderer->fp2d;
    _aaxRingBufferDelayEffectData* delay_effect;
    _aaxRingBufferFreqFilterData* freq_filter;
@@ -77,14 +76,14 @@ _aaxSoftwareMixerApplyEffects(const void *data)
    {
       _aaxRingBufferData *rbi = rb->handle;
       _aaxRingBufferSample *rbd = rbi->sample;
-      MIX_T **scratch = (MIX_T**)rb->get_scratch(rb);
-      MIX_T *scratch0 = scratch[SCRATCH_BUFFER0];
-      MIX_T *scratch1 = scratch[SCRATCH_BUFFER1];
+      MIX_T **scratch = data->scratch;
+      MIX_T *scratch0 = scratch[2*track];
+      MIX_T *scratch1 = scratch[2*track+1];
       size_t no_samples, ddesamps = 0;
-      int track, no_tracks;
-      MIX_T **tracks;
+      MIX_T **tracks, *dptr;
 
-      no_tracks = mono ? 1 : rb->get_parami(rb, RB_NO_TRACKS);
+      assert (2*track+1 < MAX_SCRATCH_BUFFERS);
+
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
       tracks = (MIX_T**)rbd->track;
 
@@ -92,17 +91,13 @@ _aaxSoftwareMixerApplyEffects(const void *data)
          ddesamps = rb->get_parami(rb, RB_DDE_SAMPLES);
       }
 
-      for (track=0; track<no_tracks; track++)
-      {
-         MIX_T *dptr = (MIX_T*)tracks[track];
-
-         if (!ddesamps && delay_effect) {
-            ddesamps = delay_effect->delay.sample_offs[track];
-         }
-         memcpy(scratch0, dptr, no_samples*bps);
-         rbi->effects_2nd(rbi->sample, dptr, scratch0, scratch1, 0, no_samples,
-                          no_samples, ddesamps, track, p2d, 0, mono);
+      dptr = (MIX_T*)tracks[track];
+      if (!ddesamps && delay_effect) {
+         ddesamps = delay_effect->delay.sample_offs[track];
       }
+      memcpy(scratch0, dptr, no_samples*bps);
+      rbi->effects_2nd(rbi->sample, dptr, scratch0, scratch1, 0, no_samples,
+                       no_samples, ddesamps, track, p2d, 0, mono);
    }
 
    /*
@@ -114,16 +109,27 @@ _aaxSoftwareMixerApplyEffects(const void *data)
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
    if (gain > maxgain) gain = maxgain;
    rb->data_multiply(rb, 0, 0, gain);
+
+   return AAX_TRUE;
 }
 
 void
-_aaxSoftwareMixerPostProcess(const void *data)
+_aaxSoftwareMixerApplyEffects(const void *renderer)
 {
-   const _aaxRendererData *renderer = (_aaxRendererData*)data;
-   if (renderer->subframe) {
-      _aaxSubFramePostProcess(renderer);
-   } else if (renderer->sensor) {
-      _aaxSensorPostProcess(renderer);
+   _aaxRendererData *data = (_aaxRendererData*)renderer;
+   _aaxRenderer *render = data->be->render(data->be_handle);
+   data->callback = _aaxSoftwareMixerApplyTrackEffects;
+   render->process(render, data);
+}
+
+void
+_aaxSoftwareMixerPostProcess(const void *renderer)
+{
+   const _aaxRendererData *data = (_aaxRendererData*)renderer;
+   if (data->subframe) {
+      _aaxSubFramePostProcess(data);
+   } else if (data->sensor) {
+      _aaxSensorPostProcess(data);
    }
 }
 

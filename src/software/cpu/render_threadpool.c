@@ -1,6 +1,6 @@
 /*
- * Copyright 2013-2020 by Erik Hofman.
- * Copyright 2013-2020 by Adalin B.V.
+ * Copyright 2013-2023 by Erik Hofman.
+ * Copyright 2013-2023 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -301,20 +301,41 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
    }
    case THREAD_PROCESS_AUDIOFRAME:
    {
+#if 1
+      _aaxRingBuffer *rb = data->drb;
+      int t, no_tracks;
+
+      data->scratch = (MIX_T**)data->drb->get_scratch(rb);
+      no_tracks = data->mono ? 1 : rb->get_parami(rb, RB_NO_TRACKS);
+      for (t=0; t<no_tracks; ++t) {
+         data->callback(rb, data, NULL, t);
+      }
+
+      rv = AAX_TRUE;
+      break;
+#else
       _render_t *handle = renderer->id;
+      _aaxRingBuffer *rb = data->drb;
+      int t, no_tracks;
 
-      handle->max_emitters = 0;
-      handle->data = data;
+      no_tracks = data->mono ? 1 : rb->get_parami(rb, RB_NO_TRACKS);
+      _aaxAtomicIntAdd(&handle->workers_busy, no_tracks);
 
-      _aaxAtomicIntAdd(&handle->workers_busy, 1);
+      // wake up the worker threads
+      for (t=0; t<no_tracks; ++t)
+      {
+         handle->max_emitters = no_tracks;
+         handle->data = data;
 
-      _aaxSemaphoreRelease(handle->worker_start);
+         _aaxSemaphoreRelease(handle->worker_start);
+      }
 
       // Wait until al worker threads are finished
       _aaxSemaphoreWait(handle->worker_ready);
 
       rv = AAX_TRUE;
       break;
+#endif
    }
    case THREAD_PROCESS_CONVOLUTION:
    {
@@ -434,12 +455,6 @@ _aaxWorkerThread(void *id)
             break;
          }
          case THREAD_PROCESS_AUDIOFRAME:
-         {
-            _aaxAtomicIntSub(num, 1);
-            data->be->effects(data);
-            data->be->postprocess(data);
-            break;
-         }
          case THREAD_PROCESS_CONVOLUTION:
          {
             int track = _aaxAtomicIntSub(num, 1) - 1;
