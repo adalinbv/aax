@@ -101,8 +101,9 @@ _aaxCPUOpen(void* id)
 }
 
 static int
-_aaxCPUClose(UNUSED(void* id))
+_aaxCPUClose(void* id)
 {
+   if (id) free(id);
    return AAX_TRUE;
 }
 
@@ -132,11 +133,14 @@ _aaxCPUInfo(UNUSED(void *id))
 }
 
 static int
-_aaxCPUProcess(UNUSED(struct _aaxRenderer_t *render), _aaxRendererData *data)
+_aaxCPUProcess(struct _aaxRenderer_t *render, _aaxRendererData *data)
 {
    int rv = AAX_TRUE;
 
-   data->scratch = (MIX_T**)data->drb->get_scratch(data->drb);
+   if (render->id == (void*)-1) {
+      render->id = _aaxRingBufferCreateScratch(data->drb);
+   }
+   data->scratch = render->id;
 
    switch(data->mode)
    {
@@ -183,7 +187,6 @@ _aaxCPUProcess(UNUSED(struct _aaxRenderer_t *render), _aaxRendererData *data)
       _aaxRingBuffer *rb = data->drb;
       int t, no_tracks;
 
-      data->scratch = (MIX_T**)data->drb->get_scratch(rb);
       no_tracks = data->mono ? 1 : rb->get_parami(rb, RB_NO_TRACKS);
       for (t=0; t<no_tracks; ++t) {
          data->callback(rb, data, NULL, t);
