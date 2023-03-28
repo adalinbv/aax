@@ -235,8 +235,8 @@ _aaxEmitterPrepare3d(_aaxEmitter *src, const void *data)
 {
    const _aaxRendererData *renderer = (const _aaxRendererData*)data;
    const _aaxMixerInfo* info = renderer->info;
+   const vec4f_ptr speaker = (const vec4f_ptr)info->speaker;
    const _aax3dProps *fp3d = renderer->fp3d;
-   const vec4f_t *speaker = info->speaker;
    float ssv = renderer->ssv;
    float sdf = renderer->sdf;
    _aaxDelayed3dProps *sdp3d_m, *fdp3d_m;

@@ -215,7 +215,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
 
    if (process)
    {
-      _aaxRenderer *render = be->render(be_handle);
+//    _aaxRenderer *render = be->render(be_handle);
       _aaxRendererData data;
 
       data.mode = THREAD_PROCESS_AUDIOFRAME;

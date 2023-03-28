@@ -207,7 +207,6 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *d
 
 // if (!ep2d->final.silence)
    {
-      const _aaxRendererData *renderer = (const _aaxRendererData*)data;
       float svol, evol;
 
       /* Automatic volume ramping to avoid clicking */
@@ -220,7 +219,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *d
       }
 
       gain *= gnvel;
-      drbd->mixmn(drbd, srbd, sptr, renderer->info->router, ep2d, offs, dno_samples,
+      drbd->mixmn(drbd, srbd, sptr, info->router, ep2d, offs, dno_samples,
                   gain, svol, evol, ctr);
    }
 

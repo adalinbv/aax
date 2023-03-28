@@ -43,7 +43,6 @@
 #define DSIZE	sizeof(_aaxRingBufferOcclusionData)
 
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
-void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, void*);
 int _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
 void _occlusion_swap(void*, void*);
 void _occlusion_destroy(void*);
@@ -311,7 +310,7 @@ _occlusion_to_effect(_aaxEffectInfo *slot, _aaxRingBufferOcclusionData *occlusio
 }
 
 void
-_occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, void *data)
+_occlusion_prepare(_aaxEmitter *src, const _aax3dProps *fp3d, void *data)
 {
    _aaxRingBufferOcclusionData *occlusion = data;
    _aaxDelayed3dProps *pdp3d_m, *fdp3d_m;
