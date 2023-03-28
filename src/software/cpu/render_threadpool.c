@@ -109,6 +109,8 @@ typedef struct
    struct threat_t thread[_AAX_MAX_NO_WORKERS];
    _aaxRendererData *data;
 
+   void *id;
+
 } _render_t;
 
 static void* _aaxWorkerThread(void*);
@@ -159,6 +161,7 @@ _aaxWorkerClose(void* id)
    _aaxSemaphoreDestroy(handle->worker_ready);
    _aaxMutexDestroy(handle->mutex);
 
+   if (handle->id) free(handle->id);
    free(handle);
 
    return AAX_TRUE;
@@ -302,10 +305,14 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
    case THREAD_PROCESS_AUDIOFRAME:
    {
 #if 1
+      _render_t *handle = renderer->id;
       _aaxRingBuffer *rb = data->drb;
       int t, no_tracks;
 
-      data->scratch = (MIX_T**)data->drb->get_scratch(rb);
+      if (!handle->id) {
+         handle->id = _aaxRingBufferCreateScratch(data->drb);
+      }
+      data->scratch = handle->id;
       no_tracks = data->mono ? 1 : rb->get_parami(rb, RB_NO_TRACKS);
       for (t=0; t<no_tracks; ++t) {
          data->callback(rb, data, NULL, t);
