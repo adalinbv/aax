@@ -47,17 +47,17 @@ static void _aaxSubFramePostProcess(const _aaxRendererData*);
 static void _aaxSensorPostProcess(const _aaxRendererData*);
 
 static int
-_aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *data, UNUSED(_intBufferData *dptr_src), unsigned int track)
+_aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *renderer, UNUSED(_intBufferData *dptr_src), unsigned int track)
 {
-   const _aaxRendererData *renderer = (_aaxRendererData*)data;
-   const _aaxDriverBackend *be = renderer->be;
-   _aax2dProps *p2d = renderer->fp2d;
+   const _aaxRendererData *data = (_aaxRendererData*)renderer;
+   const _aaxDriverBackend *be = data->be;
+   _aax2dProps *p2d = data->fp2d;
    _aaxRingBufferDelayEffectData* delay_effect;
    _aaxRingBufferFreqFilterData* freq_filter;
    _aaxRingBufferOcclusionData *occlusion;
    _aaxRingBufferReverbData *reverb;
    int bps, dist_state, ringmodulator;
-   char mono = renderer->mono;
+   char mono = data->mono;
    float maxgain, gain;
 
    assert(rb != 0);
@@ -105,7 +105,7 @@ _aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *data, U
     * hardware volume support, adjust the difference here (before the
     * compressor/limiter)
     */
-   maxgain = be->param(renderer->be_handle, DRIVER_MAX_VOLUME);
+   maxgain = be->param(data->be_handle, DRIVER_MAX_VOLUME);
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
    if (gain > maxgain) gain = maxgain;
    rb->data_multiply(rb, 0, 0, gain);
@@ -136,7 +136,7 @@ _aaxSoftwareMixerPostProcess(const void *renderer)
 /* -------------------------------------------------------------------------- */
 
 static void
-_aaxFrameProcessEqualizer(_aaxRingBuffer *rb, _aaxAudioFrame *mixer)
+_aaxFrameProcessEqualizer(_aaxRingBuffer *rb, _aaxAudioFrame *mixer, MIX_T **scratch)
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
@@ -152,7 +152,6 @@ _aaxFrameProcessEqualizer(_aaxRingBuffer *rb, _aaxAudioFrame *mixer)
    if (parametric || graphic)
    {
       MIX_T **tracks = (MIX_T**)rbd->track;
-      MIX_T **scratch = (MIX_T**)rb->get_scratch(rb);
       int t, no_tracks;
       size_t no_samples;
 
@@ -189,30 +188,30 @@ _aaxFrameProcessEqualizer(_aaxRingBuffer *rb, _aaxAudioFrame *mixer)
 }
 
 static void
-_aaxSubFramePostProcess(const _aaxRendererData *renderer)
+_aaxSubFramePostProcess(const _aaxRendererData *data)
 {
-   _aaxRingBuffer *rb = renderer->drb;
-   const _frame_t *subframe = renderer->subframe;
+   _aaxRingBuffer *rb = data->drb;
+   const _frame_t *subframe = data->subframe;
 
    assert(rb != 0);
    assert(rb->handle != 0);
 
    _aaxMutexLock(subframe->mutex);
 
-   _aaxFrameProcessEqualizer(rb, subframe->submix);
+   _aaxFrameProcessEqualizer(rb, subframe->submix, data->scratch);
 
    _aaxMutexUnLock(subframe->mutex);
 }
 
 
 static void
-_aaxSensorPostProcess(const _aaxRendererData *renderer)
+_aaxSensorPostProcess(const _aaxRendererData *data)
 {
    _aaxRingBufferConvolutionData *convolution;
-   const _aaxMixerInfo *info = renderer->info;
+   const _aaxMixerInfo *info = data->info;
    const unsigned char *router = info->router;
-   _sensor_t *sensor = renderer->sensor;
-   _aaxRingBuffer *rb = renderer->drb;
+   _sensor_t *sensor = data->sensor;
+   _aaxRingBuffer *rb = data->drb;
    unsigned char lfe_track, t, no_tracks;
    size_t no_samples, track_len_bytes;
    MIX_T **tracks, **scratch;
@@ -253,7 +252,7 @@ _aaxSensorPostProcess(const _aaxRendererData *renderer)
       memset(tracks[lfe_track], 0, track_len_bytes);
    }
 
-   scratch = (MIX_T**)rb->get_scratch(rb);
+   scratch = data->scratch;
 
    if (convolution)
    {
@@ -283,7 +282,7 @@ _aaxSensorPostProcess(const _aaxRendererData *renderer)
 
    _aaxMutexLock(sensor->mutex);
    if (convolution) {
-      convolution->run(renderer->be, renderer->be_handle, rb, convolution);
+      convolution->run(data->be, data->be_handle, rb, convolution);
    }
 
    if (compressor && compressor->envelope)
@@ -308,7 +307,7 @@ _aaxSensorPostProcess(const _aaxRendererData *renderer)
       }
    }
 
-   _aaxFrameProcessEqualizer(rb, sensor->mixer);
+   _aaxFrameProcessEqualizer(rb, sensor->mixer, data->scratch);
    _aaxMutexUnLock(sensor->mutex);
 
    for (t=0; t<no_tracks; t++)
