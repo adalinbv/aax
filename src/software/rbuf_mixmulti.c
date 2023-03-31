@@ -61,17 +61,18 @@
  * @history source history buffer
  */
 int
-_aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *data, _aax2dProps *ep2d, unsigned char ctr, float buffer_gain, _history_t history)
+_aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *renderer, _aax2dProps *ep2d, unsigned char ctr, float buffer_gain, _history_t history)
 {
-    const _aaxRendererData *renderer = (const _aaxRendererData*)data;
-    const _aaxMixerInfo *info = renderer->info;
-    _aax2dProps *fp2d = renderer->fp2d;
+    const _aaxRendererData *data = (const _aaxRendererData*)renderer;
+    const _aaxMixerInfo *info = data->info;
+    _aax2dProps *fp2d = data->fp2d;
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd, *srbd;
    _aaxEnvelopeData *penv, *pslide;
    _aaxEnvelopeData *genv;
    _aaxLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
+   MIX_T **scratch;
    size_t offs, dno_samples;
    float gain, gain_emitter;
    float pnvel, gnvel;
@@ -93,6 +94,9 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *d
 
    srbd = srbi->sample;
    drbd = drbi->sample;
+
+   // TODO: Why won't data->scratch work?
+   scratch = (MIX_T**)drbd->scratch;
 
    /** Pitch */
    pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
@@ -132,7 +136,8 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *d
       offs = drbi->sample->dde_samples;
    }
 
-   sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr, history);
+   sptr = drbi->mix(scratch, drb, srb, ep2d, pitch, &offs, &dno_samples,
+                    ctr, history);
    if (sptr == NULL || dno_samples == 0)
    {
       if (!dno_samples || (srbi->playing == 0 && srbi->stopped == 1)) {
@@ -142,7 +147,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *d
       }
    }
 
-   /** Volume */
+                     /** Volume */
    genv = _FILTER_GET_DATA(ep2d, TIMED_GAIN_FILTER);
    if (!genv)
    {

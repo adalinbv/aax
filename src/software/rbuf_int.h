@@ -46,7 +46,7 @@ MIX_T** _aaxRingBufferCreateScratch(_aaxRingBuffer*);
 typedef struct _aaxRingBufferData_t __aaxRingBufferData;
 typedef struct _aaxRingBufferSample_t __aaxRingBufferSample;
 
-typedef CONST_MIX_PTRPTR_T _aaxProcessMixerFn(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, FLOAT, size_t*, size_t*, unsigned char, _history_t);
+typedef CONST_MIX_PTRPTR_T _aaxProcessMixerFn(MIX_T**, _aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, FLOAT, size_t*, size_t*, unsigned char, _history_t);
 typedef void _aaxProcessCodecFn(int32_t*, void*, _batch_codec_proc, size_t, size_t, size_t, size_t, size_t, unsigned char, char);
 typedef void
 _aaxEffectsApplyFn(struct _aaxRingBufferSample_t*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, unsigned int, _aax2dProps*, unsigned char, unsigned char);
@@ -213,7 +213,7 @@ void _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample*, MIX_PTR_T, MIX_PTR_T, 
 
 /** MIXER */
 
-CONST_MIX_PTRPTR_T _aaxRingBufferProcessMixer(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, FLOAT, size_t*, size_t*, unsigned char, _history_t history);
+CONST_MIX_PTRPTR_T _aaxRingBufferProcessMixer(MIX_T**, _aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, FLOAT, size_t*, size_t*, unsigned char, _history_t history);
 
 _aaxRingBufferMixMNFn _aaxRingBufferMixStereo16;
 _aaxRingBufferMix1NFn _aaxRingBufferMixMono16Mono;

@@ -74,18 +74,19 @@
  *       done every frame.
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *data, unsigned char track, unsigned char ctr, float buffer_gain, _history_t history)
+_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *renderer, unsigned char track, unsigned char ctr, float buffer_gain, _history_t history)
 {
-   _aaxRendererData *renderer = data;
-   const _aaxMixerInfo *info =  renderer->info;
-   _aaxDelayed3dProps *fdp3d_m = renderer->fp3d->m_dprops3d;
-   _aax2dProps *fp2d = renderer->fp2d;
+   _aaxRendererData *data = renderer;
+   const _aaxMixerInfo *info =  data->info;
+   _aaxDelayed3dProps *fdp3d_m = data->fp3d->m_dprops3d;
+   _aax2dProps *fp2d = data->fp2d;
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd;
    _aaxEnvelopeData *penv, *pslide;
    _aaxEnvelopeData *genv;
    _aaxLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
+   MIX_T **scratch;
    size_t offs, dno_samples;
    float gain, gain_emitter;
    float pnvel, gnvel;
@@ -106,6 +107,9 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    assert(ep2d != 0);
 
    drbd = drbi->sample;
+
+   // TODO: Why won't data->scratch work
+   scratch = (MIX_T**)drbd->scratch;
 
    /** Pitch */
    pitch = ep2d->final.pitch; /* Doppler effect */
@@ -149,7 +153,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       offs = drbi->sample->dde_samples;
    }
 
-   sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr, history);
+   sptr = drbi->mix(scratch, drb, srb, ep2d, pitch, &offs, &dno_samples,
+                    ctr, history);
    if (sptr == NULL || dno_samples == 0)
    {
       if (!dno_samples || (srbi->playing == 0 && srbi->stopped == 1)) {

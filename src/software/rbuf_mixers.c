@@ -51,14 +51,13 @@
  */
 
 CONST_MIX_PTRPTR_T
-_aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *p2d, FLOAT pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr, _history_t history)
+_aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *p2d, FLOAT pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr, _history_t history)
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *srbd, *drbd;
    float dfreq, dduration, drb_pos_sec, fact, dremain;
    float sfreq, sduration, srb_pos_sec, new_srb_pos_sec, pitch;
    size_t ddesamps = *start;
-   MIX_T **track_ptr;
    FLOAT dadvance;
    char src_loops;
 
