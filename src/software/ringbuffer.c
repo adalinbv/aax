@@ -1317,6 +1317,11 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxWave
                             ratio, phase, modulate, limiter);
          rv = AAX_TRUE;
          break;
+      case AAX_CYCLOID_WAVE:
+         _bufferMixWaveform(ptr, scratch, _CYCLOID_WAVE, f, bps, no_samples,
+                            ratio, phase, modulate, limiter);
+         rv = AAX_TRUE;
+         break;
       case AAX_CONSTANT_VALUE:
           _bufferMixWaveform(ptr, scratch, _CONSTANT_VALUE, f, bps, no_samples,
                             ratio, phase, modulate, limiter);

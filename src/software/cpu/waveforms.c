@@ -50,7 +50,7 @@
 #include "arch2d_simd.h"
 #include "waveforms.h"
 
-static float _gains[AAX_MAX_WAVE];
+static float _gains[AAX_MAX_WAVE+1];
 
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_add_data(int32_t*, const_float32_ptr, unsigned int, char, float, limitType);
@@ -179,9 +179,11 @@ _bufferMixBrownianNoise(int32_t* data, _data_t *scratch, size_t no_samples, char
 
 /* -------------------------------------------------------------------------- */
 
-static float _gains[AAX_MAX_WAVE] = { 1.0f, 0.9f, 1.0f, 0.95f, 0.7f, 1.1f };
+static float _gains[AAX_MAX_WAVE+1] = {
+    1.0f, 0.9f, 1.0f, 0.95f, 0.7f, 1.1f, 1.0f
+};
 
-ALIGN float _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS] =
+ALIGN float _harmonics[AAX_MAX_WAVE+1][2*MAX_HARMONICS] =
 {
   /* AAX_CONSTANT_VALUE */
   { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
@@ -226,6 +228,13 @@ ALIGN float _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS] =
     1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
     1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
     1.f/16.f, 1.f/16.f
+  },
+
+  /* CYCLOID_WAVE */
+  { 1.f, 1.f/2.26f, 1.f/5.43f, 1.f/13.5f, 1.f/35.1f, 1.f/103.1f, 1.f/294.1f,
+    1/10000.0f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f
   }
 };
 

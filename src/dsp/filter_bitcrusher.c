@@ -100,6 +100,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    case AAX_SQUARE_WAVE:
    case AAX_IMPULSE_WAVE:
    case AAX_SAWTOOTH_WAVE:
+   case AAX_CYCLOID_WAVE:
    case AAX_RANDOMNESS:
    case AAX_TIMED_TRANSITION:
    case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):

@@ -39,10 +39,18 @@
  * output range is -1.0 .. 1.0
  */
 
-float	// range -1.0f .. 2.0f
+float	// range -1.0f .. 1.0f
 FN(fast_sin,A)(float x)
 {
    return -4.0f*(x - x*fabsf(x));
+}
+
+float // http://rrrola.wz.cz/inv_sqrt.html
+FN(fast_inv_sqrt,A)(float x)
+{
+  union { float f; uint32_t u; } y = { .f = x };
+  y.u = 0x5f1ffff9 - (y.u >> 1);
+  return 0.703952253f * y.f * (2.38924456f - x * y.f * y.f);
 }
 
 float *
@@ -56,9 +64,20 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
 
       if (wtype == _CONSTANT_VALUE)
       {
+         do {
+            *ptr++ = 1.0f;
+         } while (--i);
+      }
+      else if (wtype == _CYCLOID_WAVE)
+      {
+         float hdt = 2.0f/freq;
+         float s = -1.0f + phase/GMATH_PI;
+
          do
          {
-            *ptr++ = 1.0f;
+            *ptr++ = 1.0f/FN(fast_inv_sqrt,A)(1.0f - s*s);
+            s = s+hdt;
+            if (s >= 1.0f) s -= 2.0f;
          }
          while (--i);
       }

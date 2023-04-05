@@ -169,6 +169,9 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
       case AAX_RANDOMNESS:
          lfo->get = _aaxLFOGetRandomness;
          break;
+      case AAX_CYCLOID_WAVE:
+         lfo->get = _aaxLFOGetCycloid;
+         break;
       case AAX_ENVELOPE_FOLLOW:
       case AAX_ENVELOPE_FOLLOW_LOG:
       case AAX_ENVELOPE_FOLLOW_MASK:
@@ -537,6 +540,44 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
          lfo->value[track] -= max;
       }
       lfo->compression[track] = 1.0f - rv;
+   }
+   return rv;
+}
+
+static float
+_cycloid(float x)
+{
+   float y = fmodf(x, 1.0f);
+   return sqrtf(1.0f-y*y);
+}
+
+float
+_aaxLFOGetCycloid(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
+{
+   _aaxLFOData* lfo = (_aaxLFOData*)data;
+   float rv = 1.0f;
+   if (lfo)
+   {
+      float max = (lfo->max - lfo->min);
+      float step = lfo->step[track];
+
+      assert(max);
+
+      rv = (lfo->value[track] - lfo->min)/max;
+      rv = lfo->inv ? 1.0f-rv : rv;
+
+      rv = _aaxLFODelay(lfo, rv);
+
+      lfo->compression[track] = 1.0f-rv;
+      rv = lfo->convert(_cycloid(rv), lfo->min, max);
+
+      lfo->value[track] += step; 
+      if (((lfo->value[track] <= lfo->min) && (step < 0))
+          || ((lfo->value[track] >= lfo->max) && (step > 0)))
+      {  
+         lfo->step[track] *= -1.0f;
+         lfo->value[track] -= step;
+      }
    }
    return rv;
 }

@@ -33,9 +33,10 @@ enum wave_types
    _SINE_WAVE,
    _SQUARE_WAVE,
    _SAWTOOTH_WAVE,
-   _IMPULSE_WAVE
+   _IMPULSE_WAVE,
+   _CYCLOID_WAVE
 };
 
-extern float ALIGN _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS];
+extern float ALIGN _harmonics[AAX_MAX_WAVE+1][2*MAX_HARMONICS];
 
 #endif /* WAVEFORMS_H */

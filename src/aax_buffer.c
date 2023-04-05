@@ -1393,6 +1393,9 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
    else if (!xmlAttributeCompareString(xwid, "src", "impulse")) {
        wtype = AAX_IMPULSE_WAVE;
    }
+   else if (!xmlAttributeCompareString(xwid, "src", "cycloid")) {
+       wtype = AAX_CYCLOID_WAVE;
+   }
    else if (!xmlAttributeCompareString(xwid, "src", "constant")) {
        wtype = AAX_CONSTANT_VALUE;
    }
@@ -2242,7 +2245,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
 
    if (!rv)
    {
-      if (wtype > AAX_LAST_WAVEFORM) {
+      if ((wtype & AAX_ALL_WAVEFORM_MASK) == 0) {
          _aaxErrorSet(AAX_INVALID_PARAMETER + 3);
       } else if ((ptype == AAX_MIX) && (ratio > 1.0f || ratio < -1.0f)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER + 4);
@@ -2303,6 +2306,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
          if (wtype & AAX_TRIANGLE_WAVE) ratio /= 2;
          if (wtype & AAX_SAWTOOTH_WAVE) ratio /= 2;
          if (wtype & AAX_IMPULSE_WAVE) ratio /= 2;
+         if (wtype & AAX_CYCLOID_WAVE) ratio /= 2;
          if (wtype & AAX_WHITE_NOISE) ratio /= 2;
          if (wtype & AAX_PINK_NOISE) ratio /= 2;
          if (wtype & AAX_BROWNIAN_NOISE) ratio /= 2;
@@ -2338,6 +2342,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
             case AAX_TRIANGLE_WAVE:
             case AAX_SAWTOOTH_WAVE:
             case AAX_IMPULSE_WAVE:
+            case AAX_CYCLOID_WAVE:
             case AAX_CONSTANT_VALUE:
                for (q=0; q<voices; ++q)
                {

@@ -98,8 +98,8 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    }
 
    mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_IMPULSE_WAVE|
-          AAX_SAWTOOTH_WAVE|AAX_RANDOMNESS | AAX_TIMED_TRANSITION |
-          AAX_ENVELOPE_FOLLOW_MASK;
+          AAX_SAWTOOTH_WAVE|AAX_RANDOMNESS|AAX_CYCLOID_WAVE |
+          AAX_TIMED_TRANSITION | AAX_ENVELOPE_FOLLOW_MASK;
 
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
    state &= ~AAX_LFO_STEREO;
@@ -117,6 +117,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
        wstate == AAX_SINE_WAVE        ||
        wstate == AAX_SQUARE_WAVE      ||
        wstate == AAX_IMPULSE_WAVE     ||
+       wstate == AAX_CYCLOID_WAVE     ||
        wstate == AAX_SAWTOOTH_WAVE    ||
        wstate == AAX_RANDOMNESS       ||
        wstate == AAX_TIMED_TRANSITION ||

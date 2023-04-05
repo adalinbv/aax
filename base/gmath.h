@@ -50,6 +50,7 @@ int detect_inf_vec3(float[3]);
 int detect_zero_vec3(float[3]);
 
 float fast_sin(float);
+
 unsigned get_pow2(uint32_t);
 unsigned log2i(uint32_t);
 

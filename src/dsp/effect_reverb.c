@@ -48,7 +48,7 @@
 static void _reverb_swap(void*,void*);
 static void _reverb_destroy(void*);
 
-static void _reverb_prepare(_aaxEmitter*, _aax3dProps*, void*);
+static void _reverb_prepare(_aaxEmitter*, const _aax3dProps*, void*);
 static int _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, const void*, _aaxMixerInfo*, unsigned char, int, void*, unsigned char);
 
 static void _reflections_prepare(MIX_PTR_T, MIX_PTR_T, size_t, void*, unsigned int);
@@ -450,7 +450,7 @@ _reverb_destroy(void *ptr)
 }
 
 static void
-_reverb_prepare(_aaxEmitter *src, _aax3dProps *fp3d, void *data)
+_reverb_prepare(_aaxEmitter *src, const _aax3dProps *fp3d, void *data)
 {
    _aaxRingBufferReverbData *reverb = data;
    _aaxRingBufferOcclusionData *occlusion;
