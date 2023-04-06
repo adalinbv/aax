@@ -388,7 +388,7 @@ int main()		// x86		X86_64		ARM
          printf("round %s:\t%f ms - cpu x %3.2f %c", MKSTR(SIMD), eps*1e3, cpu/eps, (batch_roundps == _batch_roundps) ? '*' : ' ');
          TESTF("round "MKSTR(SIMD), dst1, dst2);
       }
-      if (simd2)
+      if (simd1)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
          batch_roundps = GLUE(_batch_roundps, SIMD1);
@@ -397,7 +397,7 @@ int main()		// x86		X86_64		ARM
          printf("round %s:\t%f ms - cpu x %3.2f %c", MKSTR(SIMD1), eps*1e3, cpu/eps, (batch_roundps == _batch_roundps) ? '*' : ' ');
          TESTF("round "MKSTR(SIMD1), dst1, dst2);
       }
-#if !defined(__x86_64__) && !(defined(__ARM_ARCH) || defined(_M_ARM))
+#if !(defined(__ARM_ARCH) || defined(_M_ARM))
       if (simd2)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));

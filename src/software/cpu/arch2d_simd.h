@@ -187,6 +187,7 @@ void _batch_cvt16_24_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_intl_24_sse_vex(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 /* AVX */
+void _batch_roundps_avx(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_avx(void_ptr, const_void_ptr, size_t);
 void _batch_fmul_value_avx(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_fmadd_avx(float32_ptr, const_float32_ptr, size_t, float, float);

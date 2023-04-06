@@ -721,6 +721,10 @@ _batch_cvt16_intl_24_sse_vex(void_ptr dst, const_int32_ptrptr src,
 void
 _batch_roundps_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
 {
+   _batch_cvt24_ps24_sse_vex(dst, src, num);
+   _batch_cvtps24_24_sse_vex(dst, src, num);
+   return;
+
    float *d = (float*)dst;
    float *s = (float*)src;
    size_t i, step;
