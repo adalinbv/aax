@@ -31,6 +31,13 @@
 
 #ifdef __SSE2__
 
+void
+_aax_init_SSE()
+{
+// https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-8/set-the-ftz-and-daz-flags.html
+   _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+   _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+}
 
 inline float	// range -1.0f .. 1.0f
 fast_sin_sse2(float x)
@@ -1712,13 +1719,13 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
                h0 = nsmp;
 
                nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+              *d++ = nsmp        + h0 * cptr[2] + h1 * cptr[3];
 
                h1 = h0;
                h0 = nsmp;
 
                nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+               *d++ = nsmp       + h0 * cptr[2] + h1 * cptr[3];
 
                h1 = h0;
                h0 = nsmp;
@@ -1743,12 +1750,18 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
       else
       {
          float32_ptr d = dptr;
-         int i = num/3;
-         int rest = num-i*3;
+         int i = num/4;
+         int rest = num-i*4;
 
          do
          {
             float smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+            *d++ = smp;
+
+            h1 = h0;
+            h0 = smp;
+
+            smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
             *d++ = smp;
 
             h1 = h0;

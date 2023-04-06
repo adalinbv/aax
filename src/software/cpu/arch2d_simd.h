@@ -51,6 +51,8 @@ extern "C" {
 #include "base/geometry.h"
 #include "waveforms.h"
 
+void _aax_init_SSE();
+
 typedef float* (*_aax_generate_waveform_proc)(float32_ptr, size_t, float, float, enum wave_types);
 
 extern _aax_generate_waveform_proc _aax_generate_waveform_float;
