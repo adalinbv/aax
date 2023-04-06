@@ -166,6 +166,7 @@ void _vec4fCopy_neon(vec4f_ptr d, const vec4f_ptr v);
 void _vec4fMulVec4_neon(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2);
 void _mtx4fMul_neon(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4fMulVec4_neon(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
+int _vec3dAltitudeVector_neon(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_ptr ppos, const vec3d_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec);
 
 /* NEON64 */
 void _mtx4dMul_neon64(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);

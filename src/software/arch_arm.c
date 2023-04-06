@@ -82,7 +82,7 @@ static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
    SIMD_PREFIX"VFPv3",
    SIMD_PREFIX"VFPv4",
    SIMD_PREFIX"Neon",
-#if defined __aarch64__
+#if defined(__arm64__) || defined(__aarch64__)
    SIMD_PREFIX"Neon64",
 #else
    SIMD_PREFIX"VFPv4/Neon",
@@ -440,6 +440,10 @@ _aaxGetSIMDSupportLevel()
 
       if (support_simd && _aax_arch_capabilities & AAX_ARCH_NEON)
       {
+	 mtx4fMul = _mtx4fMul_neon;
+         mtx4fMulVec4 = _mtx4fMulVec4_neon;
+         vec3dAltitudeVector = _vec3dAltitudeVector_neon;
+
          vec3fMagnitude = _vec3fMagnitude_neon;
          vec3fMagnitudeSquared = _vec3fMagnitudeSquared_neon;
          vec3fDotProduct = _vec3fDotProduct_neon;
@@ -453,40 +457,63 @@ _aaxGetSIMDSupportLevel()
          mtx4fMulVec4 = _mtx4fMulVec4_neon;
          mtx4fMul = _mtx4fMul_neon;
 
-#if defined __aarch64__
+         _batch_cvt24_16 = _batch_cvt24_16_neon;
+         _batch_cvt16_24 = _batch_cvt16_24_neon;
+
+# if defined(__arm64__) || defined(__aarch64__)
+         uint64_t fpcr;
+	 // Load the FPCR register
+         ASM( "mrs %0,   fpcr" : "=r"( fpcr ));
+	 // Set the 24th bit (FTZ) to 1
+         ASM( "msr fpcr, %0"   :: "r"( fpcr | (1 << 24) ));
+
          mtx4dMul = _mtx4dMul_neon64;
          mtx4dMulVec4 = _mtx4dMulVec4_neon64;
          vec3dAltitudeVector = _vec3dAltitudeVector_neon64;
-#endif
 
-#if 0
-         _batch_cvtps_24 = _batch_cvtps_24_sse2;
-         _batch_cvt24_ps = _batch_cvt24_ps_sse2;
-         _batch_cvt16_intl_24 = _batch_cvt16_inl_24_neon;
-#endif
-         _batch_cvt24_16 = _batch_cvt24_16_neon;
-         _batch_cvt16_24 = _batch_cvt16_24_neon;
-         _batch_fmul_value = _batch_fmul_value_neon;
+         vec3fMagnitude = _vec3fMagnitude_neon; // 64
+         vec3fMagnitudeSquared = _vec3fMagnitudeSquared_neon; // 64
+         vec3fDotProduct = _vec3fDotProduct_neon; // 64
+         vec3fCrossProduct = _vec3fCrossProduct_neon; // 64
+
+//       vec4fAdd = _vec4fAdd_neon64;
+//       vec4fSub = _vec4fSub_neon64;
+         vec4fCopy = _vec4fCopy_neon; // 64
+//       vec4fDevide = _vec4fDevide_neon64;
+         vec4fMulVec4 = _vec4fMulVec4_neon; // 64
+         mtx4fMulVec4 = _mtx4fMulVec4_neon; // 64
+         mtx4fMul = _mtx4fMul_neon; // 64
+
+         _batch_cvt24_16 = _batch_cvt24_16_neon; // 64
+         _batch_cvt16_24 = _batch_cvt16_24_neon; // 64
+# endif
 
 # if RB_FLOAT_DATA
-#ifdef __arm__
-         _batch_fmadd = _batch_fmadd_neon;
-	 _batch_roundps = _batch_roundps_neon;
-#else
          _batch_get_average_rms = _batch_get_average_rms_neon;
          _aax_generate_waveform_float = _aax_generate_waveform_neon;
          _batch_freqfilter_float = _batch_freqfilter_float_neon;
 
-	 _batch_fmadd = _batch_fmadd_neon64;
-         _batch_roundps = _batch_roundps_neon64;
-	 _batch_atanps = _batch_atanps_neon64;
-#endif
+	 _batch_fmadd = _batch_fmadd_neon;
+         _batch_roundps = _batch_roundps_neon;
+	 _batch_atanps = _batch_atanps_neon;
+	 _batch_fmul_value = _batch_fmul_value_neon;
+
+         _batch_cvtps24_24 = _batch_cvtps24_24_neon;
+         _batch_cvt24_ps24 = _batch_cvt24_ps24_neon;
+
+#  if defined(__arm64__) || defined(__aarch64__)
          _batch_get_average_rms = _batch_get_average_rms_neon64;
          _aax_generate_waveform_float = _aax_generate_waveform_neon64;
          _batch_freqfilter_float = _batch_freqfilter_float_neon64;
 
-         _batch_cvtps24_24 = _batch_cvtps24_24_neon;
-         _batch_cvt24_ps24 = _batch_cvt24_ps24_neon;
+	 _batch_fmadd = _batch_fmadd_neon64;
+         _batch_roundps = _batch_roundps_neon64;
+	 _batch_atanps = _batch_atanps_neon64;
+	 _batch_fmul_value = _batch_fmul_value_neon64;
+
+         _batch_cvtps24_24 = _batch_cvtps24_24_neon64;
+         _batch_cvt24_ps24 = _batch_cvt24_ps24_neon64;
+#  endif
 # else
          _batch_imadd = _batch_imadd_neon;
 # endif

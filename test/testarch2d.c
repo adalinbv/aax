@@ -333,6 +333,15 @@ int main()		// x86		X86_64		ARM
          printf("fmul "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_fmul_value == _batch_fmul_value) ? '*' : ' ');
          TESTF("float fmul "MKSTR(SIMD2), dst1, dst2);
       }
+      if (simd4)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         batch_fmul_value = GLUE(_batch_fmul_value, SIMD2);
+
+         TIMEFN(batch_fmul_value(dst2, dst2, sizeof(float), MAXNUM, FACTOR), eps, MAXNUM);
+         printf("fmul "MKSTR(SIMD4)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_fmul_value == _batch_fmul_value) ? '*' : ' ');
+         TESTF("float fmul "MKSTR(SIMD4), dst1, dst2);
+      }
 
       /*
        * batch fmul by a value for doubles

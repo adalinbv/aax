@@ -465,10 +465,13 @@ float* _aax_generate_waveform_neon64(float32_ptr, size_t, float, float, enum wav
 void _batch_get_average_rms_neon64(const_float32_ptr, size_t, float*, float*);
 void _batch_fmadd_neon64(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_freqfilter_float_neon64(float32_ptr, const_float32_ptr, int, size_t, void*);
+void _batch_fmul_value_neon64(void_ptr, const_void_ptr, unsigned, size_t, float);
 
 #if RB_FLOAT_DATA
 void _batch_atanps_neon64(void_ptr, const_void_ptr, size_t);
 void _batch_roundps_neon64(void_ptr, const_void_ptr, size_t);
+void _batch_cvtps24_24_neon64(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_ps24_neon64(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_neon64(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
 #endif
 
