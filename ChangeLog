@@ -2,8 +2,10 @@
 - AeonWave (3.12.4) stable; urgency=low
 
  * Move audio-frame filter and effect processing to the renderer.
- * Add support for the Cycloid waveform both in the sound section of AAXS files
-   and for LFO source.
+ * Add support for the cycloid waveform both in the sound section of AAXS files
+   and as an LFO source.
+ * Improve latency on Intel CPU's by working around a floating point issue which
+   doesn't affect any other architectures.
 
 -- Erik Hofman <tech@adalin.org>  Mon 13 Mar 2023 11:03:14 + 0100
 
