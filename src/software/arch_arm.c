@@ -167,17 +167,17 @@ _aaxArchDetectFeatures()
                   res = AAX_SIMD_VFPV4_NEON;
                }
 
+#if 0
                ptr = strstr(features, " helium");
                if (ptr && (ptr[7] == ' ' || ptr[7] == '\0'))
                {
-#if 0
                   _aax_arch_capabilities |= AAX_ARCH_HELIUM;
                   if (_aax_arch_capabilities & AAX_ARCH_VFPV4) {
                      res = AAX_SIMD_VFPV4_HELIUM;
                   }
                   else res = AAX_SIMD_HELIUM;
-#endif
                }
+#endif
             }
          }
       }
@@ -234,7 +234,7 @@ _aaxGetSIMDSupportLevel()
 
       init = AAX_FALSE;
       rv = _aaxArchDetectFeatures();
-      if (rv >= AAX_ARCH_NEON) {
+      if (rv >= AAX_SIMD_NEON) {
          support_simd = AAX_TRUE;
       }
 
