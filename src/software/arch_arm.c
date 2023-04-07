@@ -493,9 +493,9 @@ _aaxGetSIMDSupportLevel()
          _aax_generate_waveform_float = _aax_generate_waveform_neon;
          _batch_freqfilter_float = _batch_freqfilter_float_neon;
 
-	 _batch_fmadd = _batch_fmadd_neon;
+//	 _batch_fmadd = _batch_fmadd_neon;
          _batch_roundps = _batch_roundps_neon;
-	 _batch_atanps = _batch_atanps_neon;
+//	 _batch_atanps = _batch_atanps_neon;
 	 _batch_fmul_value = _batch_fmul_value_neon;
 
          _batch_cvtps24_24 = _batch_cvtps24_24_neon;
@@ -506,9 +506,9 @@ _aaxGetSIMDSupportLevel()
          _aax_generate_waveform_float = _aax_generate_waveform_neon64;
          _batch_freqfilter_float = _batch_freqfilter_float_neon64;
 
-	 _batch_fmadd = _batch_fmadd_neon64;
+//	 _batch_fmadd = _batch_fmadd_neon64;
          _batch_roundps = _batch_roundps_neon64;
-	 _batch_atanps = _batch_atanps_neon64;
+//	 _batch_atanps = _batch_atanps_neon64;
 	 _batch_fmul_value = _batch_fmul_value_neon64;
 
          _batch_cvtps24_24 = _batch_cvtps24_24_neon64;
