@@ -410,7 +410,10 @@ _aaxGetSIMDSupportLevel()
             _batch_get_average_rms = _batch_get_average_rms_sse2;
             _batch_saturate24 = _batch_saturate24_sse2;
 
+#  if !defined __x86_64__
+            // CPU is faster on __x86_64__ as it already supports SSE2
             _batch_roundps = _batch_roundps_sse2;
+#  endif
             _batch_atanps = _batch_atanps_sse2;
             _batch_cvtps_24 = _batch_cvtps_24_sse2;
             _batch_cvt24_ps = _batch_cvt24_ps_sse2;
@@ -421,7 +424,6 @@ _aaxGetSIMDSupportLevel()
 #  if RB_FLOAT_DATA
 #   if !defined __x86_64__
             // CPU is faster on __x86_64__ as it already supports SSE2
-            // could be as much as 4.8x speedup
             _batch_fmadd = _batch_fmadd_sse2;
 #   endif
             _batch_fmul_value = _batch_fmul_value_sse2;
@@ -452,7 +454,10 @@ _aaxGetSIMDSupportLevel()
 
          if (_aax_arch_capabilities & AAX_ARCH_SSE41)
          {
+#  if !defined __x86_64__
+            // CPU is faster on __x86_64__ as it already supports SSE2
             _batch_roundps = _batch_roundps_sse4;
+#  endif
          }
 
 #  if SIZEOF_SIZE_T == 8
