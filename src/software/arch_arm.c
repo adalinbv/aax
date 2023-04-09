@@ -461,11 +461,7 @@ _aaxGetSIMDSupportLevel()
          _batch_cvt16_24 = _batch_cvt16_24_neon;
 
 # if defined(__arm64__) || defined(__aarch64__)
-         uint64_t fpcr;
-	 // Load the FPCR register
-         ASM( "mrs %0,   fpcr" : "=r"( fpcr ));
-	 // Set the 24th bit (FTZ) to 1
-         ASM( "msr fpcr, %0"   :: "r"( fpcr | (1 << 24) ));
+         _aax_init_NEON64();
 
          mtx4dMul = _mtx4dMul_neon64;
          mtx4dMulVec4 = _mtx4dMulVec4_neon64;

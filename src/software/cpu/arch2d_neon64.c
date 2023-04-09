@@ -48,6 +48,21 @@
  * http://codesuppository.blogspot.com/2015/02/
  */
 
+void
+_aax_init_NEON64()
+{
+   const char *env = getenv("AAX_ENABLE_FTZ");
+
+   if (!env || _aax_getbool(env))
+   {
+      uint64_t fpcr;
+      // Load the FPCR register
+      ASM( "mrs %0,   fpcr" : "=r"( fpcr ));
+      // Set the 24th bit (FTZ) to 1
+      ASM( "msr fpcr, %0"   :: "r"( fpcr | (1 << 24) ));
+   }
+}
+
 inline float    // range -1.0f .. 1.0f
 fast_sin_neon64(float x)
 {
