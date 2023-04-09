@@ -52,6 +52,7 @@ extern "C" {
 #include "waveforms.h"
 
 void _aax_init_SSE();
+void _aax_init_NEON64();
 
 typedef float* (*_aax_generate_waveform_proc)(float32_ptr, size_t, float, float, enum wave_types);
 

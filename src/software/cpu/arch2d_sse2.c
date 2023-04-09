@@ -34,9 +34,14 @@
 void
 _aax_init_SSE()
 {
+   const char *env = getenv("AAX_ENABLE_FTZ");
+
+   if (!env || _aax_getbool(env))
+   {
 // https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-8/set-the-ftz-and-daz-flags.html
-   _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
-   _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+      _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+      _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+   }
 }
 
 inline float	// range -1.0f .. 1.0f
@@ -78,16 +83,13 @@ fast_sin4_sse2(__m128 x)
 
 // Use the faster, less accurate algorithm:
 //    GMATH_PI_4*x + 0.273f*x * (1.0f-fabsf(x));
+//    which equals to:  x*(GMATH_PI_4+0.273f - 0.273f*x);
 static inline __m128
 fast_atan4_sse2(__m128 x)
 {
-  __m128 pi_4 = _mm_set1_ps(GMATH_PI_4);
-  __m128 mul = _mm_set1_ps(0.273f);
-  __m128 one = _mm_set1_ps(1.0f);
-
-  return _mm_add_ps(_mm_mul_ps(pi_4, x),
-                    _mm_mul_ps(_mm_mul_ps(mul, x),
-                               _mm_sub_ps(one, _mm_abs_ps(x))));
+  __m128 offs = _mm_set1_ps(GMATH_PI_4+0.273f);
+  __m128 mul = _mm_set1_ps(-0.273f);
+  return _mm_mul_ps(x, _mm_add_ps(offs, _mm_mul_ps(mul, x)));
 }
 
 float *
@@ -1134,7 +1136,6 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    // volume change requested
    if (need_step)
    {
-#if defined(__i386__)
       size_t step, dtmp, stmp;
 
       /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
@@ -1153,22 +1154,27 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       }
       stmp = (size_t)s & MEMMASK16;
 
-      step = sizeof(__m128)/sizeof(float);
+      step = 2*sizeof(__m128)/sizeof(float);
 
       i = num/step;
       if (i)
       {
-         __m128 dvstep = _mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f);
-         __m128 xmm0, xmm1, dv, tv;
+         __m128 dvstep1 = _mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f);
+         __m128 dvstep2 = _mm_set_ps(7.0f, 6.0f, 5.0f, 4.0f);
+         __m128 xmm1, xmm2, xmm3;
+         __m128 xmm5, xmm6, xmm7;
+         __m128 dv, tv1, tv2;
          __m128* sptr = (__m128*)s;
          __m128* dptr = (__m128*)d;
 
-         assert(step == 4);
-         dvstep = _mm_mul_ps(dvstep, _mm_set1_ps(vstep));
+         assert(step == 2*4);
+         dvstep1 = _mm_mul_ps(dvstep1, _mm_set1_ps(vstep));
+         dvstep2 = _mm_mul_ps(dvstep2, _mm_set1_ps(vstep));
 
          dv = _mm_set1_ps(vstep*step);
-         tv = _mm_add_ps(_mm_set1_ps(v), dvstep);
-         v += i*step*vstep;
+         tv1 = _mm_add_ps(_mm_set1_ps(v), dvstep1);
+         tv2 = _mm_add_ps(_mm_set1_ps(v), dvstep2);
+         v += step*vstep;
 
          num -= i*step;
          s += i*step;
@@ -1177,15 +1183,20 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          {
             do
             {
-               xmm0 = _mm_loadu_ps((const float*)sptr++);
-               xmm1 = _mm_load_ps((const float*)dptr);
+               xmm1 = _mm_loadu_ps((const float*)sptr++);
+               xmm5 = _mm_loadu_ps((const float*)sptr++);
 
-               xmm0 = _mm_mul_ps(xmm0, tv);
-               xmm1 = _mm_add_ps(xmm1, xmm0);
+               xmm2 = _mm_load_ps((const float*)dptr);
+               xmm6 = _mm_load_ps((const float*)(dptr+1));
 
-               tv = _mm_add_ps(tv, dv);
+               xmm3 = _mm_add_ps(_mm_mul_ps(tv1, xmm1), xmm2);
+               xmm7 = _mm_add_ps(_mm_mul_ps(tv2, xmm5), xmm6);
 
-               _mm_store_ps((float*)dptr++, xmm1);
+               tv1 = _mm_add_ps(tv1, dv);
+               tv2 = _mm_add_ps(tv2, dv);
+
+               _mm_store_ps((float*)dptr++, xmm3);
+               _mm_store_ps((float*)dptr++, xmm7);
             }
             while(--i);
          }
@@ -1193,20 +1204,24 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          {
             do
             {
-               xmm0 = _mm_load_ps((const float*)sptr++);
-               xmm1 = _mm_load_ps((const float*)dptr);
+               xmm1 = _mm_load_ps((const float*)sptr++);
+               xmm5 = _mm_load_ps((const float*)sptr++);
 
-               xmm0 = _mm_mul_ps(xmm0, tv);
-               xmm1 = _mm_add_ps(xmm1, xmm0);
+               xmm2 = _mm_load_ps((const float*)dptr);
+               xmm6 = _mm_load_ps((const float*)(dptr+1));
 
-               tv = _mm_add_ps(tv, dv);
+               xmm3 = _mm_add_ps(_mm_mul_ps(tv1, xmm1), xmm2);
+               xmm7 = _mm_add_ps(_mm_mul_ps(tv2, xmm5), xmm6);
 
-               _mm_store_ps((float*)dptr++, xmm1);
+               tv1 = _mm_add_ps(tv1, dv);
+               tv2 = _mm_add_ps(tv2, dv);
+
+               _mm_store_ps((float*)dptr++, xmm3);
+               _mm_store_ps((float*)dptr++, xmm7);
             }
             while(--i);
          }
       }
-#endif
 
       if (num)
       {
@@ -1219,7 +1234,6 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    }
    else
    {
-#if defined(__i386__)
       size_t step, dtmp, stmp;
 
       /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
@@ -1237,14 +1251,15 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       }
       stmp = (size_t)s & MEMMASK16;
 
-      step = sizeof(__m128)/sizeof(float);
+      step = 2*sizeof(__m128)/sizeof(float);
       i = num/step;
       if (i)
       {
          __m128* sptr = (__m128*)s;
          __m128* dptr = (__m128*)d;
          __m128 tv = _mm_set1_ps(v);
-         __m128 xmm0, xmm1, xmm2;
+         __m128 xmm1, xmm2, xmm3;
+         __m128 xmm5, xmm6, xmm7;
 
          num -= i*step;
          s += i*step;
@@ -1252,14 +1267,18 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          if (stmp)
          {
             do
-             {
-               xmm0 = _mm_loadu_ps((const float*)sptr++);
+            {
+               xmm1 = _mm_loadu_ps((const float*)sptr++);
+               xmm5 = _mm_loadu_ps((const float*)sptr++);
+
                xmm2 = _mm_load_ps((const float*)dptr);
+               xmm6 = _mm_load_ps((const float*)(dptr+1));
 
-               xmm1 = _mm_mul_ps(xmm0, tv);
-               xmm0 = _mm_add_ps(xmm1, xmm2);
+               xmm3 = _mm_add_ps(_mm_mul_ps(tv, xmm1), xmm2);
+               xmm7 = _mm_add_ps(_mm_mul_ps(tv, xmm5), xmm6);
 
-               _mm_store_ps((float*)dptr++, xmm0);
+               _mm_store_ps((float*)dptr++, xmm3);
+               _mm_store_ps((float*)dptr++, xmm7);
             }
             while(--i);
          }
@@ -1267,18 +1286,21 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          {
             do
             {
-               xmm0 = _mm_load_ps((const float*)sptr++);
+               xmm1 = _mm_load_ps((const float*)sptr++);
+               xmm5 = _mm_load_ps((const float*)sptr++);
+
                xmm2 = _mm_load_ps((const float*)dptr);
+               xmm6 = _mm_load_ps((const float*)(dptr+1));
 
-               xmm1 = _mm_mul_ps(xmm0, tv);
-               xmm0 = _mm_add_ps(xmm1, xmm2);
+               xmm3 = _mm_add_ps(_mm_mul_ps(tv, xmm1), xmm2);
+               xmm7 = _mm_add_ps(_mm_mul_ps(tv, xmm5), xmm6);
 
-               _mm_store_ps((float*)dptr++, xmm0);
+               _mm_store_ps((float*)dptr++, xmm3);
+               _mm_store_ps((float*)dptr++, xmm7);
             }
             while(--i);
          }
       }
-#endif
 
       if (num)
       {
@@ -1857,12 +1879,18 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          else
          {
             float32_ptr d = dptr;
-            int i = num/3;
-            int rest = num-i*3;
+            int i = num/4;
+            int rest = num-i*4;
 
             do
             {
                float smp = *d  + ((h0 * c0) + (h1 * c1));
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+
+               smp = *d  + ((h0 * c0) + (h1 * c1));
                *d++ = smp;
 
                h1 = h0;
