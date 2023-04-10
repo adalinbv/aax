@@ -66,6 +66,7 @@ void _batch_atan_cpu(void_ptr, const_void_ptr, size_t);
 
 float* _aax_generate_waveform_cpu(float32_ptr, size_t, float, float, enum wave_types);
 
+void _batch_fmul_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_imul_value_cpu(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_fmul_value_cpu(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_imadd_cpu(int32_ptr, const_int32_ptr, size_t, float, float);
@@ -141,6 +142,7 @@ float* _aax_generate_waveform_sse2(float32_ptr, size_t, float, float, enum wave_
 void _batch_get_average_rms_sse2(const_float32_ptr, size_t, float*, float*);
 void _batch_saturate24_sse2(void*, size_t);
 
+void _batch_fmul_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_fmul_value_sse2(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_imadd_sse2(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_sse2(float32_ptr, const_float32_ptr, size_t, float, float);
@@ -190,6 +192,7 @@ void _batch_cvt16_24_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_intl_24_sse_vex(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 /* AVX */
+void _batch_fmul_avx(void_ptr, const_void_ptr, size_t);
 void _batch_roundps_avx(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_avx(void_ptr, const_void_ptr, size_t);
 void _batch_fmul_value_avx(void_ptr, const_void_ptr, unsigned, size_t, float);
@@ -222,6 +225,7 @@ void _batch_atanps_vfpv2(void_ptr, const_void_ptr, size_t);
 
 float* _aax_generate_waveform_vfpv2(float32_ptr, size_t, float, float, enum wave_types);
 
+void _batch_fmul_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_imul_value_vfpv2(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_fmul_value_vfpv2(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_imadd_vfpv2(int32_ptr, const_int32_ptr, size_t, float, float);
@@ -295,6 +299,7 @@ void _batch_atanps_vfpv3(void_ptr, const_void_ptr, size_t);
 
 float* _aax_generate_waveform_vfpv3(float32_ptr, size_t, float, float, enum wave_types);
 
+void _batch_fmul_vfpv3(void_ptr, const_void_ptr, size_t);
 void _batch_imul_value_vfpv3(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_fmul_value_vfpv3(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_imadd_vfpv3(int32_ptr, const_int32_ptr, size_t, float, float);
@@ -368,6 +373,7 @@ void _batch_atanps_vfpv4(void_ptr, const_void_ptr, size_t);
 
 float* _aax_generate_waveform_vfpv4(float32_ptr, size_t, float, float, enum wave_types);
 
+void _batch_fmul_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_imul_value_vfpv4(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_fmul_value_vfpv4(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_imadd_vfpv4(int32_ptr, const_int32_ptr, size_t, float, float);
@@ -446,6 +452,7 @@ void _batch_ema_iir_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num
 void _batch_freqfilter_neon(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_neon(float32_ptr, const_float32_ptr, int, size_t, void*);
 void _batch_fmul_value_neon(void_ptr, const_void_ptr, unsigned, size_t, float);
+void _batch_fmul_neon(void_ptr, const_void_ptr, size_t);
 
 #if RB_FLOAT_DATA
 void _batch_atanps_neon(void_ptr, const_void_ptr, size_t);
@@ -467,6 +474,7 @@ void _batch_get_average_rms_neon64(const_float32_ptr, size_t, float*, float*);
 void _batch_fmadd_neon64(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_freqfilter_float_neon64(float32_ptr, const_float32_ptr, int, size_t, void*);
 void _batch_fmul_value_neon64(void_ptr, const_void_ptr, unsigned, size_t, float);
+void _batch_fmul_neon64(void_ptr, const_void_ptr, size_t);
 
 #if RB_FLOAT_DATA
 void _batch_atanps_neon64(void_ptr, const_void_ptr, size_t);

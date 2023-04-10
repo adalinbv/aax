@@ -420,6 +420,7 @@ _aaxGetSIMDSupportLevel()
 
 #  if RB_FLOAT_DATA
             _batch_fmadd = _batch_fmadd_sse2;
+            _batch_fmul = _batch_fmul_sse2;
             _batch_fmul_value = _batch_fmul_value_sse2;
             _batch_cvtps24_24 = _batch_cvtps24_24_sse2;
             _batch_cvt24_ps24 = _batch_cvt24_ps24_sse2;
@@ -502,6 +503,7 @@ _aaxGetSIMDSupportLevel()
                _batch_cvt24_ps = _batch_cvt24_ps_avx;
 
 #   if RB_FLOAT_DATA
+               _batch_fmul = _batch_fmul_avx;
                _batch_fmul_value = _batch_fmul_value_avx;
                _batch_fmadd = _batch_fmadd_avx;
                _batch_cvtps24_24 = _batch_cvtps24_24_avx;

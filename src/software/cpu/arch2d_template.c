@@ -312,6 +312,21 @@ FN(batch_fmul_value,A)(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_t 
 }
 
 void
+FN(batch_fmul,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
+{
+   if (num)
+   {
+      size_t i = num;
+      float *s = (float*)sptr;
+      float *d = (float*)dptr;
+      do {
+         *d++ *= *s++;
+      }
+      while (--i);
+   }
+}
+
+void
 FN(batch_cvt24_24,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num && dptr != sptr) {

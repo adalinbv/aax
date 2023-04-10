@@ -264,6 +264,7 @@ _aaxGetSIMDSupportLevel()
 //       _batch_imadd = _batch_imadd_vfpv3;
 #ifdef __arm__
          _batch_fmadd = _batch_fmadd_vfpv3;
+         _batch_fmul = _batch_fmul_vfpv3;
          _batch_imul_value = _batch_imul_value_vfpv3;
          _batch_fmul_value = _batch_fmul_value_vfpv3;
 #endif
@@ -354,6 +355,7 @@ _aaxGetSIMDSupportLevel()
 //       _batch_imadd = _batch_imadd_vfpv4;
 #ifdef __arm__
          _batch_fmadd = _batch_fmadd_vfpv4;
+         _batch_fmul = _batch_fmul_vfpv4;
          _batch_imul_value = _batch_imul_value_vfpv4;
          _batch_fmul_value = _batch_fmul_value_vfpv4;
 	 _batch_roundps = _batch_roundps_vfpv4;
@@ -492,6 +494,7 @@ _aaxGetSIMDSupportLevel()
 //	 _batch_fmadd = _batch_fmadd_neon;
          _batch_roundps = _batch_roundps_neon;
 //	 _batch_atanps = _batch_atanps_neon;
+         _batch_fmul = _batch_fmul_neon;
 	 _batch_fmul_value = _batch_fmul_value_neon;
 
          _batch_cvtps24_24 = _batch_cvtps24_24_neon;
@@ -505,6 +508,7 @@ _aaxGetSIMDSupportLevel()
 //	 _batch_fmadd = _batch_fmadd_neon64;
          _batch_roundps = _batch_roundps_neon64;
 //	 _batch_atanps = _batch_atanps_neon64;
+         _batch_fmul = _batch_fmul_neon64;
 	 _batch_fmul_value = _batch_fmul_value_neon64;
 
          _batch_cvtps24_24 = _batch_cvtps24_24_neon64;

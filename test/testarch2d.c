@@ -51,6 +51,7 @@
 extern _batch_fmadd_proc _batch_fmadd;
 extern _batch_cvt_to_proc _batch_atanps;
 extern _batch_cvt_to_proc _batch_roundps;
+extern _batch_cvt_to_proc _batch_fmul;
 extern _batch_mul_value_proc _batch_fmul_value;
 extern _batch_resample_float_proc _batch_resample_float;
 extern _batch_get_average_rms_proc _batch_get_average_rms;
@@ -61,6 +62,7 @@ extern _batch_convolution_proc _batch_convolution;
 _batch_fmadd_proc batch_fmadd;
 _batch_cvt_to_proc batch_atanps;
 _batch_cvt_to_proc batch_roundps;
+_batch_cvt_to_proc batch_fmul;
 _batch_mul_value_proc batch_fmul_value;
 _batch_resample_float_proc batch_resample_float;
 _batch_get_average_rms_proc batch_get_average_rms;
@@ -309,6 +311,47 @@ int main()		// x86		X86_64		ARM
       /*
        * batch fmul by a value for floats
        */
+      printf("\n== by buffer:");
+      memcpy(dst1, src, MAXNUM*sizeof(float));
+      batch_fmul = _batch_fmul_cpu;
+
+      TIMEFN(batch_fmul(dst1, src, MAXNUM), cpu, MAXNUM);
+      printf("\nfmul " CPU ":\t%f ms %c\n", cpu*1e3, (batch_fmul == _batch_fmul) ? '*' : ' ');
+
+      if (simd)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         batch_fmul = GLUE(_batch_fmul, SIMD);
+
+         TIMEFN(batch_fmul(dst2, src, MAXNUM), eps, MAXNUM);
+         printf("fmul %s:\t%f ms - cpu x %3.2f %c", MKSTR(SIMD), eps*1e3, cpu/eps, (batch_fmul == _batch_fmul) ? '*' : ' ');
+         TESTF("float fmul simd", dst1, dst2);
+      }
+      if (simd2)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         batch_fmul = GLUE(_batch_fmul, SIMD2);
+
+         TIMEFN(batch_fmul(dst2, src, MAXNUM), eps, MAXNUM);
+         printf("fmul "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_fmul == _batch_fmul) ? '*' : ' ');
+         TESTF("float fmul "MKSTR(SIMD2), dst1, dst2);
+      }
+#if defined __ARM_ARCH || defined _M_ARM
+      if (simd4)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         batch_fmul = GLUE(_batch_fmul, SIMD4);
+
+         TIMEFN(batch_fmul(dst2, src, MAXNUM), eps, MAXNUM);
+         printf("fmul "MKSTR(SIMD4)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_fmul == _batch_fmul) ? '*' : ' ');
+         TESTF("float fmul "MKSTR(SIMD4), dst1, dst2);
+      }
+#endif
+
+      /*
+       * batch fmul by a value for floats
+       */
+      printf("\n== by value:");
       memcpy(dst1, src, MAXNUM*sizeof(float));
       batch_fmul_value = _batch_fmul_value_cpu;
 

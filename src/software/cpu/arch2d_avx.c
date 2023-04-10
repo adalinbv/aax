@@ -634,6 +634,106 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
 }
 
 FN_PREALIGN void
+_batch_fmul_avx(void_ptr dptr, const_void_ptr sptr, size_t num)
+{
+   const_float32_ptr s = (float32_ptr)sptr;
+   float32_ptr d = (float32_ptr)dptr;
+   size_t i, step, dtmp, stmp;
+
+   if (!num) return;
+
+   /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
+   dtmp = (size_t)d & MEMMASK16;
+   stmp = (size_t)s & MEMMASK16;
+   if (dtmp && num)
+   {
+      i = (MEMALIGN16 - dtmp)/sizeof(float);
+      if (i <= num)
+      {
+         num -= i;
+         do {
+            *d++ *= *s++;
+         } while(--i);
+      }
+   }
+
+   step = 4*sizeof(__m256)/sizeof(float);
+
+   i = num/step;
+   if (i)
+   {
+      __m256* sptr = (__m256*)s;
+      __m256* dptr = (__m256*)d;
+      __m256 ymm0, ymm1, ymm2, ymm3;
+      __m256 ymm4, ymm5, ymm6, ymm7;
+
+      num -= i*step;
+      s += i*step;
+      d += i*step;
+      if (stmp)
+      {
+         do
+         {
+            ymm0 = _mm256_loadu_ps((const float*)(sptr++));
+            ymm1 = _mm256_loadu_ps((const float*)(sptr++));
+            ymm2 = _mm256_loadu_ps((const float*)(sptr++));
+            ymm3 = _mm256_loadu_ps((const float*)(sptr++));
+
+            ymm4 = _mm256_load_ps((const float*)(dptr+0));
+            ymm5 = _mm256_load_ps((const float*)(dptr+1));
+            ymm6 = _mm256_load_ps((const float*)(dptr+2));
+            ymm7 = _mm256_load_ps((const float*)(dptr+3));
+
+            ymm0 = _mm256_mul_ps(ymm0, ymm4);
+            ymm1 = _mm256_mul_ps(ymm1, ymm5);
+            ymm2 = _mm256_mul_ps(ymm2, ymm6);
+            ymm3 = _mm256_mul_ps(ymm3, ymm7);
+
+           _mm256_store_ps((float*)dptr++, ymm0);
+           _mm256_store_ps((float*)dptr++, ymm1);
+           _mm256_store_ps((float*)dptr++, ymm2);
+           _mm256_store_ps((float*)dptr++, ymm3);
+        }
+        while(--i);
+     }
+     else
+     {
+        do
+        {
+           ymm0 = _mm256_load_ps((const float*)(sptr++));
+           ymm1 = _mm256_load_ps((const float*)(sptr++));
+           ymm2 = _mm256_load_ps((const float*)(sptr++));
+           ymm3 = _mm256_load_ps((const float*)(sptr++));
+
+           ymm4 = _mm256_load_ps((const float*)(dptr+0));
+           ymm5 = _mm256_load_ps((const float*)(dptr+1));
+           ymm6 = _mm256_load_ps((const float*)(dptr+2));
+           ymm7 = _mm256_load_ps((const float*)(dptr+3));
+
+           ymm0 = _mm256_mul_ps(ymm0, ymm4);
+           ymm1 = _mm256_mul_ps(ymm1, ymm5);
+           ymm2 = _mm256_mul_ps(ymm2, ymm6);
+           ymm3 = _mm256_mul_ps(ymm3, ymm7);
+
+           _mm256_store_ps((float*)dptr++, ymm0);
+           _mm256_store_ps((float*)dptr++, ymm1);
+           _mm256_store_ps((float*)dptr++, ymm2);
+           _mm256_store_ps((float*)dptr++, ymm3);
+        }
+        while(--i);
+     }
+  }
+
+  if (num)
+  {
+     i = num;
+     do {
+        *d++ *= *s++;
+     } while(--i);
+  }
+}
+
+FN_PREALIGN void
 _batch_fmul_value_avx(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_t num, float f)
 {
    if (!num) return;

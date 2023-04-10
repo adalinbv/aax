@@ -1084,6 +1084,49 @@ _batch_fmul_value_neon64(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_
 }
 
 void
+_batch_fmul_neon64(void_ptr dptr, const_void_ptr sptr, size_t num)
+{
+   int need_step = (fabsf(vstep) <= LEVEL_90DB) ? 0 : 1;
+   float32_ptr s = (float32_ptr)src;
+   float32_ptr d = (float32_ptr)dst;
+   size_t i, step;
+
+   if (!num) return;
+
+   step = sizeof(float32x4_t)/sizeof(float);
+
+   i = num/step;
+   if (i)
+   {
+      float32x4_t *dptr = (float32x4_t*)d;
+      float32x4_t* sptr = (float32x4_t*)s;
+      float32x4_t sfr4, dfr4;
+
+      num -= i*step;
+      s += i*step;
+      d += i*step;
+      do
+      {
+         sfr4 = vld1q_f32((const float*)sptr++);   // load s
+         dfr4 = vld1q_f32((const float*)dptr);   // load d
+
+         dfr4 = vmulq_f32(dfr4, sfr4);
+
+         vst1q_f32((float*)dptr++, dfr4);    // store d
+      }
+      while(--i);
+
+      if (num) {
+         i = num;
+         do {
+            *d++ += *s++ * v;
+            v += vstep;
+         } while(--i);
+      }
+   }
+}
+
+void
 _batch_freqfilter_float_neon64(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
 {
    _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;

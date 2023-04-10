@@ -86,6 +86,7 @@ extern _aax_calloc_proc _aax_calloc;
 extern _aax_malloc_proc _aax_malloc;
 extern _aax_free_proc _aax_free;
 
+extern _batch_cvt_to_proc _batch_fmul;
 extern _batch_mul_value_proc _batch_imul_value;
 extern _batch_mul_value_proc _batch_fmul_value;
 extern _batch_imadd_proc _batch_imadd;
