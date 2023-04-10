@@ -216,24 +216,19 @@ fast_sin8_neon64(float32x4x2_t x)
 #define MUL	(65536.0f*256.0f)
 #define IMUL	(1.0f/MUL)
 
+// Use the slower, more accurate algorithm:
+//    M_PI_4*x - x*(fabs(x) - 1)*(0.2447 + 0.0663*fabs(x)); // -1 < x < 1
+//    which equals to: x*(1.03 - 0.1784*abs(x) - 0.0663*x*x)
 static inline float32x4_t
 fast_atan4_neon64(float32x4_t x)
 {
-#if 1
-   const float32x4_t pi_4_mul = vmovq_n_f32(GMATH_PI_4+0.2447);
+   const float32x4_t pi_4_mul = vmovq_n_f32(1.03f);
    const float32x4_t add = vmovq_n_f32(-0.1784);
    const float32x4_t mull = vmovq_n_f32(-0.0663);
 
-   return vmulq_f32(x, vmlaq_f32(pi_4_mul, x, vmlaq_f32(add, mull, x)));
-#else
-  float32x4_t pi_4 = vmovq_n_f32(GMATH_PI_4);
-  float32x4_t mul = vmovq_n_f32(0.273f);
-  float32x4_t one = vmovq_n_f32(1.0f);
-
-  return vaddq_f32(vmulq_f32(pi_4, x),
-                   vmulq_f32(vmulq_f32(mul, x),
-                             vsubq_f32(one, vabsq_f32(x))));
-#endif
+   return vmulq_f32(x, vaddq_f32(pi_4_mul,
+                                 vaddq_f32(vmulq_f32(add, vabsq_f32(x)),
+                                           vmulq_f32(mull, vmulq_f32(x, x)))));
 }
 
 float *
@@ -453,8 +448,8 @@ _batch_atanps_neon64(void_ptr dptr, const_void_ptr sptr, size_t num)
       i = num/step;
       if (i)
       {
-        float32x4_t xmin = vmovq_n_f32(-1.94139795f);
-        float32x4_t xmax = vmovq_n_f32(1.94139795f);
+        float32x4_t xmin = vmovq_n_f32(-1.0f);
+        float32x4_t xmax = vmovq_n_f32(1.0f);
         float32x4_t mul = vmovq_n_f32(MUL*GMATH_1_PI_2);
         float32x4_t imul = vmovq_n_f32(IMUL);
         float32x4_t res0, res1;

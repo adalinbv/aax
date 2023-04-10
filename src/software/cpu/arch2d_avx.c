@@ -71,26 +71,18 @@ fast_sin8_avx(__m256 x)
 #define IMUL    (1.0f/MUL)
 
 // Use the slower, more accurate algorithm:
-//    x*((GMATH_PI_4 + 0.2447) - x*(0.1784 + 0.0663*x));
+//    M_PI_4*x - x*(fabs(x) - 1)*(0.2447 + 0.0663*fabs(x)); // -1 < x < 1
+//    which equals to: x*(1.03 - 0.1784*abs(x) - 0.0663*x*x)
 static inline __m256
 fast_atan8_avx(__m256 x)
 {
-#if 1
-   const __m256 pi_4_mul = _mm256_set1_ps(GMATH_PI_4+0.2447);
-   const __m256 add = _mm256_set1_ps(0.1784);
-   const __m256 mull = _mm256_set1_ps(0.0663);
+   const __m256 pi_4_mul = _mm256_set1_ps(1.03f);
+   const __m256 add = _mm256_set1_ps(-0.1784f);
+   const __m256 mull = _mm256_set1_ps(-0.0663f);
 
-   return _mm256_mul_ps(x, _mm256_sub_ps(pi_4_mul,
-                              _mm256_mul_ps(x,
-                                 _mm256_add_ps(add,
-                                    _mm256_mul_ps(mull, x)))));
-#else
-   __m256 pi_4_mul = _mm256_set1_ps(GMATH_PI_4+0.273f);
-   __m256 mul = _mm256_set1_ps(0.273f);
-
-   return _mm256_mul_ps(x, _mm256_sub_ps(pi_4_mul,
-                                         _mm256_mul_ps(mul, _mm256_abs_ps(x))));
-#endif
+   return _mm256_mul_ps(x, _mm256_add_ps(pi_4_mul,
+                             _mm256_add_ps(_mm256_mul_ps(add, _mm256_abs_ps(x)),
+                                    _mm256_mul_ps(mull, _mm256_mul_ps(x, x)))));
 }
 
 void
@@ -1284,8 +1276,8 @@ _batch_atanps_avx(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
-         __m256 xmin = _mm256_set1_ps(-1.94139795f);
-         __m256 xmax = _mm256_set1_ps(1.94139795f);
+         __m256 xmin = _mm256_set1_ps(-1.0);
+         __m256 xmax = _mm256_set1_ps(1.0);
          __m256 mul = _mm256_set1_ps(MUL*GMATH_1_PI_2);
          __m256 imul = _mm256_set1_ps(IMUL);
          __m256 xmm0, xmm1;

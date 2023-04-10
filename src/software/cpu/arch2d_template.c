@@ -392,11 +392,7 @@ FN(batch_cvtps24_24,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
 //
 // Use the faster, less accurate algorithm for CPU's:
 static inline float fast_atanf(float x) {
-#if 0
-   return x*((GMATH_PI_4 + 0.2447) - x*((0.2447 - 0.0663) + 0.0663*x));
-#else
-   return x*(GMATH_PI_4+0.273f - 0.273f*x);
-#endif
+   return x*((GMATH_PI_4+0.273f) - 0.273f*fabsf(x));
 }
 
 void
@@ -410,7 +406,7 @@ FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
 
       do {
          float samp = *s++ * IMUL;
-         samp = _MINMAX(samp, -1.94139795f, 1.94139795f);
+         samp = _MINMAX(samp, -1.0f, 1.0f);
          *d++ = fast_atanf(samp)*(MUL*GMATH_1_PI_2);
       } while (--i);
    }

@@ -83,13 +83,13 @@ fast_sin4_sse2(__m128 x)
 
 // Use the faster, less accurate algorithm:
 //    GMATH_PI_4*x + 0.273f*x * (1.0f-fabsf(x));
-//    which equals to:  x*(GMATH_PI_4+0.273f - 0.273f*x);
+//    which equals to:  x*(GMATH_PI_4+0.273f - 0.273f*fabsf(x))
 static inline __m128
 fast_atan4_sse2(__m128 x)
 {
   __m128 offs = _mm_set1_ps(GMATH_PI_4+0.273f);
   __m128 mul = _mm_set1_ps(-0.273f);
-  return _mm_mul_ps(x, _mm_add_ps(offs, _mm_mul_ps(mul, x)));
+  return _mm_mul_ps(x, _mm_add_ps(offs, _mm_mul_ps(mul, _mm_abs_ps(x))));
 }
 
 float *
@@ -604,8 +604,8 @@ void _batch_atanps_sse2(void_ptr dptr, const_void_ptr sptr, size_t num)
       i = num/step;
       if (i)
       {
-         __m128 xmin = _mm_set1_ps(-1.94139795f);
-         __m128 xmax = _mm_set1_ps(1.94139795f);
+         __m128 xmin = _mm_set1_ps(-1.0f);
+         __m128 xmax = _mm_set1_ps(1.0f);
          __m128 mul = _mm_set1_ps(MUL*GMATH_1_PI_2);
          __m128 imul = _mm_set1_ps(IMUL);
          __m128 xmm0, xmm1;
@@ -1847,14 +1847,14 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
                   h1 = h0;
                   h0 = nsmp;
 
-                  nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
-                  *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
+                  nsmp = *d    + h0 * cptr[0] + h1 * cptr[1];
+                  *d++ = nsmp  + h0 * cptr[2] + h1 * cptr[3];
 
                   h1 = h0;
                   h0 = nsmp;
 
-                  nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
-                  *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
+                  nsmp = *d    + h0 * cptr[0] + h1 * cptr[1];
+                  *d++ = nsmp  + h0 * cptr[2] + h1 * cptr[3];
 
                   h1 = h0;
                   h0 = nsmp;
