@@ -604,8 +604,8 @@ void _batch_atanps_sse2(void_ptr dptr, const_void_ptr sptr, size_t num)
       i = num/step;
       if (i)
       {
-         __m128 xmin = _mm_set1_ps(-1.0f);
-         __m128 xmax = _mm_set1_ps(1.0f);
+         __m128 xmin = _mm_set1_ps(-1.94139795f);
+         __m128 xmax = _mm_set1_ps(1.94139795f);
          __m128 mul = _mm_set1_ps(MUL*GMATH_1_PI_2);
          __m128 imul = _mm_set1_ps(IMUL);
          __m128 xmm0, xmm1;

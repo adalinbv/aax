@@ -421,7 +421,7 @@ FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
 
       do {
          float samp = *s++ * IMUL;
-         samp = _MINMAX(samp, -1.0f, 1.0f);
+         samp = _MINMAX(samp, -1.94139795f, 1.94139795f);
          *d++ = fast_atanf(samp)*(MUL*GMATH_1_PI_2);
       } while (--i);
    }

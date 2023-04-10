@@ -1376,8 +1376,8 @@ _batch_atanps_avx(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
-         __m256 xmin = _mm256_set1_ps(-1.0);
-         __m256 xmax = _mm256_set1_ps(1.0);
+         __m256 xmin = _mm256_set1_ps(-1.55);
+         __m256 xmax = _mm256_set1_ps(1.55);
          __m256 mul = _mm256_set1_ps(MUL*GMATH_1_PI_2);
          __m256 imul = _mm256_set1_ps(IMUL);
          __m256 xmm0, xmm1;

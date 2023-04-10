@@ -433,8 +433,8 @@ _batch_atanps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
       i = num/step;
       if (i)
       {
-        float32x4_t xmin = vmovq_n_f32(-1.0f);
-        float32x4_t xmax = vmovq_n_f32(1.0f);
+        float32x4_t xmin = vmovq_n_f32(-1.55f);
+        float32x4_t xmax = vmovq_n_f32(1.55f);
         float32x4_t mul = vmovq_n_f32(MUL*GMATH_1_PI_2);
         float32x4_t imul = vmovq_n_f32(IMUL);
         float32x4_t res0, res1;

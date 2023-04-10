@@ -836,8 +836,8 @@ _batch_atanps_fma3(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
-         const __m256 xmin = _mm256_set1_ps(-1.0f);
-         const __m256 xmax = _mm256_set1_ps(1.0f);
+         const __m256 xmin = _mm256_set1_ps(-1.55f);
+         const __m256 xmax = _mm256_set1_ps(1.55f);
          const __m256 mul = _mm256_set1_ps(MUL*GMATH_1_PI_2);
          const __m256 imul = _mm256_set1_ps(IMUL);
          __m256 xmm0, xmm1;

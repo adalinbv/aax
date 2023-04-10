@@ -71,7 +71,7 @@ static float _aax_linear(float v) {
 }
 
 static inline float fast_atanf(float x) {
-  return GMATH_PI_4*x + 0.273f*x * (1.0f -fabsf(x));
+   return x*((GMATH_PI_4+0.273f) - 0.273f*fabsf(x));
 }
 
 static float
