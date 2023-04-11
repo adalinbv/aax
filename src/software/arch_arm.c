@@ -444,7 +444,6 @@ _aaxGetSIMDSupportLevel()
       {
 	 mtx4fMul = _mtx4fMul_neon;
          mtx4fMulVec4 = _mtx4fMulVec4_neon;
-         vec3dAltitudeVector = _vec3dAltitudeVector_neon;
 
          vec3fMagnitude = _vec3fMagnitude_neon;
          vec3fMagnitudeSquared = _vec3fMagnitudeSquared_neon;
@@ -491,9 +490,9 @@ _aaxGetSIMDSupportLevel()
          _aax_generate_waveform_float = _aax_generate_waveform_neon;
          _batch_freqfilter_float = _batch_freqfilter_float_neon;
 
-//	 _batch_fmadd = _batch_fmadd_neon;
+  	 _batch_fmadd = _batch_fmadd_neon;
          _batch_roundps = _batch_roundps_neon;
-//	 _batch_atanps = _batch_atanps_neon;
+  	 _batch_atanps = _batch_atanps_neon;
          _batch_fmul = _batch_fmul_neon;
 	 _batch_fmul_value = _batch_fmul_value_neon;
 
@@ -505,9 +504,9 @@ _aaxGetSIMDSupportLevel()
          _aax_generate_waveform_float = _aax_generate_waveform_neon64;
          _batch_freqfilter_float = _batch_freqfilter_float_neon64;
 
-//	 _batch_fmadd = _batch_fmadd_neon64;
+  	 _batch_fmadd = _batch_fmadd_neon64;
          _batch_roundps = _batch_roundps_neon64;
-//	 _batch_atanps = _batch_atanps_neon64;
+  	 _batch_atanps = _batch_atanps_neon64;
          _batch_fmul = _batch_fmul_neon64;
 	 _batch_fmul_value = _batch_fmul_value_neon64;
 

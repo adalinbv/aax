@@ -216,6 +216,19 @@ fast_sin8_neon64(float32x4x2_t x)
 #define MUL	(65536.0f*256.0f)
 #define IMUL	(1.0f/MUL)
 
+#if 1
+// Use the faster, less accurate algorithm
+//    GMATH_PI_4*x + 0.273f*x * (1.0f-fabsf(x));
+//    which equals to:  x*(GMATH_PI_4+0.273f - 0.273f*fabsf(x))
+static inline float32x4_t
+fast_atan4_neon64(float32x4_t x)
+{
+   const float32x4_t offs = vmovq_n_f32(GMATH_PI_4+0.273f);
+   const float32x4_t mul = vmovq_n_f32(-0.273);
+
+   return vmulq_f32(x, vaddq_f32(offs, vmulq_f32(mul, vabsq_f32(x))));
+}
+#else
 // Use the slower, more accurate algorithm:
 //    M_PI_4*x - x*(fabs(x) - 1)*(0.2447 + 0.0663*fabs(x)); // -1 < x < 1
 //    which equals to: x*(1.03 - 0.1784*abs(x) - 0.0663*x*x)
@@ -224,12 +237,13 @@ fast_atan4_neon64(float32x4_t x)
 {
    const float32x4_t pi_4_mul = vmovq_n_f32(1.03f);
    const float32x4_t add = vmovq_n_f32(-0.1784);
-   const float32x4_t mull = vmovq_n_f32(-0.0663);
+   const float32x4_t mul = vmovq_n_f32(-0.0663);
 
    return vmulq_f32(x, vaddq_f32(pi_4_mul,
                                  vaddq_f32(vmulq_f32(add, vabsq_f32(x)),
-                                           vmulq_f32(mull, vmulq_f32(x, x)))));
+                                           vmulq_f32(mul, vmulq_f32(x, x)))));
 }
+#endif
 
 float *
 _aax_generate_waveform_neon64(float32_ptr rv, size_t num, float freq, float phase, enum wave_types wtype)
@@ -680,6 +694,8 @@ _batch_fadd_neon64(float32_ptr dst, const_float32_ptr src, size_t num)
    float32_ptr d = (float32_ptr)dst;
    size_t i, step;
 
+   // CPU is faster
+#if 0
    step = sizeof(float32x4_t)/sizeof(float);
 
    i = num/step;
@@ -702,13 +718,16 @@ _batch_fadd_neon64(float32_ptr dst, const_float32_ptr src, size_t num)
          vst1q_f32((float*)dptr++, dfr4);    // store d
       }
       while(--i);
+   }
+#else
+   (void)step;
+#endif
 
-      if (num) {
-         i = num;
-         do {
-            *d++ += *s++;
-         } while(--i);
-      }
+   if (num) {
+      i = num;
+      do {
+         *d++ += *s++;
+      } while(--i);
    }
 }
 
@@ -720,7 +739,7 @@ _batch_fmadd_neon64(float32_ptr dst, const_float32_ptr src, size_t num, float v,
    float32_ptr d = (float32_ptr)dst;
    size_t i;
 
-   // nothing to d
+   // nothing to do
    if (!num || (fabsf(v) <= LEVEL_96DB && !need_step)) return;
 
    // volume ~= 1.0f and no change requested: just add both buffers
@@ -732,6 +751,8 @@ _batch_fmadd_neon64(float32_ptr dst, const_float32_ptr src, size_t num, float v,
    // volume change requested
    if (need_step)
    {
+      // CPU is faster
+#if 0
       size_t step = sizeof(float32x4_t)/sizeof(float);
 
       i = num/step;
@@ -765,18 +786,21 @@ _batch_fmadd_neon64(float32_ptr dst, const_float32_ptr src, size_t num, float v,
             vst1q_f32((float*)dptr++, dfr4);    // store d
          }
          while(--i);
+      }
+#endif
 
-         if (num) {
-            i = num;
-            do {
-               *d++ += *s++ * v;
-               v += vstep;
-            } while(--i);
-         }
+      if (num)
+      {
+         i = num;
+         do {
+            *d++ += (*s++ * v);
+            v += vstep;
+         } while(--i);
       }
    }
    else
    {
+#if 0
       size_t step = sizeof(float32x4_t)/sizeof(float);
 
       i = num/step;
@@ -802,13 +826,15 @@ _batch_fmadd_neon64(float32_ptr dst, const_float32_ptr src, size_t num, float v,
             vst1q_f32((float*)dptr++, dfr4);    // store d
          }
          while(--i);
+      }
+#endif
 
-         if (num) {
-            i = num;
-            do {
-               *d++ += *s++ * v;
-            } while(--i);
-         }
+      if (num)
+      {
+         i = num;
+         do {
+            *d++ += (*s++ * v);
+         } while(--i);
       }
    }
 }
@@ -1042,19 +1068,19 @@ _batch_fmul_value_neon64(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_
          i = num/step;
          if (i)
          {
+            const float32x4_t sfact = vmovq_n_f32(f);
             float32x4_t *dptr = (float32x4_t*)d;
             float32x4_t* sptr = (float32x4_t*)s;
-            float32x4_t sfact = vdupq_n_f32(f);
-            float32x4_t sfr4;
+            float32x4_t sfr41;
 
             num -= i*step;
             s += i*step;
             d += i*step;
             do
             {
-               sfr4 = vld1q_f32((const float*)sptr++);   // load s
-               sfr4 = vmulq_f32(sfr4, sfact);
-               vst1q_f32((float*)dptr++, sfr4);    // store d
+               sfr41 = vld1q_f32((const float*)sptr++);   // load s
+               sfr41 = vmulq_f32(sfr41, sfact);
+               vst1q_f32((float*)dptr++, sfr41);    // store d
             }
             while(--i);
          }
@@ -1086,13 +1112,14 @@ _batch_fmul_value_neon64(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_
 void
 _batch_fmul_neon64(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
-   int need_step = (fabsf(vstep) <= LEVEL_90DB) ? 0 : 1;
-   float32_ptr s = (float32_ptr)src;
-   float32_ptr d = (float32_ptr)dst;
+   float32_ptr s = (float32_ptr)sptr;
+   float32_ptr d = (float32_ptr)dptr;
    size_t i, step;
 
    if (!num) return;
 
+   // CPU code is faster
+#if 0
    step = sizeof(float32x4_t)/sizeof(float);
 
    i = num/step;
@@ -1115,14 +1142,17 @@ _batch_fmul_neon64(void_ptr dptr, const_void_ptr sptr, size_t num)
          vst1q_f32((float*)dptr++, dfr4);    // store d
       }
       while(--i);
+   }
+#else
+   (void)step;
+#endif
 
-      if (num) {
-         i = num;
-         do {
-            *d++ += *s++ * v;
-            v += vstep;
-         } while(--i);
-      }
+   if (num)
+   {
+      i = num;
+      do {
+         *d++ *= *s++;
+      } while(--i);
    }
 }
 

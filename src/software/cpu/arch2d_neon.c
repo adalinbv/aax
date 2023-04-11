@@ -201,6 +201,19 @@ fast_sin8_neon(float32x4x2_t x)
 #define MUL	(65536.0f*256.0f)
 #define IMUL	(1.0f/MUL)
 
+#if 1
+// Use the faster, less accurate algorithm
+//    GMATH_PI_4*x + 0.273f*x * (1.0f-fabsf(x));
+//    which equals to:  x*(GMATH_PI_4+0.273f - 0.273f*fabsf(x))
+static inline float32x4_t
+fast_atan4_neon(float32x4_t x)
+{
+   const float32x4_t offs = vmovq_n_f32(GMATH_PI_4+0.273f);
+   const float32x4_t mul = vmovq_n_f32(-0.273);
+
+   return vmulq_f32(x, vaddq_f32(offs, vmulq_f32(mul, vabsq_f32(x))));
+}
+#else
 // Use the slower, more accurate algorithm:
 //    M_PI_4*x - x*(fabs(x) - 1)*(0.2447 + 0.0663*fabs(x)); // -1 < x < 1
 //    which equals to: x*(1.03 - 0.1784*abs(x) - 0.0663*x*x)
@@ -215,6 +228,7 @@ fast_atan4_neon(float32x4_t x)
                                  vaddq_f32(vmulq_f32(add, vabsq_f32(x)),
                                            vmulq_f32(mull, vmulq_f32(x, x)))));
 }
+#endif
 
 float *
 _aax_generate_waveform_neon(float32_ptr rv, size_t num, float freq, float phase, enum wave_types wtype)
@@ -667,33 +681,23 @@ _batch_imadd_neon(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
    }
 }
 
-void
-_batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
+static void
+_batch_fadd_neon(float32_ptr dst, const_float32_ptr src, size_t num)
 {
-   int need_step = (fabsf(vstep) <= LEVEL_90DB) ? 0 : 1;
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
    size_t i, step;
 
-   if (!num || (fabsf(v) <= LEVEL_128DB && !need_step)) return;
-
+   // CPU is faster
+#if 0
    step = sizeof(float32x4_t)/sizeof(float);
 
    i = num/step;
    if (i)
    {
-      static const float fact[4] = { 0.0f, 1.0f, 2.0f, 3.0f };
       float32x4_t *dptr = (float32x4_t*)d;
       float32x4_t* sptr = (float32x4_t*)s;
       float32x4_t sfr4, dfr4;
-      float32x4_t dv, tv, dvstep;
-
-      dvstep = vld1q_f32(fact);
-      dvstep = vmulq_f32(dvstep, vdupq_n_f32(vstep));
-
-      dv = vdupq_n_f32(vstep*step);
-      tv = vmlaq_f32(vdupq_n_f32(v), dvstep, vdupq_n_f32(vstep));
-      v += i*step*vstep;
 
       num -= i*step;
       s += i*step;
@@ -703,19 +707,127 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          sfr4 = vld1q_f32((const float*)sptr++);   // load s
          dfr4 = vld1q_f32((const float*)dptr);   // load d
 
-         dfr4 = vmlaq_f32(dfr4, sfr4, tv);
-
-         tv = vaddq_f32(tv, dv);
+         dfr4 = vaddq_f32(dfr4, sfr4);
 
          vst1q_f32((float*)dptr++, dfr4);    // store d
       }
       while(--i);
+   }
+#else
+   (void)step;
+#endif
 
-      if (num) {
+   if (num) {
+      i = num;
+      do {
+         *d++ += *s++;
+      } while(--i);
+   }
+}
+
+void
+_batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
+{
+   int need_step = (fabsf(vstep) <= LEVEL_90DB) ? 0 : 1;
+   float32_ptr s = (float32_ptr)src;
+   float32_ptr d = (float32_ptr)dst;
+   size_t i;
+
+   // nothing to do
+   if (!num || (fabsf(v) <= LEVEL_96DB && !need_step)) return;
+
+   // volume ~= 1.0f and no change requested: just add both buffers
+   if (fabsf(v - 1.0f) < LEVEL_90DB && !need_step) {
+      _batch_fadd_neon(dst, src, num);
+      return;
+   }
+
+   // volume change requested
+   if (need_step)
+   {
+      // CPU is faster
+#if 0
+      size_t step = sizeof(float32x4_t)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         static const float fact[4] = { 0.0f, 1.0f, 2.0f, 3.0f };
+         float32x4_t *dptr = (float32x4_t*)d;
+         float32x4_t* sptr = (float32x4_t*)s;
+         float32x4_t sfr4, dfr4;
+         float32x4_t dv, tv, dvstep;
+
+         dvstep = vld1q_f32(fact);
+         dvstep = vmulq_f32(dvstep, vdupq_n_f32(vstep));
+
+         dv = vdupq_n_f32(vstep*step);
+         tv = vmlaq_f32(vdupq_n_f32(v), dvstep, vdupq_n_f32(vstep));
+         v += i*step*vstep;
+
+         num -= i*step;
+         s += i*step;
+         d += i*step;
+         do
+         {
+            sfr4 = vld1q_f32((const float*)sptr++);   // load s
+            dfr4 = vld1q_f32((const float*)dptr);   // load d
+
+            dfr4 = vmlaq_f32(dfr4, sfr4, tv);
+
+            tv = vaddq_f32(tv, dv);
+
+            vst1q_f32((float*)dptr++, dfr4);    // store d
+         }
+         while(--i);
+      }
+#endif
+
+      if (num)
+      {
          i = num;
          do {
-            *d++ += *s++ * v;
+            *d++ += (*s++ * v);
             v += vstep;
+         } while(--i);
+      }
+   }
+   else
+   {
+#if 0
+      size_t step = sizeof(float32x4_t)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         float32x4_t *dptr = (float32x4_t*)d;
+         float32x4_t* sptr = (float32x4_t*)s;
+         float32x4_t sfr4, dfr4;
+         float32x4_t tv;
+
+         tv = vdupq_n_f32(vstep);
+
+         num -= i*step;
+         s += i*step;
+         d += i*step;
+         do
+         {
+            sfr4 = vld1q_f32((const float*)sptr++);   // load s
+            dfr4 = vld1q_f32((const float*)dptr);   // load d
+
+            dfr4 = vmlaq_f32(dfr4, sfr4, tv);
+
+            vst1q_f32((float*)dptr++, dfr4);    // store d
+         }
+         while(--i);
+      }
+#endif
+
+      if (num)
+      {
+         i = num;
+         do {
+            *d++ += (*s++ * v);
          } while(--i);
       }
    }
@@ -994,9 +1106,8 @@ _batch_fmul_value_neon(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_t 
 void
 _batch_fmul_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
-   int need_step = (fabsf(vstep) <= LEVEL_90DB) ? 0 : 1;
-   float32_ptr s = (float32_ptr)src;
-   float32_ptr d = (float32_ptr)dst;
+   float32_ptr s = (float32_ptr)sptr;
+   float32_ptr d = (float32_ptr)dptr;
    size_t i, step;
 
    if (!num) return;
@@ -1027,8 +1138,7 @@ _batch_fmul_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
       if (num) {
          i = num;
          do {
-            *d++ += *s++ * v;
-            v += vstep;
+            *d++ *= *s++;
          } while(--i);
       }
    }
