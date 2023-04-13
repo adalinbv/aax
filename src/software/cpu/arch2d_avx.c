@@ -78,11 +78,11 @@ fast_atan8_avx(__m256 x)
 {
    const __m256 pi_4_mul = _mm256_set1_ps(1.03f);
    const __m256 add = _mm256_set1_ps(-0.1784f);
-   const __m256 mull = _mm256_set1_ps(-0.0663f);
+   const __m256 mul = _mm256_set1_ps(-0.0663f);
 
    return _mm256_mul_ps(x, _mm256_add_ps(pi_4_mul,
                              _mm256_add_ps(_mm256_mul_ps(add, _mm256_abs_ps(x)),
-                                    _mm256_mul_ps(mull, _mm256_mul_ps(x, x)))));
+                                    _mm256_mul_ps(mul, _mm256_mul_ps(x, x)))));
 }
 
 void

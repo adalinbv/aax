@@ -53,7 +53,7 @@ _aax_init_NEON64()
 {
    const char *env = getenv("AAX_ENABLE_FTZ");
 
-   if (!env || _aax_getbool(env))
+   if (env && _aax_getbool(env))
    {
       uint64_t fpcr;
       // Load the FPCR register
