@@ -1926,13 +1926,10 @@ static aaxBuffer
 _aaxCreateBufferFromAAXS(aaxConfig config, _buffer_t *buffer, char *file)
 {
    _buffer_t *rv = NULL;
-   char *s, *u, *url, **ptr = NULL;
+   char *s, *url, **ptr = NULL;
    _buffer_info_t info;
 
-   u = strdup(buffer->url);
-   url = _aaxURLConstruct(u, file);
-   free(u);
-
+   url = _aaxURLConstruct(buffer->url, file);
    s = strrchr(url, '.');
    if (!s || strcasecmp(s, ".aaxs"))
    {

@@ -595,8 +595,9 @@ _aaxURLSplit(char *url, char **protocol, char **server, char **path, char **exte
 }
 
 char *
-_aaxURLConstruct(char *url1, char *url2)
+_aaxURLConstruct(char *base, char *url2)
 {
+   char *url1 = strdup(base);
    char *prot[2], *srv[2], *path[2], *ext[2];
    char url[PATH_MAX+1];
    int abs, port[2];
@@ -649,6 +650,7 @@ _aaxURLConstruct(char *url1, char *url2)
  printf("new url: %s\n\n", url);
 #endif
 
+   free(url1);
    return strdup(url);
 }
 
