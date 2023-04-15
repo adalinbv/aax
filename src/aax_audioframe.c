@@ -45,7 +45,7 @@
 
 static int _aaxAudioFrameStart(_frame_t*);
 static int _aaxAudioFrameUpdate(_frame_t*);
-static int _frameCreateEFFromAAXS(aaxFrame, const char*);
+static int _frameCreateEFFromAAXS(aaxFrame, _buffer_t*);
 
 AAX_API aaxFrame AAX_APIENTRY
 aaxAudioFrameCreate(aaxConfig config)
@@ -1450,7 +1450,7 @@ aaxAudioFrameAddBuffer(aaxFrame frame, aaxBuffer buf)
    {
       _aaxAudioFrame* fmixer = handle->submix;
       if (!fmixer->info->midi_mode) {
-         rv = _frameCreateEFFromAAXS(handle, buffer->aaxs);
+         rv = _frameCreateEFFromAAXS(handle, buffer);
       }
       if (!buffer->root) {
          buffer->root = handle->root;
@@ -1704,8 +1704,9 @@ _aaxAudioFrameUpdate(UNUSED(_frame_t *frame))
 }
 
 static int
-_frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
+_frameCreateEFFromAAXS(aaxFrame frame, _buffer_t *buffer)
 {
+   const char *aaxs = buffer->aaxs;
    _frame_t* handle = get_frame(frame, _NOLOCK, __func__);
    aaxConfig config = handle->root;
    int rv = AAX_TRUE;
@@ -1715,7 +1716,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
    if (xid)
    {
       xmlId *xmid = xmlNodeGet(xid, "aeonwave/info");
-      float freq = 0.0f;
+      float freq = buffer->info.base_frequency;
 
       if (xmid)
       {
@@ -1731,13 +1732,6 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
             }
             xmlFree(xnid);
          }
-         xmlFree(xmid);
-      }
-
-      xmid = xmlNodeGet(xid, "aeonwave/sound");
-      if (xmid)
-      {
-         freq = xmlAttributeGetDouble(xmid, "frequency");
          xmlFree(xmid);
       }
 

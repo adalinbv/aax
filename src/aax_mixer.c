@@ -1819,16 +1819,8 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
-      xmlId *xmid = xmlNodeGet(xid, "aeonwave/sound");
-      float freq = 0.0f;
-
-      if (xmid)
-      {
-         freq = xmlAttributeGetDouble(xmid, "frequency");
-         xmlFree(xmid);
-      }
-
-      xmid = xmlNodeGet(xid, "aeonwave/mixer");
+      float freq = buffer->info.base_frequency;
+      xmlId * xmid = xmlNodeGet(xid, "aeonwave/mixer");
       if (xmid)
       {
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");

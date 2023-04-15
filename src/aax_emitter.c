@@ -1633,16 +1633,8 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aax
    {
       _aax2dProps *ep2d = handle->source->props2d;
       float pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
-      xmlId *xmid = xmlNodeGet(xid, "aeonwave/sound");
-      float freq = 0.0f;
-
-      if (xmid)
-      {
-         freq = pitch*xmlAttributeGetDouble(xmid, "frequency");
-         xmlFree(xmid);
-      }
-
-      xmid = xmlNodeGet(xid, "aeonwave/emitter");
+      float freq = pitch*embuf->buffer->info.base_frequency;
+      xmlId *xmid = xmlNodeGet(xid, "aeonwave/emitter");
       if (xmid)
       {
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");

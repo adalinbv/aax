@@ -1262,13 +1262,10 @@ int
 _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
 {
    _buffer_info_t *info = &buffer->info;
-   char *s, *u, *url, **data = NULL;
+   char *s, *url, **data = NULL;
    int rv = 0;
 
-   u = strdup(buffer->url);
-   url = _aaxURLConstruct(u, file);
-   free(u);
-
+   url = _aaxURLConstruct(buffer->url, file);
    s = strrchr(url, '.');
    if (!s || strcasecmp(s, ".aaxs"))
    {
@@ -1519,8 +1516,10 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const xmlId *xfid, int layer, float 
 }
 
 static int
-_bufCreateEffectFromAAXS(_buffer_t* handle, const xmlId *xeid, int layer, float frequency, float min, float max)
+_bufCreateEffectFromAAXS(_buffer_t* handle, const xmlId *xeid, int layer, float frequency)
 {
+   float min = handle->info.low_frequency;
+   float max = handle->info.high_frequency;
    aaxEffect eff;
    _midi_t midi;
 
@@ -1689,133 +1688,25 @@ _bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fs
 }
 
 static int
-_bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
+_bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid)
 {
-   _buffer_t* handle = aax_buf->parent;
-   double duration = 1.0f;
-   float freq = aax_buf->frequency;
-   float low_frequency = 0.0f;
-   float high_frequency = 0.0f;
-   float spread = 0;
-   int bits = 24;
+   float high_frequency = handle->info.high_frequency;
+   float freq = handle->info.base_frequency;
    int b, layer, no_layers;
-   int voices = 1;
-   int midi_mode;
-   int rv = AAX_FALSE;
+   double duration = 1.0f;
    limitType limiter;
-   xmlId *xaid, *xiid;
-   xmlId *xsid, *xlid;
+   float spread = 0;
+   int voices = 1;
+   int bits = 24;
+   int midi_mode;
+   xmlId *xlid;
    char *env;
-
-   xaid = xmlNodeGet(xid, "aeonwave");
-   if (!xaid) xaid = xid; // backwards compatibility
-
-   midi_mode = handle->midi_mode;
-   if (midi_mode == AAX_RENDER_NORMAL && handle->mixer_info) {
-      handle->midi_mode = midi_mode = (*handle->mixer_info)->midi_mode;
-   }
-
-   xsid = NULL;
-   if (midi_mode != AAX_RENDER_NORMAL && xmlNodeGet(xaid, "fm")) {
-      xsid = xmlNodeGet(xaid, "fm");
-   }
-   if (!xsid) {
-      xsid = xmlNodeGet(xaid, "sound");
-   }
-   if (!xsid) return rv;
-
+   int rv = 0;
 
    limiter = WAVEFORM_LIMIT_NORMAL;
    env = getenv("AAX_INSTRUMENT_MODE");
    if (env) {
       limiter = atoi(env);
-   }
-
-   xiid = xmlNodeGet(xaid, "info");
-   if (xiid)
-   {
-      char s[1024] = "";
-      xmlId *xnid;
-      int res;
-
-      do
-      {
-         char *bank, *program;
-
-         res = xmlAttributeCopyString(xiid, "name", s, 1024);
-         if (res) aax_buf->meta.title = strdup(s);
-
-         bank = xmlAttributeGetString(xiid, "bank");
-         program = xmlAttributeGetString(xiid, "program");
-
-         if (bank && program) {
-            snprintf(s, 1024, "%s/%s", bank, program);
-         } else if (program) {
-            snprintf(s, 1024, "%s", program);
-         }
-         aax_buf->meta.trackno = strdup(s);
-
-         xmlFree(program);
-         xmlFree(bank);
-      }
-      while(0);
-
-      xnid = xmlNodeGet(xiid, "copyright");
-      if (xnid)
-      {
-         res = xmlAttributeCopyString(xnid, "by", s, 1024);
-         if (res) aax_buf->meta.copyright = strdup(s);
-
-         res = xmlAttributeCopyString(xnid, "from", s, 1024);
-         if (res) aax_buf->meta.date = strdup(s);
-
-         xmlFree(xnid);
-      }
-
-      xnid = xmlNodeGet(xiid, "contact");
-      if (xnid)
-      {
-         res = xmlAttributeCopyString(xnid, "author", s, 1024);
-         if (res) aax_buf->meta.composer = strdup(s);
-
-         res = xmlAttributeCopyString(xnid, "website", s, 1024);
-         if (res) aax_buf->meta.contact = strdup(s);
-
-         xmlFree(xnid);
-      }
-
-      xnid = xmlNodeGet(xiid, "note");
-      if (xnid)
-      {
-         char *polyphony;
-
-         if (xmlAttributeExists(xnid, "min")) {
-            low_frequency = note2freq(xmlAttributeGetDouble(xnid, "min"));
-         }
-         if (xmlAttributeExists(xnid, "max")) {
-            high_frequency = note2freq(_MIN(xmlAttributeGetDouble(xnid, "max"), 128));
-         }
-
-         if (xmlAttributeExists(xnid, "pitch-fraction")) {
-            handle->info.pitch_fraction = xmlAttributeGetDouble(xnid, "pitch-fraction");
-         }
-
-         polyphony = xmlAttributeGetString(xnid, "polyphony");
-         if (polyphony && handle->info.pitch_fraction) {
-            snprintf(s, 1024, "polyphony: %s, pitch fraction: %3.1f",
-                      polyphony, handle->info.pitch_fraction);
-         } else if (polyphony) {
-            snprintf(s, 1024, "polyphony: %s", polyphony);
-         } else if (handle->info.pitch_fraction) {
-            snprintf(s, 1024, "pitch fraction: %3.1f", handle->info.pitch_fraction);
-         }
-         aax_buf->meta.comments = strdup(s);
-         xmlFree(polyphony);
-
-         xmlFree(xnid);
-      }
-
-      xmlFree(xiid);
    }
 
    if (xmlAttributeExists(xsid, "gain")) {
@@ -1824,7 +1715,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
       handle->gain = xmlAttributeGetDouble(xsid, "fixed-gain");
    }
 
-   if (!freq)
+   if (!freq && xmlAttributeExists(xsid, "frequency"))
    {
       freq = xmlAttributeGetDouble(xsid, "frequency");
       handle->info.base_frequency = freq;
@@ -1837,60 +1728,16 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
          }
       }
    }
-
-   if (xmlAttributeExists(xsid, "file"))
-   {
-      char *file = xmlAttributeGetString(xsid, "file");
-
-      rv = _bufSetDataFromAAXS(handle, file, 0);
-      if (!rv) {
-         aax_buf->error = AAX_INVALID_REFERENCE;
-      }
-      xmlFree(file);
-
-      if (!handle->info.loop_end) // loop was not defined in the file
-      {
-         _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
-         float loop_start, loop_end;
-
-         loop_start = xmlAttributeGetDouble(xsid, "loop-start");
-         if (xmlAttributeExists(xsid, "loop-end")) {
-            loop_end = xmlAttributeGetDouble(xsid, "loop-end");
-         } else {
-            loop_end = handle->info.no_samples;
-         }
-         if (loop_end > loop_start) {
-            handle->info.loop_count = INT_MAX;
-         }
-         handle->info.loop_start = loop_start;
-         handle->info.loop_end = loop_end;
-
-         rb->set_paramf(rb, RB_LOOPPOINT_END, loop_end/handle->info.rate);
-         rb->set_paramf(rb, RB_LOOPPOINT_START,loop_start/handle->info.rate);
-         rb->set_parami(rb, RB_SAMPLED_RELEASE,handle->info.sampled_release);
-         rb->set_parami(rb, RB_LOOPING, handle->info.loop_count);
-      }
-
-      handle->mip_levels = 1;
-
-      duration = 0.0f;
+   if (!handle->info.base_frequency) {
+      handle->info.base_frequency = freq;
    }
-   else if (xmlAttributeExists(xsid, "duration"))
+
+   if (xmlAttributeExists(xsid, "duration"))
    {
       duration = xmlAttributeGetDouble(xsid, "duration");
       if (duration < 0.1f) {
          duration = 0.1f;
       }
-   }
-
-   if (!handle->info.base_frequency) {
-      handle->info.base_frequency = freq;
-   }
-   if (!handle->info.low_frequency) {
-      handle->info.low_frequency = low_frequency;
-   }
-   if (!handle->info.high_frequency) {
-      handle->info.high_frequency = high_frequency;
    }
 
    if (xmlAttributeExists(xsid, "bits"))
@@ -1904,6 +1751,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
       limiter = xmlAttributeGetInt(xsid, "mode");
    }
 
+   midi_mode = handle->midi_mode;
    if (midi_mode == AAX_RENDER_NORMAL)
    {
       if (xmlAttributeExists(xsid, "voices")) {
@@ -2004,8 +1852,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
                   if (!xmlNodeCompareName(xwid, "filter")) {
                      rv = _bufCreateFilterFromAAXS(handle, xwid, layer, frequency);
                   } else if (!xmlNodeCompareName(xwid, "effect")) {
-                     rv = _bufCreateEffectFromAAXS(handle, xwid, layer,
-                                      frequency, low_frequency, high_frequency);
+                     rv = _bufCreateEffectFromAAXS(handle, xwid, layer, frequency);
                   }
                }
 
@@ -2051,7 +1898,213 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
       }
    } // mip-level
 
-   if (xlid != xsid) xmlFree(xlid);
+   return rv;
+}
+
+static int
+_bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
+{
+   _buffer_t* handle = aax_buf->parent;
+   float low_frequency = 0.0f;
+   float high_frequency = 0.0f;
+   int midi_mode;
+   int rv = AAX_FALSE;
+   xmlId *xaid, *xiid;
+   xmlId *xsid;
+
+   xaid = xmlNodeGet(xid, "aeonwave");
+   if (!xaid) xaid = xid; // backwards compatibility
+
+   midi_mode = handle->midi_mode;
+   if (midi_mode == AAX_RENDER_NORMAL && handle->mixer_info) {
+      midi_mode = handle->midi_mode = (*handle->mixer_info)->midi_mode;
+   }
+
+   xsid = NULL;
+   if (midi_mode != AAX_RENDER_NORMAL && xmlNodeGet(xaid, "fm")) {
+      xsid = xmlNodeGet(xaid, "fm");
+   }
+   if (!xsid)
+   {
+      xsid = xmlNodeGet(xaid, "resonator");
+      if (!xsid) {
+         xsid = xmlNodeGet(xaid, "sound");
+      }
+   }
+   if (!xsid) return rv;
+
+   xiid = xmlNodeGet(xaid, "info");
+   if (xiid)
+   {
+      char s[1024] = "";
+      xmlId *xnid;
+      int res;
+
+      do
+      {
+         char *bank, *program;
+
+         res = xmlAttributeCopyString(xiid, "name", s, 1024);
+         if (res) aax_buf->meta.title = strdup(s);
+
+         bank = xmlAttributeGetString(xiid, "bank");
+         program = xmlAttributeGetString(xiid, "program");
+
+         if (bank && program) {
+            snprintf(s, 1024, "%s/%s", bank, program);
+         } else if (program) {
+            snprintf(s, 1024, "%s", program);
+         }
+         aax_buf->meta.trackno = strdup(s);
+
+         xmlFree(program);
+         xmlFree(bank);
+      }
+      while(0);
+
+      xnid = xmlNodeGet(xiid, "copyright");
+      if (xnid)
+      {
+         res = xmlAttributeCopyString(xnid, "by", s, 1024);
+         if (res) aax_buf->meta.copyright = strdup(s);
+
+         res = xmlAttributeCopyString(xnid, "from", s, 1024);
+         if (res) aax_buf->meta.date = strdup(s);
+
+         xmlFree(xnid);
+      }
+
+      xnid = xmlNodeGet(xiid, "contact");
+      if (xnid)
+      {
+         res = xmlAttributeCopyString(xnid, "author", s, 1024);
+         if (res) aax_buf->meta.composer = strdup(s);
+
+         res = xmlAttributeCopyString(xnid, "website", s, 1024);
+         if (res) aax_buf->meta.contact = strdup(s);
+
+         xmlFree(xnid);
+      }
+
+      xnid = xmlNodeGet(xiid, "note");
+      if (xnid)
+      {
+         char *polyphony;
+
+         if (xmlAttributeExists(xnid, "min")) {
+            low_frequency = note2freq(xmlAttributeGetDouble(xnid, "min"));
+         }
+         if (xmlAttributeExists(xnid, "max")) {
+            high_frequency = note2freq(_MIN(xmlAttributeGetDouble(xnid, "max"), 128));
+         }
+
+         if (xmlAttributeExists(xnid, "pitch-fraction")) {
+            handle->info.pitch_fraction = xmlAttributeGetDouble(xnid, "pitch-fraction");
+         }
+
+         polyphony = xmlAttributeGetString(xnid, "polyphony");
+         if (polyphony && handle->info.pitch_fraction) {
+            snprintf(s, 1024, "polyphony: %s, pitch fraction: %3.1f",
+                      polyphony, handle->info.pitch_fraction);
+         } else if (polyphony) {
+            snprintf(s, 1024, "polyphony: %s", polyphony);
+         } else if (handle->info.pitch_fraction) {
+            snprintf(s, 1024, "pitch fraction: %3.1f", handle->info.pitch_fraction);
+         }
+         aax_buf->meta.comments = strdup(s);
+         xmlFree(polyphony);
+
+         xmlFree(xnid);
+      }
+
+      xmlFree(xiid);
+   }
+
+   if (!handle->info.base_frequency) {
+      handle->info.base_frequency = aax_buf->frequency;
+   }
+   if (!handle->info.low_frequency) {
+      handle->info.low_frequency = low_frequency;
+   }
+   if (!handle->info.high_frequency) {
+      handle->info.high_frequency = high_frequency;
+   }
+
+   if (xmlAttributeExists(xsid, "include"))
+   {
+      char file[1024];
+      int len = xmlAttributeCopyString(xsid, "include", file, 1024);
+      if (len < 1024-strlen(".aaxs"))
+      {
+         _buffer_info_t *info = &handle->info;
+         char **data, *url;
+
+         strcat(file, ".aaxs");
+         url = _aaxURLConstruct(handle->url, file);
+
+         data = _bufGetDataFromStream(NULL, url, info, *handle->mixer_info);
+         if (data)
+         {
+            xmlId *xid = xmlInitBuffer(data[0], strlen(data[0]));
+            if (xid)
+            {
+               xmlId *xasid = xmlNodeGet(xid, "aeonwave/resonator");
+               if (!xasid) {
+                  xasid = xmlNodeGet(xid, "aeonwave/sound");
+               }
+               if (xasid)
+               {
+                  rv = _bufCreateResonatorFromAAXS(handle, xasid);
+                  xmlFree(xasid);
+               }
+               xmlClose(xid);
+            }
+            free(data);
+         }
+
+         free(url);
+      }
+   }
+   else if (xmlAttributeExists(xsid, "file"))
+   {
+      char *file = xmlAttributeGetString(xsid, "file");
+
+      rv = _bufSetDataFromAAXS(handle, file, 0);
+      if (!rv) {
+         aax_buf->error = AAX_INVALID_REFERENCE;
+      }
+      xmlFree(file);
+
+      if (!handle->info.loop_end) // loop was not defined in the file
+      {
+         _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
+         float loop_start, loop_end;
+
+         loop_start = xmlAttributeGetDouble(xsid, "loop-start");
+         if (xmlAttributeExists(xsid, "loop-end")) {
+            loop_end = xmlAttributeGetDouble(xsid, "loop-end");
+         } else {
+            loop_end = handle->info.no_samples;
+         }
+         if (loop_end > loop_start) {
+            handle->info.loop_count = INT_MAX;
+         }
+         handle->info.loop_start = loop_start;
+         handle->info.loop_end = loop_end;
+
+         rb->set_paramf(rb, RB_LOOPPOINT_END, loop_end/handle->info.rate);
+         rb->set_paramf(rb, RB_LOOPPOINT_START,loop_start/handle->info.rate);
+         rb->set_parami(rb, RB_SAMPLED_RELEASE,handle->info.sampled_release);
+         rb->set_parami(rb, RB_LOOPING, handle->info.loop_count);
+      }
+
+      handle->mip_levels = 1;
+      rv = 1;
+   }
+   else {
+      rv = _bufCreateResonatorFromAAXS(handle, xsid);
+   }
+
    xmlFree(xsid);
    if (xaid != xid) xmlFree(xaid);
 
