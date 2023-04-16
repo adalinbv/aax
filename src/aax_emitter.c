@@ -1617,6 +1617,154 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
    return rv;
 }
 
+static int
+_emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmid)
+{
+   _aax2dProps *ep2d = handle->source->props2d;
+   float pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
+   float freq = pitch*embuf->buffer->info.base_frequency;
+   unsigned int i, num = xmlNodeGetNum(xmid, "filter");
+   aaxConfig config = handle->root;
+   int clear = AAX_FALSE;
+   xmlId *xeid, *xfid;
+
+   if (xmlAttributeExists(xmid, "mode")) {
+      clear = xmlAttributeCompareString(xmid, "mode", "append");
+   }
+
+   if (xmlAttributeExists(xmid, "looping"))
+   {
+      int mode = xmlAttributeGetBool(xmid, "looping");
+      _aaxRingBuffer *rb = embuf->ringbuffer;
+      rb->set_parami(rb, RB_LOOPING, mode);
+      handle->looping = mode;
+   }
+
+   if (!handle->mtx_set)
+   {
+      float pan = xmlAttributeGetDouble(xmid, "pan");
+      if (fabsf(pan) > 0.01f)
+      {
+          static aaxVec3f _at = { 0.0f, 0.0f, -1.0f };
+          _aaxEmitter *src = handle->source;
+          _aax3dProps *ep3d = src->props3d;
+          _aaxDelayed3dProps *edp3d = ep3d->dprops3d;
+          aaxMtx4d mtx641, mtx642;
+          aaxVec3f at, up;
+          aaxVec3d pos;
+
+//        aaxEmitterGetMatrix64(emitter, mtx641);
+#ifdef ARCH32
+          mtx4dFillf(mtx641, edp3d->matrix.m4);
+#else
+          mtx4dFill(mtx641, edp3d->matrix.m4);
+#endif
+
+          aaxMatrix64GetOrientation(mtx641, pos, at, up);
+
+          aaxMatrix64SetIdentityMatrix(mtx641);
+          aaxMatrix64SetOrientation(mtx641, pos, _at, up);
+
+          aaxMatrix64SetIdentityMatrix(mtx642);
+          aaxMatrix64Rotate(mtx642, -1.57*pan, 0.0, 1.0, 0.0);
+
+          aaxMatrix64Multiply(mtx642, mtx641);
+
+//        aaxEmitterSetMatrix64(emitter, mtx642);
+#ifdef ARCH32
+          mtx4fFilld(edp3d->matrix.m4, mtx642);
+#else
+          mtx4dFill(edp3d->matrix.m4, mtx642);
+#endif
+          if (_IS_RELATIVE(ep3d) &&
+              handle->parent && (handle->parent == handle->root))
+          {
+             edp3d->matrix.m4[LOCATION][3] = 0.0;
+          } else {
+             edp3d->matrix.m4[LOCATION][3] = 1.0;
+          }
+          _PROP_MTX_SET_CHANGED(ep3d);
+          handle->mtx_set = AAX_TRUE;
+      }
+   }
+
+   if (clear)
+   {
+      _aaxEmitter *src = handle->source;
+      _aaxSetDefault2dFiltersEffects(src->props2d);
+   }
+#if 0
+   if (handle->midi.mode == AAX_RENDER_SYNTHESIZER)
+   {
+      aaxEffect eff = aaxEffectCreate(config, AAX_PHASING_EFFECT);
+      if (eff)
+      {
+         aaxEffectSetSlot(eff, 0, AAX_LINEAR, 0.7f, 0.1f, 0.05f, 0.7f);
+         aaxEffectSetState(eff, AAX_SINE_WAVE);
+         _emitterSetEffect(handle, eff);
+         aaxEffectDestroy(eff);
+      }
+   }
+#endif
+
+   xfid = xmlMarkId(xmid);
+   if (xfid)
+   {
+      for (i=0; i<num; i++)
+      {
+         if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
+         {
+            int non_optional = AAX_TRUE;
+            if (xmlAttributeExists(xfid, "optional")) {
+               non_optional = !xmlAttributeGetBool(xfid, "optional");
+            }
+            if (non_optional || !get_low_resource())
+            {
+                aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq,
+                                               0.0f, 0.0f, &handle->midi);
+                if (flt)
+                {
+                  _filter_t* filter = get_filter(flt);
+                   _emitterSetFilter(handle, filter);
+                   aaxFilterDestroy(flt);
+          }
+             }
+         }
+      }
+      xmlFree(xfid);
+   }
+
+   xeid = xmlMarkId(xmid);
+   if (xeid)
+   {
+      num = xmlNodeGetNum(xmid, "effect");
+      for (i=0; i<num; i++)
+      {
+         if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
+         {
+            int non_optional = AAX_TRUE;
+            if (xmlAttributeExists(xeid, "optional")) {
+               non_optional = !xmlAttributeGetBool(xeid, "optional");
+            }
+            if (non_optional || !get_low_resource())
+            {
+               aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq,
+                                               0.0f, 0.0f, &handle->midi);
+               if (eff)
+               {
+                  _effect_t* effect = get_effect(eff);
+                  _emitterSetEffect(handle, effect);
+                  aaxEffectDestroy(eff);
+               }
+            }
+         }
+      }
+      xmlFree(xeid);
+   }
+
+   return AAX_TRUE;
+}
+
 int
 _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aaxs)
 {
@@ -1631,149 +1779,42 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aax
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
-      _aax2dProps *ep2d = handle->source->props2d;
-      float pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
-      float freq = pitch*embuf->buffer->info.base_frequency;
       xmlId *xmid = xmlNodeGet(xid, "aeonwave/emitter");
       if (xmid)
       {
-         unsigned int i, num = xmlNodeGetNum(xmid, "filter");
-         int clear = AAX_FALSE;
-         xmlId *xeid, *xfid;
-
-         if (xmlAttributeExists(xmid, "mode")) {
-            clear = xmlAttributeCompareString(xmid, "mode", "append");
-         }
-
-         if (xmlAttributeExists(xmid, "looping"))
+         if (xmlAttributeExists(xmid, "include"))
          {
-            int mode = xmlAttributeGetBool(xmid, "looping");
-            _aaxRingBuffer *rb = embuf->ringbuffer;
-            rb->set_parami(rb, RB_LOOPING, mode);
-            handle->looping = mode;
-         }
-
-         if (!handle->mtx_set)
-         {
-            float pan = xmlAttributeGetDouble(xmid, "pan");
-            if (fabsf(pan) > 0.01f)
+            char file[1024];
+            int len = xmlAttributeCopyString(xmid, "include", file, 1024);
+            if (len < 1024-strlen(".aaxs"))
             {
-                static aaxVec3f _at = { 0.0f, 0.0f, -1.0f };
-                _aaxEmitter *src = handle->source;
-                _aax3dProps *ep3d = src->props3d;
-                _aaxDelayed3dProps *edp3d = ep3d->dprops3d;
-                aaxMtx4d mtx641, mtx642;
-                aaxVec3f at, up;
-                aaxVec3d pos;
+               _buffer_t* buffer = embuf->buffer;
+               _buffer_info_t *info = &buffer->info;
+               char **data, *url;
 
-//              aaxEmitterGetMatrix64(emitter, mtx641);
-#ifdef ARCH32
-                mtx4dFillf(mtx641, edp3d->matrix.m4);
-#else
-                mtx4dFill(mtx641, edp3d->matrix.m4);
-#endif
+               strcat(file, ".aaxs");
+               url = _aaxURLConstruct(buffer->url, file);
 
-                aaxMatrix64GetOrientation(mtx641, pos, at, up);
-
-                aaxMatrix64SetIdentityMatrix(mtx641);
-                aaxMatrix64SetOrientation(mtx641, pos, _at, up);
-
-                aaxMatrix64SetIdentityMatrix(mtx642);
-                aaxMatrix64Rotate(mtx642, -1.57*pan, 0.0, 1.0, 0.0);
-
-                aaxMatrix64Multiply(mtx642, mtx641);
-
-//              aaxEmitterSetMatrix64(emitter, mtx642);
-#ifdef ARCH32
-                mtx4fFilld(edp3d->matrix.m4, mtx642);
-#else
-                mtx4dFill(edp3d->matrix.m4, mtx642);
-#endif
-                if (_IS_RELATIVE(ep3d) &&
-                    handle->parent && (handle->parent == handle->root))
-                {
-                   edp3d->matrix.m4[LOCATION][3] = 0.0;
-                } else {
-                   edp3d->matrix.m4[LOCATION][3] = 1.0;
-                }
-                _PROP_MTX_SET_CHANGED(ep3d);
-                handle->mtx_set = AAX_TRUE;
-            }
-         }
-
-         if (clear)
-         {
-            _aaxEmitter *src = handle->source;
-            _aaxSetDefault2dFiltersEffects(src->props2d);
-         }
-#if 0
-         if (handle->midi.mode == AAX_RENDER_SYNTHESIZER)
-         {
-            aaxEffect eff = aaxEffectCreate(config, AAX_PHASING_EFFECT);
-            if (eff)
-            {
-               aaxEffectSetSlot(eff, 0, AAX_LINEAR, 0.7f, 0.1f, 0.05f, 0.7f);
-               aaxEffectSetState(eff, AAX_SINE_WAVE);
-               _emitterSetEffect(handle, eff);
-               aaxEffectDestroy(eff);
-            }
-         }
-#endif
-
-         xfid = xmlMarkId(xmid);
-         if (xfid)
-         {
-            for (i=0; i<num; i++)
-            {
-               if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
+               data =_bufGetDataFromStream(NULL, url, info,*buffer->mixer_info);
+               if (data)
                {
-                  int non_optional = AAX_TRUE;
-                  if (xmlAttributeExists(xfid, "optional")) {
-                     non_optional = !xmlAttributeGetBool(xfid, "optional");
-                  }
-                  if (non_optional || !get_low_resource())
+                  xmlId *xid = xmlInitBuffer(data[0], strlen(data[0]));
+                  if (xid)
                   {
-                      aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq,
-                                                     0.0f, 0.0f, &handle->midi);
-                      if (flt)
-                      {
-                        _filter_t* filter = get_filter(flt);
-                         _emitterSetFilter(handle, filter);
-                         aaxFilterDestroy(flt);
-                      }
-                   }
-               }
-            }
-            xmlFree(xfid);
-         }
-
-         xeid = xmlMarkId(xmid);
-         if (xeid)
-         {
-            num = xmlNodeGetNum(xmid, "effect");
-            for (i=0; i<num; i++)
-            {
-               if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
-               {
-                  int non_optional = AAX_TRUE;
-                  if (xmlAttributeExists(xeid, "optional")) {
-                     non_optional = !xmlAttributeGetBool(xeid, "optional");
-                  }
-                  if (non_optional || !get_low_resource())
-                  {
-                     aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq,
-                                                     0.0f, 0.0f, &handle->midi);
-                     if (eff)
+                     xmlId *xamid = xmlNodeGet(xid, "aeonwave/emitter");
+                     if (xamid)
                      {
-                        _effect_t* effect = get_effect(eff);
-                        _emitterSetEffect(handle, effect);
-                        aaxEffectDestroy(eff);
+                        rv =_emitterCreateTriggerFromAAXS(handle, embuf, xamid);
+                        xmlFree(xamid);
                      }
+                     xmlClose(xid);
                   }
+                  free(data);
                }
+               free(url);
             }
-            xmlFree(xeid);
          }
+         rv = _emitterCreateTriggerFromAAXS(handle, embuf, xmid);
          xmlFree(xmid);
       }
       xmlClose(xid);
