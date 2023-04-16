@@ -1183,22 +1183,52 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
                }
 
                // get the actual number of samples
-               info->no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
-               info->loop_count = stream->param(id, DRIVER_LOOP_COUNT);
-               info->loop_start = stream->param(id, DRIVER_LOOP_START);
-               info->loop_end = stream->param(id, DRIVER_LOOP_END);
-               info->sampled_release =stream->param(id, DRIVER_SAMPLED_RELEASE);
-               info->base_frequency = stream->param(id, DRIVER_BASE_FREQUENCY);
-               info->low_frequency = stream->param(id, DRIVER_LOW_FREQUENCY);
-               info->high_frequency = stream->param(id, DRIVER_HIGH_FREQUENCY);
-               info->tremolo_rate = stream->param(id, DRIVER_TREMOLO_RATE);
-               info->tremolo_depth = stream->param(id, DRIVER_TREMOLO_DEPTH);
-               info->tremolo_sweep = stream->param(id, DRIVER_TREMOLO_SWEEP);
-               info->vibrato_rate = stream->param(id, DRIVER_VIBRATO_RATE);
-               info->vibrato_depth = stream->param(id, DRIVER_VIBRATO_DEPTH);
-               info->vibrato_sweep = stream->param(id, DRIVER_VIBRATO_SWEEP);
-               info->pitch_fraction = stream->param(id, DRIVER_PITCH_FRACTION);
-               if (info->pitch_fraction == 0.0f) {
+               if (info->no_samples == 0) {
+                  info->no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
+               }
+               if (info->loop_count == 0) {
+                  info->loop_count = stream->param(id, DRIVER_LOOP_COUNT);
+               }
+               if (info->loop_start == 0) {
+                  info->loop_start = stream->param(id, DRIVER_LOOP_START);
+               }
+               if (info->loop_end == 0) {
+                  info->loop_end = stream->param(id, DRIVER_LOOP_END);
+               }
+               if (info->sampled_release == 0) {
+                  info->sampled_release = stream->param(id, DRIVER_SAMPLED_RELEASE);
+               }
+               if (info->base_frequency < FLT_EPSILON) {
+                  info->base_frequency = stream->param(id, DRIVER_BASE_FREQUENCY);
+               }
+               if (info->low_frequency < FLT_EPSILON) {
+                  info->low_frequency = stream->param(id, DRIVER_LOW_FREQUENCY);
+               }
+               if (info->high_frequency < FLT_EPSILON) {
+                  info->high_frequency = stream->param(id, DRIVER_HIGH_FREQUENCY);
+               }
+               if (info->tremolo_rate < FLT_EPSILON) {
+                  info->tremolo_rate = stream->param(id, DRIVER_TREMOLO_RATE);
+               }
+               if (info->tremolo_depth < FLT_EPSILON) {
+                  info->tremolo_depth = stream->param(id, DRIVER_TREMOLO_DEPTH);
+               }
+               if (info->tremolo_sweep < FLT_EPSILON) {
+                  info->tremolo_sweep = stream->param(id, DRIVER_TREMOLO_SWEEP);
+               }
+               if (info->vibrato_rate < FLT_EPSILON) {
+                  info->vibrato_rate = stream->param(id, DRIVER_VIBRATO_RATE);
+               }
+               if (info->vibrato_depth < FLT_EPSILON) {
+                  info->vibrato_depth = stream->param(id, DRIVER_VIBRATO_DEPTH);
+               }
+               if (info->vibrato_sweep < FLT_EPSILON) {
+                  info->vibrato_sweep = stream->param(id, DRIVER_VIBRATO_SWEEP);
+               }
+               if (info->pitch_fraction < FLT_EPSILON) {
+                  info->pitch_fraction = stream->param(id, DRIVER_PITCH_FRACTION);
+               }
+               if (info->pitch_fraction < FLT_EPSILON) {
                   info->pitch_fraction = 1.0f;
                }
 
