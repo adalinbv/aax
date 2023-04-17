@@ -53,6 +53,7 @@
 
 #define MAX_BUFFER_SIZE		(768*1024*1024)
 
+static void _bufInitInfo(_buffer_info_t*);
 static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*, unsigned char);
 static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*, unsigned char);
 static int _bufProcessWaveform(aaxBuffer, int, float, float, float, float, float, unsigned char, int, float, enum aaxWaveformType, float, enum aaxProcessingType, limitType);
@@ -111,23 +112,23 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
       }
 
       buf->id = BUFFER_ID;
+      buf->root = handle;
+      buf->mixer_info = VALID_HANDLE(handle) ? &handle->info : &_info;
+
+      buf->ringbuffer[0] = _bufGetRingBuffer(buf, handle, 0);
+      buf->midi_mode = AAX_RENDER_NORMAL;
+      buf->to_mixer = AAX_FALSE;
+      buf->mipmap = AAX_FALSE;
       buf->ref_counter = 1;
       buf->mip_levels = 1;
+      buf->gain = 1.0f;
+      buf->pos = 0;
 
+      _bufInitInfo(&buf->info);
+      buf->info.fmt = format;
       buf->info.no_tracks = tracks;
       buf->info.no_samples = samples;
       buf->info.blocksize = blocksize;
-      buf->info.pitch_fraction = 1.0f;
-      buf->midi_mode = AAX_RENDER_NORMAL;
-      buf->mipmap = AAX_FALSE;
-      buf->pos = 0;
-      buf->info.fmt = format;
-      buf->info.rate = 0.0f;
-      buf->gain = 1.0f;
-      buf->mixer_info = VALID_HANDLE(handle) ? &handle->info : &_info;
-      buf->root = handle;
-      buf->ringbuffer[0] = _bufGetRingBuffer(buf, handle, 0);
-      buf->to_mixer = AAX_FALSE;
 
       /* explicit request not to convert */
       env = getenv("AAX_USE_MIXER_FMT");
@@ -999,6 +1000,19 @@ free_buffer(_buffer_t* handle)
    return rv;
 }
 
+static void
+_bufInitInfo(_buffer_info_t *info)
+{
+   memset(info, 0, sizeof(_buffer_info_t));
+   info->fmt = AAX_PCM16S;
+   info->no_tracks = 1;
+   info->blocksize = 2;
+   info->high_frequency = 13289.75f;
+   info->base_frequency = 220.0f;
+   info->pitch_fraction = 1.0f;
+   info->polyphony = 88;
+}
+
 static _aaxRingBuffer*
 _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle, unsigned char pos)
 {
@@ -1069,7 +1083,7 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
    const _aaxDriverBackend *stream = &_aaxStreamDriverBackend;
    char **ptr = NULL;
 
-   info->no_samples = 0;
+   _bufInitInfo(info);
    if (stream)
    {
       static const char *xcfg = "<?xml?><"COPY_TO_BUFFER">1</"COPY_TO_BUFFER">";
