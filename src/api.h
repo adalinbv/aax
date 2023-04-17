@@ -267,6 +267,8 @@ typedef struct
    char sampled_release;
    char fast_release;
 
+   int polyphony;
+
 } _buffer_info_t;
 
 typedef struct aax_buffer_t

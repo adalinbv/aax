@@ -1996,8 +1996,6 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
       xnid = xmlNodeGet(xiid, "note");
       if (xnid)
       {
-         char *polyphony;
-
          if (xmlAttributeExists(xnid, "min")) {
             low_frequency = note2freq(xmlAttributeGetDouble(xnid, "min"));
          }
@@ -2009,17 +2007,16 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
             handle->info.pitch_fraction = xmlAttributeGetDouble(xnid, "pitch-fraction");
          }
 
-         polyphony = xmlAttributeGetString(xnid, "polyphony");
-         if (polyphony && handle->info.pitch_fraction) {
-            snprintf(s, 1024, "polyphony: %s, pitch fraction: %3.1f",
-                      polyphony, handle->info.pitch_fraction);
-         } else if (polyphony) {
-            snprintf(s, 1024, "polyphony: %s", polyphony);
+         handle->info.polyphony = xmlAttributeGetInt(xnid, "polyphony");
+         if (handle->info.polyphony && handle->info.pitch_fraction) {
+            snprintf(s, 1024, "polyphony: %u, pitch fraction: %3.1f",
+                      handle->info.polyphony, handle->info.pitch_fraction);
+         } else if (handle->info.polyphony) {
+            snprintf(s, 1024, "polyphony: %u", handle->info.polyphony);
          } else if (handle->info.pitch_fraction) {
             snprintf(s, 1024, "pitch fraction: %3.1f", handle->info.pitch_fraction);
          }
          aax_buf->meta.comments = strdup(s);
-         xmlFree(polyphony);
 
          xmlFree(xnid);
       }

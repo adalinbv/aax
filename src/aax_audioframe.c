@@ -1704,154 +1704,187 @@ _aaxAudioFrameUpdate(UNUSED(_frame_t *frame))
 }
 
 static int
+_frameCreateBodyFromAAXS(aaxFrame frame, _frame_t* handle, _buffer_t *buffer, xmlId *xmid)
+{
+   float freq = buffer->info.base_frequency;
+   aaxConfig config = handle->root;
+   int clear = AAX_FALSE;
+   _aaxAudioFrame* fmixer;
+   xmlId *xeid, *xfid;
+   int i, num;
+
+   if (xmlAttributeExists(xmid, "mode")) {
+      clear = xmlAttributeCompareString(xmid, "mode", "append");
+   }
+#if 0
+   if (xmlAttributeExists(xmid, "stereo") &&
+       xmlAttributeGetBool(xmid, "stereo") == 0)
+   {
+      _aax3dProps *fp3d = handle->submix->props3d;
+      _PROP_MONO_SET_DEFINED(fp3d);
+      _PROP_INDOOR_SET_DEFINED(fp3d);
+   }
+#endif
+
+   if (!handle->mtx_set)
+   {
+      float pan = xmlAttributeGetDouble(xmid, "pan");
+      if (fabsf(pan) > 0.01f)
+      {
+          static aaxVec3f _at = { 0.0f, 0.0f, -1.0f };
+          aaxMtx4d mtx641, mtx642;
+          aaxVec3f at, up;
+          aaxVec3d pos;
+
+          aaxAudioFrameGetMatrix64(frame, mtx641);
+          aaxMatrix64GetOrientation(mtx641, pos, at, up);
+
+          aaxMatrix64SetIdentityMatrix(mtx641);
+          aaxMatrix64SetOrientation(mtx641, pos, _at, up);
+
+          aaxMatrix64SetIdentityMatrix(mtx642);
+          aaxMatrix64Rotate(mtx642, -1.57*pan, 0.0, 1.0, 0.0);
+
+          aaxMatrix64Multiply(mtx642, mtx641);
+          aaxAudioFrameSetMatrix64(frame, mtx642);
+          handle->mtx_set = AAX_TRUE;
+      }
+   }
+
+   if (xmlAttributeExists(xmid, "max-emitters"))
+   {
+      unsigned int max = get_low_resource() ? 32 : 256;
+      handle->max_emitters = xmlAttributeGetInt(xmid, "max-emitters");
+      handle->max_emitters = _MINMAX(handle->max_emitters, 1, max);
+   }
+
+   fmixer = handle->submix;
+   if (clear) {
+      _aaxSetDefault2dFiltersEffects(fmixer->props2d);
+   }
+
+   // No filters and effects for audio-frames if not normal rendering
+   if (fmixer->info->midi_mode == AAX_RENDER_NORMAL)
+   {
+      xfid = xmlMarkId(xmid);
+      num = xmlNodeGetNum(xmid, "filter");
+      for (i=0; i<num; i++)
+      {
+         if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
+         {
+            int non_optional = AAX_TRUE;
+            if (xmlAttributeExists(xfid, "optional")) {
+               non_optional = !xmlAttributeGetBool(xfid, "optional");
+            }
+            if (non_optional || !get_low_resource())
+            {
+               aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq, 0.0f, 0.0f, NULL);
+               if (flt)
+               {
+                  aaxAudioFrameSetFilter(frame, flt);
+                  aaxFilterDestroy(flt);
+               }
+            }
+         }
+      }
+      xmlFree(xfid);
+
+      xeid = xmlMarkId(xmid);
+      num = xmlNodeGetNum(xmid, "effect");
+      for (i=0; i<num; i++)
+      {
+         if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
+         {
+            int non_optional = AAX_TRUE;
+            if (xmlAttributeExists(xeid, "optional")) {
+               non_optional = !xmlAttributeGetBool(xeid, "optional");
+            }
+            if (non_optional || !get_low_resource())
+            {
+               aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq, 0.0f, 0.0f, NULL);
+               if (eff)
+               {
+                  aaxAudioFrameSetEffect(frame, eff);
+                  aaxEffectDestroy(eff);
+               }
+            }
+         }
+      }
+      xmlFree(xeid);
+   }
+   else if (fmixer->info->midi_mode == AAX_RENDER_SYNTHESIZER)
+   {
+      aaxEffect eff = aaxEffectCreate(config, AAX_PHASING_EFFECT);
+      if (eff)
+      {
+         aaxEffectSetSlot(eff, 0, AAX_LINEAR, 0.7f, 0.1f, 0.5f, 0.9f);
+         aaxEffectSetState(eff, AAX_TRUE);
+         aaxAudioFrameSetEffect(frame, eff);
+         aaxEffectDestroy(eff);
+      }
+   }
+
+   return AAX_TRUE;
+}
+
+static int
 _frameCreateEFFromAAXS(aaxFrame frame, _buffer_t *buffer)
 {
    const char *aaxs = buffer->aaxs;
    _frame_t* handle = get_frame(frame, _NOLOCK, __func__);
-   aaxConfig config = handle->root;
    int rv = AAX_TRUE;
    xmlId *xid;
 
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
-      xmlId *xmid = xmlNodeGet(xid, "aeonwave/info");
-      float freq = buffer->info.base_frequency;
+      int polyphony = buffer->info.polyphony;
+      xmlId *xmid;
 
-      if (xmid)
+      if (polyphony)
       {
-         xmlId *xnid = xmlNodeGet(xmid, "note");
-         if (xnid)
-         {
-            if (xmlAttributeExists(xnid, "polyphony"))
-            {
-               unsigned int min = get_low_resource() ? 8 : 12;
-               unsigned int max = get_low_resource() ? 24 : 88;
-               handle->max_emitters = xmlAttributeGetInt(xnid, "polyphony");
-               handle->max_emitters = _MINMAX(handle->max_emitters, min, max);
-            }
-            xmlFree(xnid);
-         }
-         xmlFree(xmid);
+         // number of simultaneous keys for an instrument
+         unsigned int min = get_low_resource() ? 8 : 12;
+         unsigned int max = get_low_resource() ? 24 : 88;
+         handle->max_emitters = polyphony;
+         handle->max_emitters = _MINMAX(handle->max_emitters, min, max);
       }
 
       xmid = xmlNodeGet(xid, "aeonwave/audioframe");
       if (xmid)
       {
-         unsigned int i, num = xmlNodeGetNum(xmid, "filter");
-         int clear = AAX_FALSE;
-         _aaxAudioFrame* fmixer;
-         xmlId *xeid, *xfid;
-
-         if (xmlAttributeExists(xmid, "mode")) {
-            clear = xmlAttributeCompareString(xmid, "mode", "append");
-         }
-#if 0
-         if (xmlAttributeExists(xmid, "stereo") &&
-             xmlAttributeGetBool(xmid, "stereo") == 0)
+         if (xmlAttributeExists(xmid, "include"))
          {
-            _aax3dProps *fp3d = handle->submix->props3d;
-            _PROP_MONO_SET_DEFINED(fp3d);
-            _PROP_INDOOR_SET_DEFINED(fp3d);
-         }
-#endif
-
-         if (!handle->mtx_set)
-         {
-            float pan = xmlAttributeGetDouble(xmid, "pan");
-            if (fabsf(pan) > 0.01f)
+            char file[1024];
+            int len = xmlAttributeCopyString(xmid, "include", file, 1024);
+            if (len < 1024-strlen(".aaxs"))
             {
-                static aaxVec3f _at = { 0.0f, 0.0f, -1.0f };
-                aaxMtx4d mtx641, mtx642;
-                aaxVec3f at, up;
-                aaxVec3d pos;
+               _buffer_info_t *info = &buffer->info;
+               char **data, *url;
 
-                aaxAudioFrameGetMatrix64(frame, mtx641);
-                aaxMatrix64GetOrientation(mtx641, pos, at, up);
+               strcat(file, ".aaxs");
+               url = _aaxURLConstruct(buffer->url, file);
 
-                aaxMatrix64SetIdentityMatrix(mtx641);
-                aaxMatrix64SetOrientation(mtx641, pos, _at, up);
-
-                aaxMatrix64SetIdentityMatrix(mtx642);
-                aaxMatrix64Rotate(mtx642, -1.57*pan, 0.0, 1.0, 0.0);
-
-                aaxMatrix64Multiply(mtx642, mtx641);
-                aaxAudioFrameSetMatrix64(frame, mtx642);
-                handle->mtx_set = AAX_TRUE;
-            }
-         }
-
-         if (xmlAttributeExists(xmid, "max-emitters"))
-         {
-            unsigned int max = get_low_resource() ? 32 : 256;
-            handle->max_emitters = xmlAttributeGetInt(xmid, "max-emitters");
-            handle->max_emitters = _MINMAX(handle->max_emitters, 1, max);
-         }
-
-         fmixer = handle->submix;
-         if (clear) {
-            _aaxSetDefault2dFiltersEffects(fmixer->props2d);
-         }
-
-         // No filters and effects for audio-frames if not normal rendering
-         if (fmixer->info->midi_mode == AAX_RENDER_NORMAL)
-         {
-            xfid = xmlMarkId(xmid);
-            for (i=0; i<num; i++)
-            {
-               if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
+               data =_bufGetDataFromStream(NULL, url, info,*buffer->mixer_info);
+               if (data)
                {
-                  int non_optional = AAX_TRUE;
-                  if (xmlAttributeExists(xfid, "optional")) {
-                     non_optional = !xmlAttributeGetBool(xfid, "optional");
-                  }
-                  if (non_optional || !get_low_resource())
+                  xmlId *xid = xmlInitBuffer(data[0], strlen(data[0]));
+                  if (xid)
                   {
-                     aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq, 0.0f, 0.0f, NULL);
-                     if (flt)
+                     xmlId *xamid = xmlNodeGet(xid, "aeonwave/audioframe");
+                     if (xamid)
                      {
-                        aaxAudioFrameSetFilter(frame, flt);
-                        aaxFilterDestroy(flt);
+                        rv = _frameCreateBodyFromAAXS(frame, handle, buffer, xmid);
+                        xmlFree(xamid);
                      }
+                     xmlClose(xid);
                   }
+                  free(data);
                }
-            }
-            xmlFree(xfid);
-
-            xeid = xmlMarkId(xmid);
-            num = xmlNodeGetNum(xmid, "effect");
-            for (i=0; i<num; i++)
-            {
-               if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
-               {
-                  int non_optional = AAX_TRUE;
-                  if (xmlAttributeExists(xeid, "optional")) {
-                     non_optional = !xmlAttributeGetBool(xeid, "optional");
-                  }
-                  if (non_optional || !get_low_resource())
-                  {
-                     aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq, 0.0f, 0.0f, NULL);
-                     if (eff)
-                     {
-                        aaxAudioFrameSetEffect(frame, eff);
-                        aaxEffectDestroy(eff);
-                     }
-                  }
-               }
-            }
-            xmlFree(xeid);
-         }
-         else if (fmixer->info->midi_mode == AAX_RENDER_SYNTHESIZER)
-         {
-            aaxEffect eff = aaxEffectCreate(config, AAX_PHASING_EFFECT);
-            if (eff)
-            {
-               aaxEffectSetSlot(eff, 0, AAX_LINEAR, 0.7f, 0.1f, 0.5f, 0.9f);
-               aaxEffectSetState(eff, AAX_TRUE);
-               aaxAudioFrameSetEffect(frame, eff);
-               aaxEffectDestroy(eff);
+               free(url);
             }
          }
+         rv = _frameCreateBodyFromAAXS(frame, handle, buffer, xmid);
          xmlFree(xmid);
       }
       xmlClose(xid);
