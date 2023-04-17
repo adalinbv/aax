@@ -1007,8 +1007,6 @@ _bufInitInfo(_buffer_info_t *info)
    info->fmt = AAX_PCM16S;
    info->no_tracks = 1;
    info->blocksize = 2;
-   info->high_frequency = 13289.75f;
-   info->base_frequency = 220.0f;
    info->pitch_fraction = 1.0f;
    info->polyphony = 88;
 }
