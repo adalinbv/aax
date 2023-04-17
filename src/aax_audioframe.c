@@ -1874,7 +1874,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, _buffer_t *buffer)
                      xmlId *xamid = xmlNodeGet(xid, "aeonwave/audioframe");
                      if (xamid)
                      {
-                        rv = _frameCreateBodyFromAAXS(frame, handle, buffer, xmid);
+                        rv = _frameCreateBodyFromAAXS(frame, handle, buffer, xamid);
                         xmlFree(xamid);
                      }
                      xmlClose(xid);
