@@ -84,6 +84,10 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
          _aaxMixerInfo* info = handle->info;
          switch(type)
          {
+         case AAX_BALANCE:
+             info->balance = ((float)setup-64.0f)/64.0f;
+             rv = AAX_TRUE;
+             break;
          case AAX_STEREO_EMITTERS:
             setup *= 2;
             // intentional fallthrough

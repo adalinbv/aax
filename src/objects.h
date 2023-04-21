@@ -289,6 +289,7 @@ typedef ALIGN16 struct
    int track;
 
    float pitch;
+   float balance;
    float frequency;
    float period_rate;
    float refresh_rate;			/* defines the latency */
