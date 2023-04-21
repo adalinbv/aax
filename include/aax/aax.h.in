@@ -257,6 +257,7 @@ enum aaxSetupType
    AAX_ERROR_NUMBER,
    AAX_MAX_FILTER,
    AAX_MAX_EFFECT,
+   AAX_BALANCE,
    AAX_SETUP_TYPE_MAX,
 
    AAX_PEAK_VALUE             = 0x0100,
