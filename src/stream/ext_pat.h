@@ -27,7 +27,8 @@
 #endif
 
 #define SIZE2SAMPLES(h,a)		(8*(a)/(h)->bits_sample)
-#define SIZE2TIME(h,a)			(SIZE2SAMPLES(h,(float)(a))/(h)->info.freq)
+#define SAMPLES2TIME(h,a)		((float)(a)/(h)->patch.sample_rate)
+#define SIZE2TIME(h,a)			SAMPLES2TIME(SIZE2SAMPLES((h),(a)),(a))
 
 #define CVTSWEEP(a)			((a)/45.0f)
 #define CVTRATE(a)			(0.05f + (a)/42.843f)

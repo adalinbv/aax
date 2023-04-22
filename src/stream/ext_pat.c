@@ -437,7 +437,6 @@ static int
 _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *processed)
 {
    unsigned char *buffer = header;
-   size_t offs;
    float cents;
    int i, pos;
 
@@ -642,11 +641,11 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    handle->info.blocksize = handle->info.no_tracks*handle->bits_sample/8;
    handle->info.no_samples = SIZE2SAMPLES(handle, handle->patch.wave_size);
 
-   offs = (handle->patch.start_loop << 4) + (handle->patch.fractions >> 4);
-   handle->info.loop_start = SIZE2SAMPLES(handle, offs)/16.0f;
+   handle->info.loop_start = SIZE2SAMPLES(handle, handle->patch.start_loop);
+   handle->info.loop_start += (float)(handle->patch.fractions >> 16)/16.0f;
 
-   offs = (handle->patch.end_loop << 4) + (handle->patch.fractions & 0xF);
-   handle->info.loop_end = SIZE2SAMPLES(handle, offs)/16.0f;
+   handle->info.loop_end = SIZE2SAMPLES(handle, handle->patch.end_loop);
+   handle->info.loop_end += (float)(handle->patch.fractions & 0xF)/16.0f;
 
    handle->info.base_frequency = 0.001f*handle->patch.root_frequency;
    handle->info.low_frequency = 0.001f*handle->patch.low_frequency;
@@ -699,9 +698,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
 
 #if 0
  printf("Wave name:\t\t%s\n", handle->patch.wave_name);
- printf("Loop start:\t\t%g (%gs)\n", handle->info.loop_start, SIZE2TIME(handle,handle->info.loop_start));
- printf("Loop end:\t\t%g (%gs)\n", handle->info.loop_end, SIZE2TIME(handle,handle->info.loop_end));
- printf("Sample size:\t\t%i (%gs)\n", SIZE2SAMPLES(handle,handle->patch.wave_size), SIZE2TIME(handle,handle->info.no_samples));
+ printf("Loop start:\t\t%g (%gs)\n", handle->info.loop_start,SAMPLES2TIME(handle,handle->info.loop_start));
+ printf("Loop end:\t\t%g (%gs)\n", handle->info.loop_end,SAMPLES2TIME(handle,handle->info.loop_end));
+ printf("Sample size:\t\t%i (%gs)\n",SIZE2SAMPLES(handle,handle->patch.wave_size),SAMPLES2TIME(handle,handle->info.no_samples));
  printf("Sample rate:\t\t%i Hz\n", handle->patch.sample_rate);
  printf("Low Frequency:\t\t%g Hz\n", 0.001f*handle->patch.low_frequency);
  printf("High Frequency:\t\t%g Hz\n", 0.001f*handle->patch.high_frequency);

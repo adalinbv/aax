@@ -622,7 +622,7 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
       {
          rbi->curr_pos_sec = 0.0;
          rbi->curr_sample = 0;
-         rbi->looping = 0;
+//       rbi->looping = 0;
       }
       break;
    case RB_FORWARDED:

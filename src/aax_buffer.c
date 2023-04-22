@@ -1241,7 +1241,10 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
 
 #if 0
  printf("no. samples:\t\t%lu\n", info->no_samples);
- printf("no. loops:\t\t%lu\n", info->loop_count);
+ if (info->loop_count == OFF_T_MAX)
+  printf("no. loops:\t\tinf\n");
+ else
+  printf("no. loops:\t\t%lu\n", info->loop_count);
  printf("loop start:\t\t%g\n", info->loop_start);
  printf("loop end:\t\t%g\n", info->loop_end);
  printf("sampled release:\t%s\n", info->sampled_release ? "yes" : "no");
@@ -2588,6 +2591,7 @@ _bufConvertDataToMixerFormat(_buffer_t *buf, _aaxRingBuffer *rb)
 
          nrb->set_paramf(nrb, RB_LOOPPOINT_END, buf->info.loop_end/buf->info.rate);
          nrb->set_paramf(nrb, RB_LOOPPOINT_START, buf->info.loop_start/buf->info.rate);
+
          nrb->set_parami(nrb, RB_SAMPLED_RELEASE, buf->info.sampled_release);
          nrb->set_parami(nrb, RB_LOOPING, buf->info.loop_count);
 
@@ -2855,7 +2859,7 @@ _aaxRingBufferIMA4ToPCM16(int32_t **__restrict dptr, const void *__restrict sptr
    }
 }
 
-_aaxRingBuffer*
+static _aaxRingBuffer*
 _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, unsigned blocksize)
 {
    unsigned int no_blocks, no_samples, no_tracks;
@@ -2871,7 +2875,9 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
 
    data = dbuf;
 
-   rb->set_state(rb, RB_CLEARED);
+   // _bufCreateFromAAXS sets part of the ringbuffer information struct
+   // so do not clear the ringbuffer.
+   // rb->set_state(rb, RB_CLEARED);
 
    rb_format = rb->get_parami(rb, RB_FORMAT);
    bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
