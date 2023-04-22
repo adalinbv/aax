@@ -1741,7 +1741,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid)
    {
       freq = xmlAttributeGetDouble(xsid, "frequency");
       handle->info.base_frequency = freq;
-      if (high_frequency > 0.0f)
+      if (high_frequency > FLT_EPSILON)
       {
          int pitch = ceilf(high_frequency/freq);
          handle->mip_levels = _getMaxMipLevels(pitch);
@@ -2039,13 +2039,13 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
       xmlFree(xiid);
    }
 
-   if (!handle->info.base_frequency) {
+   if (handle->info.base_frequency < FLT_EPSILON) {
       handle->info.base_frequency = aax_buf->frequency;
    }
-   if (!handle->info.low_frequency) {
+   if (handle->info.low_frequency < FLT_EPSILON) {
       handle->info.low_frequency = low_frequency;
    }
-   if (!handle->info.high_frequency) {
+   if (handle->info.high_frequency < FLT_EPSILON) {
       handle->info.high_frequency = high_frequency;
    }
 
@@ -2118,7 +2118,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
       }
 
       handle->mip_levels = 1;
-      rv = 1;
+      rv = _bufCreateResonatorFromAAXS(handle, xsid);
    }
    else {
       rv = _bufCreateResonatorFromAAXS(handle, xsid);
