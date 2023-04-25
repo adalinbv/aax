@@ -283,7 +283,9 @@ _aax_generate_noise_float(float *rv, size_t no_samples, uint64_t seed, unsigned 
          *ptr += rnd - prev;
 
          ptr += (int)rnd_skip;
-         if (skip) rnd_skip = 1.0f + fabsf((2*skip-rnd_skip)*rnd_fn());
+         if (skip > 1) {
+            rnd_skip = 1.0f + fabsf((2*skip-rnd_skip)*rnd_fn());
+         }
       }
       while (ptr < end);
    }

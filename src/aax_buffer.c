@@ -2340,11 +2340,19 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
       char modulate;
       char phasing;
 
+      fs = rb->get_paramf(rb, RB_FREQUENCY);
+      fs_mixer = _info->frequency;
+      if (handle->mixer_info && *handle->mixer_info) {
+         fs_mixer = (*handle->mixer_info)->frequency;
+      }
+
       modulate = 0;
       rate = freq * pitch;
       fw = FNMINMAX(rate, 1.0f, 22050.0f);
       seed = (FNMINMAX((double)random, 0.0, 1.0) * (double)UINT64_MAX);
-      skip = (unsigned char)(1.0f + 99.0f*_MINMAX(staticity, 0.0f, 1.0f));
+
+      staticity = _MINMAX(staticity*fs/fs_mixer, 0.0f, 1.0f);
+      skip = (unsigned)(1.0f + 99.0f*staticity);
 
       phase *= GMATH_PI;
 //    if (ratio < 0.0f) phase = GMATH_PI - phase;
@@ -2392,11 +2400,6 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
       case AAX_ADD:
       default:
          break;
-      }
-
-      fs_mixer = _info->frequency;
-      if (handle->mixer_info && *handle->mixer_info) {
-         fs_mixer = (*handle->mixer_info)->frequency;
       }
 
       phasing = (spread <0.0f);
