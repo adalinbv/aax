@@ -33,21 +33,23 @@
 #include "arch.h"
 #include "api.h"
 
-#define VERSION 1.02
+#define VERSION 1.1
 #define DSIZE	sizeof(_aaxRingBufferBitCrusherData)
 
-static int _bitcrush_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
-static int _bitcrush_add_noise(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+static int _bitcrusher_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+static int _bitcrusher_add_noise(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+static void _bitcrusher_swap(void*, void*);
 
 static aaxFilter
 _aaxBitCrusherFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, 1, DSIZE);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2, DSIZE);
    aaxFilter rv = NULL;
 
    if (flt)
    {
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
+      flt->slot[0]->swap = _bitcrusher_swap;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -67,7 +69,7 @@ _aaxBitCrusherFilterDestroy(_filter_t* filter)
 }
 
 static int
-_aaxBitCrusherFilterReset(void *data)
+_bitcrusher_reset(void *data)
 {
    _aaxRingBufferBitCrusherData *bitcrush = data;
    if (bitcrush)
@@ -77,6 +79,35 @@ _aaxBitCrusherFilterReset(void *data)
    }
 
    return AAX_TRUE;
+}
+
+void
+_bitcrusher_swap(void *d, void *s)
+{
+   _aaxFilterInfo *dst = d, *src = s;
+
+   if (src->data && src->data_size)
+   {
+      if (!dst->data) {
+          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+          dst->data_size = src->data_size;
+      }
+      else
+      {
+         _aaxRingBufferBitCrusherData *dflt = dst->data;
+         _aaxRingBufferBitCrusherData *sflt = src->data;
+
+         assert(dst->data_size == src->data_size);
+
+         _lfo_swap(&dflt->lfo, &sflt->lfo);
+         _lfo_swap(&dflt->env, &sflt->env);
+
+         dflt->fs = sflt->fs;
+         dflt->staticity = sflt->staticity;
+      }
+   }
+   dst->destroy = src->destroy;
+   dst->swap = src->swap;
 }
 
 static aaxFilter
@@ -123,12 +154,15 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          float fs = 48000.0f;
          int constant;
 
-         bitcrush->run = _bitcrush_run;
-         bitcrush->add_noise = _bitcrush_add_noise;
+         bitcrush->run = _bitcrusher_run;
+         bitcrush->add_noise = _bitcrusher_add_noise;
 
          if (filter->info) {
             fs = filter->info->frequency;
          }
+
+         /* sample rate conversion */
+         bitcrush->fs = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY_HF & 0xF];
 
          /* bit reduction */
          if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
@@ -162,23 +196,34 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          }
 
          /* noise */
-         depth = filter->slot[0]->param[AAX_NOISE_LEVEL];
-         memcpy(&bitcrush->env, &bitcrush->lfo, sizeof(_aaxLFOData));
+         bitcrush->staticity = filter->slot[1]->param[AAX_STATICITY & 0xF];
 
-         bitcrush->env.convert = _linear;
-         bitcrush->env.state = state & (AAX_INVERSE|AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_MASK);
+         depth = filter->slot[0]->param[AAX_NOISE_LEVEL];
+         if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
+             (state & AAX_ENVELOPE_FOLLOW_LOG))
+         {
+            bitcrush->env.convert = _squared;
+         } else {
+            bitcrush->env.convert = _linear;
+         }
+         bitcrush->env.state = filter->state;
          bitcrush->env.fs = fs;
          bitcrush->env.period_rate = filter->info->period_rate;
          bitcrush->env.stereo_lnk = !stereo;
 
          bitcrush->env.min_sec = 0.0f;
-         bitcrush->env.max_sec = depth/bitcrush->env.fs;
+         bitcrush->env.max_sec = depth/fs;
          bitcrush->env.depth = 1.0f;
          bitcrush->env.offset = 0.0f;
          bitcrush->env.f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
          bitcrush->env.inv = (state & AAX_INVERSE) ? AAX_FALSE : AAX_TRUE;
 
+         if ((bitcrush->env.offset + bitcrush->env.depth) > 1.0f) {
+            bitcrush->env.depth = 1.0f - bitcrush->env.offset;
+         }
+
          constant = _lfo_set_timing(&bitcrush->env);
+
          bitcrush->env.envelope = AAX_FALSE;
          if (!_lfo_set_function(&bitcrush->env, constant)) {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -207,11 +252,18 @@ _aaxNewBitCrusherFilterHandle(const aaxConfig config, enum aaxFilterType type, _
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, 1, 0);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2, 0);
 
    if (rv)
    {
+      _aaxRingBufferBitCrusherData *bitcrush;
+
       _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
+      rv->slot[0]->swap = _bitcrusher_swap;
+
+      bitcrush = (_aaxRingBufferBitCrusherData*)p2d->filter[rv->pos].data;
+      rv->slot[1]->param[AAX_CUTOFF_FREQUENCY_HF & 0xF] = bitcrush->fs;
+      rv->slot[1]->param[AAX_STATICITY & 0xF] = bitcrush->staticity;
       rv->state = p2d->filter[rv->pos].state;
    }
    return rv;
@@ -236,10 +288,10 @@ _aaxBitCrusherFilterMinMax(float val, int slot, unsigned char param)
 {
   static const _flt_minmax_tbl_t _aaxBitCrusherRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.01f, 0.0f, 0.0f }, { 2.0f, 50.0f, 2.0f, 1.0f } },
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } }, 
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } }
+    { { 0.0f, 0.01f, 0.0f, 0.0f }, {     2.0f, 50.0f, 2.0f, 1.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 44100.0f,  1.0f, 0.0f, 0.0f } }, 
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,  0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,  0.0f, 0.0f, 0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);
@@ -257,7 +309,7 @@ _flt_function_tbl _aaxBitCrusherFilter =
    "AAX_bitcrusher_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxBitCrusherFilterCreate,
    (_aaxFilterDestroy*)&_aaxBitCrusherFilterDestroy,
-   (_aaxFilterReset*)&_aaxBitCrusherFilterReset,
+   (_aaxFilterReset*)&_bitcrusher_reset,
    (_aaxFilterSetState*)&_aaxBitCrusherFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewBitCrusherFilterHandle,
    (_aaxFilterConvert*)&_aaxBitCrusherFilterSet,
@@ -266,19 +318,47 @@ _flt_function_tbl _aaxBitCrusherFilter =
 };
 
 int
-_bitcrush_run(MIX_PTR_T s, size_t end, size_t no_samples,
+_bitcrusher_run(MIX_PTR_T s, size_t end, size_t no_samples,
                     void *data, void *env, unsigned int track)
 {
    _aaxRingBufferBitCrusherData *bitcrush = data;
    int rv = AAX_FALSE;
    float level;
 
-   level = bitcrush->lfo.get(&bitcrush->lfo, env, s, 0, end);
+   level = bitcrush->lfo.get(&bitcrush->lfo, env, s, track, end);
+   if (bitcrush->fs)
+   {
+      float smu, freq_fact;
+      int i = no_samples;
+      MIX_T val;
+
+      if (bitcrush->lfo.get != _aaxLFOGetFixedValue) {
+         freq_fact = 1.0f - level*(bitcrush->lfo.fs - bitcrush->fs)/bitcrush->lfo.fs;
+      } else {
+         freq_fact = bitcrush->fs/bitcrush->lfo.fs;
+      }
+
+      smu = 0;
+      val = *s;
+      do
+      {
+          *s++ = val;
+
+          smu += freq_fact;
+          if (smu > 1.0f)
+          {
+             val = *s;
+             smu -= 1.0f;
+          }
+      }
+      while (--i);
+   }
+
    if (level > 0.01f)
    {
       unsigned bps = sizeof(MIX_T);
 
-      level = powf(2.0f, 8+sqrtf(level)*13.5f); // (24-bits/sample)
+      level = powf(2.0f, 8+sqrtf(0.95f*level)*13.5f); // (24-bits/sample)
       _batch_fmul_value(s, s, bps, no_samples, 1.0f/level);
       _batch_roundps(s, s, no_samples);
       _batch_fmul_value(s, s, bps, no_samples, level);
@@ -288,7 +368,7 @@ _bitcrush_run(MIX_PTR_T s, size_t end, size_t no_samples,
 }
 
 int
-_bitcrush_add_noise(MIX_PTR_T s, size_t end, size_t no_samples,
+_bitcrusher_add_noise(MIX_PTR_T s, size_t end, size_t no_samples,
                     void *data, void *env, unsigned int track)
 {
    _aaxRingBufferBitCrusherData *bitcrush = data;
@@ -298,12 +378,28 @@ _bitcrush_add_noise(MIX_PTR_T s, size_t end, size_t no_samples,
    ratio = bitcrush->env.get(&bitcrush->env, env, s, track, end);
    if (ratio > 0.01f)
    {
-      int i;
+      float rnd_skip, staticity;
+      int i = no_samples;
+      unsigned skip;
+
+      staticity = _MINMAX(bitcrush->staticity, 0.0f, 1.0f);
+      skip = (unsigned)(1.0f + 99.0f*staticity);
+      rnd_skip = skip ? skip : 1.0f;
+      ratio *= (1.0f + 10.0f*staticity*staticity);
 
       ratio *= ((double)(0.25f * AAX_PEAK_MAX)/(double)UINT64_MAX);
-      for (i=0; i<no_samples; ++i) {
-         s[i] += ratio*xoroshiro128plus();
+      do
+      {
+         *s += ratio*xoroshiro128plus();
+
+         s += (int)rnd_skip;
+         i -= (int)rnd_skip;
+
+         if (skip > 1) {
+            rnd_skip = 1.0f + fabsf((2*skip-rnd_skip)*_aax_rand_sample());
+         }
       }
+      while (i > 0);
       rv = AAX_TRUE;
    }
    return rv;

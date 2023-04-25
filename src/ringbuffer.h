@@ -153,6 +153,9 @@ typedef struct
    _aaxLFOData lfo;
    _aaxLFOData env;
 
+   float fs;
+   float staticity;
+
 } _aaxRingBufferBitCrusherData;
 
 typedef ALIGN16 struct {
