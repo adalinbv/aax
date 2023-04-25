@@ -346,7 +346,7 @@ _aaxLFOCalculate(_aaxLFOData *lfo, float val, unsigned track)
 
    assert(max);
 
-   rv = (val - lfo->min)/max;
+   rv = max ? (val - lfo->min)/max : val;
    rv = lfo->inv ? 1.0f-rv : rv;
 
    rv = _aaxLFODelay(lfo, rv);
@@ -379,7 +379,7 @@ _aaxLFOGetFixedValue(void* data, UNUSED(void *env), UNUSED(const void *ptr), uns
    float rv = 1.0f;
    if (lfo)
    {
-      rv = lfo->value[track];
+      rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
       lfo->compression[track] = 1.0f - rv;
    }
    return rv;
