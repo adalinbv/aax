@@ -153,7 +153,7 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 
 #define _EFFECT_SWAP_SLOT_DATA(P, t, E, s) do {                                \
  if (E->slot[s]->swap) E->slot[s]->swap(&P->effect[t], E->slot[s]);            \
- if (!s) aaxEffectSetState(E, P->effect[t].state); } while (0);
+ if (!s) aaxEffectSetState(E, P->effect[t].state); } while (0)
 
 #define _EFFECT_SWAP_SLOT(P, t, E, s)                                          \
  _EFFECT_SET(P, t, 0, _EFFECT_GET_SLOT(E, s, 0));                              \
@@ -161,7 +161,7 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
  _EFFECT_SET(P, t, 2, _EFFECT_GET_SLOT(E, s, 2));                              \
  _EFFECT_SET(P, t, 3, _EFFECT_GET_SLOT(E, s, 3));                              \
  _EFFECT_SET_STATE(P, t, _EFFECT_GET_SLOT_STATE(E));                           \
- _EFFECT_SWAP_SLOT_DATA(P, t, E, s);
+ _EFFECT_SWAP_SLOT_DATA(P, t, E, s)
 
 void _velocity_swap(void*, void*);
 void _velocity_destroy(void*);

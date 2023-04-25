@@ -1419,16 +1419,16 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
    {
    case AAX_TIMED_GAIN_FILTER:
       _PROP_DISTDELAY_SET_DEFINED(src->props3d);
-      _FILTER_SWAP_SLOT(p2d, type, filter, 0)
+      _FILTER_SWAP_SLOT(p2d, type, filter, 0);
       break;
    case AAX_VOLUME_FILTER:
    case AAX_DYNAMIC_GAIN_FILTER:
    case AAX_DYNAMIC_LAYER_FILTER:
    case AAX_BITCRUSHER_FILTER:
-      _FILTER_SWAP_SLOT(p2d, type, filter, 0)
+      _FILTER_SWAP_SLOT(p2d, type, filter, 0);
       break;
    case AAX_FREQUENCY_FILTER:
-      _FILTER_SWAP_SLOT(p2d, type, filter, 0)
+      _FILTER_SWAP_SLOT(p2d, type, filter, 0);
       if (p2d->note.velocity > 1.0f)
       {
          _aaxRingBufferFreqFilterData *flt = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
@@ -1449,7 +1449,7 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
       }
       break;
    case AAX_DISTANCE_FILTER:
-      _FILTER_SWAP_SLOT(p3d, type, filter, 0)
+      _FILTER_SWAP_SLOT(p3d, type, filter, 0);
       if (_EFFECT_GET_UPDATED(p3d, VELOCITY_EFFECT) == AAX_FALSE)
       {
          _aaxRingBufferDistanceData *data;

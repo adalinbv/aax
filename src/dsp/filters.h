@@ -149,7 +149,7 @@ extern _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX];
 
 #define _FILTER_SWAP_SLOT_DATA(P, t, F, s) do {                                \
  if (F->slot[s]->swap) F->slot[s]->swap(&P->filter[t], F->slot[s]);            \
- if (!s) aaxFilterSetState(F, P->filter[t].state); } while (0);
+ if (!s) aaxFilterSetState(F, P->filter[t].state); } while (0)
 
 #define _FILTER_SWAP_SLOT(P, t, F, s)                                          \
  _FILTER_SET(P, t, 0, _FILTER_GET_SLOT(F, s, 0));                              \
@@ -157,7 +157,7 @@ extern _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX];
  _FILTER_SET(P, t, 2, _FILTER_GET_SLOT(F, s, 2));                              \
  _FILTER_SET(P, t, 3, _FILTER_GET_SLOT(F, s, 3));                              \
  _FILTER_SET_STATE(P, t, _FILTER_GET_SLOT_STATE(F));                           \
- _FILTER_SWAP_SLOT_DATA(P, t, F, s);
+ _FILTER_SWAP_SLOT_DATA(P, t, F, s)
 
 
 // distance filter
