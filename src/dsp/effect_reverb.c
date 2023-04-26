@@ -42,8 +42,10 @@
 #define REFLECTIONSIZE	sizeof(_aaxRingBufferReflectionData)
 #define LOOPBACKSIZE	sizeof(_aaxRingBufferLoopbackData)
 
-#define NUM_LOOPBACKS	2
-#define NUM_REFLECTIONS	4
+#define NUM_LOOPBACKS_MIN	2
+#define NUM_LOOPBACKS_MAX	6
+#define NUM_REFLECTIONS_MIN	4
+#define NUM_REFLECTIONS_MAX	6
 
 static void _reverb_swap(void*,void*);
 static void _reverb_destroy(void*);
@@ -52,8 +54,8 @@ static void _reverb_prepare(_aaxEmitter*, const _aax3dProps*, void*);
 static int _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, const void*, _aaxMixerInfo*, unsigned char, int, void*, unsigned char);
 
 static void _reflections_prepare(MIX_PTR_T, MIX_PTR_T, size_t, void*, unsigned int);
-static void _reverb_add_reflections(_aaxRingBufferReverbData*, float, unsigned int, float, int, float);
-static void _reverb_add_loopbacks(_aaxRingBufferReverbData*, float, unsigned int, float, float);
+static void _reverb_add_reflections(_aaxRingBufferReverbData*, float, unsigned int, float, int, float, _aaxMixerInfo*);
+static void _reverb_add_loopbacks(_aaxRingBufferReverbData*, float, unsigned int, float, float, _aaxMixerInfo*);
 static void _loopbacks_destroy_delays(_aaxRingBufferReverbData*);
 
 /*
@@ -147,6 +149,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       if (reverb)
       {
          _aaxRingBufferFreqFilterData *flt = reverb->freq_filter;
+         _aaxMixerInfo *info = effect->info;
          float decay_level;
 
          reverb->reflections_prepare = _reflections_prepare;
@@ -185,7 +188,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          decay_level = effect->slot[0]->param[AAX_DECAY_LEVEL];
 
          if (reflections) {
-            _reverb_add_reflections(reverb, fs, no_tracks, depth, state, decay_level);
+            _reverb_add_reflections(reverb, fs, no_tracks, depth, state, decay_level, info);
          }
 
          if (loopbacks)
@@ -193,7 +196,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             size_t offs, tracksize;
             char *ptr, *ptr2;
 
-            _reverb_add_loopbacks(reverb, fs, no_tracks, lb_depth, decay_level);
+            _reverb_add_loopbacks(reverb, fs, no_tracks, lb_depth, decay_level, info);
 
             tracksize = (reverb->no_samples + MEMMASK) * sizeof(MIX_T);
 
@@ -501,7 +504,7 @@ _reflections_prepare(MIX_PTR_T dst, MIX_PTR_T src, size_t no_samples, void *data
 
 // Calculate the 1st order reflections
 static void
-_reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int tracks, float depth, int state, float decay_level)
+_reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int tracks, float depth, int state, float decay_level, _aaxMixerInfo *info)
 {
    _aaxRingBufferReflectionData *reflections = reverb->reflections;
 
@@ -517,7 +520,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
    if (reflections)
    {
       static const float max_depth = _MIN(REVERB_EFFECTS_TIME, 0.15f);
-      float delays[_AAX_MAX_DELAYS], gains[_AAX_MAX_DELAYS];
+      float delays[NUM_REFLECTIONS_MAX], gains[NUM_REFLECTIONS_MAX];
       float idepth, idepth_offs;
       unsigned int num;
       size_t i;
@@ -542,8 +545,10 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)       */
       // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
 
-      num = NUM_REFLECTIONS;
-      assert(num < _AAX_MAX_DELAYS);
+      num = NUM_REFLECTIONS_MIN;
+      if (info->capabilities & AAX_SIMD256) {
+         num = NUM_REFLECTIONS_MAX;
+      }
 
       decay_level /= 0.95f*num;
 
@@ -554,6 +559,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       gains[4] = decay_level*0.8346f;
       gains[5] = decay_level*0.7718f;
       gains[6] = decay_level*0.7946f;
+      assert(7 < NUM_REFLECTIONS_MAX);
 
       // depth definies the initial delay of the first reflections
       idepth = 0.005f+0.045f*depth;
@@ -607,7 +613,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
 
 // Calculate the 2nd order reflections
 static void
-_reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int tracks, float lb_depth, float decay_level)
+_reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int tracks, float lb_depth, float decay_level, _aaxMixerInfo *info)
 {
    _aaxRingBufferLoopbackData *loopbacks = reverb->loopbacks;
    unsigned int num;
@@ -636,7 +642,10 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
          unsigned int track;
          float dlb, dlbp;
 
-         num = NUM_LOOPBACKS;
+         num = NUM_LOOPBACKS_MIN;
+         if (info->capabilities & AAX_SIMD256) {
+            num = NUM_LOOPBACKS_MAX;
+         }
          loopbacks->no_loopbacks = num;
 
          decay_level /= 0.85f*num;
@@ -647,6 +656,7 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
          loopbacks->loopback[4].gain = decay_level*0.80317f;
          loopbacks->loopback[5].gain = decay_level*0.73317f;
          loopbacks->loopback[6].gain = decay_level*0.88317f;
+         assert(7 < NUM_LOOPBACKS_MAX);
 #if 0
  for (int i=0; i<7; ++i)
  printf(" loopback[%i].gain: %f\n", i,  loopbacks->loopback[i].gain);
