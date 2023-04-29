@@ -369,10 +369,10 @@ _aaxDelayLineEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxDelayLineRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.001f,  0.01f, 0.0f, 0.0f  }, {     1.0f,    10.0f, 1.0f,  1.0f } },
-    { {  20.0f, 20.0f,  0.0f, 0.01f }, { 22050.0f, 22050.0f, 1.0f, 80.0f } },
-    { {   0.0f,  0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } },
-    { {   0.0f,  0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } }
+    { { -1.0f,  0.01f,  0.0f, 0.0f  }, {     1.0f,    10.0f, 1.0f,  1.0f } },
+    { { 20.0f, 20.0f,  -1.0f, 0.01f }, { 22050.0f, 22050.0f, 1.0f, 80.0f } },
+    { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } },
+    { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
@@ -600,7 +600,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    MIX_T *nsptr = sptr;
    ssize_t offs, noffs;
    int rv = AAX_FALSE;
-   float volume;
+   float volume, gain;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -629,7 +629,8 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
 
    assert(s != d);
 
-   volume = effect->feedback;
+   gain = effect->feedback;
+   volume = fabsf(gain);
    if (offs && volume > LEVEL_96DB)
    {
       ssize_t coffs, doffs;
@@ -661,7 +662,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
       {
          do
          {
-            rbd->add(nsptr, nsptr-coffs, step, volume, 0.0f);
+            rbd->add(nsptr, nsptr-coffs, step, gain, 0.0f);
 
             nsptr += step;
             coffs += sign;
@@ -670,7 +671,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          while(i >= step);
       }
       if (i) {
-         rbd->add(nsptr, nsptr-coffs, i, volume, 0.0f);
+         rbd->add(nsptr, nsptr-coffs, i, gain, 0.0f);
       }
       effect->offset->coffs[track] = coffs;
 
@@ -679,7 +680,8 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
       nsptr = sptr;
    }
 
-   volume =  effect->delay.gain;
+   gain =  effect->delay.gain;
+   volume = fabsf(gain);
    if (offs && volume > LEVEL_96DB)
    {
       _aaxRingBufferFreqFilterData *flt = effect->freq_filter;
@@ -696,7 +698,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          {
             flt->run(rbd, dptr, nsptr-offs, 0, no_samples, 0, track, flt, env, 1.0f, 0);
          }  else if (fabsf(volume - 1.0f) > LEVEL_96DB) {
-            rbd->multiply(dptr, nsptr-offs, bps, no_samples, volume);
+            rbd->multiply(dptr, nsptr-offs, bps, no_samples, gain);
          }
       }
       else
@@ -708,7 +710,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          {
             flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, flt, env, 1.0f, 0);
          } else if (fabsf(volume - 1.0f) > LEVEL_96DB) {
-            rbd->multiply(dptr, dptr, bps, no_samples, volume);
+            rbd->multiply(dptr, dptr, bps, no_samples, gain);
          }
       }
       rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);

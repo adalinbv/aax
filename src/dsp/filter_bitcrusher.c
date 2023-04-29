@@ -325,6 +325,7 @@ _bitcrusher_run(MIX_PTR_T s, size_t end, size_t no_samples,
    int rv = AAX_FALSE;
    float level;
 
+   /* sample rate decimation */
    level = bitcrush->lfo.get(&bitcrush->lfo, env, s, track, end);
    if (bitcrush->fs)
    {
@@ -354,6 +355,7 @@ _bitcrusher_run(MIX_PTR_T s, size_t end, size_t no_samples,
       while (--i);
    }
 
+   /* bitcrushing */
    if (level > 0.01f)
    {
       unsigned bps = sizeof(MIX_T);
