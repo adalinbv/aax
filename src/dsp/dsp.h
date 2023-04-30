@@ -60,7 +60,7 @@ int _grapheq_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigne
 #define DELAY_MIN	 60e-3f
 #define DELAY_MAX	250e-3f	// FRAME_REVERB_EFFECTS_TIME
 
-void* _delay_create(void*, void*, char, char, float);
+void* _delay_create(void*, void*, char, char, int, float);
 void _delay_swap(void*, void*);
 void _delay_destroy(void*);
 void _delay_reset(void*);

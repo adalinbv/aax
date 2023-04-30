@@ -234,6 +234,8 @@ typedef ALIGN16 struct
    int (*run)(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t,
               size_t, size_t, void*, void*, unsigned int);
 
+   int state;
+
    _aaxLFOData lfo;
    _aaxRingBufferOffsetData *offset;
    _aaxRingBufferHistoryData *history;

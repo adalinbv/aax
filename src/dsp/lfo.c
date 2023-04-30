@@ -89,7 +89,7 @@ _lfo_setup(_aaxLFOData *lfo, void *i, int state)
    lfo->fs = info->frequency;
    lfo->period_rate = info->period_rate; 
    lfo->convert = (log) ? _exponential : _linear;
-   lfo->state = state & ~(AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   lfo->state = state & ~(AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG|AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
    lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
    lfo->stereo_lnk = !stereo;
    lfo->depth = 1.0f;

@@ -78,16 +78,22 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
 
    assert(effect->info);
 
+   if ((state & (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER)) == 0) {
+      state |= (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
+   }
+
    mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_IMPULSE_WAVE|
           AAX_SAWTOOTH_WAVE|AAX_RANDOMNESS|AAX_CYCLOID_WAVE |
           AAX_TIMED_TRANSITION | AAX_ENVELOPE_FOLLOW_MASK | AAX_CONSTANT_VALUE;
 
-   istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL|AAX_RANDOM_SELECT|AAX_ENVELOPE_FOLLOW_LOG);
+   istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL|AAX_RANDOM_SELECT|
+                      AAX_ENVELOPE_FOLLOW_LOG);
    if (istate == 0) istate = AAX_12DB_OCT;
    wstate = istate & mask;
 
    effect->state = state;
-   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG|
+           AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
    switch (state & ~mask)
    {
    case AAX_CONSTANT_VALUE:
@@ -106,7 +112,7 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
       float feedback = effect->slot[1]->param[AAX_FEEDBACK_GAIN & 0xF];
       char fbhist = feedback ? AAX_TRUE : AAX_FALSE;
 
-      data = _delay_create(data, effect->info, AAX_TRUE, fbhist, FRAME_REVERB_EFFECTS_TIME);
+      data = _delay_create(data, effect->info, AAX_TRUE, fbhist, state, FRAME_REVERB_EFFECTS_TIME);
 
       effect->slot[0]->data = data;
       if (data)
@@ -407,7 +413,7 @@ _eff_function_tbl _aaxDelayLineEffect =
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
 void*
-_delay_create(void *d, void *i, char delay, char feedback, float delay_time)
+_delay_create(void *d, void *i, char delay, char feedback, int state, float delay_time)
 {
    _aaxRingBufferDelayEffectData *data = d;
    _aaxMixerInfo *info = i;
@@ -433,6 +439,7 @@ _delay_create(void *d, void *i, char delay, char feedback, float delay_time)
       int no_tracks = info->no_tracks;
       float fs = info->frequency;
 
+      data->state = state;
       data->no_tracks = no_tracks;
       data->history_samples = TIME_TO_SAMPLES(fs, delay_time);
 
@@ -629,92 +636,98 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
 
    assert(s != d);
 
-   gain = effect->feedback;
-   volume = fabsf(gain);
-   if (offs && volume > LEVEL_96DB)
+   if (effect->state & AAX_EFFECT_2ND_ORDER)
    {
-      ssize_t coffs, doffs;
-      int i, step, sign;
-
-      sign = (noffs < offs) ? -1 : 1;
-      doffs = labs(noffs - offs);
-      i = no_samples;
-      coffs = offs;
-      step = end;
-
-      if (start)
+      gain = effect->feedback;
+      volume = fabsf(gain);
+      if (offs && volume > LEVEL_96DB)
       {
-         step = effect->offset->step[track];
-         coffs = effect->offset->coffs[track];
-      }
-      else
-      {
-         if (doffs)
+         ssize_t coffs, doffs;
+         int i, step, sign;
+
+         sign = (noffs < offs) ? -1 : 1;
+         doffs = labs(noffs - offs);
+         i = no_samples;
+         coffs = offs;
+         step = end;
+
+         if (start)
          {
-            step = end/doffs;
-            if (step < 2) step = end;
+            step = effect->offset->step[track];
+            coffs = effect->offset->coffs[track];
          }
-      }
-      effect->offset->step[track] = step;
-
-      _aax_memcpy(nsptr-ds, effect->feedback_history->history[track], ds*bps);
-      if (i >= step)
-      {
-         do
+         else
          {
-            rbd->add(nsptr, nsptr-coffs, step, gain, 0.0f);
-
-            nsptr += step;
-            coffs += sign;
-            i -= step;
+            if (doffs)
+            {
+               step = end/doffs;
+               if (step < 2) step = end;
+            }
          }
-         while(i >= step);
-      }
-      if (i) {
-         rbd->add(nsptr, nsptr-coffs, i, gain, 0.0f);
-      }
-      effect->offset->coffs[track] = coffs;
+         effect->offset->step[track] = step;
 
-      _aax_memcpy(effect->feedback_history->history[track], sptr+no_samples-ds, ds*bps);
+         _aax_memcpy(nsptr-ds, effect->feedback_history->history[track], ds*bps);
+         if (i >= step)
+         {
+            do
+            {
+               rbd->add(nsptr, nsptr-coffs, step, gain, 0.0f);
 
-      nsptr = sptr;
+               nsptr += step;
+               coffs += sign;
+               i -= step;
+            }
+            while(i >= step);
+         }
+         if (i) {
+            rbd->add(nsptr, nsptr-coffs, i, gain, 0.0f);
+         }
+         effect->offset->coffs[track] = coffs;
+
+         _aax_memcpy(effect->feedback_history->history[track], sptr+no_samples-ds, ds*bps);
+
+         nsptr = sptr;
+      }
    }
 
-   gain =  effect->delay.gain;
-   volume = fabsf(gain);
-   if (offs && volume > LEVEL_96DB)
+   if (effect->state & AAX_EFFECT_1ST_ORDER)
    {
-      _aaxRingBufferFreqFilterData *flt = effect->freq_filter;
-      MIX_T *dptr = d + start;
-      ssize_t doffs;
-
-      doffs = noffs - offs;
-
-      // first process the delayed (wet) signal
-      // then add the original (dry) signal
-      if (doffs == 0)
+      gain =  effect->delay.gain;
+      volume = fabsf(gain);
+      if (offs && volume > LEVEL_96DB)
       {
-         if (flt)
-         {
-            flt->run(rbd, dptr, nsptr-offs, 0, no_samples, 0, track, flt, env, 1.0f, 0);
-         }  else if (fabsf(volume - 1.0f) > LEVEL_96DB) {
-            rbd->multiply(dptr, nsptr-offs, bps, no_samples, gain);
-         }
-      }
-      else
-      {
-         float pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
-         rbd->resample(dptr, nsptr-offs, 0, no_samples, 0.0f, pitch);
+         _aaxRingBufferFreqFilterData *flt = effect->freq_filter;
+         MIX_T *dptr = d + start;
+         ssize_t doffs;
 
-         if (flt)
+         doffs = noffs - offs;
+
+         // first process the delayed (wet) signal
+         // then add the original (dry) signal
+         if (doffs == 0)
          {
-            flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, flt, env, 1.0f, 0);
-         } else if (fabsf(volume - 1.0f) > LEVEL_96DB) {
-            rbd->multiply(dptr, dptr, bps, no_samples, gain);
+            if (flt)
+            {
+               flt->run(rbd, dptr, nsptr-offs, 0, no_samples, 0, track, flt, env, 1.0f, 0);
+            }  else if (fabsf(volume - 1.0f) > LEVEL_96DB) {
+               rbd->multiply(dptr, nsptr-offs, bps, no_samples, gain);
+            }
          }
+         else
+         {
+            float pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
+            rbd->resample(dptr, nsptr-offs, 0, no_samples, 0.0f, pitch);
+
+            if (flt)
+            {
+               flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, flt, env, 1.0f, 0);
+            } else if (fabsf(volume - 1.0f) > LEVEL_96DB) {
+               rbd->multiply(dptr, dptr, bps, no_samples, gain);
+            }
+         }
+         rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+         rv = AAX_TRUE;
       }
-      rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
-      rv = AAX_TRUE;
    }
 
    return rv;

@@ -77,8 +77,13 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
 
    assert(effect->info);
 
+   if ((state & (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER)) == 0) {
+      state |= (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
+   }
+
    effect->state = state;
-   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG|
+           AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
    switch (state & ~mask)
    {
    case AAX_CONSTANT_VALUE:
@@ -95,7 +100,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
 
-      data = _delay_create(data, effect->info, AAX_FALSE, AAX_TRUE, DELAY_EFFECTS_TIME);
+      data = _delay_create(data, effect->info, AAX_FALSE, AAX_TRUE, state, DELAY_EFFECTS_TIME);
       effect->slot[0]->data = data;
       if (data)
       {

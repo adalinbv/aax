@@ -78,16 +78,22 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
 
    assert(effect->info);
 
+   if ((state & (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER)) == 0) {
+      state |= (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
+   }
+
    mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_IMPULSE_WAVE|
           AAX_SAWTOOTH_WAVE|AAX_RANDOMNESS|AAX_CYCLOID_WAVE |
           AAX_TIMED_TRANSITION | AAX_ENVELOPE_FOLLOW_MASK | AAX_CONSTANT_VALUE;
 
-   istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL|AAX_RANDOM_SELECT|AAX_ENVELOPE_FOLLOW_LOG);
+   istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL|AAX_RANDOM_SELECT|
+                      AAX_ENVELOPE_FOLLOW_LOG);
    if (istate == 0) istate = AAX_12DB_OCT;
    wstate = istate & mask;
 
    effect->state = state;
-   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG|
+           AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
    switch (state & ~mask)
    {
    case AAX_CONSTANT_VALUE:
@@ -106,7 +112,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
       float feedback = effect->slot[1]->param[AAX_FEEDBACK_GAIN & 0xF];
       char fbhist = feedback ? AAX_TRUE : AAX_FALSE;
 
-      data = _delay_create(data, effect->info, AAX_TRUE, fbhist, DELAY_EFFECTS_TIME);
+      data = _delay_create(data, effect->info, AAX_TRUE, fbhist, state, DELAY_EFFECTS_TIME);
       effect->slot[0]->data = data;
       if (data)
       {
