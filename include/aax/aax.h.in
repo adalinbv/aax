@@ -563,8 +563,13 @@ enum aaxWaveformType
    AAX_MAX_WAVE           = 6,
    AAX_MAX_WAVE_NOISE     = (AAX_MAX_WAVE+6),
 
-   AAX_REVERB_1ST_ORDER   = AAX_RELEASE_FACTOR,
-   AAX_REVERB_2ND_ORDER   = AAX_REPEAT
+   AAX_EFFECT_1ST_ORDER   = AAX_RELEASE_FACTOR,
+   AAX_EFFECT_2ND_ORDER   = AAX_REPEAT,
+
+   // backwards compatibility: prior to version 3.12.4
+   // do not use in new software
+   AAX_REVERB_1ST_ORDER   = AAX_EFFECT_1ST_ORDER,
+   AAX_REVERB_2ND_ORDER   = AAX_EFFECT_2ND_ORDER
 };
 
 enum aaxFrequencyFilterType
