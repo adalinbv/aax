@@ -874,7 +874,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                _handle_t *driver = get_driver_handle(frame);
                const _aaxDriverBackend *be = driver->backend.ptr;
                enum aaxRenderMode mode = driver->info->mode;
-               float dt = FRAME_REVERB_EFFECTS_TIME;
+               float dt = MAX_EFFECTS_TIME;
 
                smixer->ringbuffer = be->get_ringbuffer(dt, mode);
             }

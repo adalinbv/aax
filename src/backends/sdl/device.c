@@ -1068,7 +1068,7 @@ _aaxSDLDriverThread(void* config)
    tracks = 2;
    freq = 48000.0f;
    smixer = NULL;
-   dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, handle->info->mode);
+   dest_rb = be->get_ringbuffer(MAX_EFFECTS_TIME, handle->info->mode);
    if (dest_rb)
    {
       dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);

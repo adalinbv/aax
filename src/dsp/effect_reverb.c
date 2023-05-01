@@ -183,8 +183,8 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          }
 
          /* calculate initial and loopback samples                      */
-         depth = effect->slot[0]->param[AAX_DELAY_DEPTH]/0.07f;
-         lb_depth = effect->slot[0]->param[AAX_DECAY_DEPTH]/0.7f;
+         depth = effect->slot[0]->param[AAX_DELAY_DEPTH]/DELAY_EFFECTS_TIME;
+         lb_depth = effect->slot[0]->param[AAX_DECAY_DEPTH]/REVERB_EFFECTS_TIME;
          decay_level = effect->slot[0]->param[AAX_DECAY_LEVEL];
 
          if (reflections) {
@@ -364,15 +364,17 @@ _aaxReverbEffectGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
    return rv;
 }
 
+#define MAX1	DELAY_EFFECTS_TIME
+#define MAX2	REVERB_EFFECTS_TIME
 static float
 _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxReverbRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { {50.0f, 0.001f, 0.0f, 0.001f }, { 22000.0f,   0.07f, FLT_MAX, REVERB_EFFECTS_TIME } },
-    { { 0.0f,   0.0f, 0.0f,   0.0f }, {  FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
-    { { 0.0f,   0.0f, 0.0f,   0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } },
-    { { 0.0f,   0.0f, 0.0f,   0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } }
+    { { 50.0f, 0.001f, 0.0f, 0.001f }, { 22000.0f,    MAX1,    1.0f, MAX2 } },
+    { {  0.1f,   0.1f, 0.1f,   0.0f }, {  FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
+    { {  0.0f,   0.0f, 0.0f,   0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } },
+    { {  0.0f,   0.0f, 0.0f,   0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);

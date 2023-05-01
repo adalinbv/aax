@@ -167,7 +167,7 @@ _aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
    case REVERB_EFFECT:
       if (slot == 0) {
          effect->param[AAX_CUTOFF_FREQUENCY] = MAXIMUM_CUTOFF;
-         effect->param[AAX_DELAY_DEPTH] = 0.27f;
+         effect->param[AAX_DELAY_DEPTH] = 0.027f;
          effect->param[AAX_DECAY_LEVEL] = 0.3f;
          effect->param[AAX_DECAY_DEPTH] = 0.7f;
       }
@@ -246,7 +246,7 @@ static int _eff_cvt_tbl[AAX_EFFECT_MAX] =
   REVERB_EFFECT,		// AAX_REVERB_EFFECT
   CONVOLUTION_EFFECT,		// AAX_CONVOLUTION_EFFECT
   RINGMODULATE_EFFECT,		// AAX_RINGMODULATE_EFFECT
-  DELAY_EFFECT			// AAX_DELAY_EFFECT
+  DELAY_LINE_EFFECT		// AAX_DELAY_EFFECT
 };
 
 static int _cvt_eff_tbl[MAX_STEREO_EFFECT] =
@@ -259,4 +259,5 @@ static int _cvt_eff_tbl[MAX_STEREO_EFFECT] =
   AAX_DISTORTION_EFFECT,	// DISTORTION_EFFECT
   AAX_CHORUS_EFFECT,		// DELAY_EFFECT
   AAX_RINGMODULATOR_EFFECT,	// RINGMODULATE_EFFECT
+  AAX_DELAY_EFFECT		// DELAY EFFECT
 };

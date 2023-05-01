@@ -112,7 +112,8 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
       float feedback = effect->slot[1]->param[AAX_FEEDBACK_GAIN & 0xF];
       char fbhist = feedback ? AAX_TRUE : AAX_FALSE;
 
-      data = _delay_create(data, effect->info, AAX_TRUE, fbhist, state, FRAME_REVERB_EFFECTS_TIME);
+      data = _delay_create(data, effect->info, AAX_TRUE, fbhist, state,
+                           DELAY_LINE_EFFECTS_TIME);
 
       effect->slot[0]->data = data;
       if (data)

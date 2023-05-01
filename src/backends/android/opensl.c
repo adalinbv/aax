@@ -1101,7 +1101,7 @@ _aaxSLESDriverThread(void* config)
 
       mixer = sensor->mixer;
 
-      dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, mixer->info->mode);
+      dest_rb = be->get_ringbuffer(MAX_EFFECTS_TIME, mixer->info->mode);
       if (dest_rb)
       {
          dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);

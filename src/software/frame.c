@@ -180,7 +180,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
          assert (be == sensor ? ((_sensor_t*)sensor)->mixer->info->backend
                               : fmixer->info->backend);
 
-         frame_rb = be->get_ringbuffer(FRAME_REVERB_EFFECTS_TIME, info->mode);
+         frame_rb = be->get_ringbuffer(MAX_EFFECTS_TIME, info->mode);
          if (frame_rb)
          {
             float dt = 1.0f/info->period_rate;

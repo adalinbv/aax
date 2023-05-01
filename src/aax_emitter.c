@@ -1693,19 +1693,6 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
       _aaxEmitter *src = handle->source;
       _aaxSetDefault2dFiltersEffects(src->props2d);
    }
-#if 0
-   if (handle->midi.mode == AAX_RENDER_SYNTHESIZER)
-   {
-      aaxEffect eff = aaxEffectCreate(config, AAX_PHASING_EFFECT);
-      if (eff)
-      {
-         aaxEffectSetSlot(eff, 0, AAX_LINEAR, 0.7f, 0.1f, 0.05f, 0.7f);
-         aaxEffectSetState(eff, AAX_SINE_WAVE);
-         _emitterSetEffect(handle, eff);
-         aaxEffectDestroy(eff);
-      }
-   }
-#endif
 
    xfid = xmlMarkId(xmid);
    if (xfid)

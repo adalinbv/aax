@@ -701,7 +701,7 @@ _aaxNoneDriverThread(void* config)
    }
 
    be = handle->backend.ptr;
-   dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, handle->info->mode);
+   dest_rb = be->get_ringbuffer(MAX_EFFECTS_TIME, handle->info->mode);
    if (!dest_rb) {
       return NULL;
    }
@@ -811,7 +811,7 @@ _aaxSoftwareMixerThread(void* config)
 
    tracks = 2;
    smixer = NULL;
-   dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, handle->info->mode);
+   dest_rb = be->get_ringbuffer(MAX_EFFECTS_TIME, handle->info->mode);
    if (dest_rb)
    {
       dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);

@@ -38,8 +38,9 @@ extern "C" {
 #include "api.h"
 
 #define DELAY_EFFECTS_TIME      	0.070f
-#define FRAME_REVERB_EFFECTS_TIME	0.250f
-#define REVERB_EFFECTS_TIME     	0.700f
+#define DELAY_LINE_EFFECTS_TIME		1.000f
+#define REVERB_EFFECTS_TIME     	1.000f
+#define MAX_EFFECTS_TIME	_MAX(DELAY_LINE_EFFECTS_TIME,REVERB_EFFECTS_TIME)
 
 aaxEffect _aaxEffectCreateHandle(_aaxMixerInfo*, enum aaxEffectType, unsigned, size_t);
 
