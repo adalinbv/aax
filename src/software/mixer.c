@@ -52,7 +52,7 @@ _aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *rendere
    const _aaxRendererData *data = (_aaxRendererData*)renderer;
    const _aaxDriverBackend *be = data->be;
    _aax2dProps *p2d = data->fp2d;
-   _aaxRingBufferDelayEffectData* delay_effect;
+   _aaxRingBufferDelayEffectData* delay_effect, *delay_line_effect;
    _aaxRingBufferFreqFilterData* freq_filter;
    _aaxRingBufferOcclusionData *occlusion;
    _aaxRingBufferReverbData *reverb;
@@ -66,13 +66,14 @@ _aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *rendere
    assert(bps == sizeof(MIX_T));
 
    delay_effect = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
+   delay_line_effect = _EFFECT_GET_DATA(p2d, DELAY_LINE_EFFECT);
    freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
    dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
    ringmodulator = _EFFECT_GET_STATE(p2d, RINGMODULATE_EFFECT);
    occlusion = _FILTER_GET_DATA(p2d, VOLUME_FILTER);
    reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
-   if (delay_effect || freq_filter || dist_state || ringmodulator ||
-      occlusion || reverb)
+   if (delay_effect || delay_line_effect || freq_filter || dist_state ||
+      ringmodulator || occlusion || reverb)
    {
       _aaxRingBufferData *rbi = rb->handle;
       _aaxRingBufferSample *rbd = rbi->sample;
@@ -92,12 +93,15 @@ _aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *rendere
       }
 
       dptr = (MIX_T*)tracks[track];
+      if (!ddesamps && delay_line_effect) { 
+         ddesamps = delay_line_effect->delay.sample_offs[track];
+      }
       if (!ddesamps && delay_effect) {
          ddesamps = delay_effect->delay.sample_offs[track];
       }
       memcpy(scratch0, dptr, no_samples*bps);
-      rbi->effects_2nd(rbi->sample, dptr, scratch0, scratch1, 0, no_samples,
-                       no_samples, ddesamps, track, p2d, 0, mono);
+      rbi->effects(rbi->sample, dptr, scratch0, scratch1, 0, no_samples,
+                   no_samples, ddesamps, track, p2d, 0, mono);
    }
 
    /*

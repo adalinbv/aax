@@ -38,72 +38,10 @@
 #include <software/renderer.h>
 
 
-/**
- * 1nd order effects:
- *   Apply to registered emitters and registered sensors only.
- *
- * - dst and scratch point to the beginning of a buffer containing room for
- *   the delay effects prior to the pointer.
- * - start is the starting pointer
- * - end is the end pointer (end-start is the number of smaples)
- * - dmax does not include ds
- */
-#define BUFSWAP(a, b) do { void* t = (a); (a) = (b); (b) = t; } while (0);
-
-#if 0
-void
-_aaxRingBufferEffectsApply1st(_aaxRingBufferSample *rbd,
-          MIX_PTR_T dst, MIX_PTR_T src, UNUSED(MIX_PTR_T scratch),
-          size_t start, UNUSED(size_t end), size_t no_samples,
-          size_t ddesamps, unsigned int track, _aax2dProps *p2d,
-          UNUSED(unsigned char ctr), unsigned char mono)
-{
-   static const size_t bps = sizeof(MIX_T);
-   _aaxRingBufferReflectionData *reflections = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
-#ifndef NDEBUG
-// _aaxRingBufferDelayEffectData *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
-// size_t ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
-#endif
-   MIX_T *psrc, *pdst;
-
-   src += start;
-   dst += start;
-
-   psrc = src; /* might change further in the code */
-   pdst = dst; /* might change further in the code */
-
-   if (reflections)
-   {
-      _aaxRingBufferOcclusionData *occlusion = reflections->reverb->occlusion;
-      float v = (1.0f - occlusion->level);
-      r = reflections->run(rbd, pdst, psrc, no_samples, ddesamps, track,
-                           v, reflections, NULL, mono);
-      if (r) BUFSWAP(pdst, psrc);
-   }
-
-   if (dst == pdst)	/* copy the data back to the dst buffer */
-   {
-//    DBG_MEMCLR(1, dst-ds, ds+end, bps);
-      memcpy(dst, src, no_samples*bps);
-   }
-}
-#endif
-
-/**
- * 2nd order effects:
- *   Apply to all registered emitters, registered sensors and
- *   registered audio-frames.
- *
- * - dst and scratch point to the beginning of a buffer containing room for
- *   the delay effects prior to the pointer.
- * - start is the starting pointer
- * - end is the end pointer (end-start is the number of smaples)
- * - dmax does not include ds
- */
 #define BUFSWAP(a, b) do { void* t = (a); (a) = (b); (b) = t; } while (0);
 
 void
-_aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
+_aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
           MIX_PTR_T dst, MIX_PTR_T src, MIX_PTR_T scratch,
           size_t start, size_t end, size_t no_samples,
           size_t ddesamps, unsigned int track, _aax2dProps *p2d,
@@ -121,17 +59,22 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    // audio-frames, and streaming emitters, with delay effects need
    // the source history
    state = _EFFECT_GET_STATE(p2d, DELAY_EFFECT);
+   state |= _EFFECT_GET_STATE(p2d, DELAY_LINE_EFFECT);
    state |= _EFFECT_GET_STATE(p2d, REVERB_EFFECT);
    if (state)
    {
-      _aaxRingBufferDelayEffectData *delay;
+      _aaxRingBufferDelayEffectData *delay, *delay_line;
       _aaxRingBufferReverbData *reverb;
 
       delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
+      delay_line = _EFFECT_GET_DATA(p2d, DELAY_LINE_EFFECT);
       reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
 
       if (delay) {
          ds = delay->prepare(dst, src, no_samples, delay, track);
+      }
+      if (delay_line) {
+         ds = delay_line->prepare(dst, src, no_samples, delay_line, track);
       }
 
       if (reverb && reverb->reflections)
@@ -227,7 +170,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       }
    }
 
-   /* phasing, chorus, flanging or delay-line */
+   /* phasing, chorus, flanging */
    state = _EFFECT_GET_STATE(p2d, DELAY_EFFECT);
    if (state)
    {
@@ -241,6 +184,22 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
          if (r) BUFSWAP(pdst, psrc);
       }
    }
+
+   /* delay-line */
+   state = _EFFECT_GET_STATE(p2d, DELAY_LINE_EFFECT);
+   if (state)
+   {
+      _aaxRingBufferDelayEffectData *delay_line;
+
+      delay_line = _EFFECT_GET_DATA(p2d, DELAY_LINE_EFFECT);
+      if (delay_line)
+      {
+         r = delay_line->run(rbd, pdst, psrc, scratch, 0, end, no_samples, ds,
+                             delay_line, env, track);
+         if (r) BUFSWAP(pdst, psrc);
+      }
+   }
+
 
    /* reverb */
    state = _EFFECT_GET_STATE(p2d, REVERB_EFFECT);
