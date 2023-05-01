@@ -2117,7 +2117,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
          rb->set_parami(rb, RB_LOOPING, handle->info.loop_count);
       }
 
-      handle->mip_levels = 1;
+      handle->mip_levels = 0;
       rv = _bufCreateResonatorFromAAXS(handle, xsid);
    }
    else {
