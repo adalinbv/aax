@@ -5,6 +5,9 @@
  * Add support for the cycloid waveform both in the sound section of AAXS files
    and as an LFO source.
  * Add sample rate decimation and noise staticity to the bitcrusher filter.
+ * Allow assigning both the delay-line effect and the delay-effects
+   (phasing/chorus/flanging) simultaneously.
+ * Stretch the max. effects time (reverb and delay line) to 1 second.
 
 -- Erik Hofman <tech@adalin.org>  Tue 25 Apr 2023 12:57:31 + 0100
 
