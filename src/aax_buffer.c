@@ -454,7 +454,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       if (!d) {
           _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
-      else if ((handle->info.fmt & AAX_SPECIAL) != 0)
+      else if ((handle->info.fmt & AAX_SPECIAL) == 0)
       {
          _aaxRingBuffer *rb = _bufGetRingBuffer(handle, NULL, 0);
          if (!rb || rb->get_parami(rb, RB_NO_SAMPLES) == 0) {
