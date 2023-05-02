@@ -311,7 +311,7 @@ _grapheq_swap(void *d, void *s)
          assert(dst->data_size == src->data_size);
 
          for (i=0; i<_AAX_MAX_EQBANDS; ++i) {
-            _freqfilter_swap(&deq->band[i], &seq->band[i]);
+            _freqfilter_data_swap(&deq->band[i], &seq->band[i]);
          }
       }
    }

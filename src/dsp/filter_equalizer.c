@@ -329,7 +329,7 @@ _equalizer_swap(void *d, void *s)
       else if (dst->data_size)
       {
          assert(dst->data_size == src->data_size);
-        _freqfilter_swap(dst->data, src->data);
+        _freqfilter_data_swap(dst->data, src->data);
       }
    }
    dst->destroy = src->destroy;
