@@ -101,7 +101,7 @@ _effect_t*
 new_effect_handle(const void *config, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
    _effect_t* rv = NULL;
-   if (type <= AAX_EFFECT_MAX)
+   if (type > 0 && type <= AAX_EFFECT_MAX)
    {
       _eff_function_tbl *eff = _aaxEffects[type-1];
       rv = eff->handle(config, type, p2d, p3d);

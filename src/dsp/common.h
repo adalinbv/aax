@@ -49,6 +49,26 @@ extern "C" {
 #define MAXIMUM_CUTOFF	20000.0f
 #define CLIP_FREQUENCY(f, fs) _MINMAX(f, MINIMUM_CUTOFF, _MIN(0.5f*fs, MAXIMUM_CUTOFF))
 
+#define PRINT_EFF_T(e) { int s; \
+ printf("%s\n", __func__); \
+ printf("id: %x\n", (e)->id); \
+ printf("pos: %i\n", (e)->pos); \
+ printf("state: %x\n", (e)->state); \
+ printf("type: %i\n", (e)->type); \
+ for(s=0; s<_MAX_FE_SLOTS && (e)->slot[s]; ++s) { \
+  printf(" slot[%i].src: %i\n", s, (e)->slot[s]->src); \
+  printf(" slot[%i].state: %x\n", s, (e)->slot[s]->state); \
+  printf(" slot[%i].updated: %i\n", s, (e)->slot[s]->updated); \
+  printf(" slot[%i].param: (%.1g, %.1g, %.1g, %.1g)\n", s, (e)->slot[s]->param[0], (e)->slot[s]->param[1], (e)->slot[s]->param[2], (e)->slot[s]->param[3]); \
+  printf(" slot[%i].data_size: %li\n", s, (e)->slot[s]->data_size); \
+  printf(" slot[%i].data: %p\n", s, (e)->slot[s]->data); \
+  printf(" slot[%i].destroy: %p\n", s, (e)->slot[s]->destroy); \
+  printf(" slot[%i].swap: %p\n", s, (e)->slot[s]->swap); \
+ } printf("info: %p\n", (e)->info); \
+ printf("handle: %p\n", (e)->handle); \
+}
+
+
 enum _aax3dFiltersEffects
 {
     /* 3d filters */

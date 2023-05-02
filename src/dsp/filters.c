@@ -102,7 +102,7 @@ _filter_t*
 new_filter_handle(const void *config, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
    _filter_t* rv = NULL;
-   if (type <= AAX_FILTER_MAX)
+   if (type > 0 && type <= AAX_FILTER_MAX)
    {
       _flt_function_tbl *flt = _aaxFilters[type-1];
       rv = flt->handle(config, type, p2d, p3d);
