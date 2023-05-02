@@ -1042,7 +1042,7 @@ _batch_fmul_value_neon(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_t 
 
    if (fabsf(f - 1.0f) < LEVEL_128DB) {
       if (sptr != dptr) memcpy(dptr, sptr,  num*bps);
-   } else if  (f <= LEVEL_128DB) {
+   } else if  (fabsf(f) <= LEVEL_128DB) {
       memset(dptr, 0, num*bps);
    }
    else if (num)
