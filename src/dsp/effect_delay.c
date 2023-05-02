@@ -463,30 +463,6 @@ _delay_create(void *d, void *i, char delay, char feedback, int state, float dela
    return data;
 }
 
-static void
-_delay_adjust(_aaxRingBufferDelayEffectData *ddef, _aaxRingBufferDelayEffectData *sdef)
-{
-   if (ddef->history_samples != sdef->history_samples)
-   {
-      int no_tracks = sdef->no_tracks;
-
-      ddef->history_samples = sdef->history_samples;
-
-      if (ddef->history)
-      {
-         free(ddef->history);
-         _aaxRingBufferCreateHistoryBuffer(&ddef->history,
-                                           ddef->history_samples, no_tracks);
-      }
-      if (ddef->feedback_history)
-      {
-         free(ddef->feedback_history);
-         _aaxRingBufferCreateHistoryBuffer(&ddef->feedback_history,
-                                           ddef->history_samples, no_tracks);
-      }
-   }
-}
-
 void
 _delay_swap(void *d, void *s)
 {
@@ -494,7 +470,8 @@ _delay_swap(void *d, void *s)
 
    if (src->data && src->data_size)
    {
-      if (!dst->data) {
+      if (!dst->data)
+      {
           dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
           dst->data_size = src->data_size;
       }
@@ -505,13 +482,52 @@ _delay_swap(void *d, void *s)
 
          assert(dst->data_size == src->data_size);
 
-         _delay_adjust(ddef, sdef);
-         _lfo_swap(&ddef->lfo, &sdef->lfo);
          ddef->delay = sdef->delay;
-         ddef->history_samples = sdef->history_samples;
+
+         ddef->prepare = sdef->prepare;
+         ddef->run = sdef->run;
+
+         ddef->state = sdef->state;
+
+         _lfo_swap(&ddef->lfo, &sdef->lfo);
+         ddef->offset = _aaxAtomicPointerSwap(&sdef->offset, ddef->offset);
+
+         if (ddef->history_samples == sdef->history_samples) {
+            ddef->history = _aaxAtomicPointerSwap(&sdef->history,
+                                                   ddef->history);
+         }
+         else
+         {
+            int no_tracks = sdef->no_tracks;
+
+            ddef->history_samples = sdef->history_samples;
+
+            if (ddef->history)
+            {
+               free(ddef->history);
+               _aaxRingBufferCreateHistoryBuffer(&ddef->history,
+                                           ddef->history_samples, no_tracks);
+            }
+            if (ddef->feedback_history)
+            {
+               free(ddef->feedback_history);
+               _aaxRingBufferCreateHistoryBuffer(&ddef->feedback_history,
+                                           ddef->history_samples, no_tracks);
+            }
+         }
+
+         if (sdef->freq_filter)
+         {
+            if (!ddef->freq_filter) {
+               ddef->freq_filter = _aaxAtomicPointerSwap(&sdef->freq_filter,
+                                                          ddef->freq_filter);
+            } else {
+               _freqfilter_data_swap(ddef->freq_filter, sdef->freq_filter);
+            }
+         }
+         ddef->no_tracks = sdef->no_tracks;
          ddef->feedback = sdef->feedback;
          ddef->flanger = sdef->flanger;
-         ddef->run = sdef->run;
       }
    }
    dst->destroy = src->destroy;
