@@ -179,8 +179,7 @@ public:
             set.filter = sfn; get.filter = gfn;
             obj = o; dsptype.filter = f; param = p;
             filter = true; tied = enabled = true;
-            if (filter) handle.filter = get.filter(obj, dsptype.filter);
-            else handle.effect = get.effect(obj, dsptype.effect);
+            handle.filter = get.filter(obj, dsptype.filter);
             fire(); return true;
         }
         return false;
@@ -190,8 +189,7 @@ public:
             set.effect = sfn; get.effect = gfn;
             obj = o; dsptype.effect = e; param = p;
             filter = false; tied = enabled = true;
-            if (filter) handle.filter = get.filter(obj, dsptype.filter);
-            else handle.effect = get.effect(obj, dsptype.effect);
+            handle.effect = get.effect(obj, dsptype.effect);
             fire(); return true;
         }
         return false;
