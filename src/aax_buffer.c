@@ -1052,7 +1052,7 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle, unsigned char pos)
          rb->set_parami(rb, RB_FAST_RELEASE, info->fast_release);
          /* Postpone until aaxBufferSetData gets called
           * rb->init(rb, AAX_FALSE);
-         */
+          */
       }
    }
    return rb;
