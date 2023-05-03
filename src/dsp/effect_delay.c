@@ -121,8 +121,9 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
          _aaxRingBufferFreqFilterData *flt = data->freq_filter;
          float fc = effect->slot[1]->param[AAX_DELAY_CUTOFF_FREQUENCY & 0xF];
          float fmax = effect->slot[1]->param[AAX_DELAY_CUTOFF_FREQUENCY_HF & 0xF];
-         float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
-         float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
+         float dfact = DELAY_MAX_ORG/DELAY_MAX;
+         float offset = dfact*effect->slot[0]->param[AAX_LFO_OFFSET];
+         float depth = dfact*effect->slot[0]->param[AAX_LFO_DEPTH];
          float fs = 48000.0f;
          int t, constant;
 
@@ -371,12 +372,14 @@ _aaxDelayLineEffectGet(float val, int ptype, unsigned char param)
    return rv;
 }
 
+
+#define MAXL	(DELAY_MAX/DELAY_MAX_ORG)
 static float
 _aaxDelayLineEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxDelayLineRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { -1.0f,  0.01f,  0.0f, 0.0f  }, {     1.0f,    10.0f, 1.0f,  1.0f } },
+    { { -1.0f,  0.01f,  0.0f, 0.0f  }, {     1.0f,    10.0f, MAXL,  MAXL } },
     { { 20.0f, 20.0f,  -1.0f, 0.01f }, { 22050.0f, 22050.0f, 1.0f, 80.0f } },
     { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } },
     { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } }
