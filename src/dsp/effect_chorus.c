@@ -37,7 +37,7 @@
 #include "dsp.h"
 #include "api.h"
 
-#define VERSION		1.13
+#define VERSION		1.14
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
 static aaxEffect
