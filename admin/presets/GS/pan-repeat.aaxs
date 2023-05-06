@@ -22,12 +22,12 @@
  </info>
 
  <audioframe>
-  <effect type="delay">
+  <effect type="delay" stereo="true">
    <slot n="0">
     <param n="0">-0.50</param>
     <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3" type="usec">750000.0</param>
+    <param n="2" type="usec">997500.1</param>
+    <param n="3" type="usec">660000.0</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>
@@ -39,12 +39,12 @@
  </audioframe>
 
  <mixer>
-  <effect type="delay">
+  <effect type="delay" stereo="true">
    <slot n="0">
     <param n="0">-0.50</param>
     <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3" type="usec">750000.0</param>
+    <param n="2" type="usec">997500.1</param>
+    <param n="3" type="usec">660000.0</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>
