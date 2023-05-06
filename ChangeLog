@@ -8,6 +8,8 @@
  * Allow assigning both the delay-line effect and the delay-effects
    (phasing/chorus/flanging) simultaneously.
  * Stretch the max. effects time (reverb and delay line) to 1 second.
+ * Allow delay effects (phasing, chorus, flanging, delay line) to have
+   negative effect levers to simulate phase shifting.
 
 -- Erik Hofman <tech@adalin.org>  Tue 25 Apr 2023 12:57:31 + 0100
 
