@@ -22,34 +22,34 @@
  </info>
 
  <audioframe>
-  <effect type="chorus" src="sine">
+  <effect type="phasing" src="sine">
    <slot n="0">
     <param n="0">0.50</param>
     <param n="1">1.1</param>
-    <param n="2">5.312</param>
-    <param n="3">0.000</param>
+    <param n="2" type="usec">5312.500</param>
+    <param n="3" type="usec">0.000</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>
     <param n="1">0.0</param>
-    <param n="2">12.208</param>
+    <param n="2">0.122</param>
     <param n="3">1.0</param>
    </slot>
   </effect>
  </audioframe>
 
  <mixer>
-  <effect type="chorus" src="sine">
+  <effect type="phasing" src="sine">
    <slot n="0">
     <param n="0">0.50</param>
     <param n="1">1.1</param>
-    <param n="2">5.312</param>
-    <param n="3">0.000</param>
+    <param n="2" type="usec">5312.500</param>
+    <param n="3" type="usec">0.000</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>
     <param n="1">0.0</param>
-    <param n="2">12.208</param>
+    <param n="2">0.122</param>
     <param n="3">1.0</param>
    </slot>
   </effect>
