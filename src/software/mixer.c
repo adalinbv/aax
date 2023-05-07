@@ -510,7 +510,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                rb->set_state(rb, RB_CLEARED);
                rb->set_state(rb, RB_STARTED);
 
-               /* process emitters and registered sensors */
+               /* process registered emitters, audio-frames and sensors */
                res = _aaxAudioFrameProcess(rb, NULL, sensor, smixer, ssv, sdf,
                                            &sp2d, &sp3d, &sdp3d, be, be_handle,
                                            batched, AAX_FALSE);

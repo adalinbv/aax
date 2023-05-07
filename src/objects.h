@@ -404,14 +404,14 @@ typedef struct
    _intBuffers *p3dq;		/* 3d properties delay queue            */
 
    void *ringbuffer;
-   _intBuffers *frame_ringbuffers;	/* for audio frame rendering */
-   _intBuffers *play_ringbuffers;		/* for loopback capture */
+   _intBuffers *frame_ringbuffers;	/* for audio frame rendering    */
+   _intBuffers *play_ringbuffers;	/* for loopback capture         */
 
    unsigned int no_registered;
    int64_t curr_sample;
    float curr_pos_sec;
 
-   unsigned char refcount;
+   unsigned char refctr;
 
    unsigned char capturing;
 

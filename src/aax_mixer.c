@@ -937,7 +937,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      sframe->root = handle;
                      sframe->parent = handle;
                      sframe->mixer_pos = pos;
-                     submix->refcount++;
+                     submix->refctr++;
 
                      rb = submix->ringbuffer;
                      if (!rb)
@@ -1070,14 +1070,13 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
             if (dptr_sframe)
             {
                _sensor_t* sframe_sensor = _intBufGetDataPtr(dptr_sframe);
-               sframe_sensor->mixer->refcount--;
+               sframe_sensor->mixer->refctr--;
                _intBufReleaseData(dptr_sframe, _AAX_SENSOR);
-
-               sframe->root = NULL;
-               sframe->parent = NULL;
-               sframe->mixer_pos = UINT_MAX;
-               rv = AAX_TRUE;
             }
+            sframe->root = NULL;
+            sframe->parent = NULL;
+            sframe->mixer_pos = UINT_MAX;
+            rv = AAX_TRUE;
          }
       }
       else if (handle->file.ptr != NULL)
@@ -1425,8 +1424,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
             _intBufReleaseData(dptr, _AAX_SENSOR);
             rv = AAX_TRUE;
 
-            fmixer->refcount++;
-
+            fmixer->refctr++;
             frame->root = handle->root;
             frame->parent[0] = handle;
             frame->mixer_pos[0] = pos;
@@ -1476,7 +1474,7 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
             _intBufRemove(hf, _AAX_FRAME, frame->mixer_pos[0], AAX_FALSE);
             mixer->no_registered--;
 
-            submix->refcount--;
+            submix->refctr--;
             frame->root = NULL;
             frame->parent[0] = NULL;
             frame->mixer_pos[0] = UINT_MAX;
