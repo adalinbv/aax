@@ -26,8 +26,8 @@
    <slot n="0">
     <param n="0">360.0</param>
     <param n="1">0.0741</param>
-    <param n="2">0.447</param>
-    <param n="3">0.700</param>
+    <param n="2">0.635</param>
+    <param n="3">0.075</param>
    </slot>
    <slot n="1">
     <param n="0">0.5</param>
@@ -43,8 +43,8 @@
    <slot n="0">
     <param n="0">360.0</param>
     <param n="1">0.0741</param>
-    <param n="2">0.447</param>
-    <param n="3">0.700</param>
+    <param n="2">0.635</param>
+    <param n="3">0.075</param>
    </slot>
    <slot n="1">
     <param n="0">0.5</param>

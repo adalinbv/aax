@@ -24,10 +24,10 @@
  <audioframe>
   <effect type="phasing" src="sine">
    <slot n="0">
-    <param n="0">0.992</param>
+    <param n="0">1.008</param>
     <param n="1">0.500</param>
-    <param n="2">0.098</param>
-    <param n="3" type="usec">  0.0</param>
+    <param n="2">0.197</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </audioframe>
@@ -35,10 +35,10 @@
  <mixer>
   <effect type="phasing" src="sine">
    <slot n="0">
-    <param n="0">0.992</param>
+    <param n="0">1.008</param>
     <param n="1">0.500</param>
-    <param n="2">0.098</param>
-    <param n="3" type="usec">  0.0</param>
+    <param n="2">0.197</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </mixer>
