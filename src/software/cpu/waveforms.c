@@ -123,7 +123,7 @@ _bufferMixPinkNoise(int32_t* data, _data_t *scratch, size_t no_samples, char bps
 {
    gain = fabsf(gain);
    if (data && gain && no_samples*sizeof(int32_t) < _aaxDataGetSize(scratch))
-   {	// _aax_pinknoise_filter requires twice noise_samples buffer space
+   { // _aax_pinknoise_filter requires twice the noise_samples buffer space
       float *ptr2, *ptr = _aaxDataGetData(scratch, 0);
       size_t noise_samples;
 
@@ -269,6 +269,8 @@ _aax_generate_noise_float(float *rv, size_t no_samples, uint64_t seed, unsigned 
 
       prev = 0.0f;
       alpha = 1.0f;
+      // exponential moving average (EMA) filter
+      // to filter frequencies below FC (50Hz)
       _aax_EMA_compute(FC, fs, &alpha);
 
       ds = FC/fs;
@@ -279,8 +281,9 @@ _aax_generate_noise_float(float *rv, size_t no_samples, uint64_t seed, unsigned 
          float rnd = 0.5f*rnd_fn();
          rnd = rnd - _MINMAX(rnd, -ds, ds);
 
+         // exponential moving average filter
          prev = (1.0f-alpha)*prev + alpha*rnd;
-         *ptr += rnd - prev;
+         *ptr += rnd - prev; // high-pass
 
          ptr += (int)rnd_skip;
          if (skip > 1) {

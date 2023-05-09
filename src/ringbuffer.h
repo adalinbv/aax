@@ -157,6 +157,11 @@ typedef struct
    float fs;
    float staticity;
 
+   // moving average filters
+   float prev[3];
+   float fact[3];
+   float alpha[3];
+
 } _aaxRingBufferBitCrusherData;
 
 typedef ALIGN16 struct {

@@ -30,6 +30,7 @@
 #include <base/random.h>
 #include "common.h"
 #include "filters.h"
+#include "dsp.h"
 #include "arch.h"
 #include "api.h"
 
@@ -115,15 +116,21 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = AAX_FALSE;
-   int stereo;
+   int noise_mask, stereo;
 
    assert(filter->info);
 
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
    state &= ~AAX_LFO_STEREO;
 
+   noise_mask = (AAX_WHITE_NOISE|AAX_PINK_NOISE|AAX_BROWNIAN_NOISE);
+
+   if ((state & ~(noise_mask|AAX_INVERSE)) == 0) {
+      state |= AAX_TRUE;
+   }
+
    filter->state = state;
-   switch (state & ~AAX_INVERSE)
+   switch (state & ~(noise_mask|AAX_INVERSE))
    {
    case AAX_CONSTANT_VALUE:
    case AAX_TRIANGLE_WAVE:
@@ -161,6 +168,21 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
             fs = filter->info->frequency;
          }
 
+         bitcrush->alpha[0] = 0.0f;
+         if (state & AAX_BROWNIAN_NOISE) {
+            bitcrush->alpha[0] = _aax_movingaverage_compute(100.0f, fs);
+            bitcrush->fact[0] = 2.0f/sqrtf(bitcrush->alpha[0]);
+         }
+         else if (state & AAX_PINK_NOISE)
+         {
+            bitcrush->alpha[0] = _aax_movingaverage_compute(20.0f, fs);
+            bitcrush->alpha[1] = _aax_movingaverage_compute(200.0f, fs);
+            bitcrush->alpha[2] = _aax_movingaverage_compute(2000.0f, fs);
+            bitcrush->fact[0] = 0.6f/sqrtf(bitcrush->alpha[0]);
+            bitcrush->fact[1] = 0.6f/sqrtf(bitcrush->alpha[1]);
+            bitcrush->fact[2] = 0.6f/sqrtf(bitcrush->alpha[2]);
+         }
+
          /* sample rate conversion */
          bitcrush->fs = filter->slot[1]->param[AAX_SAMPLE_RATE & 0xF];
 
@@ -172,7 +194,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          } else {
             bitcrush->lfo.convert = _linear;
          }
-         bitcrush->lfo.state = filter->state;
+         bitcrush->lfo.state = filter->state & ~noise_mask;
          bitcrush->lfo.fs = fs;
          bitcrush->lfo.period_rate = filter->info->period_rate;
          bitcrush->lfo.stereo_lnk = !stereo;
@@ -206,7 +228,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          } else {
             bitcrush->env.convert = _linear;
          }
-         bitcrush->env.state = filter->state;
+         bitcrush->env.state = filter->state & ~noise_mask;
          bitcrush->env.fs = fs;
          bitcrush->env.period_rate = filter->info->period_rate;
          bitcrush->env.stereo_lnk = !stereo;
@@ -388,30 +410,84 @@ _bitcrusher_add_noise(MIX_PTR_T s, size_t end, size_t no_samples,
    float ratio;
 
    ratio = bitcrush->env.get(&bitcrush->env, env, s, track, end);
-   if (ratio > 0.01f)
+   if (ratio > 0.01f) // noise is active
    {
+      float *prev, *alpha, *fact;
       float rnd_skip, staticity;
       int i = no_samples;
       unsigned skip;
 
-      staticity = _MINMAX(bitcrush->staticity, 0.0f, 1.0f);
+      staticity = bitcrush->staticity;
+      ratio *= (1.0f + 10.0f*staticity*staticity);
+      ratio *= ((double)(0.25f * AAX_PEAK_MAX)/(double)UINT64_MAX);
+
       skip = (unsigned)(1.0f + 99.0f*staticity);
       rnd_skip = skip ? skip : 1.0f;
-      ratio *= (1.0f + 10.0f*staticity*staticity);
 
-      ratio *= ((double)(0.25f * AAX_PEAK_MAX)/(double)UINT64_MAX);
-      do
+      prev = bitcrush->prev;
+      fact = bitcrush->fact;
+      alpha = bitcrush->alpha;
+      if (alpha[0] == 0.0f)
       {
-         *s += ratio*xoroshiro128plus();
+         do
+         {
+            float rnd = ratio*xoroshiro128plus(); // get the next sample
+            *s += rnd;
 
-         s += (int)rnd_skip;
-         i -= (int)rnd_skip;
+            s += (int)rnd_skip;
+            i -= (int)rnd_skip;
 
-         if (skip > 1) {
-            rnd_skip = 1.0f + fabsf((2*skip-rnd_skip)*_aax_rand_sample());
+            if (skip > 1) {
+               rnd_skip = 1.0f + fabsf((2*skip-rnd_skip)*_aax_rand_sample());
+            }
          }
+         while (i > 0);
       }
-      while (i > 0);
+      else if ( alpha[1] == 0.0f)
+      {
+         do
+         {
+            float rnd = ratio*xoroshiro128plus(); // get the next sample
+
+            // exponential moving average filter (-6dB/oct)
+            prev[0] = (1.0f-alpha[0])*prev[0] + fact[0]*alpha[0]*rnd;
+            *s += prev[0];
+
+            s += (int)rnd_skip;
+            i -= (int)rnd_skip;
+
+            if (skip > 1) {
+               rnd_skip = 1.0f + fabsf((2*skip-rnd_skip)*_aax_rand_sample());
+            }
+         }
+         while (i > 0);
+      }
+      else
+      {
+         do
+         {
+            float rnd = ratio*xoroshiro128plus(); // get the next sample
+
+            // exponential moving average filter (-3dB/oct)
+            prev[0] = (1.0f-alpha[0])*prev[0] + fact[0]*alpha[0]*rnd;
+            *s += prev[0];
+
+            prev[1] = (1.0f-alpha[1])*prev[1] + fact[1]*alpha[1]*rnd;
+            *s += prev[1];
+
+            prev[2] = (1.0f-alpha[2])*prev[2] + fact[2]*alpha[2]*rnd;
+            *s += prev[2];
+
+            s += (int)rnd_skip;
+            i -= (int)rnd_skip;
+
+            if (skip > 1) {
+               rnd_skip = 1.0f + fabsf((2*skip-rnd_skip)*_aax_rand_sample());
+            }
+         }
+         while (i > 0);
+      }
+
       rv = AAX_TRUE;
    }
    return rv;
