@@ -171,16 +171,16 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          bitcrush->alpha[0] = 0.0f;
          if (state & AAX_BROWNIAN_NOISE) {
             bitcrush->alpha[0] = _aax_movingaverage_compute(100.0f, fs);
-            bitcrush->fact[0] = 2.0f/sqrtf(bitcrush->alpha[0]);
+            bitcrush->fact[0] = 0.33f/sqrtf(bitcrush->alpha[0]);
          }
          else if (state & AAX_PINK_NOISE)
          {
             bitcrush->alpha[0] = _aax_movingaverage_compute(20.0f, fs);
             bitcrush->alpha[1] = _aax_movingaverage_compute(200.0f, fs);
             bitcrush->alpha[2] = _aax_movingaverage_compute(2000.0f, fs);
-            bitcrush->fact[0] = 0.6f/sqrtf(bitcrush->alpha[0]);
-            bitcrush->fact[1] = 0.6f/sqrtf(bitcrush->alpha[1]);
-            bitcrush->fact[2] = 0.6f/sqrtf(bitcrush->alpha[2]);
+            bitcrush->fact[0] = 0.11f/sqrtf(bitcrush->alpha[0]);
+            bitcrush->fact[1] = 0.11f/sqrtf(bitcrush->alpha[1]);
+            bitcrush->fact[2] = 0.11f/sqrtf(bitcrush->alpha[2]);
          }
 
          /* sample rate conversion */
