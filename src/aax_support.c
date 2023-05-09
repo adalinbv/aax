@@ -677,6 +677,12 @@ aaxGetWaveformTypeByName(const char *wave)
                rv |= AAX_RANDOMNESS;
             } else if (!strncasecmp(name, "cycloid", len)) {
                rv |= AAX_CYCLOID_WAVE;
+            } else if (!strncasecmp(name, "white-noise", len)) {
+               rv |= AAX_WHITE_NOISE;
+            } else if (!strncasecmp(name, "pink-noise", len)) {
+               rv |= AAX_PINK_NOISE;
+            } else if (!strncasecmp(name, "brownian-noise", len)) {
+               rv |= AAX_BROWNIAN_NOISE;
             } else if (!strncasecmp(name, "timed", len)) {
                rv |= AAX_TIMED_TRANSITION;
             } else if (!strncasecmp(name, "envelope", len)) {
