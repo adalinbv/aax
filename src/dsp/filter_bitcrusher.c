@@ -162,7 +162,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          }
 
          /* sample rate conversion */
-         bitcrush->fs = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY_HF & 0xF];
+         bitcrush->fs = filter->slot[1]->param[AAX_SAMPLE_RATE & 0xF];
 
          /* bit reduction */
          if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
@@ -262,7 +262,7 @@ _aaxNewBitCrusherFilterHandle(const aaxConfig config, enum aaxFilterType type, _
       rv->slot[0]->swap = _bitcrusher_swap;
 
       bitcrush = (_aaxRingBufferBitCrusherData*)p2d->filter[rv->pos].data;
-      rv->slot[1]->param[AAX_CUTOFF_FREQUENCY_HF & 0xF] = bitcrush->fs;
+      rv->slot[1]->param[AAX_SAMPLE_RATE & 0xF] = bitcrush->fs;
       rv->slot[1]->param[AAX_STATICITY & 0xF] = bitcrush->staticity;
       rv->state = p2d->filter[rv->pos].state;
    }
@@ -273,6 +273,11 @@ static float
 _aaxBitCrusherFilterSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
+   if (param == AAX_NOISE_LEVEL && ptype == AAX_DECIBEL) {
+      rv = _lin2db(val);
+   } else if (param == AAX_SAMPLE_RATE && ptype == AAX_BITS_PER_SAMPLE) {
+      rv = val*MIX_BPS;
+   }
    return rv;
 }
 
@@ -280,6 +285,11 @@ static float
 _aaxBitCrusherFilterGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
+   if (param == AAX_NOISE_LEVEL && ptype == AAX_DECIBEL) {
+      rv = _db2lin(val);
+   } else if (param == AAX_SAMPLE_RATE && ptype == AAX_BITS_PER_SAMPLE) {
+      rv = val/MIX_BPS;
+   }
    return rv;
 }
 

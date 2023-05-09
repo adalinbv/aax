@@ -110,6 +110,7 @@ enum _aaxRingBufferMode
    RB_RW_MAX 
 };
 
+#define MIX_BPS			24	// max. 24-bits in a 32-bits sample
 #if RB_FLOAT_DATA
 # define MIX_T                  float
 # define MIX_PTR_T              float32_ptr

@@ -175,7 +175,8 @@ enum aaxType
 
    AAX_LOGARITHMIC = AAX_DECIBEL,
    AAX_KELVIN = AAX_LINEAR,
-   AAX_KILOPASCAL = AAX_LINEAR,	AAX_KPA = AAX_LINEAR
+   AAX_KILOPASCAL = AAX_LINEAR,	AAX_KPA = AAX_LINEAR,
+   AAX_BITS_PER_SAMPLE = AAX_BYTES, AAX_BPS = AAX_BITS_PER_SAMPLE
 };
 
 enum aaxModeType
@@ -479,7 +480,7 @@ enum aaxParameter {	/* Filter & Effect parameter number definitions */
 
    /** AAX_BITCRUSHER_FILTER, first parameter is noise level          **/
    AAX_NOISE_LEVEL = 0,
-   AAX_STATICITY = 0x11,
+   AAX_SAMPLE_RATE=0x10, AAX_STATICITY,
    /** AAX_DYNAMIC_GAIN_FILTER, first parameter is AAX_INITIAL_DELAY  **/
    /** AAX_DYNAMIC_PITCH_EFFECT, first parameter is AAX_INITIAL_DELAY **/
    AAX_INITIAL_DELAY = 0,

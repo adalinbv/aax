@@ -607,6 +607,8 @@ aaxGetTypeByName(const char *name)
          rv = AAX_PSI;
       } else if (!strcasecmp(name, "kPa")) {
          rv = AAX_KPA;
+      } else if (!strcasecmp(name, "bits-per-sample")  || !strcasecmp(name, "bps")) {
+         rv = AAX_BITS_PER_SAMPLE;
       } else {
          rv = AAX_LINEAR;
       } 
