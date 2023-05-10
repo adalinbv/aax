@@ -118,6 +118,9 @@ static inline std::string to_string(enum aaxType type)
     case AAX_ATMOSPHERE: return "atmosphere";
     case AAX_BAR: return "bar";
     case AAX_PSI: return "pounds per square inch";
+    case AAX_BITS_PER_SAMPLE: return "bits per sample";
+    case AAX_MILLISECONDS: return "milliseconds";
+    case AAX_SECONDS: return "seconds";
     case AAX_TYPE_MAX:
         break;
     }
