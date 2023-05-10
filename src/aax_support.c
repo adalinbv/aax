@@ -580,9 +580,9 @@ aaxGetTypeByName(const char *name)
       if (!strcasecmp(name, "log") || !strcasecmp(name, "db") ||
           !strcasecmp(name, "logarithmic")) { 
          rv = AAX_LOGARITHMIC;
-      } else if (!strcasecmp(name, "rad") || !strcasecmp(name, "radians")) {
+      } else if (!strcasecmp(name, "radians") || !strcasecmp(name, "rad")) {
          rv = AAX_RADIANS;
-      } else if (!strcasecmp(name, "deg") || !strcasecmp(name, "degrees")) {
+      } else if (!strcasecmp(name, "degrees") || !strcasecmp(name, "deg")) {
          rv = AAX_DEGREES;
       } else if (!strcasecmp(name, "bytes")) {
          rv = AAX_BYTES;
@@ -590,25 +590,36 @@ aaxGetTypeByName(const char *name)
          rv = AAX_FRAMES;
       } else if (!strcasecmp(name, "samples")) {
          rv = AAX_SAMPLES;
-      } else if (!strcasecmp(name, "usec") || !strcasecmp(name, "μsec") ||
-                 !strcasecmp(name, "microseconds")) {
+      } else if (!strcasecmp(name, "bits-per-sample")
+                 || !strcasecmp(name, "bps")) {
+         rv = AAX_BITS_PER_SAMPLE;
+      } else if (!strcasecmp(name, "seconds") || !strcasecmp(name, "sec")
+                 || !strcasecmp(name, "s")) {
+         rv = AAX_SECONDS;
+      } else if (!strcasecmp(name, "milliseconds") || !strcasecmp(name, "msec")
+                || !strcasecmp(name, "ms")) {
+         rv = AAX_MILLISECONDS;
+      } else if (!strcasecmp(name, "microseconds")
+                 || !strcasecmp(name, "usec") || !strcasecmp(name, "μsec")
+                 || !strcasecmp(name, "us") || !strcasecmp(name, "μs")) {
          rv = AAX_MICROSECONDS;
-      } else if (!strcasecmp(name, "degC")) {
+      } else if (!strcasecmp(name, "degree-celsius")
+                || !strcasecmp(name, "degC")) {
          rv = AAX_DEGREES_CELSIUS;
-      } else if (!strcasecmp(name, "degF")) {
+      } else if (!strcasecmp(name, "degree-fahrenheit")
+                 || !strcasecmp(name, "degF")) {
          rv = AAX_DEGREES_FAHRENHEIT;
-      } else if (!strcasecmp(name, "K")) {
+      } else if (!strcasecmp(name, "kelvin") || !strcasecmp(name, "K")) {
          rv = AAX_KELVIN;
-      } else if (!strcasecmp(name, "atm") || !strcasecmp(name, "atmosphere")) {
+      } else if (!strcasecmp(name, "atmosphere") || !strcasecmp(name, "atm")) {
          rv = AAX_ATMOSPHERE;
       } else if (!strcasecmp(name, "bar")) {
          rv = AAX_BAR;
-      } else if (!strcasecmp(name, "psi")) {
+      } else if (!strcasecmp(name, "pounds-per-square-inch")
+                 || !strcasecmp(name, "psi")) {
          rv = AAX_PSI;
-      } else if (!strcasecmp(name, "kPa")) {
+      } else if (!strcasecmp(name, "kilopascal") || !strcasecmp(name, "kPa")) {
          rv = AAX_KPA;
-      } else if (!strcasecmp(name, "bits-per-sample")  || !strcasecmp(name, "bps")) {
-         rv = AAX_BITS_PER_SAMPLE;
       } else {
          rv = AAX_LINEAR;
       } 
