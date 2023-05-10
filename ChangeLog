@@ -1,4 +1,4 @@
-* Tue Apr 25 2023 - tech@adalin.org
+* Tue May 10 2023 - tech@adalin.org
 - AeonWave (3.12.4) stable; urgency=low
 
  * Move audio-frame filter and effect processing to the renderer.
@@ -11,8 +11,10 @@
  * Stretch the max. effects time (reverb and delay line) to 1 second.
  * Allow delay effects (phasing, chorus, flanging, delay line) to have
    negative effect levers to simulate phase shifting.
+ * Introduce AAX_SECONDS and AAX_MILLISECONDS next to AAX_MICROSECONDS and
+   allow it to be used for the delay effects.
 
--- Erik Hofman <tech@adalin.org>  Tue 25 Apr 2023 12:57:31 + 0100
+-- Erik Hofman <tech@adalin.org>  Wed 10 May 2023 09:28:11 + 0100
 
 
 * Fri Feb 10 2023 - tech@adalin.org
