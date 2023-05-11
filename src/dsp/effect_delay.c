@@ -391,10 +391,10 @@ _aaxDelayLineEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxDelayLineRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { -2.0f,  0.01f,  0.0f, 0.0f  }, {     2.0f,    10.0f, MAXL,  MAXL } },
-    { { 20.0f, 20.0f,  -2.0f, 0.01f }, { 22050.0f, 22050.0f, 2.0f, 80.0f } },
-    { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } },
-    { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } }
+    { { -2.0f,  0.01f,  0.0f, 0.0f  }, {     2.0f,    10.0f,  MAXL,  MAXL } },
+    { { 20.0f, 20.0f, -0.98f, 0.01f }, { 22050.0f, 22050.0f, 0.98f, 80.0f } },
+    { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f,  0.0f,  0.0f } },
+    { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f,  0.0f,  0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
@@ -638,8 +638,8 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    MIX_T *sptr = s + start;
    MIX_T *nsptr = sptr;
    ssize_t offs, noffs;
-   int rv = AAX_FALSE;
    float volume, gain;
+   int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -664,6 +664,19 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
       noffs = (size_t)effect->lfo.get(&effect->lfo, env, s, track, end);
       effect->delay.sample_offs[track] = noffs;
       effect->offset->noffs[track] = noffs;
+   }
+
+   // normalize in case of a delayed signal and/or feedback signal which
+   // is higher than the source.
+   gain = 1.0f;
+   if (effect->state & AAX_EFFECT_2ND_ORDER) {
+       gain = fabsf(effect->feedback);
+   }
+   if (effect->state & AAX_EFFECT_1ST_ORDER) {
+      gain = _MAX(gain, fabsf(effect->delay.gain));
+   }
+   if (gain > 1.0f) { // adjust the source volume
+      rbd->multiply(sptr, sptr, bps, no_samples, 1.0f/gain);
    }
 
    assert(s != d);
