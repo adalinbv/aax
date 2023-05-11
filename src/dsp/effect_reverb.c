@@ -371,7 +371,7 @@ _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxReverbRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 50.0f, 0.001f, 0.0f, 0.001f }, { 22000.0f,    MAX1,    1.0f, MAX2 } },
+    { { 50.0f, 0.001f, 0.0f, 0.001f }, { 22000.0f,    MAX1,   0.98f, MAX2 } },
     { {  0.1f,   0.1f, 0.1f,   0.0f }, {  FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
     { {  0.0f,   0.0f, 0.0f,   0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } },
     { {  0.0f,   0.0f, 0.0f,   0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } }
