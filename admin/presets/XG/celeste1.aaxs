@@ -22,7 +22,7 @@
  </info>
 
  <audioframe>
-  <effect type="phasing" src="sine">
+  <effect type="chorus" src="sine">
    <slot n="0">
     <param n="0">0.992</param>
     <param n="1">0.500</param>
@@ -47,7 +47,7 @@
  </audioframe>
 
  <mixer>
-  <effect type="phasing" src="sine">
+  <effect type="chorus" src="sine">
    <slot n="0">
     <param n="0">0.992</param>
     <param n="1">0.500</param>
