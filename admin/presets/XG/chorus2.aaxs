@@ -24,16 +24,10 @@
  <audioframe>
   <effect type="phasing" src="sine">
    <slot n="0">
-    <param n="0">0.508</param>
+    <param n="0">0.496</param>
     <param n="1">0.330</param>
-    <param n="2">0.496</param>
-    <param n="3">0.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.508</param>
-    <param n="3">1.0</param>
+    <param n="2">0.248</param>
+    <param n="3" type="usec">3000.0</param>
    </slot>
   </effect>
   <filter type="equalizer">
@@ -44,12 +38,6 @@
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">4000.0</param>
-    <param n="1">1.000</param>
-    <param n="2">1.000</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="2">
     <param n="0">2500.0</param>
     <param n="1">1.000</param>
     <param n="2">0.501</param>
@@ -61,16 +49,10 @@
  <mixer>
   <effect type="phasing" src="sine">
    <slot n="0">
-    <param n="0">0.508</param>
+    <param n="0">0.496</param>
     <param n="1">0.330</param>
-    <param n="2">0.496</param>
-    <param n="3">0.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.508</param>
-    <param n="3">1.0</param>
+    <param n="2">0.248</param>
+    <param n="3" type="usec">3000.0</param>
    </slot>
   </effect>
   <filter type="equalizer">
@@ -81,12 +63,6 @@
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">4000.0</param>
-    <param n="1">1.000</param>
-    <param n="2">1.000</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="2">
     <param n="0">2500.0</param>
     <param n="1">1.000</param>
     <param n="2">0.501</param>

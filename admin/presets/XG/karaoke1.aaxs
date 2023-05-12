@@ -22,30 +22,24 @@
  </info>
 
  <audioframe>
-  <effect type="phasing">
+  <effect type="phasing" src="sine">
    <slot n="0">
-    <param n="0">0.508</param>
-    <param n="1">0.000</param>
-    <param n="2">0.0</param>
-    <param n="3">0.5</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.770</param>
-    <param n="3">1.0</param>
+    <param n="0">0.496</param>
+    <param n="1">2.690</param>
+    <param n="2">0.382</param>
+    <param n="3" type="usec">4800.0</param>
    </slot>
   </effect>
   <filter type="equalizer">
    <slot n="0">
-    <param n="0">20.0</param>
+    <param n="0"> 20.0</param>
     <param n="1">0.001</param>
-    <param n="2">1.000</param>
+    <param n="2">0.001</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">5000.0</param>
-    <param n="1">1.000</param>
+    <param n="0"> 20.0</param>
+    <param n="1">0.001</param>
     <param n="2">0.001</param>
     <param n="3">1.0</param>
    </slot>
@@ -53,30 +47,24 @@
  </audioframe>
 
  <mixer>
-  <effect type="phasing">
+  <effect type="phasing" src="sine">
    <slot n="0">
-    <param n="0">0.508</param>
-    <param n="1">0.000</param>
-    <param n="2">0.0</param>
-    <param n="3">0.5</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.770</param>
-    <param n="3">1.0</param>
+    <param n="0">0.496</param>
+    <param n="1">2.690</param>
+    <param n="2">0.382</param>
+    <param n="3" type="usec">4800.0</param>
    </slot>
   </effect>
   <filter type="equalizer">
    <slot n="0">
-    <param n="0">20.0</param>
+    <param n="0"> 20.0</param>
     <param n="1">0.001</param>
-    <param n="2">1.000</param>
+    <param n="2">0.001</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">5000.0</param>
-    <param n="1">1.000</param>
+    <param n="0"> 20.0</param>
+    <param n="1">0.001</param>
     <param n="2">0.001</param>
     <param n="3">1.0</param>
    </slot>
