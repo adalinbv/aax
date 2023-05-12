@@ -745,13 +745,6 @@ AAX_API void** AAX_APIENTRY aaxBufferGetData(const aaxBuffer);
 AAX_API aaxBuffer AAX_APIENTRY aaxBufferReadFromStream(aaxConfig, const char*);
 AAX_API int AAX_APIENTRY aaxBufferWriteToFile(aaxBuffer, const char*, enum aaxProcessingType);
 
-// Starting with AeonWave version 4.0 aaxBufferProcessWaveform is being
-// replaced by aaxBufferReadFromStream and a .aaxs file, or aaxBufferSetData
-// with the .aaxs files content parsed as plain text, which is a much more
-// versatile combination.
-DEPRECATED AAX_API int AAX_APIENTRY aaxBufferProcessWaveform(aaxBuffer, float, enum aaxWaveformType, float, enum aaxProcessingType);
-
-
 /*
  * Source/Emitter manipulation
  */
