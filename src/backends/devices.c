@@ -41,7 +41,6 @@
 
 #include <stream/device.h>
 #include <backends/software/device.h>
-#include <backends/dmedia/device.h>
 #include <backends/linux/device.h>
 #include <backends/oss/device.h>
 #include <backends/sdl/device.h>
@@ -363,7 +362,7 @@ _aaxDriverBackendReadConfigSettings(const xmlId *xid, char **devname, _aaxConfig
          char *dev;
 
          xmlNodeGetPos(xcid, xoid, "output", n);
-         if (n < _AAX_MAX_SLAVES)
+         if (n < _AAX_MAX_OUTPUTS)
          {
             unsigned int i;
             char *setup;
@@ -692,7 +691,6 @@ _aaxIntDriverGetBackends()
 #ifdef HAVE_WINDOWS_H
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxWASAPIDriverBackend);
 #endif
-      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxDMediaDriverBackend);
 
       atexit(_aaxIntDriverRemoveBackends);
    }

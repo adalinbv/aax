@@ -50,7 +50,7 @@ typedef struct
       float frequency;
       float interval;
       float update;
-   } node[_AAX_MAX_SLAVES];
+   } node[_AAX_MAX_OUTPUTS];
    struct {
       char *driver;
       char *output;

@@ -45,9 +45,9 @@ extern "C" {
 #define _AAX_MAX_MIXER_REGISTERED	256
 
 #define AAX_NAME_STR			PACKAGE_NAME
-#define AAX_VENDOR_STR			"Adalin B.V., The Netherlands"
+#define AAX_VENDOR_STR			"Adalin B.V."
 #define AAX_WEBSITE_STR			"https://www.adalin.com"
-#define _AAX_MAX_SLAVES			(_AAX_MAX_SPEAKERS/2)
+#define _AAX_MAX_OUTPUTS		(_AAX_MAX_SPEAKERS/2)
 #define _AAX_MIN_MIXER_FREQUENCY	2000.0f
 #define _AAX_MIN_MIXER_REFRESH_RATE	1.0f
 #define _AAX_MAX_BACKENDS		7
