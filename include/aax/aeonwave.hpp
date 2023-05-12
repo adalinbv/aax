@@ -380,16 +380,6 @@ public:
         return aaxBufferGetData(ptr);
     }
 
-    // ** buffer data mangling ******
-    inline bool process(float f, enum aaxWaveformType t,
-                        float r=0.5f, enum aaxProcessingType p=AAX_MIX) {
-        return aaxBufferProcessWaveform(ptr,f,t,r,p);
-    }
-    inline bool process(float f, enum aaxWaveformType t,
-                        enum aaxProcessingType p, float r=0.5f) {
-        return aaxBufferProcessWaveform(ptr,f,t,r,p);
-    }
-
 private:
     std::string preset_file(aaxConfig c, const char* name) {
         std::string rv = aaxDriverGetSetup(c, AAX_SHARED_DATA_DIR);
@@ -1022,7 +1012,7 @@ public:
         if (_e[0] < aaxDriverGetCount(_em)) {
             _ec = aaxDriverGetByPos(_e[0]++,_em);
         }  else _e[0] = 0;
-        return aaxDriverGetSetup(_ec,AAX_DRIVER_STRING);
+        return aaxDriverGetSetup(_ec,AAX_NAME_STRING);
     }
     const char* devices(bool c_str=false) {
         _e[2] = 0; _ed = c_str ? 0 : (_e[1] ? 0 : "");

@@ -104,8 +104,8 @@ int main()
     WAVE("inverse_sawtooth", AAX_INVERSE_SAWTOOTH_WAVE);
     WAVE("inverse_envelope", AAX_INVERSE_ENVELOPE_FOLLOW);
 
-    WAVE("1st-order", AAX_REVERB_1ST_ORDER);
-    WAVE("2nd-order", AAX_REVERB_2ND_ORDER);
+    WAVE("1st-order", AAX_EFFECT_1ST_ORDER);
+    WAVE("2nd-order", AAX_EFFECT_2ND_ORDER);
 
     WAVE("", AAX_CONSTANT_VALUE);
     WAVE("|", AAX_CONSTANT_VALUE);

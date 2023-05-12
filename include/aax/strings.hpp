@@ -164,7 +164,7 @@ static inline std::string to_string(enum aaxSetupType type)
 {
     switch(type)
     {
-    case AAX_DRIVER_STRING: return "driver name string";
+    case AAX_NAME_STRING: return "driver name string";
     case AAX_VERSION_STRING: return "version string";
     case AAX_RENDERER_STRING: return "renderer string";
     case AAX_VENDOR_STRING: return "vendor string";
@@ -172,19 +172,19 @@ static inline std::string to_string(enum aaxSetupType type)
     case AAX_FREQUENCY: return "frequency";
     case AAX_TRACKS: return "number of tracks";
     case AAX_FORMAT: return "audio format";
-    case AAX_REFRESHRATE: return "audio refresh rate";
-    case AAX_TRACKSIZE: return "track size";
+    case AAX_REFRESH_RATE: return "audio refresh rate";
+    case AAX_TRACK_SIZE: return "track size";
     case AAX_NO_SAMPLES: return "number of samples";
     case AAX_LOOP_START: return "loop start point";
     case AAX_LOOP_END: return "loop end point";
-    case AAX_MONO_SOURCES: return "number of mono emitters";
-    case AAX_STEREO_SOURCES: return "number of multi-track emitters";
+    case AAX_MONO_EMITTERS: return "number of mono emitters";
+    case AAX_STEREO_EMITTERS: return "number of multi-track emitters";
     case AAX_BLOCK_ALIGNMENT: return "block alignment";
     case AAX_AUDIO_FRAMES: return "number of audio frames";
-    case AAX_UPDATERATE: return "4D parameter update rate";
+    case AAX_UPDATE_RATE: return "4D parameter update rate";
     case AAX_LATENCY: return "audio latency";
     case AAX_TRACK_LAYOUT: return "track layout";
-    case AAX_BITRATE: return" bit rate";
+    case AAX_BIT_RATE: return" bit rate";
     case AAX_FRAME_TIMING: return "frame timing";
     case AAX_PEAK_VALUE: return "track peak value";
     case AAX_AVERAGE_VALUE: return "track average value";
@@ -219,10 +219,10 @@ static inline std::string to_string(enum aaxSetupType type)
     case AAX_SAMPLED_RELEASE: return "samples release";
     case AAX_CAPABILITIES: return "capabilities";
     case AAX_RELEASE_FACTOR: return "midi release factor";
-    case AAX_ATTACK_FACTOR: return "midi attack factor";
-    case AAX_DECAY_FACTOR: return "midi decay factor";
-    case AAX_VELOCITY_FACTOR: return "midi velocity factor";
-    case AAX_PRESSURE_FACTOR: return "midi pressure factor";
+    case AAX_MIDI_ATTACK_FACTOR: return "midi attack factor";
+    case AAX_MIDI_DECAY_FACTOR: return "midi decay factor";
+    case AAX_MIDI_ATTACK_VELOCITY_FACTOR: return "midi velocity factor";
+    case AAX_MIDI_RELEASE_VELOCITY_FACTOR: return "midi pressure factor";
     case AAX_SETUP_TYPE_MAX:
     case AAX_SETUP_TYPE_NONE:
         break;
