@@ -363,7 +363,7 @@ _aaxDriverBackendReadConfigSettings(const xmlId *xid, char **devname, _aaxConfig
          char *dev;
 
          xmlNodeGetPos(xcid, xoid, "output", n);
-         if (n < _AAX_MAX_SLAVES)
+         if (n < _AAX_MAX_OUTPUTS)
          {
             unsigned int i;
             char *setup;

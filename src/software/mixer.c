@@ -377,7 +377,7 @@ _aaxSoftwareMixerPlay(void* rb, UNUSED(const void* devices), const void* ringbuf
    // NOTE: File backend must be first, it's the only backend that
    //       converts the buffer back to floats when done!
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
-   if (fbe) {	/* slaved file-out backend */
+   if (fbe) {	/* tied file-out backend */
       fbe->play(fbe_handle, dest_rb, 1.0f, gain, batched);
    }
 

@@ -484,7 +484,7 @@ _aaxDMediaDriverConnect(void *config, const void *id, xmlId *xid, const char *re
       /*
        * Create a new config that remains available until exit.
        * Only the master port has a configurtion assigned to it.
-       * All slave ports share the same config.
+       * All tied ports share the same config.
        */
       handle->port[0].config = palNewConfig();
       if (handle->port[0].config == NULL)
