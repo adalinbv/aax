@@ -231,7 +231,7 @@ aaxPlaySoundLogo(const char *devname)
    int rv = AAX_FALSE;
    aaxConfig config;
 
-   config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
+   config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_SPATIAL);
    if(config)
    {
        aaxBuffer buffer = NULL;
