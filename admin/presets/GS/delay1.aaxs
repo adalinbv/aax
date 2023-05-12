@@ -21,13 +21,13 @@
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
  </info>
 
- <audioframe>
+ <audioframe mode="append">
   <effect type="delay">
    <slot n="0">
     <param n="0">0.50</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3" type="usec">340000.0</param>
+    <param n="3" type="msec">340.0</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>
@@ -38,13 +38,13 @@
   </effect>
  </audioframe>
 
- <mixer>
+ <mixer mode="append">
   <effect type="delay">
    <slot n="0">
     <param n="0">0.50</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3" type="usec">340000.0</param>
+    <param n="3" type="msec">340.0</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>
