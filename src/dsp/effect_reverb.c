@@ -112,7 +112,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
    if (rstate == AAX_INVERSE || rstate == AAX_TRUE ||
        rstate == (AAX_INVERSE|AAX_TRUE))
    {
-      rstate = (AAX_REVERB_1ST_ORDER | AAX_REVERB_2ND_ORDER);
+      rstate = (AAX_EFFECT_1ST_ORDER | AAX_EFFECT_2ND_ORDER);
    }
 
    switch (state & ~AAX_ENVELOPE_FOLLOW)
@@ -120,13 +120,13 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
    case AAX_TRUE:
    case AAX_INVERSE:
    case (AAX_INVERSE|AAX_TRUE):
-   case AAX_REVERB_1ST_ORDER:
-   case (AAX_REVERB_1ST_ORDER|AAX_INVERSE):
-   case AAX_REVERB_2ND_ORDER:
-   case (AAX_REVERB_2ND_ORDER|AAX_INVERSE):
+   case AAX_EFFECT_1ST_ORDER:
+   case (AAX_EFFECT_1ST_ORDER|AAX_INVERSE):
+   case AAX_EFFECT_2ND_ORDER:
+   case (AAX_EFFECT_2ND_ORDER|AAX_INVERSE):
    {
-      char reflections = (rstate & AAX_REVERB_1ST_ORDER) ? AAX_TRUE : AAX_FALSE;
-      char loopbacks = (rstate & AAX_REVERB_2ND_ORDER) ? AAX_TRUE : AAX_FALSE;
+      char reflections = (rstate & AAX_EFFECT_1ST_ORDER) ? AAX_TRUE : AAX_FALSE;
+      char loopbacks = (rstate & AAX_EFFECT_2ND_ORDER) ? AAX_TRUE : AAX_FALSE;
       _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
       unsigned int no_tracks = effect->info->no_tracks;
       float lb_depth, rate = 23.0f;
@@ -838,7 +838,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
       rbd->add(direct, sptr, no_samples, 1.0f, 0.0f);
    }
 
-   if (reverb->state & AAX_REVERB_1ST_ORDER)
+   if (reverb->state & AAX_EFFECT_1ST_ORDER)
    {
       if (filter->lfo && !ctr)
       {
@@ -857,7 +857,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
       memcpy(dptr, sptr, no_samples*sizeof(MIX_T));
    }
 
-   if (reverb->state & AAX_REVERB_2ND_ORDER)
+   if (reverb->state & AAX_EFFECT_2ND_ORDER)
    {
       int no_tracks = reverb->info->no_tracks;
 

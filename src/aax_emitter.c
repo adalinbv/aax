@@ -1133,11 +1133,9 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
    int rv = AAX_FALSE;
    switch(type)
    {
-   case AAX_PRESSURE_FACTOR:
    case AAX_MIDI_PRESSURE_FACTOR:
       p2d->note.pressure = (float)setup/127.0f;			// 0.0 .. 1.0
       break;
-   case AAX_VELOCITY_FACTOR:
    case AAX_MIDI_ATTACK_VELOCITY_FACTOR:
       p2d->note.velocity = (float)setup/127.0f;			// 0.0 .. 1.0
       p2d->note.velocity = 0.66f + 0.66f*p2d->note.velocity*p2d->note.velocity;
@@ -1149,11 +1147,9 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
    case AAX_MIDI_SOFT_FACTOR:
       p2d->note.soft = (float)setup/127.0f;			// 0.0 .. 1.0
       break;
-   case AAX_ATTACK_FACTOR:
    case AAX_MIDI_ATTACK_FACTOR:
       handle->midi.attack_factor = (float)setup/64.0f;		// 0.0 .. 2.0
       break;
-   case AAX_DECAY_FACTOR:
    case AAX_MIDI_DECAY_FACTOR:
       handle->midi.decay_factor = (float)setup/64.0f;		// 0.0 .. 2.0
       break;
@@ -1175,18 +1171,15 @@ aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
    unsigned int rv = AAX_FALSE;
    switch(type)
    {
-   case AAX_ATTACK_FACTOR:
    case AAX_MIDI_ATTACK_FACTOR:
       rv = 64.0f*handle->midi.attack_factor;
       break;
    case AAX_RELEASE_FACTOR:
       rv = 64.0f*handle->midi.release_factor;
       break;
-   case AAX_DECAY_FACTOR:
    case AAX_MIDI_DECAY_FACTOR:
       rv = 64.0f*handle->midi.decay_factor;
       break;
-   case AAX_VELOCITY_FACTOR:
    case AAX_MIDI_ATTACK_VELOCITY_FACTOR:
       rv = sqrtf((p2d->note.velocity - 0.66f)/0.66f);
       rv *= 127.0f;
@@ -1194,7 +1187,6 @@ aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
    case AAX_MIDI_RELEASE_VELOCITY_FACTOR:
       rv = 64.0f*p2d->note.release;
       break;
-   case AAX_PRESSURE_FACTOR:
    case AAX_MIDI_PRESSURE_FACTOR:
       rv = 127.0f*p2d->note.pressure;
       break;

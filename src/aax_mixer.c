@@ -107,7 +107,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
-         case AAX_REFRESHRATE:
+         case AAX_REFRESH_RATE:
             if (((setup <= _AAX_MAX_MIXER_REFRESH_RATE)
                          && (handle->valid & HANDLE_ID)))
             {
@@ -134,7 +134,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
-         case AAX_TRACKSIZE:
+         case AAX_TRACK_SIZE:
             {
                float fq = info->frequency;
                float iv = fq*sizeof(int32_t)/setup;
@@ -146,7 +146,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                rv = AAX_TRUE;
             }
             break;
-         case AAX_BITRATE:
+         case AAX_BIT_RATE:
             if (setup > 0)
             {
                 info->bitrate = setup;
@@ -227,7 +227,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
-        case AAX_BITRATE:
+        case AAX_BIT_RATE:
             if (setup > 0)
             {
                 info->bitrate = setup;
@@ -292,10 +292,10 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             case AAX_FREQUENCY:
                rv = (unsigned int)info->frequency;
                break;
-            case AAX_REFRESHRATE:
+            case AAX_REFRESH_RATE:
                rv = (unsigned int)info->period_rate;
                break;
-            case AAX_UPDATERATE:
+            case AAX_UPDATE_RATE:
                 rv=(unsigned int)(info->refresh_rate/handle->info->update_rate);
                 break;
             case AAX_FRAME_TIMING:
@@ -319,7 +319,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             case AAX_FORMAT:
                rv = info->format;
                break;
-            case AAX_TRACKSIZE:
+            case AAX_TRACK_SIZE:
             {
                _aaxRingBuffer *rb = handle->ringbuffer;
                int bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
@@ -330,15 +330,15 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             case AAX_TRACKS:
                rv = info->no_tracks;
                break;
-            case AAX_BITRATE:
             case AAX_LATENCY:
+            case AAX_BIT_RATE:
             case AAX_BUFFER_FILL:
             {
                const _aaxDriverBackend *be = handle->backend.ptr;
                float f;
                switch(type)
                {
-               case AAX_BITRATE:
+               case AAX_BIT_RATE:
                   rv = be->param(handle->backend.handle, DRIVER_BITRATE);
                   if (!rv)
                   {

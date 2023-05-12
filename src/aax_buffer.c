@@ -225,7 +225,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          else _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
       }
-      case AAX_TRACKSIZE:
+      case AAX_TRACK_SIZE:
          if (rb)
          {
             rv = rb->set_parami(rb, RB_TRACKSIZE, setup);
@@ -348,7 +348,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_FORMAT:
          rv = handle->info.fmt;
          break;
-      case AAX_TRACKSIZE:
+      case AAX_TRACK_SIZE:
          if (handle->info.fmt & AAX_AAXS)
          {
             if (handle->aaxs) {
@@ -430,10 +430,10 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
             _aaxErrorSet(AAX_INVALID_STATE);
          }
          break;
-      case AAX_PRESSURE_MODE:
+      case AAX_MIDI_PRESSURE_FACTOR:
          rv = handle->pressure_mode;
          break;
-      case AAX_AFTERTOUCH_SENSITIVITY:
+      case AAX_MIDI_RELEASE_VELOCITY_FACTOR:
          rv = 100.0f*handle->pressure_factor;
          break;
       default:

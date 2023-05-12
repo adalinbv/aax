@@ -705,9 +705,9 @@ aaxGetWaveformTypeByName(const char *wave)
             {
                rv |= AAX_ENVELOPE_FOLLOW_LOG;
             } else if (!strncasecmp(name, "1st-order", len)) {
-                rv |= AAX_REVERB_1ST_ORDER;
+                rv |= AAX_EFFECT_1ST_ORDER;
             } else if (!strncasecmp(name, "2nd-order", len)) {
-                rv |= AAX_REVERB_2ND_ORDER;
+                rv |= AAX_EFFECT_2ND_ORDER;
             } else if (!strncasecmp(name, "true", len) ||
                        !strncasecmp(name, "constant", len)) {
                rv |= AAX_CONSTANT_VALUE;
@@ -784,8 +784,8 @@ aaxGetFrequencyFilterTypeByName(const char *type)
    int rv = aaxGetWaveformTypeByName(type);
 
    /* Prevent a clash with reverb 1st-order and 2nd-order */
-   if (rv & AAX_REVERB_1ST_ORDER) rv &= ~AAX_REVERB_1ST_ORDER;
-   else if (rv & AAX_REVERB_2ND_ORDER) rv &= ~AAX_REVERB_2ND_ORDER;
+   if (rv & AAX_EFFECT_1ST_ORDER) rv &= ~AAX_EFFECT_1ST_ORDER;
+   else if (rv & AAX_EFFECT_2ND_ORDER) rv &= ~AAX_EFFECT_2ND_ORDER;
 
    if (type)
    {
