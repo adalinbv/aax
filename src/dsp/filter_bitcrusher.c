@@ -297,8 +297,9 @@ _aaxBitCrusherFilterSet(float val, UNUSED(int ptype), UNUSED(unsigned char param
    float rv = val;
    if (param == AAX_NOISE_LEVEL && ptype == AAX_DECIBEL) {
       rv = _lin2db(val);
-   } else if (param == AAX_SAMPLE_RATE && ptype == AAX_BITS_PER_SAMPLE) {
-      rv = val*MIX_BPS;
+   } else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET)
+              && ptype == AAX_BITS_PER_SAMPLE) {
+      rv = (1.0f - val)*MIX_BPS;
    }
    return rv;
 }
@@ -309,8 +310,9 @@ _aaxBitCrusherFilterGet(float val, UNUSED(int ptype), UNUSED(unsigned char param
    float rv = val;
    if (param == AAX_NOISE_LEVEL && ptype == AAX_DECIBEL) {
       rv = _db2lin(val);
-   } else if (param == AAX_SAMPLE_RATE && ptype == AAX_BITS_PER_SAMPLE) {
-      rv = val/MIX_BPS;
+   } else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET)
+              && ptype == AAX_BITS_PER_SAMPLE) {
+      rv = 1.0f - val/MIX_BPS;
    }
    return rv;
 }
