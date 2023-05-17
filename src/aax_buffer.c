@@ -928,6 +928,7 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
 static void _bufApplyBitCrusherFilter(_buffer_t*, _filter_t*, int);
 static void _bufApplyFrequencyFilter(_buffer_t*, _filter_t*, int);
 static void _bufApplyDistortionEffect(_buffer_t*, _effect_t*, int);
+static void _bufApplyEqualizer(_buffer_t*, _filter_t*, int);
 
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX] =
@@ -1527,7 +1528,8 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const xmlId *xfid, int layer, float 
          break;
       }
       case AAX_EQUALIZER:
-         _bufApplyFrequencyFilter(handle, filter, layer);
+      case AAX_GRAPHIC_EQUALIZER:
+         _bufApplyEqualizer(handle, filter, layer);
          break;
       default:
          break;
@@ -3206,7 +3208,7 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter, int layer)
       tmp = sptr+no_samples;
       memcpy(tmp, sptr, no_samples*bps);
 
-      if (!data_hf)
+      if (!data_hf) /* frequency filtre */
       {
          rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data);
          if (data->state && (data->low_gain > LEVEL_128DB))	// Bessel
@@ -3215,19 +3217,58 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter, int layer)
             rbd->add(tmp, dptr, no_samples, data->low_gain, 0.0f);
          }
       }
-      else
+      _batch_cvt24_ps24(dptr, tmp, no_samples);
+
+      _aax_aligned_free(sptr);
+   }
+}
+
+static void
+_bufApplyEqualizer(_buffer_t* handle, _filter_t *filter, int layer)
+{
+   _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
+   _aaxRingBufferData *rbi = rb->handle;
+   _aaxRingBufferSample *rbd = rbi->sample;
+   unsigned int bps, no_samples;
+   float *dptr = rbd->track[layer];
+   float *sptr, *tmp;
+
+   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+   bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
+
+   // AAXS defined buffers have just one track, but could have multiple layers
+   assert(rb->get_parami(rb, RB_NO_TRACKS) == 1);
+   assert(bps == 4);
+
+   sptr = _aax_aligned_alloc(4*no_samples*bps);
+   if (sptr)
+   {
+      _aaxRingBufferFreqFilterData *data_lf = filter->slot[0]->data;
+      _aaxRingBufferFreqFilterData *data_mf = filter->slot[1]->data;
+      _aaxRingBufferFreqFilterData *data_hf = filter->slot[2]->data;
+      _aaxRingBufferFreqFilterData *filter[_AAX_EQFILTERS];
+      char parametric, graphic;
+      int s;
+
+      parametric = graphic = (data_hf != NULL);
+      parametric &= (data_lf != NULL);
+      graphic    &= (data_lf == NULL);
+
+      filter[0] = data_lf;
+      filter[1] = data_mf;
+      filter[2] = data_hf;
+
+      _batch_cvtps24_24(sptr, dptr, no_samples);
+
+      tmp = sptr+no_samples;
+      memcpy(tmp, sptr, no_samples*bps);
+
+      if (parametric)
       {
-         if (data->type == LOWPASS && data_hf->type == HIGHPASS)
-         {
-            float *tmp2 = sptr + 2*no_samples;
-            rbd->freqfilter(tmp2, sptr, 0, 2*no_samples, data);
-            rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data_hf);
-            rbd->add(tmp, tmp2+no_samples, no_samples, 1.0f, 0.0f);
-         }
-         else
-         {
-            rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data);
-            rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data_hf);
+         for (s=0; s<_AAX_EQFILTERS; ++s) {
+            if (filter[s]->no_stages) {
+               rbd->freqfilter(sptr, sptr, 0, 2*no_samples, filter[s]);
+            }
          }
       }
       _batch_cvt24_ps24(dptr, tmp, no_samples);
