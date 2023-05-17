@@ -627,7 +627,8 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
                state |= AAX_RELEASE_FACTOR;
             }
             slen = xmlAttributeCopyString(xid, "src", src, 64);
-            if (slen) {
+            if (slen)
+            {
                int s = aaxGetWaveformTypeByName(src);
                if (s == AAX_INVERSE_ENVELOPE_FOLLOW) {
                   state |= AAX_INVERSE_ENVELOPE_FOLLOW;
@@ -645,12 +646,20 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
             if (slen)
             {
                src[slen] = 0;
-               if (ftype == AAX_DISTANCE_FILTER) {
+               switch(ftype)
+               {
+               case AAX_DISTANCE_FILTER:
                   state = aaxGetDistanceModelByName(src);
-               } else if (ftype == AAX_FREQUENCY_FILTER) {
+                  break;
+               case AAX_FREQUENCY_FILTER:
                   state = aaxGetFrequencyFilterTypeByName(src);
-               } else {
+                  break;
+               case AAX_EQUALIZER:
+                  state = xmlAttributeGetBool(xid, "src");
+                  break;
+               default:
                   state = aaxGetWaveformTypeByName(src);
+                  break;
                }
             }
 
