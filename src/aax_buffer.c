@@ -3208,7 +3208,7 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter, int layer)
       tmp = sptr+no_samples;
       memcpy(tmp, sptr, no_samples*bps);
 
-      if (!data_hf) /* frequency filtre */
+      if (!data_hf) /* frequency filter */
       {
          rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data);
          if (data->state && (data->low_gain > LEVEL_128DB))	// Bessel
