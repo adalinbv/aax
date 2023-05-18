@@ -3236,8 +3236,8 @@ _bufApplyEqualizer(_buffer_t* handle, _filter_t *filter, int layer)
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
    unsigned int bps, no_samples;
-   float *dptr = rbd->track[layer];
-   float *sptr, *tmp;
+   MIX_T *dptr = rbd->track[layer];
+   MIX_T *sptr, *tmp;
 
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
@@ -3252,31 +3252,15 @@ _bufApplyEqualizer(_buffer_t* handle, _filter_t *filter, int layer)
       _aaxRingBufferFreqFilterData *data_lf = filter->slot[0]->data;
       _aaxRingBufferFreqFilterData *data_mf = filter->slot[1]->data;
       _aaxRingBufferFreqFilterData *data_hf = filter->slot[2]->data;
-      _aaxRingBufferFreqFilterData *filter[_AAX_EQFILTERS];
-      char parametric, graphic;
-      int s;
-
-      parametric = graphic = (data_hf != NULL);
-      parametric &= (data_lf != NULL);
-      graphic    &= (data_lf == NULL);
-
-      filter[0] = data_lf;
-      filter[1] = data_mf;
-      filter[2] = data_hf;
 
       _batch_cvtps24_24(sptr, dptr, no_samples);
 
       tmp = sptr+no_samples;
       memcpy(tmp, sptr, no_samples*bps);
 
-      if (parametric)
-      {
-         for (s=0; s<_AAX_EQFILTERS; ++s) {
-            if (filter[s]->no_stages) {
-               rbd->freqfilter(sptr, sptr, 0, 2*no_samples, filter[s]);
-            }
-         }
-      }
+      _equalizer_run(rbd, sptr, NULL, 0, 2*no_samples, 0,
+                     data_lf, data_mf, data_hf);
+
       _batch_cvt24_ps24(dptr, tmp, no_samples);
 
       _aax_aligned_free(sptr);
