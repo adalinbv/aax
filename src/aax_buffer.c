@@ -1743,6 +1743,12 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid)
    {
       freq = xmlAttributeGetDouble(xsid, "frequency");
       handle->info.base_frequency = freq;
+      if (handle->info.pitch_fraction < 1.0f)
+      {
+         handle->info.low_frequency = freq*(1.0f-handle->info.pitch_fraction);
+         handle->info.high_frequency = freq*(1.0f+handle->info.pitch_fraction);
+         high_frequency = handle->info.high_frequency;
+      }
       if (high_frequency > FLT_EPSILON)
       {
          int pitch = ceilf(high_frequency/freq);
