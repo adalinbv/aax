@@ -165,20 +165,20 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
 
          _lfo_setup(&data->lfo, effect->info, effect->state);
 
-         if ((offset+depth)/CHORUS_MAX > CHORUS_MIN)
+//       if ((offset+depth)/CHORUS_MAX > CHORUS_MIN)
          {
             data->lfo.min_sec = CHORUS_MIN;
             data->lfo.max_sec = CHORUS_MAX;
             data->lfo.depth = depth;
             data->lfo.offset = offset;
          }
-         else // switch to phasing
-         {
-            data->lfo.min_sec = PHASING_MIN;
-            data->lfo.max_sec = PHASING_MAX;
-            data->lfo.depth = depth*CHORUS_MAX/PHASING_MAX;
-            data->lfo.offset = offset*CHORUS_MAX/PHASING_MAX;
-         }
+//       else // switch to phasing
+//       {
+//          data->lfo.min_sec = PHASING_MIN;
+//          data->lfo.max_sec = PHASING_MAX;
+//          data->lfo.depth = depth*CHORUS_MAX/PHASING_MAX;
+//          data->lfo.offset = offset*CHORUS_MAX/PHASING_MAX;
+//       }
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
