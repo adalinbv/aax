@@ -81,13 +81,13 @@ _lfo_destroy(void *data)
 
 void
 _lfo_setup(_aaxLFOData *lfo, void *i, int state)
-{  
+{
    _aaxMixerInfo *info = (_aaxMixerInfo*)i;
    int log = (state & AAX_ENVELOPE_FOLLOW_LOG) ? AAX_TRUE : AAX_FALSE;
    int stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
 
    lfo->fs = info->frequency;
-   lfo->period_rate = info->period_rate; 
+   lfo->period_rate = info->period_rate;
    lfo->convert = (log) ? _exponential : _linear;
    lfo->state = state & ~(AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG|AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
    lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
@@ -194,22 +194,26 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
    return rv;
 }
 
+/*
+ * lfo->min_sec and lfo->max_sec define the boundaries (in seconds).
+ *
+ * lfo->offset defines a factor of those boundaries.
+ * So lfo->offset = 1.0f means lfo->offset equals to lfo->max_sec
+ *
+ * lfo->depth defines a maximum offset to lfo->offset
+ * which could be 0.0f in which case there will be a constant offet.
+ */
 int
 _lfo_set_timing(_aaxLFOData *lfo)
 {
-   float min = lfo->min_sec;
    float range = lfo->max_sec - lfo->min_sec;
-   float depth = lfo->depth;
-   float offset = lfo->offset;
    float fs = lfo->fs;
    int constant;
 
-   depth *= range * fs;
-   constant = (depth > 0.01f) ? AAX_FALSE : AAX_TRUE;
+   constant = (lfo->depth > 0.01f) ? AAX_FALSE : AAX_TRUE;
 
-   lfo->min = (range * offset + min)*fs;
-   lfo->max = lfo->min + depth;
-
+   lfo->min = fs*(lfo->min_sec + lfo->offset*range);
+   lfo->max = lfo->min + fs*(lfo->depth*range);
 #if 0
  printf("offset: %f, range: %f, min: %f, fs: %f\n", offset, range, min, fs);
  printf("lfo min: %f, max: %f\n", lfo->min, lfo->max);
@@ -571,10 +575,10 @@ _aaxLFOGetCycloid(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
       lfo->compression[track] = 1.0f-rv;
       rv = lfo->convert(_cycloid(rv), lfo->min, max);
 
-      lfo->value[track] += step; 
+      lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
           || ((lfo->value[track] >= lfo->max) && (step > 0)))
-      {  
+      {
          lfo->step[track] *= -1.0f;
          lfo->value[track] -= step;
       }
@@ -626,7 +630,8 @@ _aaxLFOGetTimed(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned
 
       assert(max);
 
-      rv = (lfo->value[track] - lfo->min)/max;
+//    rv = (lfo->value[track] - lfo->min)/max;
+      rv = (lfo->min + lfo->value[track])/lfo->max;
       rv = lfo->inv ? 1.0f-rv : rv;
 
       rv = _aaxLFODelay(lfo, rv);
