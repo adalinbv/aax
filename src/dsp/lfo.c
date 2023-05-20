@@ -630,8 +630,8 @@ _aaxLFOGetTimed(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned
 
       assert(max);
 
-//    rv = (lfo->value[track] - lfo->min)/max;
-      rv = (lfo->min + lfo->value[track])/lfo->max;
+      rv = (lfo->value[track] - lfo->min)/max;
+//    rv = (lfo->min + lfo->value[track])/lfo->max;
       rv = lfo->inv ? 1.0f-rv : rv;
 
       rv = _aaxLFODelay(lfo, rv);
