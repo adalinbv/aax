@@ -240,11 +240,7 @@ _lfo_set_timing(_aaxLFOData *lfo)
             lfo->step[t] = lfo->max-lfo->min;
          }
 
-         if ((lfo->value0[t] == 0) || (lfo->value0[t] < lfo->min)) {
-            lfo->value0[t] = lfo->min;
-         } else if (lfo->value0[t] > lfo->max) {
-            lfo->value0[t] = lfo->max;
-         }
+         lfo->value0[t] = _MINMAX(lfo->value0[t], lfo->min, lfo->max);
 
          switch (lfo->state & ~AAX_INVERSE)
          {
@@ -631,7 +627,6 @@ _aaxLFOGetTimed(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned
       assert(max);
 
       rv = (lfo->value[track] - lfo->min)/max;
-//    rv = (lfo->min + lfo->value[track])/lfo->max;
       rv = lfo->inv ? 1.0f-rv : rv;
 
       rv = _aaxLFODelay(lfo, rv);
@@ -639,12 +634,7 @@ _aaxLFOGetTimed(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned
       lfo->compression[track] = 1.0f-rv;
       rv = lfo->convert(rv, lfo->min, max);
 
-      lfo->value[track] += step;
-      if (lfo->value[track] <= lfo->min) {
-         lfo->value[track] = lfo->min;
-      } else if (lfo->value[track] > lfo->max) {
-         lfo->value[track] = lfo->max;
-      }
+      lfo->value[track] = _MINMAX(lfo->value[track]+step, lfo->min, lfo->max);
    }
 
    return rv;
