@@ -363,49 +363,6 @@ _aaxDecreaseEmitterCounter(const _aaxDriverBackend *be) {
    return be->getset_sources(0, -1);
 }
 
-static void
-_aaxSetSlotFromAAXSOld(const xmlId *xid, int (*setSlotFn)(void*, unsigned, int, aaxVec4f), void *id)
-{
-   unsigned int s, snum = xmlNodeGetNum(xid, "slot");
-   xmlId *xsid;
-
-   xsid = xmlMarkId(xid);
-   if (!xsid) return;
-
-   for (s=0; s<snum; s++)
-   {
-      if (xmlNodeGetPos(xid, xsid, "slot", s) != 0)
-      {
-         if (xmlNodeGetPos(xid, xsid, "slot", s) != 0)
-         {
-            enum aaxType type = AAX_LINEAR;
-            aaxVec4f params;
-            unsigned int slen;
-            long int n = s;
-            char src[65];
-
-            if (xmlAttributeExists(xsid, "n")) {
-               n = xmlAttributeGetInt(xsid, "n");
-            }
-
-            params[0] = xmlNodeGetDouble(xsid, "p0");
-            params[1] = xmlNodeGetDouble(xsid, "p1");
-            params[2] = xmlNodeGetDouble(xsid, "p2");
-            params[3] = xmlNodeGetDouble(xsid, "p3");
-
-            slen = xmlAttributeCopyString(xsid, "type", src, 64);
-            if (slen)
-            {
-               src[slen] = 0;
-               type = aaxGetTypeByName(src);
-            }
-            setSlotFn(id, n, type, params);
-         }
-      }
-   }
-   xmlFree(xsid);
-}
-
 static int
 _aaxSetFilterSlotState(const aaxFilter f, int slot, int state)
 {
@@ -579,9 +536,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
       flt = aaxFilterCreate(config, ftype);
       if (flt)
       {
-         if (!_aaxSetSlotFromAAXS(xid, _aaxSetFilterSlotState, aaxFilterSetParam, flt, freq, min, max, midi)) {
-            _aaxSetSlotFromAAXSOld(xid, aaxFilterSetSlotParams, flt);
-         }
+         _aaxSetSlotFromAAXS(xid, _aaxSetFilterSlotState, aaxFilterSetParam, flt, freq, min, max, midi);
 
          if (ftype == AAX_TIMED_GAIN_FILTER)
          {
@@ -706,9 +661,7 @@ _aaxGetEffectFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
       eff = aaxEffectCreate(config, etype);
       if (eff)
       {
-         if (!_aaxSetSlotFromAAXS(xid, _aaxSetEffectSlotState, aaxEffectSetParam, eff, freq, min, max, midi)) {
-            _aaxSetSlotFromAAXSOld(xid, aaxEffectSetSlotParams, eff);
-         }
+         _aaxSetSlotFromAAXS(xid, _aaxSetEffectSlotState, aaxEffectSetParam, eff, freq, min, max, midi);
 
          slen = xmlAttributeCopyString(xid, "src", src, 64);
          if (slen)
