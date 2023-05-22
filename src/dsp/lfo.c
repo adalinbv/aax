@@ -210,10 +210,9 @@ _lfo_set_timing(_aaxLFOData *lfo)
    float fs = lfo->fs;
    int constant;
 
-   constant = (lfo->depth > 0.01f) ? AAX_FALSE : AAX_TRUE;
-
    lfo->min = fs*(lfo->min_sec + lfo->offset*range);
    lfo->max = lfo->min + fs*(lfo->depth*range);
+   constant = ((lfo->max - lfo->min) > 0.01f) ? AAX_FALSE : AAX_TRUE;
 #if 0
  printf("offset: %f, range: %f, min: %f, fs: %f\n", offset, range, min, fs);
  printf("lfo min: %f, max: %f\n", lfo->min, lfo->max);
@@ -240,7 +239,11 @@ _lfo_set_timing(_aaxLFOData *lfo)
             lfo->step[t] = lfo->max-lfo->min;
          }
 
-         lfo->value0[t] = _MINMAX(lfo->value0[t], lfo->min, lfo->max);
+         if ((lfo->value0[t] == 0) || (lfo->value0[t] < lfo->min)) {
+            lfo->value0[t] = lfo->min;
+         } else if (lfo->value0[t] > lfo->max) {
+            lfo->value0[t] = lfo->max;
+         }
 
          switch (lfo->state & ~AAX_INVERSE)
          {
@@ -634,7 +637,12 @@ _aaxLFOGetTimed(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned
       lfo->compression[track] = 1.0f-rv;
       rv = lfo->convert(rv, lfo->min, max);
 
-      lfo->value[track] = _MINMAX(lfo->value[track]+step, lfo->min, lfo->max);
+      lfo->value[track] += step;
+      if (lfo->value[track] <= lfo->min) {
+         lfo->value[track] = lfo->min;
+      } else if (lfo->value[track] > lfo->max) {
+         lfo->value[track] = lfo->max;
+      }
    }
 
    return rv;
