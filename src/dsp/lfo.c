@@ -210,10 +210,9 @@ _lfo_set_timing(_aaxLFOData *lfo)
    float fs = lfo->fs;
    int constant;
 
-   constant = (lfo->depth > 0.01f) ? AAX_FALSE : AAX_TRUE;
-
    lfo->min = fs*(lfo->min_sec + lfo->offset*range);
    lfo->max = lfo->min + fs*(lfo->depth*range);
+   constant = ((lfo->max - lfo->min) > 0.01f) ? AAX_FALSE : AAX_TRUE;
 #if 0
  printf("offset: %f, range: %f, min: %f, fs: %f\n", offset, range, min, fs);
  printf("lfo min: %f, max: %f\n", lfo->min, lfo->max);
