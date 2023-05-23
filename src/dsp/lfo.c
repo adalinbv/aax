@@ -412,15 +412,20 @@ _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 }
 
 
+/* domain for x: 1.0 .. 1.0 */
 static float
 _fast_sin1(float x)
 {
 #if 0
+   /* domain for y: -1.0 .. 1.0 */
    float y = fmodf(x, 2.0f) - 1.0f;
    return -4.0f*(y - y*fabsf(y));
 #else
+   // domain for y: 0.0 .. 1.0
+   // y = 0.5  -4.0*(x - x*abs(x))/2
+   // make it cosine by adding 0.5 to x
    float y = fmodf(x+0.5f, 2.0f) - 1.0f;
-   return 0.5f + 2.0f*(y - y*fabsf(y));
+   return 0.5f - 2.0f*(y - y*fabsf(y));
 #endif
 }
 
