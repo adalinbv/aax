@@ -67,6 +67,12 @@ testEffect(const char *name, int type, int lineno)
 int main()
 {
 
+    WAVE("AAX_WAVE_NONE", AAX_WAVE_NONE);
+    WAVE("AAX_CONSTANT_VALUE", AAX_CONSTANT_VALUE);
+
+    WAVE("false", AAX_WAVE_NONE);
+    WAVE("true", AAX_CONSTANT_VALUE);
+
     /* waveforms */
     WAVE("AAX_CONSTANT_VALUE", AAX_CONSTANT_VALUE);
     WAVE("AAX_TRIANGLE_WAVE", AAX_TRIANGLE_WAVE);

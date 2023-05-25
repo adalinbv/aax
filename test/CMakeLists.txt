@@ -34,6 +34,7 @@ endif()
 CREATE_TEST(testmemory)
 CREATE_TEST(testtypes)
 CREATE_TEST(testdsp)
+CREATE_TEST(testlfo)
 CREATE_TEST(testurl)
 
 CREATE_TEST(matrix_test)
