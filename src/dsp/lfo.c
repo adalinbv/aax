@@ -39,6 +39,11 @@
 #include "api.h"
 #include "lfo.h"
 
+/*
+ * Periodic waveforms should start at 0.0f and start to increase over time
+ * until a maximum of 1.0 is reached.
+ */
+
 float _linear(float v, float min, float depth) {
    return min + depth*v;
 }
@@ -412,21 +417,16 @@ _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 }
 
 
-/* domain for x: 1.0 .. 1.0 */
+/* domain for x: -1.0 .. 1.0 */
 static float
 _fast_sin1(float x)
 {
-#if 0
-   /* domain for y: -1.0 .. 1.0 */
-   float y = fmodf(x, 2.0f) - 1.0f;
-   return -4.0f*(y - y*fabsf(y));
-#else
-   // domain for y: 0.0 .. 1.0
-   // y = 0.5  -4.0*(x - x*abs(x))/2
-   // make it cosine by adding 0.5 to x
-   float y = fmodf(x+0.5f, 2.0f) - 1.0f;
-   return 0.5f - 2.0f*(y - y*fabsf(y));
-#endif
+   /* domain for y: 0.0 .. 1.0       */
+   /* y = 0.5 - 4.0*(x - x*abs(x))/2 */
+   float y = fmodf(x + 0.5f, 2.0f) - 1.0f;
+
+   /* swap sign to start at 0.0f     */
+   return 0.5f + 2.0f*(y - y*fabsf(y));
 }
 
 float
@@ -478,7 +478,7 @@ _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigne
       rv = _aaxLFODelay(lfo, rv);
 
       lfo->compression[track] = 1.0f-rv;
-      rv = lfo->convert((step >= 0.0f) ? 1.0f : 0.0f, lfo->min, max);
+      rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo->min, max);
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -490,6 +490,14 @@ _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigne
       lfo->compression[track] = 1.0f - rv;
    }
    return rv;
+}
+
+/* domain for x: -1.0 .. 1.0 */
+static float
+_impulse(float x)
+{
+   float y = 2.0f*GMATH_2PI*(1.0f-x);
+   return cos(atan(y*y));
 }
 
 float
@@ -504,16 +512,13 @@ _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
 
       assert(max);
 
-      if (step > 0) step *= 10.0f;	// 10% duty cycle
-      else step *= 0.9f;
-
       rv = (lfo->value[track] - lfo->min)/max;
       rv = lfo->inv ? 1.0f-rv : rv;
 
       rv = _aaxLFODelay(lfo, rv);
 
       lfo->compression[track] = 1.0f-rv;
-      rv = lfo->convert((step >= 0.0f) ? 1.0f : 0.0f, lfo->min, max);
+      rv = lfo->convert(_impulse(rv), lfo->min, max);
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -522,7 +527,6 @@ _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
          lfo->step[track] *= -1.0f;
          lfo->value[track] -= step;
       }
-      lfo->compression[track] = 1.0f - rv;
    }
    return rv;
 }
@@ -552,11 +556,12 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
    return rv;
 }
 
+/* domain for x: -1.0 .. 1.0 */
 static float
 _cycloid(float x)
 {
    float y = fmodf(x, 1.0f);
-   return sqrtf(1.0f-y*y);
+   return 1.0f-sqrtf(1.0f-y*y);
 }
 
 float
