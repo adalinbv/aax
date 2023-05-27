@@ -328,6 +328,7 @@ _env_reset(_aaxEnvelopeData* env)
 }
 
 
+/* gradually fade-in if there is a delay offset set */
 static inline float
 _aaxLFODelay(_aaxLFOData* lfo, float rv)
 {
@@ -419,14 +420,14 @@ _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 
 /* domain for x: -1.0 .. 1.0 */
 static float
-_fast_sin1(float x)
+_fast_sin1(float y)
 {
-   /* domain for y: 0.0 .. 1.0       */
-   /* y = 0.5 - 4.0*(x - x*abs(x))/2 */
-   float y = fmodf(x + 0.5f, 2.0f) - 1.0f;
+   float rv, x = fmodf(y-0.5f, 1.0f);
 
+   /* domain for the return value: 0.0 .. 1.0 */
    /* swap sign to start at 0.0f     */
-   return 0.5f + 2.0f*(y - y*fabsf(y));
+   rv = 0.5f + 2.0f*(x - x*fabsf(x));
+   return rv;
 }
 
 float
