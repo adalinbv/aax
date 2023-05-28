@@ -356,11 +356,11 @@ _aaxLFOCalculate(_aaxLFOData *lfo, float val, unsigned track)
    assert(max);
 
    rv = max ? (val - lfo->min)/max : val;
-   rv = lfo->inv ? 1.0f-rv : rv;
-
    rv = _aaxLFODelay(lfo, rv);
 
+   rv = lfo->inv ? 1.0f-rv : rv;
    lfo->compression[track] = 1.0f - rv;
+
    rv = lfo->convert(rv, lfo->min, max);
 
    return rv;
@@ -443,11 +443,11 @@ _aaxLFOGetSine(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned 
       assert(max);
 
       rv = (lfo->value[track] - lfo->min)/max;
-      rv = lfo->inv ? 1.0f-rv : rv;
-
       rv = _aaxLFODelay(lfo, rv);
 
+      rv = lfo->inv ? 1.0f-rv : rv;
       lfo->compression[track] = 1.0f-rv;
+
       rv = lfo->convert(_fast_sin1(rv), lfo->min, max);
 
       lfo->value[track] += step;
@@ -474,11 +474,11 @@ _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigne
       assert(max);
 
       rv = (lfo->value[track] - lfo->min)/max;
-      rv = lfo->inv ? 1.0f-rv : rv;
-
       rv = _aaxLFODelay(lfo, rv);
 
+      rv = lfo->inv ? 1.0f-rv : rv;
       lfo->compression[track] = 1.0f-rv;
+
       rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo->min, max);
 
       lfo->value[track] += step;
@@ -514,11 +514,11 @@ _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
       assert(max);
 
       rv = (lfo->value[track] - lfo->min)/max;
-      rv = lfo->inv ? 1.0f-rv : rv;
-
       rv = _aaxLFODelay(lfo, rv);
 
+      rv = lfo->inv ? 1.0f-rv : rv;
       lfo->compression[track] = 1.0f-rv;
+
       rv = lfo->convert(_impulse(rv), lfo->min, max);
 
       lfo->value[track] += step;
@@ -578,11 +578,11 @@ _aaxLFOGetCycloid(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
       assert(max);
 
       rv = (lfo->value[track] - lfo->min)/max;
-      rv = lfo->inv ? 1.0f-rv : rv;
-
       rv = _aaxLFODelay(lfo, rv);
 
+      rv = lfo->inv ? 1.0f-rv : rv;
       lfo->compression[track] = 1.0f-rv;
+
       rv = lfo->convert(_cycloid(rv), lfo->min, max);
 
       lfo->value[track] += step;
@@ -613,11 +613,11 @@ _aaxLFOGetRandomness(void* data, UNUSED(void *env), UNUSED(const void *ptr), uns
          float olvl = lfo->value[track];
 
          rv = 0.5*xoroshiro128plus()/(double)INT64_MAX;
-         rv = lfo->inv ? 1.0f-rv : rv;
-
          rv = _aaxLFODelay(lfo, rv);
 
+         rv = lfo->inv ? 1.0f-rv : rv;
          lfo->compression[track] = 1.0f-rv;
+
          rv = lfo->convert(rv, lfo->min, max);
 
          rv = alpha*rv + (1.0f-alpha)*olvl;
@@ -641,11 +641,11 @@ _aaxLFOGetTimed(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned
       assert(max);
 
       rv = (lfo->value[track] - lfo->min)/max;
-      rv = lfo->inv ? 1.0f-rv : rv;
-
       rv = _aaxLFODelay(lfo, rv);
 
+      rv = lfo->inv ? 1.0f-rv : rv;
       lfo->compression[track] = 1.0f-rv;
+
       rv = lfo->convert(rv, lfo->min, max);
 
       lfo->value[track] += step;
@@ -696,12 +696,11 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
          olvl = lfo->value[track];
       }
 
-      rv = olvl;
+      rv = _aaxLFODelay(lfo, olvl);
+
       rv = lfo->inv ? 1.0f-rv : rv;
-
-      rv = _aaxLFODelay(lfo, rv);
-
       lfo->compression[track] = 1.0f-rv;
+
       rv = lfo->convert(rv, lfo->min, max);
    }
 
@@ -752,6 +751,7 @@ _aaxLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned tr
       rv = lfo->convert(rv, 0.0f, 1.0f);
 
       assert(rv);
+
       lfo->compression[track] = 1.0f - (1.0f/rv);
       rv = lfo->inv ? 1.0f/(0.001+0.999f*rv) : rv;
    }
