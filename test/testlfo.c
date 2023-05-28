@@ -25,7 +25,7 @@ void testLFO(enum aaxWaveformType state, const char *name)
     _lfo_setup(lfo, &info, state);
 
     lfo->min = 0.0f;
-    lfo->max = 1.0f;
+    lfo->max = 9.9f;
 
     lfo->min_sec = lfo->min/lfo->fs;
     lfo->max_sec = lfo->max/lfo->fs;
