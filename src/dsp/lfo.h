@@ -32,8 +32,8 @@ extern "C" {
 
 #include <backends/driver.h>
 
-
-typedef float _convert_fn(float, float, float);
+typedef struct _aaxLFOData_t _aaxLFOData;
+typedef float _convert_fn(float, _aaxLFOData*);
 _convert_fn _linear;
 _convert_fn _squared;
 _convert_fn _logarithmic;
@@ -58,7 +58,7 @@ _aaxLFOGetFn _aaxLFOGetTimed;
 _aaxLFOGetFn _aaxLFOGetCompressor;
 _aaxLFOGetFn _aaxLFOGetPitchFollow;
 
-typedef struct
+typedef struct _aaxLFOData_t
 {
    int state;
    float offset, depth;

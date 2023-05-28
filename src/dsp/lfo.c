@@ -44,25 +44,55 @@
  * until a maximum of 1.0 is reached.
  */
 
-float _linear(float v, float min, float depth) {
-   return min + depth*v;
+float _linear(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
+   if (lfo->inv) {
+      return lfo->max - depth*v;
+   } else {
+      return lfo->min + depth*v;
+   }
 }
 
-float _squared(float v, float min, float depth) {
-   return min + depth*v*v;
+float _squared(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
+   if (lfo->inv) {
+      return lfo->max - depth*v*v;
+   } else {
+      return lfo->min + depth*v*v;
+   }
 }
 
-float _logarithmic(float v, float min, float depth) {
-   return _log2lin(min + depth*v);
+float _logarithmic(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
+   if (lfo->inv) {
+      return _log2lin(lfo->max - depth*v);
+   } else {
+      return _log2lin(lfo->min + depth*v);
+   }
 }
 
-float _exponential(float v, float min, float depth) {
-   return min + depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
+float _exponential(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
+   if (lfo->inv) {
+      return lfo->max - depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
+   } else {
+      return lfo->min + depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
+   }
 }
 
-float _exp_distortion(float v, float min, float depth) {
+float _exp_distortion(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
    float x = v*v;
-   return min + 0.5f*depth*(x*x-x+v);
+   if (lfo->inv) {
+      return lfo->max - 0.5f*depth*(x*x-x+v);
+   } else {
+      return lfo->min + 0.5f*depth*(x*x-x+v);
+   }
 }
 
 _aaxLFOData*
@@ -360,8 +390,7 @@ _aaxLFOCalculate(_aaxLFOData *lfo, float val, unsigned track)
 
    lfo->compression[track] = 1.0f - rv;
 
-   rv = lfo->convert(rv, lfo->min, max);
-   rv = lfo->inv ? lfo->max - rv : rv;
+   rv = lfo->convert(rv, lfo);
 
    return rv;
 }
@@ -447,8 +476,7 @@ _aaxLFOGetSine(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned 
 
       lfo->compression[track] = 1.0f-rv;
 
-      rv = lfo->convert(_fast_sin1(rv), lfo->min, max);
-      rv = lfo->inv ? lfo->max - rv : rv;
+      rv = lfo->convert(_fast_sin1(rv), lfo);
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -478,8 +506,7 @@ _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigne
 
       lfo->compression[track] = 1.0f-rv;
 
-      rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo->min, max);
-      rv = lfo->inv ? lfo->max - rv : rv;
+      rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo);
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -517,8 +544,7 @@ _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
       rv = _aaxLFODelay(lfo, rv);
       lfo->compression[track] = 1.0f-rv;
 
-      rv = lfo->convert(_impulse(rv), lfo->min, max);
-      rv = lfo->inv ? lfo->max - rv : rv;
+      rv = lfo->convert(_impulse(rv), lfo);
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -581,8 +607,7 @@ _aaxLFOGetCycloid(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
 
       lfo->compression[track] = 1.0f-rv;
 
-      rv = lfo->convert(_cycloid(rv), lfo->min, max);
-      rv = lfo->inv ? lfo->max - rv : rv;
+      rv = lfo->convert(_cycloid(rv), lfo);
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -607,7 +632,6 @@ _aaxLFOGetRandomness(void* data, UNUSED(void *env), UNUSED(const void *ptr), uns
       /* In stereo-link mode the left track (0) provides the data */
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
-         float max = (lfo->max - lfo->min);
          float alpha = lfo->step[track];
          float olvl = lfo->value[track];
 
@@ -616,8 +640,7 @@ _aaxLFOGetRandomness(void* data, UNUSED(void *env), UNUSED(const void *ptr), uns
 
          lfo->compression[track] = 1.0f-rv;
 
-         rv = lfo->convert(rv, lfo->min, max);
-         rv = lfo->inv ? lfo->max - rv : rv;
+         rv = lfo->convert(rv, lfo);
 
          rv = alpha*rv + (1.0f-alpha)*olvl;
          lfo->value[track] = rv;
@@ -644,8 +667,7 @@ _aaxLFOGetTimed(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned
 
       lfo->compression[track] = 1.0f-rv;
 
-      rv = lfo->convert(rv, lfo->min, max);
-      rv = lfo->inv ? lfo->max - rv : rv;
+      rv = lfo->convert(rv, lfo);
 
       lfo->value[track] += step;
       if (lfo->value[track] <= lfo->min) {
@@ -666,10 +688,7 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
    float rv = 1.0f;
    if (lfo && ptr && num)
    {
-      float max = (lfo->max - lfo->min);
       float olvl = lfo->value[0];
-
-      assert(max);
 
       /* In stereo-link mode the left track (0) provides the data */
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
@@ -700,7 +719,7 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
       rv = lfo->inv ? 1.0f-rv : rv;
       lfo->compression[track] = 1.0f-rv;
 
-      rv = lfo->convert(rv, lfo->min, max);
+      rv = lfo->convert(rv, lfo);
    }
 
    return rv;
@@ -717,6 +736,7 @@ _aaxLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned tr
       float oavg = lfo->average[0];
       float olvl = lfo->value[0];
       float gf = 1.0f;
+      _aaxLFOData l;
 
       assert(lfo->gate_threshold > 0.0f);
 
@@ -747,7 +767,11 @@ _aaxLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned tr
 	// lfo->max == AAX_COMPRESSION_RATIO
       assert((1.0f-lfo->max) + lfo->max*olvl);
       rv = gf*_MINMAX(lfo->min/((1.0f-lfo->max) + lfo->max*olvl),1.0f,1000.0f);
-      rv = lfo->convert(rv, 0.0f, 1.0f);
+
+      l.min = 0.0f;
+      l.max = 1.0f;
+      l.inv = AAX_FALSE;
+      rv = lfo->convert(rv, &l);
 
       assert(rv);
 
