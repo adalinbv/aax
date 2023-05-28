@@ -24,7 +24,7 @@ void testLFO(enum aaxWaveformType state, const char *name)
     TRY(lfo = _lfo_create(), "_lfo_create");
     _lfo_setup(lfo, &info, state);
 
-    lfo->min = 0.0f;
+    lfo->min =-9.9f;
     lfo->max = 9.9f;
 
     lfo->min_sec = lfo->min/lfo->fs;
@@ -40,7 +40,7 @@ void testLFO(enum aaxWaveformType state, const char *name)
     for (f = 0.0f; f < 1.0f/lfo->f; f += 1.0f/period_rate)
     {
         n = lfo->get(lfo, NULL, NULL, 0, 0);
-        printf("%.1f ", n);
+        printf("%- .1f ", n);
     }
     printf("\n\n");
 
