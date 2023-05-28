@@ -55,4 +55,11 @@ int main()
     testLFO(AAX_TRIANGLE_WAVE, "triangle");
     testLFO(AAX_SAWTOOTH_WAVE, "sawtooth");
     testLFO(AAX_SQUARE_WAVE, "square");
+
+    testLFO(AAX_INVERSE_IMPULSE_WAVE, "inverse-impulse");
+    testLFO(AAX_INVERSE_CYCLOID_WAVE, "inverse-cycloid");
+    testLFO(AAX_INVERSE_SINE_WAVE, "inverse-sine");
+    testLFO(AAX_INVERSE_TRIANGLE_WAVE, "inverse-triangle");
+    testLFO(AAX_INVERSE_SAWTOOTH_WAVE, "inverse-sawtooth");
+    testLFO(AAX_INVERSE_SQUARE_WAVE, "inverse-square");
 }
