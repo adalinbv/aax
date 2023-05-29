@@ -489,6 +489,16 @@ _aaxLFOGetSine(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned 
    return rv;
 }
 
+/* domain for x: -1.0 .. 1.0 */
+static float
+_square1(float y)
+{
+   float x = 2.0*(1.0f-y);
+   float x2 = x*x;
+   return cos(atan(x2*x2));
+}
+
+
 float
 _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
 {
@@ -503,10 +513,10 @@ _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigne
 
       rv = (lfo->value[track] - lfo->min)/max;
       rv = _aaxLFODelay(lfo, rv);
-
       lfo->compression[track] = 1.0f-rv;
 
-      rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo);
+//    rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo);
+      rv = lfo->convert(_square1(rv), lfo);
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -515,7 +525,6 @@ _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigne
          lfo->step[track] *= -1.0f;
          lfo->value[track] -= step;
       }
-      lfo->compression[track] = 1.0f - rv;
    }
    return rv;
 }
