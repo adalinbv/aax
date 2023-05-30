@@ -515,8 +515,11 @@ _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigne
       rv = _aaxLFODelay(lfo, rv);
       lfo->compression[track] = 1.0f-rv;
 
-//    rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo);
-      rv = lfo->convert(_square1(rv), lfo);
+      if (lfo->convert == _exponential) {
+         rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo);
+      } else {
+         rv = lfo->convert(_square1(rv), lfo);
+      }
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
