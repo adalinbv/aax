@@ -21,12 +21,28 @@
  </info>
 
  <sound gain="0.66" frequency="1250" duration="0.0333">
-  <waveform src="triangle" pitch="0.9"/>
-  <waveform src="triangle" processing="add" ratio="0.8" pitch="3.0"/>
-  <waveform src="triangle" processing="modulate" pitch="6.98"/>
+  <layer>
+   <waveform src="triangle" pitch="0.9"/>
+   <waveform src="triangle" processing="add" ratio="0.8" pitch="3.0"/>
+   <waveform src="triangle" processing="modulate" pitch="6.98"/>
+  </layer>
+  <layer>
+   <waveform src="square" pitch="9.0"/>
+   <waveform src="sine" processing="modulate" pitch="3.0"/>
+   <waveform src="sine" processing="mix" ratio="0.6" pitch="3.0"/>
+   <waveform src="cycloid" processing="modulate" pitch="0.1"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
+  <filter type="dynamic-layer" src="cycloid">
+   <slot n="0">
+    <param n="0">0.5</param>
+    <param n="1">1.0</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
   <filter type="timed-gain" release-time="2.0">
    <slot n="0">
     <param n="0">2.15</param>
@@ -35,12 +51,12 @@
     <param n="3">2.8</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="triangle">
+  <filter type="dynamic-gain" src="square">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">15.0</param>
     <param n="2">0.9</param>
-    <param n="3">0.1</param>
+    <param n="3">0.3</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">
@@ -49,6 +65,14 @@
     <param n="1">0.3</param>
     <param n="2">1.01</param>
     <param n="3">0.0</param>
+   </slot>
+  </effect>
+  <effect type="dynamic-pitch" src="sine">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.2</param>
+    <param n="3">0.9</param>
    </slot>
   </effect>
  </emitter>

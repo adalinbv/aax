@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,13 +14,13 @@
 
  <info name="Brass Section" bank="0" program="61">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="16" min="36" max="96" step="6"/>
  </info>
 
- <sound mode="1" gain="2.30" frequency="880" duration="0.5" voices="3" spread="0.61">
+ <sound mode="1" gain="2.71" frequency="880" duration="0.5" voices="3" spread="0.61">
   <waveform src="impulse" ratio="0.7"/>
   <waveform src="sawtooth" processing="add" ratio="0.7"/>
   <waveform src="impulse" processing="add" ratio="0.4" pitch="0.99771"/>
@@ -29,15 +29,15 @@
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.06">
    <slot n="0">
-    <param n="0">0.123</param>
+    <param n="0">0.104</param>
     <param n="1">0.05</param>
-    <param n="2">0.96</param>
+    <param n="2">0.814</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">1.18</param>
+    <param n="0">1.0</param>
     <param n="1">9.18</param>
-    <param n="2">0.615</param>
+    <param n="2">0.521</param>
     <param n="3">4.88</param>
    </slot>
   </filter>
