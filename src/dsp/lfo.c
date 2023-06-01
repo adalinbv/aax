@@ -490,12 +490,13 @@ _aaxLFOGetSine(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned 
 }
 
 /* domain for x: -1.0 .. 1.0 */
+/* alternative: y=sin(x)/(0.05+sin(x)^2)^0.5, domain: 0..2pi */
 static float
-_square1(float y)
+_square1(float x)
 {
-   float x = 2.0*(1.0f-y);
-   float x2 = x*x;
-   return cos(atan(x2*x2));
+   float y = GMATH_PI*(1.0f-x);
+   float y2 = y*y;
+   return cos(atan(y2*y2));
 }
 
 
