@@ -495,7 +495,8 @@ _square1(float y)
 {
    float x = 2.0*(1.0f-y);
    float x2 = x*x;
-   return cos(atan(x2*x2));
+   y = cos(atan(x2*x2));
+   return y*y;
 }
 
 
