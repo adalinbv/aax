@@ -1853,7 +1853,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid)
          }
 
          num = xmlNodeGetNum(xlid, "*");
-         if (midi_mode == AAX_RENDER_ARCADE) waves = _MIN(2, num);
+         if (midi_mode == AAX_RENDER_ARCADE) waves = _MIN(3, num);
          else if (midi_mode == AAX_RENDER_SYNTHESIZER) waves = _MIN(3, num);
          else waves = num;
 
