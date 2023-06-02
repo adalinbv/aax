@@ -407,7 +407,7 @@ _aaxSetSlotFromAAXS(const xmlId *xid, int (*setStateFn)(void*, int, int), int (*
          slen = xmlAttributeCopyString(xsid, "src", src, 64);
          if (slen)
          {
-            int state = aaxGetFrequencyFilterTypeByName(src);
+            int state = aaxGetByName(src);
             setStateFn(id, s, state);
          }
 
@@ -425,7 +425,7 @@ _aaxSetSlotFromAAXS(const xmlId *xid, int (*setStateFn)(void*, int, int), int (*
             if (slen)
             {
                src[slen] = 0; 
-               type = aaxGetTypeByName(src);
+               type = aaxGetByName(src);
             }
 
             xpid = xmlMarkId(xsid);
@@ -475,7 +475,7 @@ _aaxSetSlotFromAAXS(const xmlId *xid, int (*setStateFn)(void*, int, int), int (*
                      if (slen)
                      {
                         src[slen] = 0;
-                        type = aaxGetTypeByName(src);
+                        type = aaxGetByName(src);
                      }
 
                      pn |= slotnum[sn];
@@ -513,7 +513,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
       aaxFilter flt;
 
       src[slen] = 0;
-      ftype = aaxFilterGetByName(config, src);
+      ftype = aaxGetByName(src);
       // frequency filter and dynmaic gain filter are always supported
       if (midi && midi->mode != AAX_RENDER_NORMAL &&
           (ftype != AAX_FREQUENCY_FILTER && ftype != AAX_DYNAMIC_GAIN_FILTER))
@@ -584,7 +584,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
             slen = xmlAttributeCopyString(xid, "src", src, 64);
             if (slen)
             {
-               int s = aaxGetWaveformTypeByName(src);
+               int s = aaxGetByName(src);
                if (s == AAX_INVERSE_ENVELOPE_FOLLOW) {
                   state |= AAX_INVERSE_ENVELOPE_FOLLOW;
                } else if (s == AAX_ENVELOPE_FOLLOW) {
@@ -604,16 +604,16 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
                switch(ftype)
                {
                case AAX_DISTANCE_FILTER:
-                  state = aaxGetDistanceModelByName(src);
+                  state = aaxGetByName(src);
                   break;
                case AAX_FREQUENCY_FILTER:
-                  state = aaxGetFrequencyFilterTypeByName(src);
+                  state = aaxGetByName(src);
                   break;
                case AAX_EQUALIZER:
                   state = xmlAttributeGetBool(xid, "src");
                   break;
                default:
-                  state = aaxGetWaveformTypeByName(src);
+                  state = aaxGetByName(src);
                   break;
                }
             }
@@ -647,7 +647,7 @@ _aaxGetEffectFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
       aaxEffect eff;
 
       src[slen] = 0;
-      etype = aaxEffectGetByName(config, src);
+      etype = aaxGetByName(src);
       // dynamic pitch effect is alwasy supported
       if (midi && midi->mode != AAX_RENDER_NORMAL &&
           etype != AAX_DYNAMIC_PITCH_EFFECT)
@@ -667,7 +667,7 @@ _aaxGetEffectFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
          if (slen)
          {
             src[slen] = 0;
-            state = aaxGetWaveformTypeByName(src);
+            state = aaxGetByName(src);
          }
 
          if (xmlAttributeExists(xid, "stereo") &&

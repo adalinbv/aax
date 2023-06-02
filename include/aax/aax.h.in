@@ -261,6 +261,9 @@ enum aaxSetupType
    AAX_BALANCE,
    AAX_SETUP_TYPE_MAX,
 
+   AAX_PITCH_FRACTION = AAX_REFRESH_RATE,
+   AAX_BASE_FREQUENCY = AAX_UPDATE_RATE,
+
    AAX_PEAK_VALUE             = 0x0100,
    AAX_AVERAGE_VALUE          = 0x0200,
    AAX_COMPRESSION_VALUE      = 0x0400,
@@ -316,13 +319,13 @@ enum aaxSetupType
 
 enum aaxCapabilities
 {
-   // 0 - 63 is reserved for the number of (cores-1)
+   /* 0 - 63 is reserved for the number of (cores-1) */
    AAX_CPU_CORES              = 0x3F,
-   AAX_64BIT                  = 0x40,  // 64-bit whet set, otherwise 32-bit
+   AAX_64BIT                  = 0x40,  /* 64-bit whet set, otherwise 32-bit */
 
-   AAX_SIMD                   = 0x100, // SSE2 or NEON is supported
-   AAX_SIMD256                = 0x200, // AVX or HELIUM is supported
-   AAX_SIMD512                = 0x400,  // AVX2
+   AAX_SIMD                   = 0x100, /* SSE2 or NEON is supported  */
+   AAX_SIMD256                = 0x200, /* AVX or HELIUM is supported */
+   AAX_SIMD512                = 0x400, /* AVX2                       */
 
    AAX_RENDER_NORMAL          = 0,
    AAX_RENDER_SYNTHESIZER     = 0x4000000,
@@ -470,7 +473,7 @@ enum aaxParameter {	/* Filter & Effect parameter number definitions */
 
    /** AAX_BITCRUSHER_FILTER, first parameter is noise level          **/
    AAX_NOISE_LEVEL = 0,
-   AAX_SAMPLE_RATE=0x10, AAX_STATICITY,
+   AAX_SAMPLE_RATE = 0x10, AAX_STATICITY,
    /** AAX_DYNAMIC_GAIN_FILTER, first parameter is AAX_INITIAL_DELAY  **/
    /** AAX_DYNAMIC_PITCH_EFFECT, first parameter is AAX_INITIAL_DELAY **/
    AAX_INITIAL_DELAY = 0,
@@ -488,7 +491,6 @@ enum aaxParameter {	/* Filter & Effect parameter number definitions */
 
    /** AAX_PITCH_EFFECT **/
    AAX_PITCH = 0, AAX_MAX_PITCH, AAX_PITCH_START, AAX_TRANSITION_TIME,
-   AAX_PITCH_RATE = AAX_TRANSITION_TIME, // deprecated
 
    /** AAX_DISTORTION_EFFECT **/
    AAX_DISTORTION_FACTOR=0, AAX_CLIPPING_FACTOR, AAX_MIX_FACTOR, AAX_ASYMMETRY,
@@ -627,29 +629,11 @@ AAX_API void AAX_APIENTRY aaxFree(void*);
 
 AAX_API unsigned int AAX_APIENTRY aaxGetSetup(enum aaxSetupType);
 
-#if AAX_MAJOR_VERSION > 3
 AAX_API unsigned int AAX_APIENTRY aaxGetByType(enum aaxSetupType);
 AAX_API int AAX_APIENTRY aaxGetByName(const char*);
 AAX_API const char* AAX_APIENTRY aaxGetString(enum aaxSetupType);
 AAX_API int AAX_APIENTRY aaxGetByName(const char*);
 AAX_API const char* AAX_APIENTRY aaxGetFormatString(enum aaxFormat);
-#endif
-
-/* deprecated: use aaxGetByType, aaxGetByName and aaxGetString instead */
-AAX_API unsigned AAX_APIENTRY aaxGetMajorVersion(void);
-AAX_API unsigned AAX_APIENTRY aaxGetMinorVersion(void);
-AAX_API unsigned int AAX_APIENTRY aaxGetPatchLevel(void);
-AAX_API const char* AAX_APIENTRY aaxGetVersionString(aaxConfig);
-AAX_API const char* AAX_APIENTRY aaxGetCopyrightString(void);
-
-AAX_API enum aaxType AAX_APIENTRY aaxGetTypeByName(const char*);
-AAX_API enum aaxWaveformType AAX_APIENTRY aaxGetWaveformTypeByName(const char*);
-AAX_API enum aaxFrequencyFilterType AAX_APIENTRY aaxGetFrequencyFilterTypeByName(const char*);
-AAX_API enum aaxDistanceModel AAX_APIENTRY aaxGetDistanceModelByName(const char*);
-
-AAX_API enum aaxFilterType AAX_APIENTRY aaxMaxFilter(void);
-AAX_API enum aaxEffectType AAX_APIENTRY aaxMaxEffect(void);
-/** end of deprecated section */
 
 AAX_API unsigned AAX_APIENTRY aaxGetBytesPerSample(enum aaxFormat);
 AAX_API unsigned AAX_APIENTRY aaxGetBitsPerSample(enum aaxFormat);

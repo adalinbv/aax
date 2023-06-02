@@ -525,7 +525,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             pid3tag_set_track(handle->id, handle->meta.trackno);
             pid3tag_set_genre(handle->id, handle->meta.genre);
             pid3tag_set_year(handle->id, handle->meta.date ? handle->meta.date : year);
-            pid3tag_set_comment(handle->id, aaxGetVersionString(NULL));
+            pid3tag_set_comment(handle->id, aaxGetString(AAX_VERSION_STRING));
             plame_set_num_samples(handle->id, handle->no_samples);
             plame_set_in_samplerate(handle->id, handle->info.rate);
 

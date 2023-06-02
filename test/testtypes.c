@@ -12,7 +12,7 @@
 void
 testDist(const char *name, int type, int lineno)
 {
-    int res = aaxGetDistanceModelByName(name);
+    int res = aaxGetByName(name);
     if (res != type)
     {
         printf("at line: %i, %s:\t\t0x%x != 0x%x\n", lineno, name, res, type);
@@ -23,7 +23,7 @@ testDist(const char *name, int type, int lineno)
 void
 testWave(const char *name, int type, int lineno)
 {   
-    int res = aaxGetWaveformTypeByName(name);
+    int res = aaxGetByName(name);
     if (res != type)
     {
         printf("at line: %i, %s:\t\t0x%x != 0x%x\n", lineno, name, res, type);
@@ -34,7 +34,7 @@ testWave(const char *name, int type, int lineno)
 void
 testFreq(const char *name, int type, int lineno)
 {
-    int res = aaxGetFrequencyFilterTypeByName(name);
+    int res = aaxGetByName(name);
     if (res != type)
     {
         printf("at line: %i, %s:\t\t0x%x != 0x%x\n", lineno, name, res, type);
@@ -45,7 +45,7 @@ testFreq(const char *name, int type, int lineno)
 void
 testFilter(const char *name, int type, int lineno)
 {
-    int res = aaxFilterGetByName(NULL, name);
+    int res = aaxGetByName(name);
     if (res != type)
     {
         printf("at line: %i, %s:\t\t0x%x != 0x%x\n", lineno, name, res, type);
@@ -56,7 +56,7 @@ testFilter(const char *name, int type, int lineno)
 void
 testEffect(const char *name, int type, int lineno)
 {
-    int res = aaxEffectGetByName(NULL, name);
+    int res = aaxGetByName(name);
     if (res != type)
     {
         printf("at line: %i, %s:\t\t0x%x != 0x%x\n", lineno, name, res, type);

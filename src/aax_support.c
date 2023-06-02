@@ -177,17 +177,6 @@ aaxGetByType(enum aaxSetupType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
-aaxGetByName(const char* type)
-{
-   int rv = aaxGetTypeByName(type);
-   if (!rv) rv = aaxGetWaveformTypeByName(type);
-   if (!rv) rv = aaxGetFrequencyFilterTypeByName(type);
-   if (!rv) rv = aaxGetDistanceModelByName(type);
-
-   return rv;
-}
-
 AAX_API const char* AAX_APIENTRY
 aaxGetFormatString(enum aaxFormat format)
 {
@@ -852,6 +841,17 @@ aaxGetFrequencyFilterTypeByName(const char *type)
       }
       while(last);
    }
+
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxGetByName(const char* type)
+{
+   int rv = aaxGetTypeByName(type);
+   if (!rv) rv = aaxGetWaveformTypeByName(type);
+   if (!rv) rv = aaxGetFrequencyFilterTypeByName(type);
+   if (!rv) rv = aaxGetDistanceModelByName(type);
 
    return rv;
 }

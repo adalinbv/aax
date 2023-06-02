@@ -241,7 +241,7 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
 
          if (fd != -1 && recursive < 5)
          {
-            const char *agent = aaxGetVersionString(NULL);
+            const char *agent = aaxGetString(AAX_VERSION_STRING);
             char *protname, *server, *extension;
             char *path = (char*)pathname;
             char *s = (char*)remote;

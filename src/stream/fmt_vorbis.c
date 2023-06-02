@@ -304,7 +304,7 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
 
                pvorbis_comment_init(&handle->out->vc);
                pvorbis_comment_add_tag(&handle->out->vc,
-                                      "ENCODER", aaxGetVersionString(NULL));
+                                   "ENCODER", aaxGetString(AAX_VERSION_STRING));
 
                pvorbis_analysis_init(&handle->out->vd, &handle->info);
                pvorbis_block_init(&handle->out->vd, &handle->out->vb);

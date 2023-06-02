@@ -333,13 +333,13 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
       switch(type)
       {
-      case AAX_FREQUENCY:
+      case AAX_SAMPLE_RATE:
          rv = (unsigned int)handle->info.rate;
          break;
-      case AAX_REFRESH_RATE:
+      case AAX_PITCH_FRACTION:
          rv = (unsigned int)(handle->info.pitch_fraction*1e6f);
          break;
-      case AAX_UPDATE_RATE:
+      case AAX_BASE_FREQUENCY:
          rv = (unsigned int)handle->info.base_frequency;
          break;
       case AAX_TRACKS:

@@ -40,13 +40,13 @@ namespace aax
 {
 
 inline unsigned major_version() {
-    return aaxGetMajorVersion();
+    return aaxGetByType(AAX_VERSION_MAJOR);
 }
 inline unsigned minor_version() {
-    return aaxGetMinorVersion();
+    return aaxGetByType(AAX_VERSION_MINOR);
 }
 inline unsigned int patch_level() {
-    return aaxGetPatchLevel();
+    return aaxGetByType(AAX_RELEASE_NUMBER);
 }
 
 inline unsigned bits_per_sample(enum aaxFormat fmt) {
@@ -64,19 +64,19 @@ inline const char* strerror(enum aaxErrorType e=error_no()) {
 }
 
 inline enum aaxType type(const char *s) {
-    return aaxGetTypeByName(s);
+    return aaxType(aaxGetByName(s));
 }
 
 inline enum aaxWaveformType waveform_type(const char *s) {
-    return aaxGetWaveformTypeByName(s);
+    return aaxWaveformType(aaxGetByName(s));
 }
 
 inline enum aaxFrequencyFilterType frequency_filter_type(const char *s) {
-    return aaxGetFrequencyFilterTypeByName(s);
+    return aaxFrequencyFilterType(aaxGetByName(s));
 }
 
 inline enum aaxDistanceModel distance_model(const char *s) {
-    return aaxGetDistanceModelByName(s);
+    return aaxDistanceModel(aaxGetByName(s));
 }
 
 inline bool is_valid(void* c, enum aaxHandleType t=AAX_CONFIG) {
@@ -757,7 +757,7 @@ public:
 
     // ** support ******
     inline const char* version() {
-        return aaxGetVersionString(ptr);
+        return aaxGetString(AAX_VERSION_STRING);
     }
 
     inline enum aaxErrorType error_no() {

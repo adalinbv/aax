@@ -1850,7 +1850,7 @@ _aaxPulseAudioGetFormat(pa_sample_format_t format)
 static void
 _aaxPulseAudioStreamConnect(_driver_t *handle, pa_stream_flags_t flags, int *error)
 {
-   const char *agent = aaxGetVersionString((aaxConfig)handle);
+   const char *agent = aaxGetString(AAX_VERSION_STRING);
    pa_channel_map map;
 
    *error = PA_STREAM_READY;
