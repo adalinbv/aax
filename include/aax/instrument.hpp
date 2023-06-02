@@ -141,7 +141,7 @@ public:
         if (time > 0.0f && start_pitch != pitch) {
            aax::dsp dsp = Emitter::get(AAX_PITCH_EFFECT);
            dsp.set(AAX_PITCH_START, start_pitch);
-           dsp.set(AAX_TRANSITION_TIME, time);
+           dsp.set(AAX_PITCH_RATE, time);
            dsp.set(AAX_TRUE|AAX_ENVELOPE_FOLLOW);
            Emitter::set(dsp);
         }
