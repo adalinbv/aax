@@ -1860,9 +1860,8 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid)
          xwid = xmlMarkId(xlid);
          if (num && xwid)
          {
-            int i;
-
-            for (i=num-waves; i<num; i++)
+            int i = _MAX(num-waves-1, 0);
+            for (; i<num; i++)
             {
                if (!xmlNodeGetPos(xlid, xwid, "*", i)) continue;
 
@@ -1897,9 +1896,8 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid)
          if (!b && rb->get_state(rb, RB_IS_VALID))
          {
             float gain = handle->gain;
-            if (handle->midi_mode == AAX_RENDER_ARCADE ||
-                handle->midi_mode == AAX_RENDER_SYNTHESIZER ) {
-                gain *= 0.707f;
+            if (handle->midi_mode != AAX_RENDER_NORMAL) {
+                gain *= 0.5f;
             }
             handle->gain = _bufNormalize(rb, gain);
          }
