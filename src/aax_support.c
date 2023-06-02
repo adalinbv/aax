@@ -992,12 +992,12 @@ aaxEffectGetByName(const char *name)
 AAX_API int AAX_APIENTRY
 aaxGetByName(const char* type)
 {
-   int rv = aaxGetTypeByName(type);
-   if (!rv) rv = aaxGetWaveformTypeByName(type);
-   if (!rv) rv = aaxGetFrequencyFilterTypeByName(type);
-   if (!rv) rv = aaxGetDistanceModelByName(type);
+   int rv = aaxGetWaveformTypeByName(type);
    if (!rv) rv = aaxFilterGetByName(type);
    if (!rv) rv = aaxEffectGetByName(type);
+   if (!rv) rv = aaxGetFrequencyFilterTypeByName(type);
+   if (!rv) rv = aaxGetTypeByName(type);
+   if (!rv) rv = aaxGetDistanceModelByName(type);
 
    return rv;
 }
