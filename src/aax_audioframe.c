@@ -254,11 +254,7 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
       _aax3dProps *fp3d = fmixer->props3d;
       _aaxDelayed3dProps *fdp3d = fp3d->dprops3d;
 
-#ifdef ARCH32
-      mtx4fFilld(fdp3d->matrix.m4, mtx64);
-#else
       mtx4dFill(fdp3d->matrix.m4, mtx64);
-#endif
 
       if (_IS_RELATIVE(fp3d) &&
           handle->parent[0] && (handle->parent[0] == handle->root))
@@ -310,11 +306,7 @@ aaxAudioFrameGetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
    }
 
    if (rv) {
-#ifdef ARCH32
-      mtx4dFillf(mtx64, handle->submix->props3d->dprops3d->matrix.m4);
-#else
       mtx4dFill(mtx64, handle->submix->props3d->dprops3d->matrix.m4);
-#endif
    }
 
    return rv;
@@ -1654,13 +1646,8 @@ _aaxAudioFrameResetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
        * Align the modified frame matrix with the sensor by multiplying
        * the frame matrix by the modified parent matrix.
        */
-#ifdef ARCH32
-      mtx4fMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
-      dist = vec3fMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
-#else
       mtx4dMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
       dist = vec3dMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
-#endif
       fp2d->dist_delay_sec = dist / vs;
 
 #if 0

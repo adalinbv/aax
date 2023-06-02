@@ -479,10 +479,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
 
                /* update the modified properties */
                do {
-#ifdef ARCH32
-                  mtx4fCopy(&sdp3d_m->matrix, &sdp3d.matrix);
-                  mtx4fMul(&sdp3d_m->velocity, &sdp3d.matrix, &sdp3d.velocity);
-#else
                   mtx4f_t tmp;
                   mtx4dCopy(&sdp3d_m->matrix, &sdp3d.matrix);
 
@@ -490,7 +486,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                   // direction vector of the position matrix. Floats will do.
                   mtx4fFilld(tmp.m4, sdp3d.matrix.m4);
                   mtx4fMul(&sdp3d_m->velocity, &tmp, &sdp3d.velocity);
-#endif
                } while (0);
                sdp3d_m->velocity.m4[VELOCITY][3] = 1.0f;
 

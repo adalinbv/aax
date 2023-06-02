@@ -58,13 +58,8 @@ extern "C" {
 #define GMATH_RAD_TO_DEG	 57.29577951308232286465f
 #define GMATH_RAD_TO_DEG2	114.59155902616464572930f
 
-#ifdef ARCH32
-# define FLOAT  float
-# define MTX4_t mtx4f_t
-#else
-# define FLOAT  double
-# define MTX4_t mtx4d_t
-#endif
+#define FLOAT  double
+#define MTX4_t mtx4d_t
 
 typedef ALIGN16 int32_t	ix4_t[4] ALIGN16C;
 typedef ALIGN16 float	fx4_t[4] ALIGN16C;

@@ -66,13 +66,9 @@ aaxSensorSetMatrix64(aaxConfig config, aaxMtx4d mtx64)
          _aax3dProps *sp3d = smixer->props3d;
          _aaxDelayed3dProps *sdp3d = sp3d->dprops3d;
 
-#ifdef ARCH32
-         mtx4fFilld(sdp3d->matrix.m4, mtx64);
-         mtx4fCopy(&sp3d->m_dprops3d->matrix, &sdp3d->matrix);
-#else
          mtx4dFill(sdp3d->matrix.m4, mtx64);
          mtx4dCopy(&sp3d->m_dprops3d->matrix, &sdp3d->matrix);
-#endif
+
          _PROP_MTX_SET_CHANGED(smixer->props3d);
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
@@ -112,11 +108,7 @@ aaxSensorGetMatrix64(const aaxConfig config, aaxMtx4d mtx64)
          _aax3dProps *sp3d = smixer->props3d;
          _aaxDelayed3dProps *sdp3d = sp3d->dprops3d;
 
-#ifdef ARCH32
-          mtx4dFillf(mtx64, sdp3d->matrix.m4);
-#else
           mtx4dFill(mtx64, sdp3d->matrix.m4);
-#endif
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
       else

@@ -45,11 +45,7 @@ aaxScenerySetMatrix64(aaxConfig config, aaxMtx4d mtx64)
    }
 
    if (rv) {
-#ifdef ARCH32
-      mtx4fFilld(handle->info->matrix.m4, mtx64);
-#else
       mtx4dFill(handle->info->matrix.m4, mtx64);
-#endif
    }
 
    return rv;
@@ -71,11 +67,7 @@ aaxSceneryGetMatrix64(aaxConfig config, aaxMtx4d mtx64)
    }
 
    if (rv) {
-#ifdef ARCH32
-      mtx4dFillf(mtx64, handle->info->matrix.m4);
-#else
       mtx4dFill(mtx64, handle->info->matrix.m4);
-#endif
    }
 
    return rv;

@@ -321,21 +321,12 @@ _aaxEmitterPrepare3d(_aaxEmitter *src, const void *data)
        * align the emitter with the parent frame.
        * (compensate for the parents direction offset)
        */
-#ifdef ARCH32
-      if (_IS_RELATIVE(ep3d)) {
-         mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
-      } else {
-         mtx4fMul(&edp3d_m->matrix, &sdp3d_m->matrix, &edp3d->matrix);
-      }
-      vec3fCopy(&tmp, &edp3d_m->matrix.v34[LOCATION]);
-#else
       if (_IS_RELATIVE(ep3d)) {
          mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
       } else {
          mtx4dMul(&edp3d_m->matrix, &sdp3d_m->matrix, &edp3d->matrix);
       }
       vec3fFilld(tmp.v3, edp3d_m->matrix.v34[LOCATION].v3);
-#endif
       dist_ef = vec3fNormalize(&epos, &tmp);
 
 #if 0

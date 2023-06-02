@@ -2169,13 +2169,8 @@ _bufAAXSThread(void *d)
               if (e)
               {
                   e += strlen("</sound>");
-#ifdef ARCH32
-                  MurmurHash3_x86_32(s, e-s, 0x27918072, &hash);
-                  snprintf(hstr, 64, "%08x", hash[0]);
-#else
                   MurmurHash3_x64_128(s, e-s, 0x27918072, &hash);
                   snprintf(hstr, 64, "%08x%08x%08x%08x", hash[0], hash[1], hash[2], hash[3]);
-#endif
                   have_hash = 1;
               }
           }

@@ -373,32 +373,10 @@ else(MSVC)
                    PROPERTY COMPILE_FLAGS "${C_FLAGS} ${OpenACC_C_FLAGS}"
        )
      elseif(X86)
-       message("Build environment: X86")
-       set(C_FLAGS "${C_FLAGS} -march=i686 -DARCH32=1")
-       set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -O3 -ffast-math -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
-       )
-       set_property(SOURCE src/software/cpu/arch3d_sse.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -O2 -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
-       )
-       set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -O3 -ffast-math -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
-       )
-       set_property(SOURCE src/software/cpu/arch3d_sse2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -O2 -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
-       )
-       set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -O3 -ffast-math -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
-       )
-       set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -O2 -march=i686 -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
-       )
-       set_property(SOURCE src/software/cpu/arch2d_sse4.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse4.1 -mfpmath=sse -O3 -ffast-math -march=silvermont -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
-       )
+       message("Unsupported build environment: X86")
      elseif(ARM)
        if(ARM64) # AND NOT ARCH32)
-	 message("Build environment: ARM64")
+	 message(FATAL_ERROR "Build environment: ARM64")
          set(C_FLAGS "${C_FLAGS} -march=armv8-a -moutline-atomics -DARCH64=1")
          set_property(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
                       PROPERTY COMPILE_FLAGS "${C_FLAGS} -O2 -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
@@ -425,26 +403,7 @@ else(MSVC)
                       PROPERTY COMPILE_FLAGS "${C_FLAGS} -O3  -ffast-math -ftree-vectorize -ftree-slp-vectorize"
          )
        elseif(ARM64 AND NOT ARCH32) # ARM32
-         message("Build environment: ARM")
-         set(C_FLAGS "${C_FLAGS} -march=armv6 -marm -mfloat-abi=hard -DARCH32=1")
-         set_property(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
-		 PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -O3 -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
-         )
-         set_property(SOURCE src/software/cpu/arch2d_vfpv3.c APPEND
-		 PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -Ofast -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
-         )
-         set_property(SOURCE src/software/cpu/arch3d_vfpv4.c APPEND
-		 PROPERTY COMPILE_FLAGS "-march=armv8-a -mfpu=vfpv4-d16 -O3 -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
-         )
-         set_property(SOURCE src/software/cpu/arch2d_vfpv4.c APPEND
-		 PROPERTY COMPILE_FLAGS "-march=armv8-a -mfpu=vfpv4 -Ofast -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
-         )
-         set_property(SOURCE src/software/cpu/arch3d_neon.c APPEND
-		 PROPERTY COMPILE_FLAGS "-march=armv8-a -mfpu=neon-vfpv4 -Os -ftree-vectorize -ftree-slp-vectorize"
-         )
-         set_property(SOURCE src/software/cpu/arch2d_neon.c APPEND
-		 PROPERTY COMPILE_FLAGS "-march=armv8-a -mfpu=neon-vfpv4 -Os -funsafe-math-optimizations -ftree-vectorize -ftree-slp-vectorize"
-         )
+         message(FATAL_ERROR "Unsupported build environment: ARM")
        endif(ARM64 AND NOT ARCH32)
      else()
        message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")

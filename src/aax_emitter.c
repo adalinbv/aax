@@ -717,11 +717,7 @@ aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
       _aaxEmitter *src = handle->source;
       _aax3dProps *ep3d = src->props3d;
       _aaxDelayed3dProps *edp3d = ep3d->dprops3d;
-#ifdef ARCH32
-      mtx4fFilld(edp3d->matrix.m4, mtx64);
-#else
       mtx4dFill(edp3d->matrix.m4, mtx64);
-#endif
       if (_IS_RELATIVE(ep3d) &&
           handle->parent && (handle->parent == handle->root))
       {
@@ -757,11 +753,7 @@ aaxEmitterGetMatrix64(const aaxEmitter emitter, aaxMtx4d mtx64)
    if (rv)
    {
       _aaxEmitter *src = handle->source;
-#ifdef ARCH32
-     mtx4dFillf(mtx64, src->props3d->dprops3d->matrix.m4);
-#else
       mtx4dFill(mtx64, src->props3d->dprops3d->matrix.m4);
-#endif
    }
    put_emitter(handle);
 
@@ -1355,13 +1347,8 @@ _aaxEMitterResetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
        * Align the modified emitter matrix with the sensor by multiplying
        * the emitter matrix by the modified frame matrix.
        */
-#ifdef ARCH32
-      mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
-      dist = vec3fMagnitude(&edp3d_m->matrix.v34[LOCATION]);
-#else
       mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
       dist = vec3dMagnitude(&edp3d_m->matrix.v34[LOCATION]);
-#endif
       ep2d->dist_delay_sec = dist / vs;
 
 #if 0
@@ -1646,11 +1633,7 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
           aaxVec3d pos;
 
 //        aaxEmitterGetMatrix64(emitter, mtx641);
-#ifdef ARCH32
-          mtx4dFillf(mtx641, edp3d->matrix.m4);
-#else
           mtx4dFill(mtx641, edp3d->matrix.m4);
-#endif
 
           aaxMatrix64GetOrientation(mtx641, pos, at, up);
 
@@ -1663,11 +1646,7 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
           aaxMatrix64Multiply(mtx642, mtx641);
 
 //        aaxEmitterSetMatrix64(emitter, mtx642);
-#ifdef ARCH32
-          mtx4fFilld(edp3d->matrix.m4, mtx642);
-#else
           mtx4dFill(edp3d->matrix.m4, mtx642);
-#endif
           if (_IS_RELATIVE(ep3d) &&
               handle->parent && (handle->parent == handle->root))
           {

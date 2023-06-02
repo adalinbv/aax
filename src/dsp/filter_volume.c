@@ -176,19 +176,11 @@ _flt_function_tbl _aaxVolumeFilter =
 };
 
 
-#ifdef ARCH32
-# define VEC3_T			vec3f_t
-# define VEC4_T			vec4f_t
-# define MTX4_T			mtx4f_t
-# define VEC3COPY(a,b)		vec3fCopy(&a,b)
-# define VEC3ALTITUDEVECTOR(a,b,c,d,e,f) vec3fAltitudeVector(a,b,c,d,e,f)
-#else
 # define VEC3_T			vec3d_t
 # define VEC4_T			vec4d_t
 # define MTX4_T			mtx4d_t
 # define VEC3COPY(a,b)		vec3fFilld(a.v3,b.v3)
 # define VEC3ALTITUDEVECTOR(a,b,c,d,e,f) vec3dAltitudeVector(a,b,c,d,e,f)
-#endif
 
 static float
 _occlusion_lfo(void* data, UNUSED(void *env), UNUSED(const void *ptr), UNUSED(unsigned track), UNUSED(size_t num))

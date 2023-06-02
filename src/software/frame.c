@@ -83,16 +83,6 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
       if (_PROP3D_MTX_HAS_CHANGED(fdp3d) ||
           _PROP3D_MTX_HAS_CHANGED(pdp3d_m))
       {
-#ifdef ARCH32
-         if (_IS_RELATIVE(fp3d)) {
-            mtx4fMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
-         } else {
-            mtx4fMul(&fdp3d_m->matrix, &sdp3d_m->matrix, &fdp3d->matrix);
-         }
-         if (_PROP3D_OCCLUSION_IS_DEFINED(fdp3d_m)) {
-            mtx4fInverseSimple(&fdp3d_m->imatrix, &fdp3d_m->matrix);
-         }
-#else
          if (_IS_RELATIVE(fp3d)) {
             mtx4dMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
          } else {
@@ -101,7 +91,6 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
          if (_PROP3D_OCCLUSION_IS_DEFINED(fdp3d_m)) {
             mtx4dInverseSimple(&fdp3d_m->imatrix, &fdp3d_m->matrix);
          }
-#endif
          _PROP3D_MTX_SET_CHANGED(fdp3d_m);
 #if 0
  printf("!  modifed parent frame:\tframe:\n");
@@ -145,11 +134,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    fp2d->final.k = 1.0f;
    if (info->unit_m > 0.0f && pdp3d_m && !_PROP3D_INDOOR_IS_DEFINED(pdp3d_m))
    {
-#if ARCH32
-      float dist_pf = vec3fMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
-#else
       float dist_pf = vec3dMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
-#endif
       float dist_km = _MIN(dist_pf * info->unit_m / 1000.0f, 1.0f);
       float fc = 22050.0f - (22050.0f-1000.0f)*dist_km;
       fp2d->final.k = _aax_movingaverage_compute(fc, info->frequency);
@@ -453,11 +438,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
             _aaxDelayed3dProps *sfdp3d_m = sfmixer->props3d->m_dprops3d;
             vec3f_t tmp;
 
-#ifdef ARCH32
-            vec3fCopy(&tmp, &sfdp3d_m->matrix.v34[LOCATION]);
-#else
             vec3fFilld(tmp.v3, sfdp3d_m->matrix.v34[LOCATION].v3);
-#endif
 #if 0
  PRINT_VEC3(tmp);
 #endif
