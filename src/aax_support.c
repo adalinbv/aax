@@ -845,6 +845,150 @@ aaxGetFrequencyFilterTypeByName(const char *type)
    return rv;
 }
 
+AAX_API enum aaxFilterType AAX_APIENTRY
+aaxFilterGetByName(const char *name)
+{
+   enum aaxFilterType rv = AAX_FILTER_NONE;
+   char type[256];
+   int i, slen;
+   char *end;
+
+   if (!strncasecmp(name, "AAX_", 4)) {
+      name += 4;
+   }
+
+   strlcpy(type, name, 256);
+   name = type;
+
+   slen = strlen(name);
+   for (i=0; i<slen; ++i) {
+      if (type[i] == '-') type[i] = '_';
+   }
+
+   end = strchr(name, '.');
+   while (end > name && *end != '_') --end;
+   if (end) type[end-name] = 0;
+
+   end = strrchr(name, '_');
+   if (end && !strcasecmp(end+1, "FILTER")) {
+      type[end-name] = 0;
+   }
+   slen = strlen(name);
+
+   if (!strncasecmp(name, "equalizer", slen)) {
+      rv = AAX_EQUALIZER;
+   }
+   else if (!strncasecmp(name, "volume", slen)) {
+      rv = AAX_VOLUME_FILTER;
+   }
+   else if (!strncasecmp(name, "dynamic_gain", slen) ||
+            !strncasecmp(name, "tremolo", slen)) {
+       rv = AAX_DYNAMIC_GAIN_FILTER;
+   }
+   else if (!strncasecmp(name, "bitcrusher", slen)) {
+       rv = AAX_BITCRUSHER_FILTER;
+   }
+   else if (!strncasecmp(name, "timed_gain", slen) ||
+            !strncasecmp(name, "envelope", slen)) {
+      rv = AAX_TIMED_GAIN_FILTER;
+   }
+   else if (!strncasecmp(name, "frequency", slen)) {
+      rv = AAX_FREQUENCY_FILTER;
+   }
+   else if (!strncasecmp(name, "graphic_equalizer", slen)) {
+      rv = AAX_GRAPHIC_EQUALIZER;
+   }
+   else if (!strncasecmp(name, "compressor", slen)) {
+      rv = AAX_COMPRESSOR;
+   }
+   else if (!strncasecmp(name, "dynamic_layer", slen)) {
+       rv = AAX_DYNAMIC_LAYER_FILTER;
+   }
+
+   else if (!strncasecmp(name, "directional", slen) ||
+            !strncasecmp(name, "angular", slen)) {
+      rv = AAX_DIRECTIONAL_FILTER;
+   }
+   else if (!strncasecmp(name, "distance", slen)) {
+      rv = AAX_DISTANCE_FILTER;
+   }
+
+   return rv;
+}
+
+AAX_API enum aaxEffectType AAX_APIENTRY
+aaxEffectGetByName(const char *name)
+{
+   enum aaxEffectType rv = AAX_EFFECT_NONE;
+   char type[256];
+   int i, slen;
+   char *end;
+
+   if (!strncasecmp(name, "AAX_", 4)) {
+      name += 4;
+   }
+
+   strlcpy(type, name, 256);
+   name = type;
+
+   slen = strlen(name);
+   for (i=0; i<slen; ++i) {
+      if (type[i] == '-') type[i] = '_';
+   }
+
+   end = strchr(name, '.');
+   while (end > name && *end != '_') --end;
+   if (end) type[end-name] = 0;
+
+   end = strrchr(name, '_');
+   if (end && !strcasecmp(end+1, "EFFECT")) {
+      type[end-name] = 0;
+   }
+   slen = strlen(name);
+
+   if (!strncasecmp(name, "pitch", slen)) {
+      rv = AAX_PITCH_EFFECT;
+   }
+   else if (!strncasecmp(name, "dynamic_pitch", slen) ||
+            !strncasecmp(name, "vibrato", slen)) {
+      rv = AAX_DYNAMIC_PITCH_EFFECT;
+   }
+   else if (!strncasecmp(name, "timed_pitch", slen) ||
+            !strncasecmp(name, "envelope", slen)) {
+      rv = AAX_TIMED_PITCH_EFFECT;
+   }
+   else if (!strncasecmp(name, "ringmodulator", slen)) {
+      rv = AAX_RINGMODULATOR_EFFECT;
+   }
+   else if (!strncasecmp(name, "distortion", slen)) {
+      rv = AAX_DISTORTION_EFFECT;
+   }
+   else if (!strncasecmp(name, "phasing", slen)) {
+      rv = AAX_PHASING_EFFECT;
+   }
+   else if (!strncasecmp(name, "chorus", slen)) {
+      rv = AAX_CHORUS_EFFECT;
+   }
+   else if (!strncasecmp(name, "flanging", slen)) {
+      rv = AAX_FLANGING_EFFECT;
+   }
+   else if (!strncasecmp(name, "delay", slen)) {
+      rv = AAX_DELAY_EFFECT;
+   }
+   else if (!strncasecmp(name, "reverb", slen)) {
+      rv = AAX_REVERB_EFFECT;
+   }
+   else if (!strncasecmp(name, "convolution", slen)) {
+      rv = AAX_CONVOLUTION_EFFECT;
+   }
+
+   else if (!strncasecmp(name, "velocity", slen)) {
+      rv = AAX_VELOCITY_EFFECT;
+   }
+
+   return rv;
+}
+
 AAX_API int AAX_APIENTRY
 aaxGetByName(const char* type)
 {
@@ -852,6 +996,8 @@ aaxGetByName(const char* type)
    if (!rv) rv = aaxGetWaveformTypeByName(type);
    if (!rv) rv = aaxGetFrequencyFilterTypeByName(type);
    if (!rv) rv = aaxGetDistanceModelByName(type);
+   if (!rv) rv = aaxFilterGetByName(type);
+   if (!rv) rv = aaxEffectGetByName(type);
 
    return rv;
 }

@@ -490,7 +490,7 @@ enum aaxParameter {	/* Filter & Effect parameter number definitions */
    AAX_GATE_PERIOD = 0x11, AAX_GATE_THRESHOLD = 0x13,
 
    /** AAX_PITCH_EFFECT **/
-   AAX_PITCH = 0, AAX_MAX_PITCH, AAX_PITCH_START, AAX_TRANSITION_TIME,
+   AAX_PITCH = 0, AAX_MAX_PITCH, AAX_PITCH_START, AAX_PITCH_RATE,
 
    /** AAX_DISTORTION_EFFECT **/
    AAX_DISTORTION_FACTOR=0, AAX_CLIPPING_FACTOR, AAX_MIX_FACTOR, AAX_ASYMMETRY,
@@ -801,7 +801,6 @@ AAX_API int AAX_APIENTRY aaxSensorSetOffsetSec(aaxConfig, float);
  */
 AAX_API aaxFilter AAX_APIENTRY aaxFilterCreate(aaxDSP, enum aaxFilterType);
 AAX_API int AAX_APIENTRY aaxFilterDestroy(aaxFilter);
-AAX_API enum aaxFilterType AAX_APIENTRY aaxFilterGetByName(aaxConfig, const char*);
 AAX_API const char* AAX_APIENTRY aaxFilterGetNameByType(aaxConfig, enum aaxFilterType);
 AAX_API int AAX_APIENTRY aaxFilterSetParam(aaxFilter, int, int, float);
 AAX_API int AAX_APIENTRY aaxFilterSetSlotParams(aaxFilter, unsigned, int, aaxVec4f);
@@ -819,7 +818,6 @@ AAX_API int AAX_APIENTRY aaxFilterGetState(aaxFilter);
  */
 AAX_API aaxEffect AAX_APIENTRY aaxEffectCreate(aaxDSP, enum aaxEffectType);
 AAX_API int AAX_APIENTRY aaxEffectDestroy(aaxEffect);
-AAX_API enum aaxEffectType AAX_APIENTRY aaxEffectGetByName(aaxConfig, const char*);
 AAX_API const char* AAX_APIENTRY aaxEffectGetNameByType(aaxConfig, enum aaxEffectType);
 AAX_API int AAX_APIENTRY aaxEffectSetParam(aaxEffect, int, int, float);
 AAX_API int AAX_APIENTRY aaxEffectSetSlotParams(aaxEffect, unsigned, int, aaxVec4f);

@@ -73,7 +73,7 @@ static aaxEffect
 _aaxPitchEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
-   float dt = effect->slot[0]->param[AAX_TRANSITION_TIME];
+   float dt = effect->slot[0]->param[AAX_PITCH_RATE];
 
    effect->state = state;
    if (state && dt > 0.0f)
