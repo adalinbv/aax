@@ -556,7 +556,7 @@ aaxGetNoCores(UNUSED(aaxConfig cfg))
    return _aaxGetNoCores();
 }
 
-AAX_API enum aaxType AAX_APIENTRY
+static enum aaxType
 aaxGetTypeByName(const char *name)
 {
    enum aaxType rv = AAX_TYPE_NONE;
@@ -616,7 +616,7 @@ aaxGetTypeByName(const char *name)
    return rv;
 }
 
-AAX_API enum aaxWaveformType AAX_APIENTRY
+static enum aaxWaveformType
 aaxGetWaveformTypeByName(const char *wave)
 {
    enum aaxWaveformType rv = AAX_WAVE_NONE;
@@ -719,7 +719,7 @@ aaxGetWaveformTypeByName(const char *wave)
 }
 
 
-AAX_API enum aaxDistanceModel AAX_APIENTRY
+static enum aaxDistanceModel
 aaxGetDistanceModelByName(const char *name)
 {
    enum aaxDistanceModel rv = AAX_DISTANCE_MODEL_NONE;
@@ -767,7 +767,7 @@ aaxGetDistanceModelByName(const char *name)
    return rv;
 }
 
-AAX_API enum aaxFrequencyFilterType AAX_APIENTRY
+static enum aaxFrequencyFilterType
 aaxGetFrequencyFilterTypeByName(const char *type)
 {
    int rv = aaxGetWaveformTypeByName(type);
@@ -845,7 +845,7 @@ aaxGetFrequencyFilterTypeByName(const char *type)
    return rv;
 }
 
-AAX_API enum aaxFilterType AAX_APIENTRY
+static enum aaxFilterType
 aaxFilterGetByName(const char *name)
 {
    enum aaxFilterType rv = AAX_FILTER_NONE;
@@ -916,7 +916,7 @@ aaxFilterGetByName(const char *name)
    return rv;
 }
 
-AAX_API enum aaxEffectType AAX_APIENTRY
+static enum aaxEffectType
 aaxEffectGetByName(const char *name)
 {
    enum aaxEffectType rv = AAX_EFFECT_NONE;
