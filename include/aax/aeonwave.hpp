@@ -64,19 +64,19 @@ inline const char* strerror(enum aaxErrorType e=error_no()) {
 }
 
 inline enum aaxType type(const char *s) {
-    return aaxType(aaxGetByName(s));
+    return aaxType(aaxGetByName(s, AAX_TYPE_NAME));
 }
 
 inline enum aaxWaveformType waveform_type(const char *s) {
-    return aaxWaveformType(aaxGetByName(s));
+    return aaxWaveformType(aaxGetByName(s, AAX_WAVEFORM_NAME));
 }
 
 inline enum aaxFrequencyFilterType frequency_filter_type(const char *s) {
-    return aaxFrequencyFilterType(aaxGetByName(s));
+    return aaxFrequencyFilterType(aaxGetByName(s, AAX_FILTER_NAME));
 }
 
 inline enum aaxDistanceModel distance_model(const char *s) {
-    return aaxDistanceModel(aaxGetByName(s));
+    return aaxDistanceModel(aaxGetByName(s, AAX_DISTANCE_MODEL_NAME));
 }
 
 inline bool is_valid(void* c, enum aaxHandleType t=AAX_CONFIG) {

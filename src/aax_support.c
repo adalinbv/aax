@@ -507,7 +507,7 @@ aaxIsValid(const void* handle, enum aaxHandleType type)
    {
       switch(type)
       {
-      case AAX_CONFIG_HD:
+      case AAX_CONFIG:
       {
           const _handle_t* ptr = (const _handle_t*)handle;
           if (ptr->id == HANDLE_ID && VALID_HANDLE(ptr)) rv = AAX_TRUE;
@@ -990,14 +990,41 @@ aaxEffectGetByName(const char *name)
 }
 
 AAX_API int AAX_APIENTRY
-aaxGetByName(const char* type)
+aaxGetByName(const char* name, enum aaxTypeName type)
 {
-   int rv = aaxGetFrequencyFilterTypeByName(type);
-   if (!rv) rv = aaxGetWaveformTypeByName(type);
-   if (!rv) rv = aaxFilterGetByName(type);
-   if (!rv) rv = aaxEffectGetByName(type);
-   if (!rv) rv = aaxGetTypeByName(type);
-   if (!rv) rv = aaxGetDistanceModelByName(type);
+   int rv = AAX_NONE;
+   switch (type)
+   {
+   case AAX_ALL:
+      /* sequence matters */
+      rv = aaxGetFrequencyFilterTypeByName(name);
+      if (!rv) rv = aaxGetWaveformTypeByName(name);
+      if (!rv) rv = aaxFilterGetByName(name);
+      if (!rv) rv = aaxEffectGetByName(name);
+      if (!rv) rv = aaxGetTypeByName(name);
+      if (!rv) rv = aaxGetDistanceModelByName(name);
+      break;
+   case AAX_WAVEFORM_NAME:
+      rv = aaxGetWaveformTypeByName(name);
+      break;
+   case AAX_FILTER_NAME:
+      rv = aaxFilterGetByName(name);
+      break;
+   case AAX_EFFECT_NAME:
+      rv = aaxEffectGetByName(name);
+      break;
+   case AAX_DISTANCE_MODEL_NAME:
+      rv = aaxGetDistanceModelByName(name);
+      break;
+   case AAX_TYPE_NAME:
+      rv = aaxGetTypeByName(name);
+      break;
+   case AAX_FREQUENCY_FILTER_NAME:
+      rv = aaxGetFrequencyFilterTypeByName(name);
+      break;
+   default:
+      break;
+   }
 
    return rv;
 }

@@ -83,11 +83,23 @@ enum aaxHandleType
 
     AAX_FILTER,
     AAX_EFFECT,
-    AAX_CONFIG,			AAX_CONFIG_HD = AAX_CONFIG,
+    AAX_CONFIG,
     AAX_AUDIOFRAME,
     AAX_EMITTER,
     AAX_BUFFER,
     AAX_HANDLE_TYPE_MAX
+};
+
+enum aaxTypeName
+{
+    AAX_ALL = -1,
+    AAX_WAVEFORM_NAME,
+    AAX_FILTER_NAME,
+    AAX_EFFECT_NAME,
+    AAX_DISTANCE_MODEL_NAME,
+    AAX_TYPE_NAME,
+
+    AAX_FREQUENCY_FILTER_NAME = 7 /* AAX_FREQUENCY_FILTER */
 };
 
 enum aaxFormat
@@ -630,9 +642,8 @@ AAX_API void AAX_APIENTRY aaxFree(void*);
 AAX_API unsigned int AAX_APIENTRY aaxGetSetup(enum aaxSetupType);
 
 AAX_API unsigned int AAX_APIENTRY aaxGetByType(enum aaxSetupType);
-AAX_API int AAX_APIENTRY aaxGetByName(const char*);
+AAX_API int AAX_APIENTRY aaxGetByName(const char*, enum aaxTypeName);
 AAX_API const char* AAX_APIENTRY aaxGetString(enum aaxSetupType);
-AAX_API int AAX_APIENTRY aaxGetByName(const char*);
 AAX_API const char* AAX_APIENTRY aaxGetFormatString(enum aaxFormat);
 
 AAX_API unsigned AAX_APIENTRY aaxGetBytesPerSample(enum aaxFormat);
