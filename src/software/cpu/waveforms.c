@@ -230,7 +230,7 @@ ALIGN float _harmonics[AAX_MAX_WAVE+1][2*MAX_HARMONICS] =
     1.f/16.f, 1.f/16.f
   },
 
-  /* CYCLOID_WAVE */
+  /* CYCLOID_WAVE (wrong) */
   { 1.f, 1.f/2.26f, 1.f/5.43f, 1.f/13.5f, 1.f/35.1f, 1.f/103.1f, 1.f/294.1f,
     1/10000.0f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
     0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,

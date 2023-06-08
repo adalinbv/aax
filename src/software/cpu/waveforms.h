@@ -22,7 +22,6 @@
 #ifndef WAVEFORMS_H
 #define WAVEFORMS_H 1
 
-
 // must be a multiple of 4 because of SIMD optimizations
 #define MAX_HARMONICS           16
 
