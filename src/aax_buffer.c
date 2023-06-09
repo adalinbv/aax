@@ -584,12 +584,6 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
-{
-   return _bufProcessWaveform(buffer, 0, rate, 0.0f, 1.0f, rate, 0.0f,
-                               0.0f, 1, 0.0f, wtype, ratio, ptype, 0);
-}
-
 AAX_API void** AAX_APIENTRY
 aaxBufferGetData(const aaxBuffer buffer)
 {
