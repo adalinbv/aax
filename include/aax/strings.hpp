@@ -313,17 +313,17 @@ static inline std::string to_string(enum aaxEffectType type) {
     return aaxEffectGetNameByType(0, type);
 }
 
-static inline std::string to_string(enum aaxWaveformType type)
+static inline std::string to_string(enum aaxSourceType type)
 {
     if (!type) return "{}";
     std::string result;
     if (type & AAX_INVERSE) result += "inverse ";
-    if (type & AAX_CONSTANT_VALUE) result += "constant | ";
-    if (type & AAX_TRIANGLE_WAVE) result += "triangle | ";
-    if (type & AAX_SINE_WAVE) result += "sine | ";
-    if (type & AAX_SQUARE_WAVE) result += "square | ";
-    if (type & AAX_SAWTOOTH_WAVE) result += " sawtooth | ";
-    if (type & AAX_IMPULSE_WAVE) result += " impulse | ";
+    if (type & AAX_CONSTANT) result += "constant | ";
+    if (type & AAX_TRIANGLE) result += "triangle | ";
+    if (type & AAX_SINE) result += "sine | ";
+    if (type & AAX_SQUARE) result += "square | ";
+    if (type & AAX_SAWTOOTH) result += " sawtooth | ";
+    if (type & AAX_IMPULSE) result += " impulse | ";
     if (type & AAX_WHITE_NOISE) result += "white noise | ";
     if (type & AAX_PINK_NOISE) result += "pink noise | ";
     if (type & AAX_BROWNIAN_NOISE) result += "brownian noise | ";

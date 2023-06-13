@@ -443,7 +443,7 @@ public:
             if (enabled)
             {
                 if (!vibrato_state) {
-                    vibrato_state = tremolo_state = AAX_SINE_WAVE;
+                    vibrato_state = tremolo_state = AAX_SINE;
                 }
             } else if (vibrato_state) {
                 vibrato_state = tremolo_state = AAX_FALSE;
