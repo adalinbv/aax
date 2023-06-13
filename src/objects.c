@@ -638,7 +638,7 @@ _aaxGetEffectFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
    slen = xmlAttributeCopyString(xid, "type", src, 64);
    if (slen)
    {
-      enum aaxWaveformType state = AAX_CONSTANT_VALUE;
+      enum aaxSourceType state = AAX_CONSTANT_VALUE;
       enum aaxEffectType etype;
       aaxEffect eff;
 

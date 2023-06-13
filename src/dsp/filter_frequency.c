@@ -83,25 +83,17 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 
    assert(filter->info);
 
-   resonance = ((state & AAX_RESONANCE_FACTOR) == AAX_RESONANCE_FACTOR)
-               ? AAX_TRUE : AAX_FALSE;
-   if (resonance)
-   {
-      state &= ~AAX_1ST_ORDER;
-      if ((state & AAX_ORDER_MASK) != AAX_2ND_ORDER) state &= ~AAX_2ND_ORDER;
-   }
+   resonance = (state & AAX_RESONANCE_FACTOR) ? AAX_TRUE : AAX_FALSE;
 
-   mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_IMPULSE_WAVE|
-          AAX_SAWTOOTH_WAVE|AAX_RANDOMNESS|AAX_CYCLOID_WAVE |
-          AAX_TIMED_TRANSITION | AAX_ENVELOPE_FOLLOW_MASK;
-
+   mask = AAX_ALL_WAVEFORM_MASK | AAX_TIMED_TRANSITION | AAX_ENVELOPE_FOLLOW_MASK;
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
-   state &= ~AAX_LFO_STEREO;
+   state &= ~(AAX_LFO_STEREO | AAX_EFFECT_ORDER);
 
    istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL|AAX_RANDOM_SELECT|AAX_ENVELOPE_FOLLOW_LOG);
    if (istate == 0) istate = AAX_12DB_OCT;
    wstate = istate & mask;
 
+   /* can't use a switch statement because we're checking against wstate and istate */
    if (wstate == AAX_6DB_OCT          ||
        wstate == AAX_12DB_OCT         ||
        wstate == AAX_24DB_OCT         ||

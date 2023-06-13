@@ -46,7 +46,7 @@
 typedef struct {
    char supported_lite;
    const char *name;
-} ef_type; 
+} ef_type;
 
 const char *_aax_id_s[_AAX_MAX_ID];
 const char *_aaxErrorStrings[_AAX_MAX_ERROR];
@@ -312,10 +312,10 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
                {
                   if (_aaxEffects[i]->lite || VALID_HANDLE(handle)) {
                      rv = AAX_TRUE;
-                  }  
-               }  
+                  }
+               }
                break;
-            }  
+            }
             else if (!strncasecmp(effect, _aaxEffects[i]->name, strlen(effect)))
             {
                if (_aaxEffects[i]->lite || VALID_HANDLE(handle)) {
@@ -465,19 +465,19 @@ aaxIsValid(const void* handle, enum aaxHandleType type)
          break;
       }
       case AAX_BUFFER:
-      {  
+      {
          const _buffer_t* ptr = (const _buffer_t*)handle;
          if (ptr->id == BUFFER_ID) rv = AAX_TRUE;
          break;
       }
       case AAX_EMITTER:
-      {  
+      {
          const _emitter_t* ptr = (const _emitter_t*)handle;
          if (ptr->id == EMITTER_ID) rv = AAX_TRUE;
          break;
       }
       case AAX_AUDIOFRAME:
-      {  
+      {
          const _frame_t* ptr = (const _frame_t*)handle;
          if (ptr->id == AUDIOFRAME_ID) rv = AAX_TRUE;
          break;
@@ -518,7 +518,7 @@ aaxGetTypeByName(const char *name)
       }
 
       if (!strcasecmp(name, "log") || !strcasecmp(name, "db") ||
-          !strcasecmp(name, "logarithmic")) { 
+          !strcasecmp(name, "logarithmic")) {
          rv = AAX_LOGARITHMIC;
       } else if (!strcasecmp(name, "radians") || !strcasecmp(name, "rad")) {
          rv = AAX_RADIANS;
@@ -562,15 +562,15 @@ aaxGetTypeByName(const char *name)
          rv = AAX_KPA;
       } else {
          rv = AAX_LINEAR;
-      } 
+      }
    }
    return rv;
 }
 
-static enum aaxWaveformType
-aaxGetWaveformTypeByName(const char *wave)
+static enum aaxSourceType
+aaxGetSourceTypeByName(const char *wave)
 {
-   enum aaxWaveformType rv = AAX_WAVE_NONE;
+   enum aaxSourceType rv = AAX_WAVE_NONE;
    if (wave)
    {
       char *name = (char *)wave;
@@ -610,6 +610,15 @@ aaxGetWaveformTypeByName(const char *wave)
                name += invlen;
                len -= invlen;
                rv |= AAX_INVERSE;
+            }
+
+            if (!strncasecmp(name, "bessel", len)) {
+               rv |= AAX_BESSEL;
+            }
+
+            if (!strncasecmp(name, "resonance", len) ||
+                !strncasecmp(name, "Q", len)) {
+               rv |= AAX_RESONANCE_FACTOR;
             }
 
             if (!strncasecmp(name, "triangle", len)) {
@@ -654,6 +663,47 @@ aaxGetWaveformTypeByName(const char *wave)
             } else if (!strncasecmp(name, "inverse", len)) {
                rv |= AAX_CONSTANT_VALUE|AAX_INVERSE;
             }
+            else /* frequency filter */
+            {
+               if (len >= 5 && !strncasecmp(name+len-5, "ORDER", 5))
+               {
+                  if (len >= 6 && (*(name+len-6) == '_' ||
+                                   *(name+len-6) == '-')) {
+                     len -= 6;
+                  }
+
+                  if (!strncasecmp(name, "1st", len)) {
+                     rv |= AAX_1ST_ORDER;
+                  } else if (!strncasecmp(name, "2nd", len)) {
+                     rv |= AAX_2ND_ORDER;
+                  } else if (!strncasecmp(name, "4th", len)) {
+                     rv |= AAX_4TH_ORDER;
+                  } else if (!strncasecmp(name, "6th", len)) {
+                     rv |= AAX_6TH_ORDER;
+                  } else if (!strncasecmp(name, "8th", len)) {
+                     rv |= AAX_8TH_ORDER;
+                  }
+               }
+               else if (len >= 3 && !strncasecmp(name+len-3, "OCT", 3))
+               {
+                  if (len >= 4 && (*(name+len-4) == '_' ||
+                                   *(name+len-4) == '/')) {
+                     len -= 4;
+                  }
+
+                  if (!strncasecmp(name, "6db", len)) {
+                     rv |= AAX_1ST_ORDER;
+                  } else if (!strncasecmp(name, "12db", len)) {
+                     rv |= AAX_2ND_ORDER;
+                  } else if (!strncasecmp(name, "24db", len)) {
+                     rv |= AAX_4TH_ORDER;
+                  } else if (!strncasecmp(name, "36db", len)) {
+                     rv |= AAX_6TH_ORDER;
+                  } else if (!strncasecmp(name, "48db", len)) {
+                     rv |= AAX_8TH_ORDER;
+                  }
+               }
+            } /* frequency filter */
          }
          else {
             rv = AAX_CONSTANT_VALUE;
@@ -666,6 +716,8 @@ aaxGetWaveformTypeByName(const char *wave)
       }
       while(last);
    }
+
+
    return rv;
 }
 
@@ -713,84 +765,6 @@ aaxGetDistanceModelByName(const char *name)
       } else if (!strncasecmp(name, "exponent_distance_clamped", len)) {
          rv = AAX_AL_EXPONENT_DISTANCE_CLAMPED;
       }
-   }
-
-   return rv;
-}
-
-static enum aaxFrequencyFilterType
-aaxGetFrequencyFilterTypeByName(const char *type)
-{
-   int rv = aaxGetWaveformTypeByName(type);
-
-   /* Prevent a clash with reverb 1st-order and 2nd-order */
-   if (rv & AAX_EFFECT_1ST_ORDER) rv &= ~AAX_EFFECT_1ST_ORDER;
-   else if (rv & AAX_EFFECT_2ND_ORDER) rv &= ~AAX_EFFECT_2ND_ORDER;
-
-   if (type)
-   {
-      char *last, *name = (char*)type;
-      size_t len, slen;
-
-      slen = strlen(name);
-      last = strchr(name, '|');
-      if (!last) last = name+slen;
-
-      do
-      {
-         if (!strncasecmp(name, "AAX_", 4)) {
-            name += 4;
-         }
-
-         len = last-name;
-         if (!strncasecmp(name, "bessel", len)) {
-            rv |= AAX_BESSEL;
-         }
-
-         if (len >= 5 && !strncasecmp(name+len-5, "ORDER", 5))
-         {
-            if (len >= 6 && (*(name+len-6) == '_' || *(name+len-6) == '-')) {
-               len -= 6;
-            }
-         }
-         else if (len >= 3 && !strncasecmp(name+len-3, "OCT", 3))
-         {
-            if (len >= 4 && (*(name+len-4) == '_' || *(name+len-4) == '/')) {
-               len -= 4;
-            }
-         }
-
-         if (!strncasecmp(name, "resonance", len) ||
-             !strncasecmp(name, "Q", len)) {
-            rv |= AAX_RESONANCE_FACTOR;
-         }
-         else if (!strncasecmp(name, "1st", len) ||
-                  !strncasecmp(name, "6db", len)) {
-            rv |= AAX_1ST_ORDER;
-         }
-         else if (!strncasecmp(name, "2nd", len) ||
-                  !strncasecmp(name, "12db", len)) {
-            rv |= AAX_2ND_ORDER;
-         }
-         else if (!strncasecmp(name, "4th", len) ||
-                  !strncasecmp(name, "24db", len)) {
-            rv |= AAX_4TH_ORDER;
-         }
-         else if (!strncasecmp(name, "6th", len) ||
-                  !strncasecmp(name, "36db", len)) {
-            rv |= AAX_6TH_ORDER;
-         }
-         else if (!strncasecmp(name, "8th", len) ||
-                  !strncasecmp(name, "48db", len)) {
-            rv |= AAX_8TH_ORDER;
-         }
-
-         if (last == name+strlen(name)) break;
-         name = ++last;
-         last = strchr(name, '|');
-         if (!last) last = name+strlen(name);
-      }
-      while(last);
    }
 
    return rv;
@@ -947,16 +921,15 @@ aaxGetByName(const char* name, enum aaxTypeName type)
    switch (type)
    {
    case AAX_ALL:
-      /* sequence matters */
-      rv = aaxGetFrequencyFilterTypeByName(name);
-      if (!rv) rv = aaxGetWaveformTypeByName(name);
+      rv = aaxGetSourceTypeByName(name);
       if (!rv) rv = aaxFilterGetByName(name);
       if (!rv) rv = aaxEffectGetByName(name);
       if (!rv) rv = aaxGetTypeByName(name);
       if (!rv) rv = aaxGetDistanceModelByName(name);
       break;
    case AAX_WAVEFORM_NAME:
-      rv = aaxGetWaveformTypeByName(name);
+   case AAX_FREQUENCY_FILTER_NAME:
+      rv = aaxGetSourceTypeByName(name);
       break;
    case AAX_FILTER_NAME:
       rv = aaxFilterGetByName(name);
@@ -969,9 +942,6 @@ aaxGetByName(const char* name, enum aaxTypeName type)
       break;
    case AAX_TYPE_NAME:
       rv = aaxGetTypeByName(name);
-      break;
-   case AAX_FREQUENCY_FILTER_NAME:
-      rv = aaxGetFrequencyFilterTypeByName(name);
       break;
    default:
       break;

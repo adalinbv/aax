@@ -56,7 +56,7 @@
 static void _bufInitInfo(_buffer_info_t*);
 static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*, unsigned char);
 static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*, unsigned char);
-static int _bufProcessWaveform(aaxBuffer, int, float, float, float, float, float, unsigned char, int, float, enum aaxWaveformType, float, enum aaxProcessingType, limitType);
+static int _bufProcessWaveform(aaxBuffer, int, float, float, float, float, float, unsigned char, int, float, enum aaxSourceType, float, enum aaxProcessingType, limitType);
 static _aaxRingBuffer* _bufSetDataInterleaved(_buffer_t*, _aaxRingBuffer*, const void*, unsigned);
 static _aaxRingBuffer* _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer*);
 static void** _bufGetDataPitchLevels(_buffer_t*);
@@ -1335,7 +1335,7 @@ static int
 _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, float ratio_factor, float pitch_factor, float freq, unsigned int pitch_level, int voices, float spread, limitType limiter)
 {
    enum aaxProcessingType ptype = AAX_OVERWRITE;
-   enum aaxWaveformType wtype = AAX_SINE_WAVE;
+   enum aaxSourceType wtype = AAX_SINE_WAVE;
    float phase, pitch, ratio;
    float staticity = 0.0f;
    float random = 0.0f;
@@ -2305,14 +2305,17 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int samples)
 #endif
 
 static int
-_bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float pitch, float staticity, float random, unsigned char pitch_level, int voices, float spread, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype, limitType limiter)
+_bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float pitch, float staticity, float random, unsigned char pitch_level, int voices, float spread, enum aaxSourceType wtype, float ratio, enum aaxProcessingType ptype, limitType limiter)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
    int rv = __release_mode;
 
    if (!rv)
    {
-      if ((wtype & AAX_ALL_WAVEFORM_MASK) == 0) {
+      enum aaxSourceType wave = wtype & AAX_ALL_WAVEFORM_MASK;
+      if (wave < AAX_1ST_WAVE || wave > AAX_LAST_WAVE ||
+          wave < AAX_1ST_NOISE ||  wave > AAX_LAST_NOISE)
+      {
          _aaxErrorSet(AAX_INVALID_PARAMETER + 3);
       } else if ((ptype == AAX_MIX) && (ratio > 1.0f || ratio < -1.0f)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER + 4);
@@ -2327,7 +2330,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, pitch_level);
       float samps_period, fs, fw, fs_mixer, rate;
-      int no_samples, i, bit = 1;
+      int no_samples;
       _data_t *scratch;
       int q, hvoices;
       uint64_t seed;
@@ -2372,19 +2375,15 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
          break;
       case AAX_MIX:
       {
+         enum aaxSourceType wave = wtype & AAX_ALL_WAVEFORM_MASK;
          float ratio_orig = FNMINMAX(1.0f-ratio, 0.0f, 1.0f);
 
          ratio = 2.0f*(1.0f - ratio_orig);
-         if (wtype & AAX_SAWTOOTH_WAVE) ratio /= 2;
-         if (wtype & AAX_SQUARE_WAVE) ratio /= 2;
-         if (wtype & AAX_TRIANGLE_WAVE) ratio /= 2;
-         if (wtype & AAX_SINE_WAVE) ratio /= 2;
-         if (wtype & AAX_CYCLOID_WAVE) ratio /= 2;
-         if (wtype & AAX_IMPULSE_WAVE) ratio /= 2;
-
-         if (wtype & AAX_WHITE_NOISE) ratio /= 2;
-         if (wtype & AAX_PINK_NOISE) ratio /= 2;
-         if (wtype & AAX_BROWNIAN_NOISE) ratio /= 2;
+         if ((wave >= AAX_1ST_WAVE && wave <= AAX_LAST_WAVE) ||
+             (wave >= AAX_1ST_NOISE && wave <= AAX_LAST_NOISE))
+         {  
+            ratio /= 2;
+         }
 
          rb->data_multiply(rb, 0, 0, ratio_orig);
          break;
@@ -2402,41 +2401,36 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
       scratch = _aaxDataCreate(2, no_samples+NOISE_PADDING, sizeof(float));
       if (scratch)
       {
-         // AAX_CONSTANT_VALUE == 0
-         for (i=0; i<AAX_MAX_WAVE_NOISE; i++)
+         switch (wtype)
          {
-            switch (wtype & bit)
+         case AAX_CONSTANT_VALUE:
+         case AAX_SAWTOOTH_WAVE:
+         case AAX_SQUARE_WAVE:
+         case AAX_TRIANGLE_WAVE:
+         case AAX_SINE_WAVE:
+         case AAX_CYCLOID_WAVE:
+         case AAX_IMPULSE_WAVE:
+            for (q=0; q<voices; ++q)
             {
-            case AAX_CONSTANT_VALUE:
-            case AAX_SAWTOOTH_WAVE:
-            case AAX_SQUARE_WAVE:
-            case AAX_TRIANGLE_WAVE:
-            case AAX_SINE_WAVE:
-            case AAX_CYCLOID_WAVE:
-            case AAX_IMPULSE_WAVE:
-               for (q=0; q<voices; ++q)
-               {
-                  float ffact, nfw, nphase, nratio;
+               float ffact, nfw, nphase, nratio;
 
-                  nfw = (fw - hvoices*spread);
-                  if (phasing) nfw += (float)q*spread;
-                  samps_period = fs/nfw;
-                  ffact = (float)no_samples/(float)samps_period;
-                  nfw = nfw*ceilf(ffact)/ffact;
-                  nphase = phase + q*GMATH_2PI/voices;
-                  nratio = (q == hvoices) ? 0.8f*ratio : 0.6f*ratio;
-                  rv = rb->data_mix_waveform(rb, scratch, wtype&bit, track, nfw, nratio, nphase, modulate, limiter);
-               }
-               break;
-            case AAX_WHITE_NOISE:
-            case AAX_PINK_NOISE:
-            case AAX_BROWNIAN_NOISE:
-               rv = rb->data_mix_noise(rb, scratch, wtype & bit, track, fs_mixer, pitch, ratio, seed, skip, modulate, limiter);
-               break;
-            default:
-               break;
+               nfw = (fw - hvoices*spread);
+               if (phasing) nfw += (float)q*spread;
+               samps_period = fs/nfw;
+               ffact = (float)no_samples/(float)samps_period;
+               nfw = nfw*ceilf(ffact)/ffact;
+               nphase = phase + q*GMATH_2PI/voices;
+               nratio = (q == hvoices) ? 0.8f*ratio : 0.6f*ratio;
+               rv = rb->data_mix_waveform(rb, scratch, wtype, track, nfw, nratio, nphase, modulate, limiter);
             }
-            bit <<= 1;
+            break;
+         case AAX_WHITE_NOISE:
+         case AAX_PINK_NOISE:
+         case AAX_BROWNIAN_NOISE:
+            rv = rb->data_mix_noise(rb, scratch, wtype, track, fs_mixer, pitch, ratio, seed, skip, modulate, limiter);
+            break;
+         default:
+            break;
          }
          _aaxDataDestroy(scratch);
       }

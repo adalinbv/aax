@@ -713,7 +713,7 @@ _aaxRingBufferDataMultiplyFn(struct _aaxRingBuffer_t*, size_t, size_t, float);
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferDataMixWaveformFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxWaveformType, int, float, float, float, unsigned char, unsigned char);
+_aaxRingBufferDataMixWaveformFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxSourceType, int, float, float, float, unsigned char, unsigned char);
 
 /**
  * Mix a noise type from the waveform generator with existing data
@@ -728,7 +728,7 @@ _aaxRingBufferDataMixWaveformFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxWave
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferDataMixNoiseFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxWaveformType, int, float, float, float, uint64_t, char, unsigned char, unsigned char);
+_aaxRingBufferDataMixNoiseFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxSourceType, int, float, float, float, uint64_t, char, unsigned char, unsigned char);
 
 /**
  * Limit the audio data in the ringbuffer
