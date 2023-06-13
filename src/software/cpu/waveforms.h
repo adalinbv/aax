@@ -28,12 +28,12 @@
 enum wave_types
 {
    _CONSTANT_VALUE = 0,
+   _SAWTOOTH_WAVE,
+   _SQUARE_WAVE,
    _TRIANGLE_WAVE,
    _SINE_WAVE,
-   _SQUARE_WAVE,
-   _SAWTOOTH_WAVE,
-   _IMPULSE_WAVE,
-   _CYCLOID_WAVE
+   _CYCLOID_WAVE,
+   _IMPULSE_WAVE
 };
 
 extern float ALIGN _harmonics[AAX_MAX_WAVE+1][2*MAX_HARMONICS];

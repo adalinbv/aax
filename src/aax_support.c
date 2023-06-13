@@ -59,54 +59,6 @@ aaxFree(void *mm)
    free(mm);
 }
 
-/* deprecated functions */
-
-AAX_API unsigned AAX_APIENTRY
-aaxGetMajorVersion()
-{
-   return AAX_MAJOR_VERSION;
-}
-
-AAX_API unsigned AAX_APIENTRY
-aaxGetMinorVersion()
-{
-   return AAX_MINOR_VERSION;
-}
-
-AAX_API unsigned int AAX_APIENTRY
-aaxGetPatchLevel()
-{
-   return AAX_PATCH_LEVEL;
-}
-
-AAX_API const char* AAX_APIENTRY
-aaxGetCopyrightString()
-{
-   return (const char*)COPYING_v3;
-}
-
-AAX_API const char* AAX_APIENTRY
-aaxGetVersionString(UNUSED(aaxConfig cfg))
-{
-   return AAX_LIBRARY_STR" "AAX_VERSION_STR;
-}
-
-AAX_API enum aaxFilterType AAX_APIENTRY
-aaxMaxFilter(void)
-{
-   return AAX_FILTER_MAX;
-}
-
-AAX_API enum aaxEffectType AAX_APIENTRY
-aaxMaxEffect(void)
-{
-   return AAX_EFFECT_MAX;
-}
-
-/* end of deprecated functions list */
-
-#if AAX_MAJOR_VERSION > 3
-// Windows DLL API changes would break backwards compatibility
 AAX_API const char* AAX_APIENTRY
 aaxGetString(enum aaxSetupType type)
 {
@@ -212,7 +164,6 @@ aaxGetFormatString(enum aaxFormat format)
 
    return rv;
 }
-#endif
 
 int AAX_APIENTRY
 aaxPlaySoundLogo(const char *devname)
@@ -671,12 +622,12 @@ aaxGetWaveformTypeByName(const char *wave)
                rv |= AAX_IMPULSE_WAVE;
             } else if (!strncasecmp(name, "sawtooth", len)) {
                rv |= AAX_SAWTOOTH_WAVE;
+            } else if (!strncasecmp(name, "cycloid", len)) {
+               rv |= AAX_CYCLOID_WAVE;
             } else if (!strncasecmp(name, "random", len)) {
                rv |= AAX_RANDOM_SELECT;
             } else if (!strncasecmp(name, "randomness", len)) {
                rv |= AAX_RANDOMNESS;
-            } else if (!strncasecmp(name, "cycloid", len)) {
-               rv |= AAX_CYCLOID_WAVE;
             } else if (!strncasecmp(name, "white-noise", len)) {
                rv |= AAX_WHITE_NOISE;
             } else if (!strncasecmp(name, "pink-noise", len)) {

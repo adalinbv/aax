@@ -75,14 +75,6 @@ _aaxCompressorSetState(_filter_t* filter, int state)
    aaxFilter rv = NULL;
    int mask;
 
-   // backwards compatibility, can be removed after AeonWave 4.0
-   if (state & AAX_ENVELOPE_FOLLOW_LOG && !(state & AAX_WAVEFORM_MASK) &&
-       !(state & (AAX_ENVELOPE_FOLLOW|AAX_TIMED_TRANSITION)))
-   {
-      state -= AAX_ENVELOPE_FOLLOW_LOG;
-      state += AAX_ENVELOPE_FOLLOW;
-   }
-
    state = state ? state|AAX_ENVELOPE_FOLLOW_MASK : AAX_FALSE;
    if (state & ~AAX_TRUE) {
       state &= ~AAX_TRUE;

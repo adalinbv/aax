@@ -83,14 +83,6 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 
    assert(filter->info);
 
-   // backwards compatibility, can be removed after AeonWave 4.0
-   if (state & AAX_ENVELOPE_FOLLOW_LOG && !(state & AAX_WAVEFORM_MASK) &&
-       !(state & (AAX_ENVELOPE_FOLLOW|AAX_TIMED_TRANSITION)))
-   {
-      state -= AAX_ENVELOPE_FOLLOW_LOG;
-      state += AAX_ENVELOPE_FOLLOW;
-   }
-
    resonance = ((state & AAX_RESONANCE_FACTOR) == AAX_RESONANCE_FACTOR)
                ? AAX_TRUE : AAX_FALSE;
    if (resonance)

@@ -2375,13 +2375,13 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
          float ratio_orig = FNMINMAX(1.0f-ratio, 0.0f, 1.0f);
 
          ratio = 2.0f*(1.0f - ratio_orig);
-         if (wtype & AAX_SINE_WAVE) ratio /= 2;
-         if (wtype & AAX_SQUARE_WAVE) ratio /= 2;
-         if (wtype & AAX_IMPULSE_WAVE) ratio /= 2;
-         if (wtype & AAX_TRIANGLE_WAVE) ratio /= 2;
          if (wtype & AAX_SAWTOOTH_WAVE) ratio /= 2;
-         if (wtype & AAX_IMPULSE_WAVE) ratio /= 2;
+         if (wtype & AAX_SQUARE_WAVE) ratio /= 2;
+         if (wtype & AAX_TRIANGLE_WAVE) ratio /= 2;
+         if (wtype & AAX_SINE_WAVE) ratio /= 2;
          if (wtype & AAX_CYCLOID_WAVE) ratio /= 2;
+         if (wtype & AAX_IMPULSE_WAVE) ratio /= 2;
+
          if (wtype & AAX_WHITE_NOISE) ratio /= 2;
          if (wtype & AAX_PINK_NOISE) ratio /= 2;
          if (wtype & AAX_BROWNIAN_NOISE) ratio /= 2;
@@ -2407,13 +2407,13 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
          {
             switch (wtype & bit)
             {
-            case AAX_SINE_WAVE:
+            case AAX_CONSTANT_VALUE:
+            case AAX_SAWTOOTH_WAVE:
             case AAX_SQUARE_WAVE:
             case AAX_TRIANGLE_WAVE:
-            case AAX_SAWTOOTH_WAVE:
-            case AAX_IMPULSE_WAVE:
+            case AAX_SINE_WAVE:
             case AAX_CYCLOID_WAVE:
-            case AAX_CONSTANT_VALUE:
+            case AAX_IMPULSE_WAVE:
                for (q=0; q<voices; ++q)
                {
                   float ffact, nfw, nphase, nratio;

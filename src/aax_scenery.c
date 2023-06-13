@@ -236,47 +236,39 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
       _effect_t* effect = get_effect(e);
       if (effect)
       {
-         if (effect->type == AAX_CONVOLUTION_EFFECT)  // deprtecated
+         const _intBufferData* dptr;
+         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+         if (dptr)
          {
-            _AAX_SYSLOG("Addigning the convolution effect to the scenery is deprecated, assign to the mixer instead");
-            rv = aaxMixerSetEffect(config, e);
-         }
-         else
-         {
-            const _intBufferData* dptr;
-            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-            if (dptr)
+            _sensor_t* sensor = _intBufGetDataPtr(dptr);
+            _aaxAudioFrame* mixer = sensor->mixer;
+            _aax3dProps *p3d = mixer->props3d;
+            int type = effect->pos;
+            switch (effect->type)
             {
-               _sensor_t* sensor = _intBufGetDataPtr(dptr);
-               _aaxAudioFrame* mixer = sensor->mixer;
-               _aax3dProps *p3d = mixer->props3d;
-               int type = effect->pos;
-               switch (effect->type)
+            case AAX_VELOCITY_EFFECT:
+            {
+               float c, vs;
+
+               _EFFECT_SWAP_SLOT(p3d, type, effect, 0);
+
+               c = _EFFECT_GET(p3d, type, AAX_LIGHT_VELOCITY);
+               vs = _EFFECT_GET(p3d, type, AAX_SOUND_VELOCITY);
+               if (c < 800000.0f*vs)
                {
-               case AAX_VELOCITY_EFFECT:
-               {
-                  float c, vs;
+                  static const double c_mps = 299792458.0;
+                  double unit_m = vs/343.0;
 
-                  _EFFECT_SWAP_SLOT(p3d, type, effect, 0);
-
-                  c = _EFFECT_GET(p3d, type, AAX_LIGHT_VELOCITY);
-                  vs = _EFFECT_GET(p3d, type, AAX_SOUND_VELOCITY);
-                  if (c < 800000.0f*vs)
-                  {
-                     static const double c_mps = 299792458.0;
-                     double unit_m = vs/343.0;
-
-                     handle->info->unit_m = unit_m;
-                     _EFFECT_SET(p3d, type, AAX_LIGHT_VELOCITY, c_mps*unit_m);
-                  }
-                  rv = AAX_TRUE;
-                  break;
+                  handle->info->unit_m = unit_m;
+                  _EFFECT_SET(p3d, type, AAX_LIGHT_VELOCITY, c_mps*unit_m);
                }
-               default:
-                  _aaxErrorSet(AAX_INVALID_ENUM);
-               }
-               _intBufReleaseData(dptr, _AAX_SENSOR);
+               rv = AAX_TRUE;
+               break;
             }
+            default:
+               _aaxErrorSet(AAX_INVALID_ENUM);
+            }
+            _intBufReleaseData(dptr, _AAX_SENSOR);
          }
       }
       else {

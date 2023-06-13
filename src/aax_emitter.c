@@ -1145,7 +1145,7 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
    case AAX_MIDI_DECAY_FACTOR:
       handle->midi.decay_factor = (float)setup/64.0f;		// 0.0 .. 2.0
       break;
-   case AAX_RELEASE_FACTOR:
+   case AAX_MIDI_RELEASE_FACTOR:
       handle->midi.release_factor = (float)setup/64.0f;		// 0.0 .. 2.0
       break;
    default:
@@ -1166,7 +1166,7 @@ aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
    case AAX_MIDI_ATTACK_FACTOR:
       rv = 64.0f*handle->midi.attack_factor;
       break;
-   case AAX_RELEASE_FACTOR:
+   case AAX_MIDI_RELEASE_FACTOR:
       rv = 64.0f*handle->midi.release_factor;
       break;
    case AAX_MIDI_DECAY_FACTOR:
