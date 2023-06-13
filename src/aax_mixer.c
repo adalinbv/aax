@@ -1798,7 +1798,7 @@ _aaxMixerSetRendering(_handle_t *handle)
       if (eff)
       {
          aaxEffectSetSlot(eff, 0, AAX_LINEAR, 0.7f, 0.1f, 0.05f, 0.7f);
-         aaxEffectSetState(eff, AAX_SINE_WAVE);
+         aaxEffectSetState(eff, AAX_SINE);
          aaxMixerSetEffect(handle, eff);
          aaxEffectDestroy(eff);
       }

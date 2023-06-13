@@ -128,7 +128,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // inetnional fall-through
-   case AAX_CONSTANT_VALUE:
+   case AAX_CONSTANT:
    case AAX_FALSE:
       do {
          _aaxRingBufferDistoritonData *data = effect->slot[0]->data;

@@ -99,12 +99,12 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
        wstate == AAX_24DB_OCT         ||
        wstate == AAX_36DB_OCT         ||
        wstate == AAX_48DB_OCT         ||
-       wstate == AAX_TRIANGLE_WAVE    ||
-       wstate == AAX_SINE_WAVE        ||
-       wstate == AAX_SQUARE_WAVE      ||
-       wstate == AAX_IMPULSE_WAVE     ||
-       wstate == AAX_CYCLOID_WAVE     ||
-       wstate == AAX_SAWTOOTH_WAVE    ||
+       wstate == AAX_SAWTOOTH         ||
+       wstate == AAX_SQUARE           ||
+       wstate == AAX_TRIANGLE         ||
+       wstate == AAX_SINE             ||
+       wstate == AAX_CYCLOID          ||
+       wstate == AAX_IMPULSE          ||
        wstate == AAX_RANDOMNESS       ||
        wstate == AAX_TIMED_TRANSITION ||
        wstate == AAX_ENVELOPE_FOLLOW  ||

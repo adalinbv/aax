@@ -132,13 +132,13 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    filter->state = state;
    switch (state & ~(noise_mask|AAX_INVERSE))
    {
-   case AAX_CONSTANT_VALUE:
-   case AAX_TRIANGLE_WAVE:
-   case AAX_SINE_WAVE:
-   case AAX_SQUARE_WAVE:
-   case AAX_IMPULSE_WAVE:
-   case AAX_SAWTOOTH_WAVE:
-   case AAX_CYCLOID_WAVE:
+   case AAX_CONSTANT:
+   case AAX_TRIANGLE:
+   case AAX_SINE:
+   case AAX_SQUARE:
+   case AAX_IMPULSE:
+   case AAX_SAWTOOTH:
+   case AAX_CYCLOID:
    case AAX_RANDOMNESS:
    case AAX_TIMED_TRANSITION:
    case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):

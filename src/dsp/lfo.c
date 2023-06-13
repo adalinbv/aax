@@ -183,29 +183,29 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
    {
       switch (lfo->state & ~AAX_INVERSE)
       {
-      case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
+       case AAX_CONSTANT: /* equals to AAX_TRUE */
          lfo->get = _aaxLFOGetFixedValue;
          break;
-      case AAX_TRIANGLE_WAVE:
-         lfo->get = _aaxLFOGetTriangle;
+       case AAX_SAWTOOTH:
+         lfo->get = _aaxLFOGetSawtooth;
          break;
-      case AAX_SINE_WAVE:
-         lfo->get = _aaxLFOGetSine;
-         break;
-      case AAX_SQUARE_WAVE:
+       case AAX_SQUARE:
          lfo->get = _aaxLFOGetSquare;
          break;
-      case AAX_IMPULSE_WAVE:
-         lfo->get = _aaxLFOGetImpulse;
+       case AAX_TRIANGLE:
+         lfo->get = _aaxLFOGetTriangle;
          break;
-      case AAX_SAWTOOTH_WAVE:
-         lfo->get = _aaxLFOGetSawtooth;
+       case AAX_SINE:
+       lfo->get = _aaxLFOGetSine;
+         break;
+       case AAX_CYCLOID:
+         lfo->get = _aaxLFOGetCycloid;
+         break;
+       case AAX_IMPULSE:
+         lfo->get = _aaxLFOGetImpulse;
          break;
       case AAX_RANDOMNESS:
          lfo->get = _aaxLFOGetRandomness;
-         break;
-      case AAX_CYCLOID_WAVE:
-         lfo->get = _aaxLFOGetCycloid;
          break;
       case AAX_ENVELOPE_FOLLOW:
       case AAX_ENVELOPE_FOLLOW_LOG:
@@ -282,7 +282,7 @@ _lfo_set_timing(_aaxLFOData *lfo)
 
          switch (lfo->state & ~AAX_INVERSE)
          {
-         case AAX_SAWTOOTH_WAVE:
+         case AAX_SAWTOOTH:
             lfo->step[t] *= 0.5f;
             break;
          case AAX_ENVELOPE_FOLLOW:

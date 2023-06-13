@@ -1335,7 +1335,7 @@ static int
 _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, float ratio_factor, float pitch_factor, float freq, unsigned int pitch_level, int voices, float spread, limitType limiter)
 {
    enum aaxProcessingType ptype = AAX_OVERWRITE;
-   enum aaxSourceType wtype = AAX_SINE_WAVE;
+   enum aaxSourceType wtype = AAX_SINE;
    float phase, pitch, ratio;
    float staticity = 0.0f;
    float random = 0.0f;
@@ -1396,25 +1396,25 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
        if (midi_mode) pitch = 1.0f;
    }
    else if (!xmlAttributeCompareString(xwid, "src", "square")) {
-      wtype = AAX_SQUARE_WAVE;
+      wtype = AAX_SQUARE;
    }
    else if (!xmlAttributeCompareString(xwid, "src", "triangle")) {
-       wtype = AAX_TRIANGLE_WAVE;
+       wtype = AAX_TRIANGLE;
    }
    else if (!xmlAttributeCompareString(xwid, "src", "sawtooth")) {
-       wtype = AAX_SAWTOOTH_WAVE;
+       wtype = AAX_SAWTOOTH;
    }
    else if (!xmlAttributeCompareString(xwid, "src", "impulse")) {
-       wtype = AAX_IMPULSE_WAVE;
+       wtype = AAX_IMPULSE;
    }
    else if (!xmlAttributeCompareString(xwid, "src", "cycloid")) {
-       wtype = AAX_CYCLOID_WAVE;
+       wtype = AAX_CYCLOID;
    }
    else if (!xmlAttributeCompareString(xwid, "src", "constant")) {
-       wtype = AAX_CONSTANT_VALUE;
+       wtype = AAX_CONSTANT;
    }
    else {   // !xmlAttributeCompareString(xwid, "src", "sine")
-      wtype = AAX_SINE_WAVE;
+      wtype = AAX_SINE;
    }
 
    if (xmlAttributeExists(xwid, "processing"))
@@ -2403,13 +2403,13 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
       {
          switch (wtype)
          {
-         case AAX_CONSTANT_VALUE:
-         case AAX_SAWTOOTH_WAVE:
-         case AAX_SQUARE_WAVE:
-         case AAX_TRIANGLE_WAVE:
-         case AAX_SINE_WAVE:
-         case AAX_CYCLOID_WAVE:
-         case AAX_IMPULSE_WAVE:
+         case AAX_CONSTANT:
+         case AAX_SAWTOOTH:
+         case AAX_SQUARE:
+         case AAX_TRIANGLE:
+         case AAX_SINE:
+         case AAX_CYCLOID:
+         case AAX_IMPULSE:
             for (q=0; q<voices; ++q)
             {
                float ffact, nfw, nphase, nratio;

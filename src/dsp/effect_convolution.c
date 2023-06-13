@@ -83,7 +83,7 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
    effect->slot[0]->state = state ? AAX_TRUE : AAX_FALSE;
    switch (state & ~AAX_INVERSE)
    {
-   case AAX_CONSTANT_VALUE:
+   case AAX_CONSTANT:
    {
       _aaxRingBufferConvolutionData *convolution = effect->slot[0]->data;
 

@@ -622,17 +622,17 @@ aaxGetSourceTypeByName(const char *wave)
             }
 
             if (!strncasecmp(name, "triangle", len)) {
-               rv |= AAX_TRIANGLE_WAVE;
+               rv |= AAX_TRIANGLE;
             } else if (!strncasecmp(name, "sine", len)) {
-               rv |= AAX_SINE_WAVE;
+               rv |= AAX_SINE;
             } else if (!strncasecmp(name, "square", len)) {
-               rv |= AAX_SQUARE_WAVE;
+               rv |= AAX_SQUARE;
             } else if (!strncasecmp(name, "impulse", len)) {
-               rv |= AAX_IMPULSE_WAVE;
+               rv |= AAX_IMPULSE;
             } else if (!strncasecmp(name, "sawtooth", len)) {
-               rv |= AAX_SAWTOOTH_WAVE;
+               rv |= AAX_SAWTOOTH;
             } else if (!strncasecmp(name, "cycloid", len)) {
-               rv |= AAX_CYCLOID_WAVE;
+               rv |= AAX_CYCLOID;
             } else if (!strncasecmp(name, "random", len)) {
                rv |= AAX_RANDOM_SELECT;
             } else if (!strncasecmp(name, "randomness", len)) {
@@ -659,9 +659,9 @@ aaxGetSourceTypeByName(const char *wave)
                 rv |= AAX_EFFECT_2ND_ORDER;
             } else if (!strncasecmp(name, "true", len) ||
                        !strncasecmp(name, "constant", len)) {
-               rv |= AAX_CONSTANT_VALUE;
+               rv |= AAX_CONSTANT;
             } else if (!strncasecmp(name, "inverse", len)) {
-               rv |= AAX_CONSTANT_VALUE|AAX_INVERSE;
+               rv |= AAX_CONSTANT|AAX_INVERSE;
             }
             else /* frequency filter */
             {
@@ -706,7 +706,7 @@ aaxGetSourceTypeByName(const char *wave)
             } /* frequency filter */
          }
          else {
-            rv = AAX_CONSTANT_VALUE;
+            rv = AAX_CONSTANT;
          }
 
          if (last == name+strlen(name)) break;

@@ -79,13 +79,13 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
    mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
    switch (state & ~mask)
    {
-   case AAX_CONSTANT_VALUE:
-   case AAX_TRIANGLE_WAVE:
-   case AAX_SINE_WAVE:
-   case AAX_SQUARE_WAVE:
-   case AAX_IMPULSE_WAVE:
-   case AAX_SAWTOOTH_WAVE:
-   case AAX_CYCLOID_WAVE:
+   case AAX_CONSTANT:
+   case AAX_SAWTOOTH:
+   case AAX_SQUARE:
+   case AAX_TRIANGLE:
+   case AAX_SINE:
+   case AAX_CYCLOID:
+   case AAX_IMPULSE:
    case AAX_RANDOMNESS:
    case AAX_ENVELOPE_FOLLOW:
    {
