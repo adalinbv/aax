@@ -218,7 +218,7 @@ static inline std::string to_string(enum aaxSetupType type)
     case AAX_RELEASE_MODE: return "release mode";
     case AAX_SAMPLED_RELEASE: return "samples release";
     case AAX_CAPABILITIES: return "capabilities";
-    case AAX_RELEASE_FACTOR: return "midi release factor";
+    case AAX_MIDI_RELEASE_FACTOR: return "midi release factor";
     case AAX_MIDI_ATTACK_FACTOR: return "midi attack factor";
     case AAX_MIDI_DECAY_FACTOR: return "midi decay factor";
     case AAX_MIDI_ATTACK_VELOCITY_FACTOR: return "midi velocity factor";
