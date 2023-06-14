@@ -328,20 +328,15 @@ static inline std::string to_string(enum aaxSourceType type)
     if (type & AAX_PINK_NOISE) result += "pink noise | ";
     if (type & AAX_BROWNIAN_NOISE) result += "brownian noise | ";
     if (type & AAX_ENVELOPE_FOLLOW) result += "envelope follow | ";
-    return "{" + result.substr(0, result.size() - 3) + "}";
-}
 
-static inline std::string to_string(enum aaxFrequencyFilterType type)
-{
-    std::string result;
     if (type & AAX_6DB_OCT) result += "6dB/oct ";
     else if (type & AAX_12DB_OCT) result += "12dB/oct ";
     else if (type & AAX_24DB_OCT) result += "24dB/oct ";
     else if (type & AAX_36DB_OCT) result += "36dB/oct ";
     else if (type & AAX_48DB_OCT) result += "48dB/oct ";
     if (type & AAX_BESSEL) result += "bessel";
-    else result += "butterworth";
-    return result;
+
+    return "{" + result.substr(0, result.size() - 3) + "}";
 }
 
 static inline std::string to_string(enum aaxProcessingType type)

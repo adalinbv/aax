@@ -539,39 +539,16 @@ enum aaxSourceType
    AAX_INVERSE_ENVELOPE_FOLLOW = (AAX_INVERSE | AAX_ENVELOPE_FOLLOW),
    AAX_INVERSE_TIMED_TRANSITION = (AAX_INVERSE | AAX_TIMED_TRANSITION),
 
-   /* frequency filter */
-   AAX_BUTTERWORTH           = AAX_FALSE,
-
-   AAX_1ST_ORDER             = 0x0010,      AAX_6DB_OCT = AAX_1ST_ORDER,
-   AAX_2ND_ORDER             = 0x0011,      AAX_12DB_OCT = AAX_2ND_ORDER,
-   AAX_4TH_ORDER             = 0x0012,      AAX_24DB_OCT = AAX_4TH_ORDER,
-   AAX_6TH_ORDER             = 0x0013,      AAX_36DB_OCT = AAX_6TH_ORDER,
-   AAX_8TH_ORDER             = 0x0014,      AAX_48DB_OCT = AAX_8TH_ORDER,
-   AAX_LAST_ORDER            = AAX_8TH_ORDER,
-   AAX_MAX_ORDER             = (AAX_LAST_ORDER - AAX_1ST_ORDER + 1),
-
-   /* phasing, chorus, flanging, delay-line and reverb */
-   AAX_EFFECT_ORDER          = AAX_RELEASE_FACTOR,
-   AAX_EFFECT_1ST_ORDER      = (AAX_EFFECT_ORDER | AAX_1ST_ORDER),
-   AAX_EFFECT_2ND_ORDER      = (AAX_EFFECT_ORDER | AAX_2ND_ORDER),
-
    /* waveform types */
    AAX_WAVE_NONE 	     = 0,
-   AAX_CONSTANT              = 0x0001,	/* equals to AAX_TRUE */
+   AAX_CONSTANT              = 0x0001, /* equals to AAX_TRUE */
    AAX_SAWTOOTH              = 0x0002,      AAX_1ST_WAVE = AAX_SAWTOOTH,
    AAX_SQUARE                = 0x0003,
    AAX_TRIANGLE              = 0x0004,
    AAX_SINE                  = 0x0005,
    AAX_CYCLOID               = 0x0006,
    AAX_IMPULSE               = 0x0007,      AAX_LAST_WAVE = AAX_IMPULSE,
-   AAX_MAX_WAVE              = (AAX_LAST_WAVE - AAX_1ST_WAVE + 1),
-
-   AAX_BROWNIAN_NOISE        = 0x000C,      AAX_1ST_NOISE = AAX_BROWNIAN_NOISE,
-   AAX_PINK_NOISE	     = 0x000D,
-   AAX_WHITE_NOISE           = 0x000E,      AAX_LAST_NOISE = AAX_WHITE_NOISE,
-   AAX_MAX_NOISE             = (AAX_LAST_NOISE - AAX_1ST_NOISE + 1),
-
-   AAX_RANDOMNESS            = 0x000F,
+   AAX_MAX_WAVE              = 7,
 
    AAX_INVERSE_SAWTOOTH      = (AAX_INVERSE | AAX_SAWTOOTH),
    AAX_INVERSE_SQUARE        = (AAX_INVERSE | AAX_SQUARE),
@@ -580,7 +557,36 @@ enum aaxSourceType
    AAX_INVERSE_CYCLOID       = (AAX_INVERSE | AAX_CYCLOID),
    AAX_INVERSE_IMPULSE       = (AAX_INVERSE | AAX_IMPULSE),
 
-   AAX_ALL_WAVEFORM_MASK = AAX_RANDOMNESS,
+   /* noise may be combined with waveforms */
+   AAX_WHITE_NOISE           = 0x0010,      AAX_1ST_NOISE = AAX_WHITE_NOISE,
+   AAX_PINK_NOISE            = 0x0020,
+   AAX_BROWNIAN_NOISE        = 0x0030,      AAX_LAST_NOISE = AAX_BROWNIAN_NOISE,
+   AAX_RANDOMNESS            = 0x00F0,
+   AAX_MAX_NOISE             = 3,
+
+   AAX_WAVEFORM_MASK         = 0x000F,
+   AAX_NOISE_MASK            = 0x00F0,
+   AAX_ALL_WAVEFORM_MASK     = (AAX_WAVEFORM_MASK | AAX_NOISE_MASK),
+
+   /* frequency filter, may be combined with waveforms and noise */
+   AAX_BUTTERWORTH           = AAX_FALSE,
+
+   AAX_1ST_ORDER             = 0x0100,      AAX_6DB_OCT = AAX_1ST_ORDER,
+   AAX_2ND_ORDER             = 0x0200,      AAX_12DB_OCT = AAX_2ND_ORDER,
+   AAX_3RD_ORDER             = 0x0300,
+   AAX_4TH_ORDER             = 0x0400,      AAX_24DB_OCT = AAX_4TH_ORDER,
+   AAX_5TH_ORDER             = 0x0500,
+   AAX_6TH_ORDER             = 0x0600,      AAX_36DB_OCT = AAX_6TH_ORDER,
+   AAX_7TH_ORDER             = 0x0700,
+   AAX_8TH_ORDER             = 0x0800,      AAX_48DB_OCT = AAX_8TH_ORDER,
+   AAX_LAST_ORDER            = AAX_8TH_ORDER,
+   AAX_ORDER_MASK            = 0x0F00,
+   AAX_MAX_ORDER             = 8,
+
+   /* phasing, chorus, flanging, delay-line and reverb */
+   AAX_EFFECT_ORDER          = AAX_RELEASE_FACTOR,
+   AAX_EFFECT_1ST_ORDER      = (AAX_EFFECT_ORDER | AAX_1ST_ORDER),
+   AAX_EFFECT_2ND_ORDER      = (AAX_EFFECT_ORDER | AAX_2ND_ORDER),
 
    /* timed gain filter */
    AAX_MAX_REPEAT            = 0x000007FF

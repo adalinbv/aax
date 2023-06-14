@@ -1384,8 +1384,9 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
        wtype = AAX_CYCLOID;
    } else if (!xmlAttributeCompareString(xwid, "src", "impulse")) {
        wtype = AAX_IMPULSE;
-   } else if (!xmlAttributeCompareString(xwid, "src", "true")) {
-       wtype = AAX_TRUE;
+   } else if (!xmlAttributeCompareString(xwid, "src", "true") ||
+              !xmlAttributeCompareString(xwid, "src", "constant")) {
+       wtype = AAX_CONSTANT;
    }
    else if (!xmlAttributeCompareString(xwid, "src","white-noise"))
    {
@@ -2269,8 +2270,8 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
    if (!rv)
    {
       enum aaxSourceType wave = wtype & AAX_ALL_WAVEFORM_MASK;
-      if (wave < AAX_1ST_WAVE || wave > AAX_LAST_WAVE ||
-          wave < AAX_1ST_NOISE ||  wave > AAX_LAST_NOISE)
+      if (wave < AAX_1ST_WAVE || wave > AAX_LAST_NOISE ||
+          (wave > AAX_LAST_WAVE && wave < AAX_1ST_NOISE))
       {
          _aaxErrorSet(AAX_INVALID_PARAMETER + 3);
       } else if ((ptype == AAX_MIX) && (ratio > 1.0f || ratio < -1.0f)) {
