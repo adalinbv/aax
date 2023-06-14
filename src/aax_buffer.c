@@ -1431,7 +1431,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
          pitch *= pitch_factor;
          ratio *= ratio_factor;
       }
-      else if (!xmlAttributeCompareString(xwid, "processing", "overwrite"))
+      else /* if (!xmlAttributeCompareString(xwid, "processing", "overwrite")) */
       {
          ptype = AAX_OVERWRITE;
          if (!ratio) ratio = 1.0f;
