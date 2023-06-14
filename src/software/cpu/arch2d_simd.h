@@ -54,7 +54,7 @@ extern "C" {
 void _aax_init_SSE();
 void _aax_init_NEON64();
 
-typedef float* (*_aax_generate_waveform_proc)(float32_ptr, size_t, float, float, enum wave_types);
+typedef float* (*_aax_generate_waveform_proc)(float32_ptr, size_t, float, float, enum aaxSourceType);
 
 extern _aax_generate_waveform_proc _aax_generate_waveform_float;
 
@@ -64,7 +64,7 @@ void _batch_roundps_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_atan_cpu(void_ptr, const_void_ptr, size_t);
 
-float* _aax_generate_waveform_cpu(float32_ptr, size_t, float, float, enum wave_types);
+float* _aax_generate_waveform_cpu(float32_ptr, size_t, float, float, enum aaxSourceType);
 
 void _batch_fmul_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_imul_value_cpu(void_ptr, const_void_ptr, unsigned, size_t, float);
@@ -137,7 +137,7 @@ void _batch_cvtpd_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int
 
 /* SSE2*/
 float fast_sin_sse2(float);
-float* _aax_generate_waveform_sse2(float32_ptr, size_t, float, float, enum wave_types);
+float* _aax_generate_waveform_sse2(float32_ptr, size_t, float, float, enum aaxSourceType);
 
 void _batch_get_average_rms_sse2(const_float32_ptr, size_t, float*, float*);
 void _batch_saturate24_sse2(void*, size_t);
@@ -207,7 +207,7 @@ void _batch_cvt24_ps24_avx(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps_24_avx(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps_avx(void_ptr, const_void_ptr, size_t);
 
-float* _aax_generate_waveform_avx(float32_ptr, size_t, float, float, enum wave_types);
+float* _aax_generate_waveform_avx(float32_ptr, size_t, float, float, enum aaxSourceType);
 void _batch_get_average_rms_avx(const_float32_ptr, size_t, float*, float*);
 
 /* FMA3 */
@@ -216,14 +216,14 @@ void _batch_freqfilter_float_fma3(float32_ptr, const_float32_ptr, int, size_t, v
 void _batch_resample_float_fma3(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
 void _batch_get_average_rms_fma3(const_float32_ptr, size_t, float*, float*);
 void _batch_atanps_fma3(void_ptr, const_void_ptr, size_t);
-float* _aax_generate_waveform_fma3(float32_ptr, size_t, float, float, enum wave_types);
+float* _aax_generate_waveform_fma3(float32_ptr, size_t, float, float, enum aaxSourceType);
 
 /* VFPv2 */
 void _batch_cvt24_24_vfpv2(void_ptr, const void*, size_t);
 void _batch_roundps_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_vfpv2(void_ptr, const_void_ptr, size_t);
 
-float* _aax_generate_waveform_vfpv2(float32_ptr, size_t, float, float, enum wave_types);
+float* _aax_generate_waveform_vfpv2(float32_ptr, size_t, float, float, enum aaxSourceType);
 
 void _batch_fmul_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_imul_value_vfpv2(void_ptr, const_void_ptr, unsigned, size_t, float);
@@ -297,7 +297,7 @@ void _batch_cvt24_24_vfpv3(void_ptr, const void*, size_t);
 void _batch_roundps_vfpv3(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_vfpv3(void_ptr, const_void_ptr, size_t);
 
-float* _aax_generate_waveform_vfpv3(float32_ptr, size_t, float, float, enum wave_types);
+float* _aax_generate_waveform_vfpv3(float32_ptr, size_t, float, float, enum aaxSourceType);
 
 void _batch_fmul_vfpv3(void_ptr, const_void_ptr, size_t);
 void _batch_imul_value_vfpv3(void_ptr, const_void_ptr, unsigned, size_t, float);
@@ -371,7 +371,7 @@ void _batch_cvt24_24_vfpv4(void_ptr, const void*, size_t);
 void _batch_roundps_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_vfpv4(void_ptr, const_void_ptr, size_t);
 
-float* _aax_generate_waveform_vfpv4(float32_ptr, size_t, float, float, enum wave_types);
+float* _aax_generate_waveform_vfpv4(float32_ptr, size_t, float, float, enum aaxSourceType);
 
 void _batch_fmul_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_imul_value_vfpv4(void_ptr, const_void_ptr, unsigned, size_t, float);
@@ -443,7 +443,7 @@ void _batch_cvtpd_intl_24_vfpv4(void_ptr, const_int32_ptrptr, size_t, unsigned i
 
 /* NEON */
 float fast_sin_neon(float);
-float* _aax_generate_waveform_neon(float32_ptr, size_t, float, float, enum wave_types);
+float* _aax_generate_waveform_neon(float32_ptr, size_t, float, float, enum aaxSourceType);
 void _batch_get_average_rms_neon(const_float32_ptr, size_t, float*, float*);
 void _batch_imadd_neon(int32_ptr, const_int32_ptr, size_t, float, float);
 // void _batch_hmadd_neon(float32_ptr, const_float16_ptr, unsigned in, float, float);
@@ -469,7 +469,7 @@ void _batch_cvt16_24_neon(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_intl_24_neon(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 /* NEON64 */
-float* _aax_generate_waveform_neon64(float32_ptr, size_t, float, float, enum wave_types);
+float* _aax_generate_waveform_neon64(float32_ptr, size_t, float, float, enum aaxSourceType);
 void _batch_get_average_rms_neon64(const_float32_ptr, size_t, float*, float*);
 void _batch_fmadd_neon64(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_freqfilter_float_neon64(float32_ptr, const_float32_ptr, int, size_t, void*);

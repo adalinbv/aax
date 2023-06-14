@@ -28,7 +28,7 @@
 
 #ifdef __FMA__
 
-// 
+//
 static inline float
 hsum_ps_sse3(__m128 v) {
    __m128 shuf = _mm_movehdup_ps(v);
@@ -353,7 +353,7 @@ _batch_freqfilter_float_fma3(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
                nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
                *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
-            
+
                h1 = h0;
                h0 = nsmp;
 
@@ -735,75 +735,88 @@ _batch_resample_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin, size
 }
 
 float *
-_aax_generate_waveform_fma3(float32_ptr rv, size_t no_samples, float freq, float phase, enum wave_types wtype)
+_aax_generate_waveform_fma3(float32_ptr rv, size_t no_samples, float freq, float phase, enum aaxSourceType wtype)
 {
    const_float32_ptr harmonics = _harmonics[wtype];
-   if (wtype == _SINE_WAVE || wtype == _CYCLOID_WAVE || wtype == _CONSTANT_VALUE) {
-      rv = _aax_generate_waveform_cpu(rv, no_samples, freq, phase, wtype);
-   }
-   else if (rv)
+
+   switch(wtype)
    {
-      __m256 phase8, freq8, h8;
-      __m256 one, two, eight;
-      __m256 ngain, nfreq;
-      __m256 hdt, s;
-      int i, h;
-      float *ptr;
-
-      assert(MAX_HARMONICS % 8 == 0);
-
-      one = _mm256_set1_ps(1.0f);
-      two = _mm256_set1_ps(2.0f);
-      eight = _mm256_set1_ps(8.0f);
-
-      phase8 = _mm256_set1_ps(-1.0f + phase/GMATH_PI);
-      freq8 = _mm256_set1_ps(freq);
-      h8 = _mm256_set_ps(8.0f, 7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f);
-
-      nfreq = _mm256_div_ps(freq8, h8);
-      ngain = _mm256_and_ps(_mm256_cmp_ps(two, nfreq, _CMP_LT_OS), _mm256_load_ps(harmonics));
-      hdt = _mm256_div_ps(two, nfreq);
-
-      ptr = rv;
-      i = no_samples;
-      s = phase8;
-      do
+   case AAX_CONSTANT:
+   case AAX_SINE:
+   case AAX_CYCLOID:
+      rv = _aax_generate_waveform_cpu(rv, no_samples, freq, phase, wtype);
+      break;
+   case AAX_SAWTOOTH:
+   case AAX_SQUARE:
+   case AAX_TRIANGLE:
+   case AAX_IMPULSE:
+      if (rv)
       {
-         __m256 rv = fast_sin8_fma3(s);
+         __m256 phase8, freq8, h8;
+         __m256 one, two, eight;
+         __m256 ngain, nfreq;
+         __m256 hdt, s;
+         int i, h;
+         float *ptr;
 
-         *ptr++ = hsum256_ps_fma3(_mm256_mul_ps(ngain, rv));
+         assert(MAX_HARMONICS % 8 == 0);
 
-         s = _mm256_add_ps(s, hdt);
-         s = _mm256_sub_ps(s, _mm256_and_ps(two, _mm256_cmp_ps(s, one, _CMP_GE_OS)));
-      }
-      while (--i);
+         one = _mm256_set1_ps(1.0f);
+         two = _mm256_set1_ps(2.0f);
+         eight = _mm256_set1_ps(8.0f);
 
-      h8 = _mm256_add_ps(h8, eight);
-      for(h=8; h<MAX_HARMONICS; h += 8)
-      {
+         phase8 = _mm256_set1_ps(-1.0f + phase/GMATH_PI);
+         freq8 = _mm256_set1_ps(freq);
+         h8 = _mm256_set_ps(8.0f, 7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f);
+
          nfreq = _mm256_div_ps(freq8, h8);
-         ngain = _mm256_and_ps(_mm256_cmp_ps(two, nfreq, _CMP_LT_OS), _mm256_load_ps(harmonics+h));
-         if (_mm256_testz_ps_fma3(ngain))
+         ngain = _mm256_and_ps(_mm256_cmp_ps(two, nfreq, _CMP_LT_OS), _mm256_load_ps(harmonics));
+         hdt = _mm256_div_ps(two, nfreq);
+
+         ptr = rv;
+         i = no_samples;
+         s = phase8;
+         do
          {
-            hdt = _mm256_div_ps(two, nfreq);
+            __m256 rv = fast_sin8_fma3(s);
 
-            ptr = rv;
-            i = no_samples;
-            s = phase8;
-            do
-            {
-               __m256 rv = fast_sin8_fma3(s);
+            *ptr++ = hsum256_ps_fma3(_mm256_mul_ps(ngain, rv));
 
-               *ptr++ += hsum256_ps_fma3(_mm256_mul_ps(ngain, rv));
-
-               s = _mm256_add_ps(s, hdt);
-               s = _mm256_sub_ps(s, _mm256_and_ps(two, _mm256_cmp_ps(s, one, _CMP_GE_OS)));
-            }
-            while (--i);
+            s = _mm256_add_ps(s, hdt);
+            s = _mm256_sub_ps(s, _mm256_and_ps(two, _mm256_cmp_ps(s, one, _CMP_GE_OS)));
          }
+         while (--i);
+
          h8 = _mm256_add_ps(h8, eight);
+         for(h=8; h<MAX_HARMONICS; h += 8)
+         {
+            nfreq = _mm256_div_ps(freq8, h8);
+            ngain = _mm256_and_ps(_mm256_cmp_ps(two, nfreq, _CMP_LT_OS), _mm256_load_ps(harmonics+h));
+            if (_mm256_testz_ps_fma3(ngain))
+            {
+               hdt = _mm256_div_ps(two, nfreq);
+
+               ptr = rv;
+               i = no_samples;
+               s = phase8;
+               do
+               {
+                  __m256 rv = fast_sin8_fma3(s);
+
+                  *ptr++ += hsum256_ps_fma3(_mm256_mul_ps(ngain, rv));
+
+                  s = _mm256_add_ps(s, hdt);
+                  s = _mm256_sub_ps(s, _mm256_and_ps(two, _mm256_cmp_ps(s, one, _CMP_GE_OS)));
+               }
+               while (--i);
+            }
+            h8 = _mm256_add_ps(h8, eight);
+         }
+         _mm256_zeroupper();
       }
-      _mm256_zeroupper();
+      break;
+   default:
+      break;
    }
    return rv;
 }

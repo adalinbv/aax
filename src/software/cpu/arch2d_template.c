@@ -54,7 +54,7 @@ FN(fast_inv_sqrt,A)(float x)
 }
 
 float *
-FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float phase, enum wave_types wtype)
+FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float phase, enum aaxSourceType wtype)
 {
    const_float32_ptr harmonics = _harmonics[wtype];
    if (rv)
@@ -62,14 +62,16 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
       int i = no_samples;
       float *ptr = rv;
 
-      if (wtype == _CONSTANT_VALUE)
+      if (wtype == AAX_CONSTANT)
       {
+printf("_CONSTANT_VALUE\n");
          do {
             *ptr++ = 1.0f;
          } while (--i);
       }
-      else if (wtype == _CYCLOID_WAVE)
+      else if (wtype == AAX_CYCLOID)
       {
+printf("_CYCLOID_WAVE\n");
          float hdt = 2.0f/freq;
          float s = -1.0f + phase/GMATH_PI;
 
@@ -98,7 +100,7 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
          while (--i);
 
          // remaining harmonics, if required
-         if (wtype != _SINE_WAVE)
+         if (wtype != AAX_SINE)
          {
              for(h=1; h<MAX_HARMONICS; ++h)
              {

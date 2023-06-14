@@ -93,75 +93,87 @@ fast_atan4_sse2(__m128 x)
 }
 
 float *
-_aax_generate_waveform_sse2(float32_ptr rv, size_t no_samples, float freq, float phase, enum wave_types wtype)
+_aax_generate_waveform_sse2(float32_ptr rv, size_t no_samples, float freq, float phase, enum aaxSourceType wtype)
 {
    const_float32_ptr harmonics = _harmonics[wtype];
 
-   if (wtype == _SINE_WAVE || wtype == _CYCLOID_WAVE || wtype == _CONSTANT_VALUE) {
-      rv = _aax_generate_waveform_cpu(rv, no_samples, freq, phase, wtype);
-   }
-   else if (rv)
+   switch(wtype)
    {
-      __m128 phase4, freq4, h4;
-      __m128 one, two, four;
-      __m128 ngain, nfreq;
-      __m128 hdt, s;
-      int i, h;
-      float *ptr;
-
-      assert(MAX_HARMONICS % 4 == 0);
-
-      one = _mm_set1_ps(1.0f);
-      two = _mm_set1_ps(2.0f);
-      four = _mm_set1_ps(4.0f);
-
-      phase4 = _mm_set1_ps(-1.0f + phase/GMATH_PI);
-      freq4 = _mm_set1_ps(freq);
-      h4 = _mm_set_ps(4.0f, 3.0f, 2.0f, 1.0f);
-
-      nfreq = _mm_div_ps(freq4, h4);
-      ngain = _mm_and_ps(_mm_cmplt_ps(two, nfreq), _mm_load_ps(harmonics));
-      hdt = _mm_div_ps(two, nfreq);
-
-      ptr = rv;
-      i = no_samples;
-      s = phase4;
-      do
+   case AAX_CONSTANT:
+   case AAX_SINE:
+   case AAX_CYCLOID:
+      rv = _aax_generate_waveform_cpu(rv, no_samples, freq, phase, wtype);
+      break;
+   case AAX_SAWTOOTH:
+   case AAX_SQUARE:
+   case AAX_TRIANGLE:
+   case AAX_IMPULSE:
+      if (rv)
       {
-         __m128 rv = fast_sin4_sse2(s);
+         __m128 phase4, freq4, h4;
+         __m128 one, two, four;
+         __m128 ngain, nfreq;
+         __m128 hdt, s;
+         int i, h;
+         float *ptr;
 
-         *ptr++ = hsum_ps_sse2(_mm_mul_ps(ngain, rv));
+         assert(MAX_HARMONICS % 4 == 0);
 
-         s = _mm_add_ps(s, hdt);
-         s = _mm_sub_ps(s, _mm_and_ps(two, _mm_cmpge_ps(s, one)));
-      }
-      while (--i);
+         one = _mm_set1_ps(1.0f);
+         two = _mm_set1_ps(2.0f);
+         four = _mm_set1_ps(4.0f);
 
-      h4 = _mm_add_ps(h4, four);
-      for(h=4; h<MAX_HARMONICS; h += 4)
-      {
+         phase4 = _mm_set1_ps(-1.0f + phase/GMATH_PI);
+         freq4 = _mm_set1_ps(freq);
+         h4 = _mm_set_ps(4.0f, 3.0f, 2.0f, 1.0f);
+
          nfreq = _mm_div_ps(freq4, h4);
-         ngain = _mm_and_ps(_mm_cmplt_ps(two, nfreq), _mm_load_ps(harmonics+h));
-         if (_mm_testz_ps_sse2(ngain))
+         ngain = _mm_and_ps(_mm_cmplt_ps(two, nfreq), _mm_load_ps(harmonics));
+         hdt = _mm_div_ps(two, nfreq);
+
+         ptr = rv;
+         i = no_samples;
+         s = phase4;
+         do
          {
-            hdt = _mm_div_ps(two, nfreq);
+            __m128 rv = fast_sin4_sse2(s);
 
-            ptr = rv;
-            i = no_samples;
-            s = phase4;
-            do
-            {
-               __m128 rv = fast_sin4_sse2(s);
+            *ptr++ = hsum_ps_sse2(_mm_mul_ps(ngain, rv));
 
-               *ptr++ += hsum_ps_sse2(_mm_mul_ps(ngain, rv));
-
-               s = _mm_add_ps(s, hdt);
-               s = _mm_sub_ps(s, _mm_and_ps(two, _mm_cmpge_ps(s, one)));
-            }
-            while (--i);
+            s = _mm_add_ps(s, hdt);
+            s = _mm_sub_ps(s, _mm_and_ps(two, _mm_cmpge_ps(s, one)));
          }
+         while (--i);
+
          h4 = _mm_add_ps(h4, four);
+         for(h=4; h<MAX_HARMONICS; h += 4)
+         {
+            nfreq = _mm_div_ps(freq4, h4);
+            ngain = _mm_and_ps(_mm_cmplt_ps(two, nfreq), _mm_load_ps(harmonics+h));
+            if (_mm_testz_ps_sse2(ngain))
+            {
+               hdt = _mm_div_ps(two, nfreq);
+
+               ptr = rv;
+               i = no_samples;
+               s = phase4;
+               do
+               {
+                  __m128 rv = fast_sin4_sse2(s);
+
+                  *ptr++ += hsum_ps_sse2(_mm_mul_ps(ngain, rv));
+
+                  s = _mm_add_ps(s, hdt);
+                  s = _mm_sub_ps(s, _mm_and_ps(two, _mm_cmpge_ps(s, one)));
+               }
+               while (--i);
+            }
+            h4 = _mm_add_ps(h4, four);
+         }
       }
+      break;
+   default:
+      break;
    }
    return rv;
 }

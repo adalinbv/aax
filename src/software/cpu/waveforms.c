@@ -81,7 +81,7 @@ _aax_atanf(float v) {
 }
 
 void
-_bufferMixWaveform(int32_t* data, _data_t *scratch, enum wave_types wtype, float freq, char bps, size_t no_samples, float gain, float phase, unsigned char modulate, limitType limiter)
+_bufferMixWaveform(int32_t* data, _data_t *scratch, enum aaxSourceType wtype, float freq, char bps, size_t no_samples, float gain, float phase, unsigned char modulate, limitType limiter)
 {
    gain *= _gains[wtype];
    if (data && gain && no_samples*sizeof(int32_t) < _aaxDataGetSize(scratch))

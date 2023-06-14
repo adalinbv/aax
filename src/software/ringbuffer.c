@@ -1291,40 +1291,17 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSour
       f = rb->get_paramf(rb, RB_FREQUENCY)/f;
       switch (type)
       {
-      case AAX_SINE:
-         _bufferMixWaveform(ptr, scratch, _SINE_WAVE, f, bps, no_samples,
-                            ratio, phase, modulate, limiter);
-         rv = AAX_TRUE;
-         break;
-      case AAX_SQUARE:
-         _bufferMixWaveform(ptr, scratch, _SQUARE_WAVE, f, bps, no_samples,
-                            ratio, phase, modulate, limiter);
-         rv = AAX_TRUE;
-         break;
-      case AAX_TRIANGLE:
-         _bufferMixWaveform(ptr, scratch, _TRIANGLE_WAVE, f, bps, no_samples,
-                            ratio, phase, modulate, limiter);
-         rv = AAX_TRUE;
-         break;
-      case AAX_SAWTOOTH:
-         _bufferMixWaveform(ptr, scratch, _SAWTOOTH_WAVE, f, bps, no_samples,
-                            ratio, phase, modulate, limiter);
-         rv = AAX_TRUE;
-         break;
-      case AAX_IMPULSE:
-         _bufferMixWaveform(ptr, scratch, _IMPULSE_WAVE, f, bps, no_samples,
-                            ratio, phase, modulate, limiter);
-         rv = AAX_TRUE;
-         break;
-      case AAX_CYCLOID:
-         _bufferMixWaveform(ptr, scratch, _CYCLOID_WAVE, f, bps, no_samples,
-                            ratio, phase, modulate, limiter);
-         rv = AAX_TRUE;
-         break;
       case AAX_CONSTANT:
-          _bufferMixWaveform(ptr, scratch, _CONSTANT_VALUE, f, bps, no_samples,
+      case AAX_SAWTOOTH:
+      case AAX_SQUARE:
+      case AAX_TRIANGLE:
+      case AAX_SINE:
+      case AAX_CYCLOID:
+      case AAX_IMPULSE:
+         _bufferMixWaveform(ptr, scratch, type, f, bps, no_samples,
                             ratio, phase, modulate, limiter);
          rv = AAX_TRUE;
+         break;
       default:
          break;
       }
