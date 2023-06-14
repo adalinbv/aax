@@ -1336,9 +1336,11 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
 {
    enum aaxProcessingType ptype = AAX_OVERWRITE;
    enum aaxSourceType wtype = AAX_SINE;
-   float phase, pitch, ratio;
    float staticity = 0.0f;
    float random = 0.0f;
+   float phase = 0.0f;
+   float pitch = 1.0f;
+   float ratio = 0.0f;
    int midi_mode;
 
    midi_mode = handle->midi_mode;
@@ -1356,76 +1358,57 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
 
    if (xmlAttributeExists(xwid, "ratio")) {
       ratio = xmlAttributeGetDouble(xwid, "ratio");
-   } else {
-      ratio = xmlNodeGetDouble(xwid, "ratio");
    }
    if (xmlAttributeExists(xwid, "pitch")) {
       pitch = xmlAttributeGetDouble(xwid, "pitch");
-   } else {
-      pitch = xmlNodeGetDouble(xwid, "pitch");
    }
    if (xmlAttributeExists(xwid, "phase")) {
       phase = xmlAttributeGetDouble(xwid, "phase");
-   } else {
-      phase = xmlNodeGetDouble(xwid, "phase");
    }
-   if (midi_mode == AAX_RENDER_NORMAL)
-   {
-      if (xmlAttributeExists(xwid, "staticity")) {
-         staticity = xmlAttributeGetDouble(xwid, "staticity");
-      } else {
-         staticity = xmlNodeGetDouble(xwid, "staticity");
-      }
+   if (midi_mode == AAX_RENDER_NORMAL && xmlAttributeExists(xwid, "staticity")){
+      staticity = xmlAttributeGetDouble(xwid, "staticity");
    }
    if (xmlAttributeExists(xwid, "random")) {
       random = xmlAttributeGetDouble(xwid, "random");
-   } else {
-      random = xmlNodeGetDouble(xwid, "random");
    }
 
-   if (!xmlAttributeCompareString(xwid, "src", "brownian-noise")) {
-       wtype = AAX_BROWNIAN_NOISE;
-       if (midi_mode) pitch = 1.0f;
-   }
-   else if (!xmlAttributeCompareString(xwid, "src","white-noise")) {
-       wtype = AAX_WHITE_NOISE;
-       if (midi_mode) pitch = 1.0f;
-   }
-   else if (!xmlAttributeCompareString(xwid, "src","pink-noise")) {
-       wtype = AAX_PINK_NOISE;
-       if (midi_mode) pitch = 1.0f;
-   }
-   else if (!xmlAttributeCompareString(xwid, "src", "square")) {
-      wtype = AAX_SQUARE;
-   }
-   else if (!xmlAttributeCompareString(xwid, "src", "triangle")) {
-       wtype = AAX_TRIANGLE;
-   }
-   else if (!xmlAttributeCompareString(xwid, "src", "sawtooth")) {
+   if (!xmlAttributeCompareString(xwid, "src", "sawtooth")) {
        wtype = AAX_SAWTOOTH;
-   }
-   else if (!xmlAttributeCompareString(xwid, "src", "impulse")) {
-       wtype = AAX_IMPULSE;
-   }
-   else if (!xmlAttributeCompareString(xwid, "src", "cycloid")) {
-       wtype = AAX_CYCLOID;
-   }
-   else if (!xmlAttributeCompareString(xwid, "src", "constant")) {
-       wtype = AAX_CONSTANT;
-   }
-   else {   // !xmlAttributeCompareString(xwid, "src", "sine")
+   } else if (!xmlAttributeCompareString(xwid, "src", "square")) {
+      wtype = AAX_SQUARE;
+   } else if (!xmlAttributeCompareString(xwid, "src", "triangle")) {
+       wtype = AAX_TRIANGLE;
+   } else if (!xmlAttributeCompareString(xwid, "src", "sine")) {
       wtype = AAX_SINE;
+   } else if (!xmlAttributeCompareString(xwid, "src", "cycloid")) {
+       wtype = AAX_CYCLOID;
+   } else if (!xmlAttributeCompareString(xwid, "src", "impulse")) {
+       wtype = AAX_IMPULSE;
+   } else if (!xmlAttributeCompareString(xwid, "src", "true")) {
+       wtype = AAX_TRUE;
+   }
+   else if (!xmlAttributeCompareString(xwid, "src","white-noise"))
+   {
+       wtype = AAX_WHITE_NOISE;
+       if (midi_mode != AAX_RENDER_NORMAL) pitch = 1.0f;
+   }
+   else if (!xmlAttributeCompareString(xwid, "src","pink-noise"))
+   {
+       wtype = AAX_PINK_NOISE;
+       if (midi_mode != AAX_RENDER_NORMAL) pitch = 1.0f;
+   }
+   else if (!xmlAttributeCompareString(xwid, "src", "brownian-noise"))
+   {
+       wtype = AAX_BROWNIAN_NOISE;
+       if (midi_mode != AAX_RENDER_NORMAL) pitch = 1.0f;
+   }
+   else {
+      wtype = AAX_WAVE_NONE;
    }
 
    if (xmlAttributeExists(xwid, "processing"))
    {
-      if (!xmlAttributeCompareString(xwid,"processing","modulate"))
-      {
-         ptype = AAX_RINGMODULATE;
-         if (!ratio) ratio = 1.0f;
-         if (!pitch) pitch = 1.0f;
-      }
-      else if (!xmlAttributeCompareString(xwid,"processing","add"))
+      if (!xmlAttributeCompareString(xwid, "processing", "add"))
       {
          ptype = AAX_ADD;
          if (!ratio) ratio = 1.0f;
@@ -1433,7 +1416,13 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
          pitch *= pitch_factor;
          ratio *= ratio_factor;
       }
-      else if (!xmlAttributeCompareString(xwid,"processing","mix"))
+      else if (!xmlAttributeCompareString(xwid, "processing", "modulate"))
+      {
+         ptype = AAX_RINGMODULATE;
+         if (!ratio) ratio = 1.0f;
+         if (!pitch) pitch = 1.0f;
+      }
+      else if (!xmlAttributeCompareString(xwid, "processing", "mix"))
       {
          ptype = AAX_MIX;
          if (!ratio) ratio = 0.5f;
@@ -1442,39 +1431,6 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
          ratio *= ratio_factor;
       }
       else if (!xmlAttributeCompareString(xwid, "processing", "overwrite"))
-      {
-         ptype = AAX_OVERWRITE;
-         if (!ratio) ratio = 1.0f;
-         if (!pitch) pitch = 1.0f;
-         pitch *= pitch_factor;
-         ratio *= ratio_factor;
-      }
-   }
-   else
-   {
-      if (!xmlNodeCompareString(xwid, "processing", "modulate"))
-      {
-         ptype = AAX_RINGMODULATE;
-         if (!ratio) ratio = 1.0f;
-         if (!pitch) pitch = 1.0f;
-      }
-      else if (!xmlNodeCompareString(xwid, "processing", "add"))
-      {
-         ptype = AAX_ADD;
-         if (!ratio) ratio = 1.0f;
-         if (!pitch) pitch = 1.0f;
-         pitch *= pitch_factor;
-         ratio *= ratio_factor;
-      }
-      else if (!xmlNodeCompareString(xwid, "processing", "mix"))
-      {
-         ptype = AAX_MIX;
-         if (!ratio) ratio = 0.5f;
-         if (!pitch) pitch = 1.0f;
-         pitch *= pitch_factor;
-         ratio *= ratio_factor;
-      }
-      else //!xmlNodeCompareString(xwid, "processing", "overwrite")
       {
          ptype = AAX_OVERWRITE;
          if (!ratio) ratio = 1.0f;
@@ -2381,7 +2337,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
          ratio = 2.0f*(1.0f - ratio_orig);
          if ((wave >= AAX_1ST_WAVE && wave <= AAX_LAST_WAVE) ||
              (wave >= AAX_1ST_NOISE && wave <= AAX_LAST_NOISE))
-         {  
+         {
             ratio /= 2;
          }
 
