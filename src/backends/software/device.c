@@ -441,9 +441,7 @@ _aaxLoopbackDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned 
 void
 _aaxSoftwareDriver3dPrepare(void* src, const void *data)
 {
-   assert(fp2dpos);
-   assert(fp3d);
-   assert(info);
+   assert(data);
    assert(src);
 
    _aaxEmitterPrepare3d(src, data);

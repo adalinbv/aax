@@ -412,8 +412,6 @@ _freqfilter_reset(void *data)
 void
 _freqfilter_data_swap( _aaxRingBufferFreqFilterData *dflt, _aaxRingBufferFreqFilterData *sflt)
 {
-   assert(dst->data_size == src->data_size);
-
    _lfo_swap(dflt->lfo, sflt->lfo);
    memcpy(dflt->coeff, sflt->coeff, sizeof(float[4*_AAX_MAX_STAGES]));
    dflt->Q = sflt->Q;
