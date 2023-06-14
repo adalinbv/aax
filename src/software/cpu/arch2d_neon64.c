@@ -326,7 +326,7 @@ _aax_generate_waveform_neon64(float32_ptr rv, size_t no_samples, float freq, flo
          }
       }
       break;
-   defaukt:
+   default:
       break;
    }
    return rv;
