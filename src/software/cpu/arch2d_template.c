@@ -64,14 +64,12 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
 
       if (wtype == AAX_CONSTANT)
       {
-printf("_CONSTANT_VALUE\n");
          do {
             *ptr++ = 1.0f;
          } while (--i);
       }
       else if (wtype == AAX_CYCLOID)
       {
-printf("_CYCLOID_WAVE\n");
          float hdt = 2.0f/freq;
          float s = -1.0f + phase/GMATH_PI;
 
