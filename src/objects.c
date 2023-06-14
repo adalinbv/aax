@@ -575,7 +575,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
                } else if (state < 1) {
                   state = 0;
                }
-               state |= AAX_MIDI_RELEASE_FACTOR;
+               state |= AAX_RELEASE_FACTOR;
             }
             slen = xmlAttributeCopyString(xid, "src", src, 64);
             if (slen)

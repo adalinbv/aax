@@ -316,25 +316,85 @@ static inline std::string to_string(enum aaxEffectType type) {
 static inline std::string to_string(enum aaxSourceType type)
 {
     if (!type) return "{}";
-    std::string result;
-    if (type & AAX_INVERSE) result += "inverse ";
-    if (type & AAX_CONSTANT) result += "constant | ";
-    if (type & AAX_TRIANGLE) result += "triangle | ";
-    if (type & AAX_SINE) result += "sine | ";
-    if (type & AAX_SQUARE) result += "square | ";
-    if (type & AAX_SAWTOOTH) result += " sawtooth | ";
-    if (type & AAX_IMPULSE) result += " impulse | ";
-    if (type & AAX_WHITE_NOISE) result += "white noise | ";
-    if (type & AAX_PINK_NOISE) result += "pink noise | ";
-    if (type & AAX_BROWNIAN_NOISE) result += "brownian noise | ";
-    if (type & AAX_ENVELOPE_FOLLOW) result += "envelope follow | ";
 
-    if (type & AAX_6DB_OCT) result += "6dB/oct ";
-    else if (type & AAX_12DB_OCT) result += "12dB/oct ";
-    else if (type & AAX_24DB_OCT) result += "24dB/oct ";
-    else if (type & AAX_36DB_OCT) result += "36dB/oct ";
-    else if (type & AAX_48DB_OCT) result += "48dB/oct ";
-    if (type & AAX_BESSEL) result += "bessel";
+    bool m = false;
+    std::string result;
+
+    if (type & AAX_REPEAT_MASK);
+    {
+        /* timed gain filter */
+        result += "repeat: ";
+        result += std::to_str(type & AAX_REPEAT_MASK);
+        return result;
+    }
+
+    if (type & AAX_INVERSE) result += "inverse-";
+
+    enum aaxSourceType wtype = type & AAX_WAVEFORM_MASK;
+    if (wtype == AAX_CONSTANT) result += "constant";
+    else if (wtype == AAX_SAWTOOTH) result += "sawtooth";
+    else if (wtype == AAX_SQUARE) result += "square";
+    else if (wtype == AAX_TRIANGLE) result += "triangle";
+    else if (wtype == AAX_SINE) result += "sine";
+    else if (wtype == AAX_CYCLOID) result += "cycloid";
+    else if (wtype == AAX_IMPULSE) result += "impulse";
+    if (wtype) m = true;
+
+    if (type & AAX_TIMED_TRANSITION)
+    {
+        if (m) result += " | ";
+        result += "timed";
+        m = true;
+    }
+    else if (type & AAX_ENVELOPE_FOLLOW)
+    {
+        if (m) result += " | ";
+        result += "envelope follow";
+        m = true;
+    }
+
+    if (type & AAX_ENVELOPE_FOLLOW_LOG)
+    {
+        if (m) result += " | ";
+        result += "exponential";
+        m = true;
+    }
+
+    enum aaxSourceType otype = type & AAX_ORDER_MASK;
+    if (otype)
+    {
+        /* frequency filter */
+        if (m) result += " | ";
+        if (otype == AAX_6DB_OCT) result += "6dB/oct";
+        else if (otype == AAX_12DB_OCT) result += "12dB/oct";
+        else if (otype == AAX_24DB_OCT) result += "24dB/oct";
+        else if (otype == AAX_36DB_OCT) result += "36dB/oct";
+        else if (otype == AAX_48DB_OCT) result += "48dB/oct";
+        else if (otype == AAX_EFFECT_1ST_ORDER) result += "1st_order";
+        else if (otype == AAX_EFFECT_2ND_ORDER) result += "2nd_order";
+        if (type & AAX_BESSEL)
+        {
+            if (m) result += " | ";
+            result += "bessel";
+            m = true;
+        }
+    }
+
+    enum aaxSourceType ntype = type & AAX_NOISE_MASK;
+    if (ntype && m) result += " | ";
+    if (ntype == AAX_WHITE_NOISE) result += "white noise";
+    else if (ntype == AAX_PINK_NOISE) result += "pink noise";
+    else if (ntype == AAX_BROWNIAN_NOISE) result += "brownian noise";
+    else if (ntype == AAX_RANDOMNESS) result += "randomness";
+    else if (ntype == AAX_RANDOM_SELECT) result += "random";
+    if (ntype) m = true;
+
+    if (type & AAX_LFO_STEREO)
+    {
+        if (m) result += " | ";
+        result += "stereo";
+        m = true;
+    }
 
     return "{" + result.substr(0, result.size() - 3) + "}";
 }
