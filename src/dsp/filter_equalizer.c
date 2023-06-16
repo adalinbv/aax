@@ -189,14 +189,15 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          for (s=0; s<_AAX_EQFILTERS; ++s)
          {
             float fc = filter->slot[s]->param[AAX_CUTOFF_FREQUENCY];
-            int stages, state = filter->slot[s]->src;
             int lp = (gain[s] >= gain[s+1]) ? AAX_TRUE : AAX_FALSE;
+            int stages, state = filter->slot[s]->src;
+            int ostate = state & AAX_ORDER_MASK;
 
             fc = CLIP_FREQUENCY(fc, fs);
             if (fc >= MAXIMUM_CUTOFF) stages = 0;
-            else if (state & AAX_48DB_OCT) stages = 4;
-            else if (state & AAX_36DB_OCT) stages = 3;
-            else if (state & AAX_24DB_OCT) stages = 2;
+            else if (ostate == AAX_48DB_OCT) stages = 4;
+            else if (ostate == AAX_36DB_OCT) stages = 3;
+            else if (ostate == AAX_24DB_OCT) stages = 2;
             else stages = 1;
 
             flt[s]->no_stages = stages;

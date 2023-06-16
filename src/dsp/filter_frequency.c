@@ -78,27 +78,25 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = AAX_FALSE;
-   int mask, istate, wstate;
+   int ostate, wstate;
    int resonance, stereo;
 
    assert(filter->info);
 
-   resonance = (state & AAX_RESONANCE_FACTOR) ? AAX_TRUE : AAX_FALSE;
-
-   mask = AAX_ALL_WAVEFORM_MASK | AAX_TIMED_TRANSITION | AAX_ENVELOPE_FOLLOW_MASK;
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
    state &= ~(AAX_LFO_STEREO | AAX_EFFECT_ORDER);
 
-   istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL|AAX_RANDOM_SELECT|AAX_ENVELOPE_FOLLOW_LOG);
-   if (istate == 0) istate = AAX_12DB_OCT;
-   wstate = istate & mask;
+   wstate = state & AAX_WAVEFORM_MASK;
+   ostate = state & AAX_ORDER_MASK;
+   resonance = (ostate == AAX_RESONANCE_FACTOR) ? AAX_TRUE : AAX_FALSE;
+   if (ostate == 0) ostate = AAX_12DB_OCT;
 
-   if ((istate >= AAX_1ST_ORDER && istate <= AAX_LAST_ORDER) ||
-       (wstate >= AAX_1ST_ORDER && wstate <= AAX_LAST_ORDER) ||
+   if ((ostate >= AAX_1ST_ORDER && ostate <= AAX_LAST_ORDER) || resonance ||
        (wstate >= AAX_CONSTANT && wstate <= AAX_LAST_WAVE) ||
-       wstate == AAX_RANDOMNESS       ||
-       wstate == AAX_TIMED_TRANSITION ||
-       wstate == AAX_ENVELOPE_FOLLOW)
+       wstate == AAX_RANDOMNESS     ||
+       state & AAX_RANDOM_SELECT    ||
+       state & AAX_TIMED_TRANSITION ||
+       state & AAX_ENVELOPE_FOLLOW_MASK)
    {
       _aaxRingBufferFreqFilterData *flt = filter->slot[0]->data;
 
@@ -149,10 +147,10 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
              flt->high_gain *= 0.9f;
          }
 
-         if (state & AAX_48DB_OCT) stages = 4;
-         else if (state & AAX_36DB_OCT) stages = 3;
-         else if (state & AAX_24DB_OCT) stages = 2;
-         else if (state & AAX_6DB_OCT) stages = 0;
+         if (ostate == AAX_48DB_OCT) stages = 4;
+         else if (ostate == AAX_36DB_OCT) stages = 3;
+         else if (ostate == AAX_24DB_OCT) stages = 2;
+         else if (ostate == AAX_6DB_OCT) stages = 0;
          else stages = 1;
 
          flt->no_stages = stages;
