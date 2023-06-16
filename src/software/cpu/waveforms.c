@@ -50,7 +50,7 @@
 #include "arch2d_simd.h"
 #include "waveforms.h"
 
-static float _gains[AAX_MAX_WAVE+1];
+static float _gains[AAX_MAX_WAVE];
 
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_add_data(int32_t*, const_float32_ptr, unsigned int, char, float, limitType);
@@ -83,7 +83,7 @@ _aax_atanf(float v) {
 void
 _bufferMixWaveform(int32_t* data, _data_t *scratch, enum aaxSourceType wtype, float freq, char bps, size_t no_samples, float gain, float phase, unsigned char modulate, limitType limiter)
 {
-   gain *= _gains[wtype];
+   gain *= _gains[wtype-AAX_1ST_WAVE];
    if (data && gain && no_samples*sizeof(int32_t) < _aaxDataGetSize(scratch))
    {
       float *ptr = _aaxDataGetData(scratch, 0);
@@ -179,8 +179,7 @@ _bufferMixBrownianNoise(int32_t* data, _data_t *scratch, size_t no_samples, char
 
 /* -------------------------------------------------------------------------- */
 
-static float _gains[AAX_MAX_WAVE+1] = {
-    1.0f, // AAX_CONSTANT_VALUE
+static float _gains[AAX_MAX_WAVE] = {
     0.7f, // AAX_SAWTOOTH_WAVE
     0.95f, // AAX_SQUARE_WAVE
     0.9f, // AAX_TRIANGLE_WAVE
@@ -189,16 +188,9 @@ static float _gains[AAX_MAX_WAVE+1] = {
     1.1f // AAX_IMPULSE_WAVE
 };
 
-ALIGN float _harmonics[AAX_MAX_WAVE+1][2*MAX_HARMONICS] =
+ALIGN float _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS] =
 {
-  /* AAX_CONSTANT_VALUE */
-  { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f
-  },
-
-  /* _SAWTOOTH_WAVE */
+  /* AAX_SAWTOOTH */
   { 1.f, 1.f/2.f, 1.f/3.f, 1.f/4.f, 1.f/5.f, 1.f/6.f, 1.f/7.f, 1.f/8.f,
     1.f/9.f, 1.f/10.f, 1.f/11.f, 1.f/12.f, 1.f/13.f, 1.f/14.f, 1.f/15.f,
     1.f/16.f, 1.f/17.f, 1.f/18.f, 1.f/19.f, 1.f/20.f, 1.f/21.f, 1.f/22.f,
@@ -206,28 +198,28 @@ ALIGN float _harmonics[AAX_MAX_WAVE+1][2*MAX_HARMONICS] =
     1.f/30.f, 1.f/31.f
   },
 
-  /* _SQUARE_WAVE */
+  /* AAX_SQUARE */
   { 1.f, 0.0f, 1.f/3.f, 0.f, 1.f/5.f, 0.f, 1.f/7.f, 0.f,
     1.f/9.f, 0.f, 1.f/11.f, 0.f, 1.f/13.f, 0.f, 1.f/15.f, 0.f,
     1.f/17.f, 0.f, 1.f/19.f, 0.f, 1.f/21.f, 0.f, 1.f/23.f, 0.f,
     1.f/25.f, 0.f, 1.f/27.f, 0.f, 1.f/29.f, 0.f, 1.f/31.f, 0.f
   },
 
-  /* _TRIANGLE_WAVE */
+  /* AAX_TRIANGLE */
   { 1.f, 0.f, -1.f/9.f, 0.f, 1.f/25.f, 0.f, -1.f/49.f, 0.f,
     1.f/81.f, 0.f, -1.f/121.f, 0.f, 1.f/169.f, 0.0f, -1.f/225.f, 0.f,
     1.f/289.f, 0.f, -1.f/361.f, 0.f, 1.f/441.f, 0.0f, -1.f/529.f, 0.f,
     1.f/625.f, 0.f, -1.f/729.f, 0.f, 1.f/841.f, 0.0f, -1.f/961.f, 0.f
   },
 
-  /* _SINE_WAVE */
+  /* AAX_SINE */
   { 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
     0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
     0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
     0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f
   },
 
-  /* CYCLOID_WAVE */
+  /* AAX_CYCLOID */
   { 1.f, 1.f/4.f, 1.f/8.f, 1.f/12.f, 1.f/16.f, 1.f/20.f, 1.f/24.0f,
     1.f/28.f, 1.f/32.f, 1.f/36.f, 1.f/40.f, 1.f/44.f, 1.f/48.f, 1.f/52.f,
     1.f/56.f, 1.f/60.f, 1.f/64.f, 1.f/68.f, 1.f/72.f, 1.f/76.f, 1.f/80.f,
@@ -235,7 +227,7 @@ ALIGN float _harmonics[AAX_MAX_WAVE+1][2*MAX_HARMONICS] =
     1.f/112.f, 1.f/116.f, 1.f/120.f, 1.f/124.f
   },
 
-  /* _IMPULSE_WAVE */
+  /* AAX_IMPULSE */
   { 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
     1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
     1.f/16.f, 1.f/16.f,

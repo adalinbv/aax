@@ -248,18 +248,17 @@ fast_atan4_neon64(float32x4_t x)
 float *
 _aax_generate_waveform_neon64(float32_ptr rv, size_t no_samples, float freq, float phase, enum aaxSourceType wtype)
 {
-   const_float32_ptr harmonics = _harmonics[wtype];
+   const_float32_ptr harmonics = _harmonics[wtype-AAX_1ST_WAVE];
 
    switch(wtype)
    {
-   case AAX_CONSTANT:
    case AAX_SINE:
-   case AAX_CYCLOID:
       rv = _aax_generate_waveform_cpu(rv, no_samples, freq, phase, wtype);
       break;
    case AAX_SAWTOOTH:
    case AAX_SQUARE:
    case AAX_TRIANGLE:
+   case AAX_CYCLOID:
    case AAX_IMPULSE:
       if (rv)
       {

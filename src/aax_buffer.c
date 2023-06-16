@@ -1335,7 +1335,7 @@ static int
 _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, float ratio_factor, float pitch_factor, float freq, unsigned int pitch_level, int voices, float spread, limitType limiter)
 {
    enum aaxProcessingType ptype = AAX_OVERWRITE;
-   enum aaxSourceType wtype = AAX_SINE;
+   enum aaxSourceType wtype = AAX_NONE;
    float staticity = 0.0f;
    float random = 0.0f;
    float phase = 0.0f;
