@@ -93,27 +93,12 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    if (istate == 0) istate = AAX_12DB_OCT;
    wstate = istate & mask;
 
-   /* can't use a switch statement because we're checking against wstate and istate */
-   if (wstate == AAX_6DB_OCT          ||
-       wstate == AAX_12DB_OCT         ||
-       wstate == AAX_24DB_OCT         ||
-       wstate == AAX_36DB_OCT         ||
-       wstate == AAX_48DB_OCT         ||
-       wstate == AAX_SAWTOOTH         ||
-       wstate == AAX_SQUARE           ||
-       wstate == AAX_TRIANGLE         ||
-       wstate == AAX_SINE             ||
-       wstate == AAX_CYCLOID          ||
-       wstate == AAX_IMPULSE          ||
+   if ((istate >= AAX_1ST_ORDER && istate <= AAX_LAST_ORDER) ||
+       (wstate >= AAX_1ST_ORDER && wstate <= AAX_LAST_ORDER) ||
+       (wstate >= AAX_CONSTANT && wstate <= AAX_LAST_WAVE) ||
        wstate == AAX_RANDOMNESS       ||
        wstate == AAX_TIMED_TRANSITION ||
-       wstate == AAX_ENVELOPE_FOLLOW  ||
-       istate == AAX_RANDOM_SELECT    ||
-       istate == AAX_6DB_OCT          ||
-       istate == AAX_12DB_OCT         ||
-       istate == AAX_24DB_OCT         ||
-       istate == AAX_36DB_OCT         ||
-       istate == AAX_48DB_OCT)
+       wstate == AAX_ENVELOPE_FOLLOW)
    {
       _aaxRingBufferFreqFilterData *flt = filter->slot[0]->data;
 
