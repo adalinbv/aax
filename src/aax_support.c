@@ -616,11 +616,6 @@ aaxGetSourceTypeByName(const char *wave)
                rv |= AAX_BESSEL;
             }
 
-            if (!strncasecmp(name, "resonance", len) ||
-                !strncasecmp(name, "Q", len)) {
-               rv |= AAX_RESONANCE_FACTOR;
-            }
-
             if (!strncasecmp(name, "triangle", len)) {
                rv |= AAX_TRIANGLE;
             } else if (!strncasecmp(name, "sine", len)) {
@@ -671,18 +666,6 @@ aaxGetSourceTypeByName(const char *wave)
                                    *(name+len-6) == '-')) {
                      len -= 6;
                   }
-
-                  if (!strncasecmp(name, "1st", len)) {
-                     rv |= AAX_1ST_ORDER;
-                  } else if (!strncasecmp(name, "2nd", len)) {
-                     rv |= AAX_2ND_ORDER;
-                  } else if (!strncasecmp(name, "4th", len)) {
-                     rv |= AAX_4TH_ORDER;
-                  } else if (!strncasecmp(name, "6th", len)) {
-                     rv |= AAX_6TH_ORDER;
-                  } else if (!strncasecmp(name, "8th", len)) {
-                     rv |= AAX_8TH_ORDER;
-                  }
                }
                else if (len >= 3 && !strncasecmp(name+len-3, "OCT", 3))
                {
@@ -690,18 +673,37 @@ aaxGetSourceTypeByName(const char *wave)
                                    *(name+len-4) == '/')) {
                      len -= 4;
                   }
+               }
 
-                  if (!strncasecmp(name, "6db", len)) {
-                     rv |= AAX_1ST_ORDER;
-                  } else if (!strncasecmp(name, "12db", len)) {
-                     rv |= AAX_2ND_ORDER;
-                  } else if (!strncasecmp(name, "24db", len)) {
-                     rv |= AAX_4TH_ORDER;
-                  } else if (!strncasecmp(name, "36db", len)) {
-                     rv |= AAX_6TH_ORDER;
-                  } else if (!strncasecmp(name, "48db", len)) {
-                     rv |= AAX_8TH_ORDER;
-                  }
+               if (!strncasecmp(name, "resonance", len) ||
+                   !strncasecmp(name, "Q", len))
+               {
+                  rv |= AAX_RESONANCE_FACTOR;
+               }
+               else if (!strncasecmp(name, "1st", len) ||
+                        !strncasecmp(name, "6db", len))
+               {
+                  rv |= AAX_1ST_ORDER;
+               }
+               else if (!strncasecmp(name, "2nd", len) ||
+                        !strncasecmp(name, "12db", len))
+               {
+                  rv |= AAX_2ND_ORDER;
+               }
+               else if (!strncasecmp(name, "4th", len) ||
+                        !strncasecmp(name, "24db", len))
+               {
+                  rv |= AAX_4TH_ORDER;
+               }
+               else if (!strncasecmp(name, "6th", len) ||
+                        !strncasecmp(name, "36db", len))
+               {
+                  rv |= AAX_6TH_ORDER;
+               }
+               else if (!strncasecmp(name, "8th", len) ||
+                        !strncasecmp(name, "48db", len))
+               {
+                  rv |= AAX_8TH_ORDER;
                }
             } /* frequency filter */
          }
