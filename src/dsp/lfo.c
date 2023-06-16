@@ -183,25 +183,25 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
    {
       switch (lfo->state & ~AAX_INVERSE)
       {
-       case AAX_CONSTANT: /* equals to AAX_TRUE */
+      case AAX_CONSTANT: /* equals to AAX_TRUE */
          lfo->get = _aaxLFOGetFixedValue;
          break;
-       case AAX_SAWTOOTH:
+      case AAX_SAWTOOTH:
          lfo->get = _aaxLFOGetSawtooth;
          break;
-       case AAX_SQUARE:
+      case AAX_SQUARE:
          lfo->get = _aaxLFOGetSquare;
          break;
-       case AAX_TRIANGLE:
+      case AAX_TRIANGLE:
          lfo->get = _aaxLFOGetTriangle;
          break;
-       case AAX_SINE:
-       lfo->get = _aaxLFOGetSine;
+      case AAX_SINE:
+         lfo->get = _aaxLFOGetSine;
          break;
-       case AAX_CYCLOID:
+      case AAX_CYCLOID:
          lfo->get = _aaxLFOGetCycloid;
          break;
-       case AAX_IMPULSE:
+      case AAX_IMPULSE:
          lfo->get = _aaxLFOGetImpulse;
          break;
       case AAX_RANDOMNESS:
