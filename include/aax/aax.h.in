@@ -548,7 +548,7 @@ enum aaxSourceType
    AAX_SINE                  = 0x0005,
    AAX_CYCLOID               = 0x0006,
    AAX_IMPULSE               = 0x0007,      AAX_LAST_WAVE = AAX_IMPULSE,
-   AAX_MAX_WAVE              = 7,
+   AAX_MAX_WAVE              = (AAX_LAST_WAVE-AAX_1ST_WAVE+1),
 
    AAX_INVERSE_SAWTOOTH      = (AAX_INVERSE | AAX_SAWTOOTH),
    AAX_INVERSE_SQUARE        = (AAX_INVERSE | AAX_SQUARE),
@@ -563,7 +563,7 @@ enum aaxSourceType
    AAX_BROWNIAN_NOISE        = 0x0030,      AAX_LAST_NOISE = AAX_BROWNIAN_NOISE,
    AAX_RANDOMNESS            = 0x00E0,
    AAX_RANDOM_SELECT         = 0x00F0,
-   AAX_MAX_NOISE             = 3,
+   AAX_MAX_NOISE             = (AAX_LAST_NOISE-AAX_1ST_NOISE+1),
 
    AAX_WAVEFORM_MASK         = 0x000F,
    AAX_NOISE_MASK            = 0x00F0,
