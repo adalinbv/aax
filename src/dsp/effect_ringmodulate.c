@@ -85,7 +85,7 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
    state &= ~AAX_LFO_STEREO;
 
    effect->state = state;
-   switch (state & ~AAX_INVERSE)
+   switch (state & ~(AAX_INVERSE|AAX_LFO_EXPONENTIAL))
    {
    case AAX_CONSTANT:
    case AAX_SAWTOOTH:
@@ -95,9 +95,8 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
    case AAX_CYCLOID:
    case AAX_IMPULSE:
    case AAX_RANDOMNESS:
-   case AAX_TIMED_TRANSITION:
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_LOG:
+   case AAX_TIMED_TRANSITION:
    {
       _aaxRingBufferModulatorData *modulator = effect->slot[0]->data;
       if (modulator == NULL)

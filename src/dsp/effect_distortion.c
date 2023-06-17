@@ -82,13 +82,12 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
    int mask;
 
    effect->state = state;
-   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   mask = (AAX_LFO_STEREO|AAX_INVERSE|AAX_LFO_EXPONENTIAL);
    switch (state & ~mask)
    {
    case AAX_RANDOMNESS:
    case AAX_TIMED_TRANSITION:
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_MASK:
    {
       _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
 
@@ -110,7 +109,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
 
          lfo = data->lfo;
          _lfo_setup(lfo, effect->info, effect->state);
-         if (state & AAX_ENVELOPE_FOLLOW_LOG) {
+         if (state & AAX_LFO_EXPONENTIAL) {
             lfo->convert = _exp_distortion;
          }
 

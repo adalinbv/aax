@@ -571,6 +571,8 @@ static enum aaxSourceType
 aaxGetSourceTypeByName(const char *wave)
 {
    enum aaxSourceType rv = AAX_WAVE_NONE;
+   int mask;
+
    if (wave)
    {
       char *name = (char *)wave;
@@ -647,7 +649,7 @@ aaxGetSourceTypeByName(const char *wave)
                        !strncasecmp(name, "log", len) ||
                        !strncasecmp(name, "exp", len))
             {
-               rv |= AAX_ENVELOPE_FOLLOW_LOG;
+               rv |= AAX_LFO_EXPONENTIAL;
             } else if (!strncasecmp(name, "1st-order", len)) {
                 rv |= AAX_EFFECT_1ST_ORDER;
             } else if (!strncasecmp(name, "2nd-order", len)) {
@@ -719,6 +721,11 @@ aaxGetSourceTypeByName(const char *wave)
       while(last);
    }
 
+   /* if only exponential is defined then assume exponential envelope following */
+   mask = (AAX_LFO_EXPONENTIAL|AAX_ENVELOPE_FOLLOW|AAX_TIMED_TRANSITION|AAX_WAVEFORM_MASK);
+   if ((rv & mask) == AAX_LFO_EXPONENTIAL) {
+      rv |= AAX_ENVELOPE_FOLLOW;
+   }
 
    return rv;
 }

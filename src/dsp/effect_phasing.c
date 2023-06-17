@@ -74,7 +74,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
-   int mask, istate, wstate;
+   int mask, wstate;
 
    assert(effect->info);
 
@@ -82,15 +82,14 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
       state |= (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
    }
 
-   mask = AAX_ALL_WAVEFORM_MASK | AAX_TIMED_TRANSITION | AAX_ENVELOPE_FOLLOW_MASK;
-   istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL|AAX_RANDOM_SELECT|
-                      AAX_ENVELOPE_FOLLOW_LOG);
-   if (istate == 0) istate = AAX_12DB_OCT;
-   wstate = istate & mask;
+   wstate = state & ~AAX_STATE_MASK;
+   if ((wstate & AAX_ORDER_MASK) == 0) {
+      state |= AAX_2ND_ORDER;
+   }
+
+   mask = (AAX_LFO_STEREO|AAX_INVERSE|AAX_LFO_EXPONENTIAL|AAX_EFFECT_ORDER_MASK);
 
    effect->state = state;
-   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG|
-           AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
    switch (state & ~mask)
    {
    case AAX_CONSTANT:
@@ -101,9 +100,8 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
    case AAX_CYCLOID:
    case AAX_IMPULSE:
    case AAX_RANDOMNESS:
-   case AAX_TIMED_TRANSITION:
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_MASK:
+   case AAX_TIMED_TRANSITION:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
       float feedback = effect->slot[1]->param[AAX_FEEDBACK_GAIN & 0xF];
@@ -255,7 +253,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
                   lfo->min = fc;
                   lfo->max = fmax;
 
-                  if (state & AAX_ENVELOPE_FOLLOW_LOG)
+                  if (state & AAX_LFO_EXPONENTIAL)
                   {
                      lfo->convert = _logarithmic;
                      if (fabsf(lfo->max - lfo->min) < 200.0f)

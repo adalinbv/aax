@@ -318,7 +318,7 @@ enum aaxSetupType
    AAX_SHARED_DATA_DIR = 0x4000,
 
    /* MIDI */
-   AAX_MIDI_RELEASE_FACTOR = 0x04000000, /* same as AAX_RELEASE_FACTOR */
+   AAX_MIDI_RELEASE_FACTOR = 0x02000000, /* same as AAX_RELEASE_FACTOR */
    AAX_MIDI_ATTACK_FACTOR,
    AAX_MIDI_DECAY_FACTOR,
    AAX_MIDI_ATTACK_VELOCITY_FACTOR,
@@ -523,23 +523,25 @@ enum aaxParameter {	/* Filter & Effect parameter number definitions */
 
 enum aaxSourceType
 {
-   AAX_LFO_STEREO            = 0x80000000,
-   AAX_INVERSE               = 0x40000000,
-   AAX_TIMED_TRANSITION      = 0x20000000,
+   AAX_INVERSE               = 0x80000000,
+   AAX_LFO_STEREO            = 0x40000000,
+   AAX_LFO_EXPONENTIAL       = 0x20000000, /* logarithmic or exponential      */
    AAX_ENVELOPE_FOLLOW       = 0x10000000,
-   AAX_ENVELOPE_FOLLOW_LOG   = 0x08000000,
-   AAX_RANDOM_SELECT         = 0x04000000,
+   AAX_TIMED_TRANSITION      = 0x08000000,
+   AAX_RANDOM_SELECT         = 0x04000000, /* select a value within the range */
+   /* phasing, chorus, flanging, delay-line and reverb */
+   AAX_EFFECT_ORDER          = 0x02000000,
    /* frequency filter */
    AAX_BESSEL                = 0x02000000,
    /* timed gain filter */
    AAX_RELEASE_FACTOR        = 0x02000000, /* same as AAX_MIDI_RELEASE_FACTOR */
    AAX_REPEAT                = 0x01000000,
-   AAX_SOURCE_INFO_MASK      = 0xFF000000,
 
-   AAX_ENVELOPE_FOLLOW_MASK  = (AAX_ENVELOPE_FOLLOW | AAX_ENVELOPE_FOLLOW_LOG),
+   AAX_STATE_MASK            = 0xFF000000, /* bit-mask covering all the above */
+
+   AAX_ENVELOPE_FOLLOW_EXP   = (AAX_ENVELOPE_FOLLOW | AAX_LFO_EXPONENTIAL),
+   AAX_TIMED_TRANSITION_EXP  = (AAX_TIMED_TRANSITION | AAX_LFO_EXPONENTIAL),
    AAX_INVERSE_ENVELOPE_FOLLOW = (AAX_INVERSE | AAX_ENVELOPE_FOLLOW),
-   AAX_INVERSE_ENVELOPE_FOLLOW_LOG = (AAX_INVERSE | AAX_ENVELOPE_FOLLOW_LOG),
-   AAX_INVERSE_TIMED_TRANSITION = (AAX_INVERSE | AAX_TIMED_TRANSITION),
 
    /* waveform types */
    AAX_WAVE_NONE 	     = 0,
@@ -566,8 +568,8 @@ enum aaxSourceType
    AAX_RANDOMNESS            = 0x00F0,
    AAX_MAX_NOISE             = (AAX_LAST_NOISE-AAX_1ST_NOISE+1),
 
-   AAX_WAVEFORM_MASK         = 0x000F,
-   AAX_NOISE_MASK            = 0x00F0,
+   AAX_WAVEFORM_MASK         = 0x000F, /* bit-mask covering all waveforms   */
+   AAX_NOISE_MASK            = 0x00F0, /* bit-mask covering all noise types */
    AAX_ALL_WAVEFORM_MASK     = (AAX_WAVEFORM_MASK | AAX_NOISE_MASK),
 
    /* frequency filter, may be combined with waveforms and noise */
@@ -583,15 +585,16 @@ enum aaxSourceType
    AAX_8TH_ORDER             = 0x0800,      AAX_48DB_OCT = AAX_8TH_ORDER,
    AAX_LAST_ORDER            = AAX_8TH_ORDER,
    AAX_RESONANCE_FACTOR      = 0x0F00,
-   AAX_MAX_ORDER             = 8,
+   AAX_ORDER_MASK            = (AAX_RESONANCE_FACTOR | AAX_EFFECT_ORDER),
+   AAX_MAX_ORDER             = (AAX_LAST_ORDER - AAX_1ST_ORDER),
+
+   /* bit-mask covering all waveforms, noise types and filter orders */
+   AAX_WAVEVORM_ORDER_MASK   = (AAX_ORDER_MASK | AAX_ALL_WAVEFORM_MASK),
 
    /* phasing, chorus, flanging, delay-line and reverb */
-   AAX_EFFECT_ORDER          = AAX_REPEAT,
    AAX_EFFECT_1ST_ORDER      = (AAX_EFFECT_ORDER | AAX_1ST_ORDER),
    AAX_EFFECT_2ND_ORDER      = (AAX_EFFECT_ORDER | AAX_2ND_ORDER),
-   AAX_ORDER_MASK            = (0x0F00 | AAX_EFFECT_ORDER),
-
-   AAX_WAVEVORM_ORDER_MASK   = (AAX_ORDER_MASK|AAX_ALL_WAVEFORM_MASK),
+   AAX_EFFECT_ORDER_MASK     = (AAX_EFFECT_1ST_ORDER | AAX_EFFECT_2ND_ORDER),
 
    /* timed gain filter */
    AAX_REPEAT_MASK           = AAX_WAVEVORM_ORDER_MASK,

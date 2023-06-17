@@ -77,7 +77,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
    assert(filter->info);
 
    filter->state = state;
-   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   mask = (AAX_LFO_STEREO|AAX_INVERSE|AAX_LFO_EXPONENTIAL);
    switch (state & ~mask)
    {
    case AAX_CONSTANT:
@@ -141,7 +141,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
             lfo->delay = -filter->slot[0]->param[AAX_INITIAL_DELAY];
             lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
 
-            if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW)
+            if ((state & ~(AAX_INVERSE|AAX_LFO_EXPONENTIAL)) == AAX_ENVELOPE_FOLLOW)
             {
                lfo->min_sec = 0.5f*depth/lfo->fs;
                lfo->max_sec = 0.5f*depth/lfo->fs + lfo->min_sec;

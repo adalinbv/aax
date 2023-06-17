@@ -130,7 +130,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    }
 
    filter->state = state;
-   switch (state & ~(noise_mask|AAX_INVERSE))
+   switch (state & ~(noise_mask|AAX_INVERSE|AAX_LFO_EXPONENTIAL))
    {
    case AAX_CONSTANT:
    case AAX_TRIANGLE:
@@ -140,11 +140,8 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    case AAX_SAWTOOTH:
    case AAX_CYCLOID:
    case AAX_RANDOMNESS:
-   case AAX_TIMED_TRANSITION:
-   case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_LOG:
-   case AAX_ENVELOPE_FOLLOW_MASK:
+   case AAX_TIMED_TRANSITION:
    {
       _aaxRingBufferBitCrusherData *bitcrush = filter->slot[0]->data;
       if (bitcrush == NULL)
@@ -188,7 +185,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
 
          /* bit reduction */
          if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
-             (state & AAX_ENVELOPE_FOLLOW_LOG))
+             (state & AAX_LFO_EXPONENTIAL))
          {
             bitcrush->lfo.convert = _squared;
          } else {
@@ -222,7 +219,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
 
          depth = filter->slot[0]->param[AAX_NOISE_LEVEL];
          if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
-             (state & AAX_ENVELOPE_FOLLOW_LOG))
+             (state & AAX_LFO_EXPONENTIAL))
          {
             bitcrush->env.convert = _squared;
          } else {

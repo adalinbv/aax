@@ -118,13 +118,13 @@ void
 _lfo_setup(_aaxLFOData *lfo, void *i, int state)
 {
    _aaxMixerInfo *info = (_aaxMixerInfo*)i;
-   int log = (state & AAX_ENVELOPE_FOLLOW_LOG) ? AAX_TRUE : AAX_FALSE;
+   int exponential = (state & AAX_LFO_EXPONENTIAL) ? AAX_TRUE : AAX_FALSE;
    int stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
 
    lfo->fs = info->frequency;
    lfo->period_rate = info->period_rate;
-   lfo->convert = (log) ? _exponential : _linear;
-   lfo->state = state & ~(AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG|AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
+   lfo->convert = (exponential) ? _exponential : _linear;
+   lfo->state = state & ~(AAX_LFO_STEREO|AAX_LFO_EXPONENTIAL|AAX_EFFECT_ORDER_MASK);
    lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
    lfo->stereo_lnk = !stereo;
    lfo->depth = 1.0f;
@@ -208,13 +208,10 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
          lfo->get = _aaxLFOGetRandomness;
          break;
       case AAX_ENVELOPE_FOLLOW:
-      case AAX_ENVELOPE_FOLLOW_LOG:
-      case AAX_ENVELOPE_FOLLOW_MASK:
          lfo->get = _aaxLFOGetGainFollow;
          lfo->envelope = AAX_TRUE;
          break;
       case AAX_TIMED_TRANSITION:
-      case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):
          lfo->get = _aaxLFOGetTimed;
          break;
       default:
@@ -280,13 +277,12 @@ _lfo_set_timing(_aaxLFOData *lfo)
             lfo->value0[t] = lfo->max;
          }
 
-         switch (lfo->state & ~AAX_INVERSE)
+         switch (lfo->state)
          {
          case AAX_SAWTOOTH:
             lfo->step[t] *= 0.5f;
             break;
          case AAX_ENVELOPE_FOLLOW:
-         case AAX_ENVELOPE_FOLLOW_LOG:
          {
             lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
             lfo->value0[t] = 0.0f;
@@ -813,7 +809,7 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
          float step = env->step[stage];
          float fact = 1.0f;
 
-         if (fabsf(step) > LEVEL_128DB && env->state & AAX_ENVELOPE_FOLLOW_MASK)
+         if ((fabsf(step) > LEVEL_128DB) && (env->state & AAX_LFO_EXPONENTIAL))
          {
              if (rv > 1.0f) {
                 fact = _MIN(powf(rv, GMATH_E1), GMATH_E1);

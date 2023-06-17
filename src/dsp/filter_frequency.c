@@ -96,7 +96,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
        wstate == AAX_RANDOMNESS     ||
        state & AAX_RANDOM_SELECT    ||
        state & AAX_TIMED_TRANSITION ||
-       state & AAX_ENVELOPE_FOLLOW_MASK)
+       state & AAX_ENVELOPE_FOLLOW_EXP)
    {
       _aaxRingBufferFreqFilterData *flt = filter->slot[0]->data;
 
@@ -215,7 +215,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                lfo->min = fc;
                lfo->max = fmax;
 
-               if (state & AAX_ENVELOPE_FOLLOW_LOG)
+               if (state & AAX_LFO_EXPONENTIAL)
                {
                   lfo->convert = _logarithmic;
                   if (fabsf(lfo->max - lfo->min) < 200.0f)

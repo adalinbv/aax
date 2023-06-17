@@ -76,7 +76,7 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
    assert(effect->info);
 
    effect->state = state;
-   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   mask = (AAX_LFO_STEREO|AAX_INVERSE|AAX_LFO_EXPONENTIAL);
    switch (state & ~mask)
    {
    case AAX_CONSTANT:

@@ -75,17 +75,15 @@ _aaxCompressorSetState(_filter_t* filter, int state)
    aaxFilter rv = NULL;
    int mask;
 
-   state = state ? state|AAX_ENVELOPE_FOLLOW_MASK : AAX_FALSE;
+   state = state ? state|AAX_ENVELOPE_FOLLOW_EXP : AAX_FALSE;
    if (state & ~AAX_TRUE) {
       state &= ~AAX_TRUE;
    }
 
-   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   mask = (AAX_LFO_STEREO|AAX_INVERSE|AAX_LFO_EXPONENTIAL);
    switch (state & ~mask)
    {
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_LOG:
-   case AAX_ENVELOPE_FOLLOW_MASK:
    {
       _aaxLFOData* lfo = filter->slot[0]->data;
       if (lfo == NULL) {
@@ -100,8 +98,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
 			// AAX_LFO_DEPTH == AAX_COMPRESSION_RATIO
          depth = _MAX(filter->slot[0]->param[AAX_LFO_DEPTH], 0.01f);
          if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW ||
-             (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_LOG ||
-             (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_MASK)
+             (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_EXP)
          {
             if (filter->type == AAX_COMPRESSOR)
             {
@@ -134,11 +131,9 @@ _aaxCompressorSetState(_filter_t* filter, int state)
             lfo->step[t] /= filter->info->period_rate;
             lfo->value[t] = 1.0f;
 
-            switch (state & ~AAX_INVERSE)
+            switch (state & ~(AAX_INVERSE|AAX_LFO_EXPONENTIAL))
             {
             case AAX_ENVELOPE_FOLLOW:
-            case AAX_ENVELOPE_FOLLOW_LOG:
-            case AAX_ENVELOPE_FOLLOW_MASK:
             {
                if (filter->type == AAX_COMPRESSOR)
                {		// 10dB
@@ -169,11 +164,9 @@ _aaxCompressorSetState(_filter_t* filter, int state)
 
          if (depth > 0.001f)
          {
-            switch (state & ~AAX_INVERSE)
+            switch (state & ~(AAX_INVERSE|AAX_LFO_EXPONENTIAL))
             {
             case AAX_ENVELOPE_FOLLOW:
-            case AAX_ENVELOPE_FOLLOW_LOG:
-            case AAX_ENVELOPE_FOLLOW_MASK:
                lfo->envelope = AAX_TRUE;
                lfo->stereo_lnk = AAX_TRUE;
                if (filter->type == AAX_COMPRESSOR)
