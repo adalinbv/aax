@@ -188,6 +188,51 @@ static float _gains[AAX_MAX_WAVE] = {
     1.1f // AAX_IMPULSE_WAVE
 };
 
+ALIGN float _harmonic_phases[AAX_MAX_WAVE][2*MAX_HARMONICS] =
+{
+  /* AAX_SAWTOOTH */
+  { .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f
+  },
+
+  /* AAX_SQUARE */ 
+  { .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f
+  },
+
+  /* AAX_TRIANGLE */
+  { .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f
+  },
+
+  /* AAX_SINE */
+  { .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f
+  },
+
+  /* AAX_CYCLOID */
+  { .50f, .25f, .50f, .66f, .66f, .00f, .25f, .66f,
+    .33f, .33f, .50f, .50f, .25f, .75f, .66f, .75f,
+    .00f, .00f, .50f, .00f, .33f, .66f, .25f, .00f,
+    .66f, .25f, .50f, .50f, .25f, .66f, .00f, .50f
+  },
+
+  /* AAX_IMPULSE */
+  { .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f
+  }
+};
+
 ALIGN float _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS] =
 {
   /* AAX_SAWTOOTH */

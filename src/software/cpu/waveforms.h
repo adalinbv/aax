@@ -25,6 +25,7 @@
 // must be a multiple of 4 because of SIMD optimizations
 #define MAX_HARMONICS           16
 
+extern float ALIGN _harmonic_phases[AAX_MAX_WAVE][2*MAX_HARMONICS];
 extern float ALIGN _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS];
 
 #endif /* WAVEFORMS_H */
