@@ -59,45 +59,62 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
    const_float32_ptr harmonics = _harmonics[wtype-AAX_1ST_WAVE];
    if (rv)
    {
-      float ngain = harmonics[0];
-      float hdt = 2.0f/freq;
-      float s = -1.0f + phase/GMATH_PI;
       int i = no_samples;
       float *ptr = rv;
-      int h;
 
-      // first harmonic
-      do
+      if (wtype == AAX_CYCLOID)
       {
-         *ptr++ = ngain * FN(fast_sin,A)(s);
-         s = s+hdt;
-         if (s >= 1.0f) s -= 2.0f;
+         float hdt = 2.0f/freq;
+         float s = -1.0f + phase/GMATH_PI;
+
+         do
+         {
+            *ptr++ = 1.0f/FN(fast_inv_sqrt,A)(1.0f - s*s);
+            s = s+hdt;
+            if (s >= 1.0f) s -= 2.0f;
+         }
+         while (--i);
       }
-      while (--i);
-
-      // remaining harmonics, if required
-      if (wtype != AAX_SINE)
+      else
       {
-          for(h=1; h<MAX_HARMONICS; ++h)
-          {
-             float nfreq = freq/(h+1);
-             if (nfreq < 2.0f) break;    // higher than the nyquist-frequency
+         float ngain = harmonics[0];
+         float hdt = 2.0f/freq;
+         float s = -1.0f + phase/GMATH_PI;
+         int h;
 
-             ngain = harmonics[h];
-             if (ngain)
+         // first harmonic
+         do
+         {
+            *ptr++ = ngain * FN(fast_sin,A)(s);
+            s = s+hdt;
+            if (s >= 1.0f) s -= 2.0f;
+         }
+         while (--i);
+
+         // remaining harmonics, if required
+         if (wtype != AAX_SINE)
+         {
+             for(h=1; h<MAX_HARMONICS; ++h)
              {
-                int i = no_samples;
-                float hdt = 2.0f/nfreq;
-                float s = -1.0f + phase/GMATH_PI;
+                float nfreq = freq/(h+1);
+                if (nfreq < 2.0f) break;    // higher than the nyquist-frequency
 
-                ptr = rv;
-                do
+                ngain = harmonics[h];
+                if (ngain)
                 {
-                   *ptr++ += ngain * FN(fast_sin,A)(s);
-                   s = s+hdt;
-                   if (s >= 1.0f) s -= 2.0f;
+                   int i = no_samples;
+                   float hdt = 2.0f/nfreq;
+                   float s = -1.0f + phase/GMATH_PI;
+
+                   ptr = rv;
+                   do
+                   {
+                      *ptr++ += ngain * FN(fast_sin,A)(s);
+                      s = s+hdt;
+                      if (s >= 1.0f) s -= 2.0f;
+                   }
+                   while (--i);
                 }
-                while (--i);
             }
          }
       }
