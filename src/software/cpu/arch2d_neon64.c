@@ -248,6 +248,7 @@ fast_atan4_neon64(float32x4_t x)
 float *
 _aax_generate_waveform_neon64(float32_ptr rv, size_t no_samples, float freq, float phase, enum aaxSourceType wtype)
 {
+   const_float32_ptr phases = _harmonic_phases[wtype-AAX_1ST_WAVE];
    const_float32_ptr harmonics = _harmonics[wtype-AAX_1ST_WAVE];
 
    switch(wtype)
@@ -286,7 +287,8 @@ _aax_generate_waveform_neon64(float32_ptr rv, size_t no_samples, float freq, flo
 
          ptr = rv;
          i = no_samples;
-         s = phase8;
+         s = vadd2q_f32(phase8, vld2q_f32(phases));
+         s = vsub2q_f32(s, vand2q_f32(one, vcge2q_f32(s, one)));
          do
          {
             float32x4x2_t rv = fast_sin8_neon64(s);
@@ -309,7 +311,8 @@ _aax_generate_waveform_neon64(float32_ptr rv, size_t no_samples, float freq, flo
 
                ptr = rv;
                i = no_samples;
-               s = phase8;
+               s = vadd2q_f32(phase8, vld2q_f32(phases));
+               s = vsub2q_f32(s, vand2q_f32(one, vcge2q_f32(s, one)));
                do
                {
                   float32x4x2_t rv = fast_sin8_neon64(s);

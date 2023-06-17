@@ -1277,6 +1277,7 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
 float *
 _aax_generate_waveform_avx(float32_ptr rv, size_t no_samples, float freq, float phase, enum aaxSourceType wtype)
 {
+   const_float32_ptr phases = _harmonic_phases[wtype-AAX_1ST_WAVE];
    const_float32_ptr harmonics = _harmonics[wtype-AAX_1ST_WAVE];
 
    switch(wtype)
@@ -1294,7 +1295,7 @@ _aax_generate_waveform_avx(float32_ptr rv, size_t no_samples, float freq, float 
          __m256 phase8, freq8, h8;
          __m256 one, two, eight;
          __m256 ngain, nfreq;
-         __m256 hdt, s;
+         __m256 hdt, s, mask;
          int i, h;
          float *ptr;
 
@@ -1314,7 +1315,10 @@ _aax_generate_waveform_avx(float32_ptr rv, size_t no_samples, float freq, float 
 
          ptr = rv;
          i = no_samples;
-         s = phase8;
+         s = _mm256_add_ps(phase8, _mm256_load_ps(phases));
+
+         mask = _mm256_cmp_ps(s, one, _CMP_GT_OS);
+         s = _mm256_sub_ps(s, _mm256_and_ps(mask, one));
          do
          {
             __m256 rv = fast_sin8_avx(s);
@@ -1337,7 +1341,10 @@ _aax_generate_waveform_avx(float32_ptr rv, size_t no_samples, float freq, float 
 
                ptr = rv;
                i = no_samples;
-               s = phase8;
+               s = _mm256_add_ps(phase8, _mm256_load_ps(phases+h));
+
+               mask = _mm256_cmp_ps(s, one, _CMP_GT_OS);
+               s = _mm256_sub_ps(s, _mm256_and_ps(mask, one));
                do
                {
                   __m256 rv = fast_sin8_avx(s);

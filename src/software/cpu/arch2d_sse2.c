@@ -95,6 +95,7 @@ fast_atan4_sse2(__m128 x)
 float *
 _aax_generate_waveform_sse2(float32_ptr rv, size_t no_samples, float freq, float phase, enum aaxSourceType wtype)
 {
+   const_float32_ptr phases = _harmonic_phases[wtype-AAX_1ST_WAVE];
    const_float32_ptr harmonics = _harmonics[wtype-AAX_1ST_WAVE];
 
    switch(wtype)
@@ -132,7 +133,8 @@ _aax_generate_waveform_sse2(float32_ptr rv, size_t no_samples, float freq, float
 
          ptr = rv;
          i = no_samples;
-         s = phase4;
+         s = _mm_add_ps(phase4, _mm_load_ps(phases));
+         s = _mm_sub_ps(s, _mm_and_ps(one, _mm_cmpge_ps(s, one)));
          do
          {
             __m128 rv = fast_sin4_sse2(s);
@@ -155,7 +157,8 @@ _aax_generate_waveform_sse2(float32_ptr rv, size_t no_samples, float freq, float
 
                ptr = rv;
                i = no_samples;
-               s = phase4;
+               s = _mm_add_ps(phase4, _mm_load_ps(phases+h));
+               s = _mm_sub_ps(s, _mm_and_ps(one, _mm_cmpge_ps(s, one)));
                do
                {
                   __m128 rv = fast_sin4_sse2(s);
