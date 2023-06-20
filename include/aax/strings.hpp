@@ -324,13 +324,14 @@ static inline std::string to_string(enum aaxSourceType type)
     {
         /* timed gain filter */
         result += "repeat: ";
-        result += std::to_str(type & AAX_REPEAT_MASK);
+        result += std::to_string(type & AAX_REPEAT_MASK);
         return result;
     }
 
     if (type & AAX_INVERSE) result += "inverse-";
 
-    enum aaxSourceType wtype = type & AAX_WAVEFORM_MASK;
+    enum aaxSourceType wtype;
+    wtype = static_cast<aaxSourceType>(type & AAX_WAVEFORM_MASK);
     if (wtype == AAX_CONSTANT) result += "constant";
     else if (wtype == AAX_SAWTOOTH) result += "sawtooth";
     else if (wtype == AAX_SQUARE) result += "square";
@@ -353,14 +354,15 @@ static inline std::string to_string(enum aaxSourceType type)
         m = true;
     }
 
-    if (type & AAX_ENVELOPE_FOLLOW_LOG)
+    if (type & AAX_LFO_EXPONENTIAL)
     {
         if (m) result += " | ";
         result += "exponential";
         m = true;
     }
 
-    enum aaxSourceType otype = type & AAX_ORDER_MASK;
+    enum aaxSourceType otype;
+    otype = static_cast<aaxSourceType>(type & AAX_ORDER_MASK);
     if (otype)
     {
         /* frequency filter */
@@ -380,7 +382,8 @@ static inline std::string to_string(enum aaxSourceType type)
         }
     }
 
-    enum aaxSourceType ntype = type & AAX_NOISE_MASK;
+    enum aaxSourceType ntype;
+    ntype = static_cast<aaxSourceType>(type & AAX_NOISE_MASK);
     if (ntype && m) result += " | ";
     if (ntype == AAX_WHITE_NOISE) result += "white noise";
     else if (ntype == AAX_PINK_NOISE) result += "pink noise";
