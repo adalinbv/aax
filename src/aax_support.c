@@ -721,9 +721,8 @@ aaxGetSourceTypeByName(const char *wave)
       while(last);
    }
 
-   /* if only exponential is defined then assume exponential envelope following */
-   mask = (AAX_LFO_EXPONENTIAL|AAX_ENVELOPE_FOLLOW|AAX_TIMED_TRANSITION|AAX_WAVEFORM_MASK);
-   if ((rv & mask) == AAX_LFO_EXPONENTIAL) {
+   /* if only exponential is defined, assume exponential envelope following */
+   if ((rv & AAX_LFO_EXPONENTIAL) && (rv & AAX_WAVEFORM_MASK) == 0) {
       rv |= AAX_ENVELOPE_FOLLOW;
    }
 
