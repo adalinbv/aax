@@ -200,7 +200,7 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
             flt->Q = effect->slot[1]->param[AAX_DELAY_RESONANCE & 0xF];
             flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
 
-            if (state & AAX_RANDOM_SELECT)
+            if ((state & AAX_WAVEFORM_MASK) == AAX_RANDOM_SELECT)
             {
                float lfc2 = _lin2log(fmax);
                float lfc1 = _lin2log(fc);

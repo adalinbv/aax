@@ -156,7 +156,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
          flt->resonance = resonance ? flt->Q/fmax : 0.0f;
 
-         if (state & AAX_RANDOM_SELECT)
+         if ((state & AAX_WAVEFORM_MASK) == AAX_RANDOM_SELECT)
          {
             float lfc2 = _lin2log(fmax);
             float lfc1 = _lin2log(fc);
