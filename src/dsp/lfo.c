@@ -47,52 +47,67 @@
 float _linear(float v, _aaxLFOData *lfo)
 {
    float depth = (lfo->max-lfo->min);
+   float rv;
+
    if (lfo->inv) {
-      return lfo->max - depth*v;
+      rv = lfo->max - depth*v;
    } else {
-      return lfo->min + depth*v;
+      rv = lfo->min + depth*v;
    }
+   return rv;
 }
 
 float _squared(float v, _aaxLFOData *lfo)
 {
    float depth = (lfo->max-lfo->min);
+   float rv;
+
    if (lfo->inv) {
-      return lfo->max - depth*v*v;
+      rv = lfo->max - depth*v*v;
    } else {
-      return lfo->min + depth*v*v;
+      rv = lfo->min + depth*v*v;
    }
+   return rv;
 }
 
 float _logarithmic(float v, _aaxLFOData *lfo)
 {
    float depth = (lfo->max-lfo->min);
+   float rv;
+
    if (lfo->inv) {
-      return _log2lin(lfo->max - depth*v);
+      rv = _log2lin(lfo->max - depth*v);
    } else {
-      return _log2lin(lfo->min + depth*v);
+      rv = _log2lin(lfo->min + depth*v);
    }
+   return rv;
 }
 
 float _exponential(float v, _aaxLFOData *lfo)
 {
    float depth = (lfo->max-lfo->min);
+   float rv;
+
    if (lfo->inv) {
-      return lfo->max - depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
+      rv = lfo->max - depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
    } else {
-      return lfo->min + depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
+      rv = lfo->min + depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
    }
+   return rv;
 }
 
 float _exp_distortion(float v, _aaxLFOData *lfo)
 {
    float depth = (lfo->max-lfo->min);
    float x = v*v;
+   float rv;
+
    if (lfo->inv) {
-      return lfo->max - 0.5f*depth*(x*x-x+v);
+      rv = lfo->max - 0.5f*depth*(x*x-x+v);
    } else {
-      return lfo->min + 0.5f*depth*(x*x-x+v);
+      rv = lfo->min + 0.5f*depth*(x*x-x+v);
    }
+   return rv;
 }
 
 _aaxLFOData*
