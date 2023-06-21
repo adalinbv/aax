@@ -74,7 +74,6 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
-   int mask, wstate;
 
    assert(effect->info);
 
@@ -82,15 +81,8 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
       state |= (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
    }
 
-   wstate = state & ~AAX_STATE_MASK;
-   if ((wstate & AAX_ORDER_MASK) == 0) {
-      state |= AAX_2ND_ORDER;
-   }
-
-   mask = (AAX_LFO_STEREO|AAX_INVERSE|AAX_LFO_EXPONENTIAL|AAX_EFFECT_ORDER_MASK);
-
    effect->state = state;
-   switch (state & ~mask)
+   switch (state & AAX_WAVEFORM_MASK)
    {
    case AAX_CONSTANT:
    case AAX_SAWTOOTH:
@@ -131,6 +123,10 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
          if ((fc > MINIMUM_CUTOFF && fc < MAXIMUM_CUTOFF) ||
              ( fmax > MINIMUM_CUTOFF && fmax < MAXIMUM_CUTOFF))
          {
+            if ((state & AAX_ORDER_MASK) == 0) {
+               state |= AAX_2ND_ORDER;
+            }
+
             if (!flt)
             {
                flt = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterData));
@@ -248,7 +244,7 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
                {
                   int constant;
 
-                  _lfo_setup(lfo, effect->info, wstate);
+                  _lfo_setup(lfo, effect->info, state);
 
                   /* sweeprate */
                   lfo->min = fc;

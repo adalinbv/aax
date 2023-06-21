@@ -116,21 +116,19 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = AAX_FALSE;
-   int noise_mask, stereo;
+   int stereo;
 
    assert(filter->info);
 
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
    state &= ~AAX_LFO_STEREO;
 
-   noise_mask = (AAX_WHITE_NOISE|AAX_PINK_NOISE|AAX_BROWNIAN_NOISE);
-
-   if ((state & ~(noise_mask|AAX_INVERSE)) == 0) {
+   if ((state & AAX_WAVEFORM_MASK) == 0) {
       state |= AAX_TRUE;
    }
 
    filter->state = state;
-   switch (state & ~(noise_mask|AAX_INVERSE|AAX_LFO_EXPONENTIAL))
+   switch (state & AAX_WAVEFORM_MASK)
    {
    case AAX_CONSTANT:
    case AAX_TRIANGLE:
@@ -184,14 +182,15 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          bitcrush->fs = filter->slot[1]->param[AAX_SAMPLE_RATE & 0xF];
 
          /* bit reduction */
-         if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
+         if (((state & AAX_WAVEFORM_MASK) == AAX_ENVELOPE_FOLLOW ||
+              (state & AAX_WAVEFORM_MASK) == AAX_TIMED_TRANSITION) &&
              (state & AAX_LFO_EXPONENTIAL))
          {
             bitcrush->lfo.convert = _squared;
          } else {
             bitcrush->lfo.convert = _linear;
          }
-         bitcrush->lfo.state = filter->state & ~noise_mask;
+         bitcrush->lfo.state = filter->state;
          bitcrush->lfo.fs = fs;
          bitcrush->lfo.period_rate = filter->info->period_rate;
          bitcrush->lfo.stereo_lnk = !stereo;
@@ -218,14 +217,13 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          bitcrush->staticity = filter->slot[1]->param[AAX_STATICITY & 0xF];
 
          depth = filter->slot[0]->param[AAX_NOISE_LEVEL];
-         if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
-             (state & AAX_LFO_EXPONENTIAL))
+         if (state & AAX_LFO_EXPONENTIAL)
          {
             bitcrush->env.convert = _squared;
          } else {
             bitcrush->env.convert = _linear;
          }
-         bitcrush->env.state = filter->state & ~noise_mask;
+         bitcrush->env.state = filter->state;
          bitcrush->env.fs = fs;
          bitcrush->env.period_rate = filter->info->period_rate;
          bitcrush->env.stereo_lnk = !stereo;

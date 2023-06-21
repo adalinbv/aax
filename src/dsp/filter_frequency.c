@@ -84,7 +84,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    assert(filter->info);
 
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
-   state &= ~(AAX_LFO_STEREO | AAX_EFFECT_ORDER);
+   state &= ~AAX_LFO_STEREO;
 
    wstate = state & AAX_WAVEFORM_MASK;
    ostate = state & AAX_ORDER_MASK;
@@ -93,10 +93,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 
    if ((ostate >= AAX_1ST_ORDER && ostate <= AAX_LAST_ORDER) || resonance ||
        (wstate >= AAX_CONSTANT && wstate <= AAX_LAST_WAVE) ||
-       wstate == AAX_RANDOMNESS     ||
-       state & AAX_RANDOM_SELECT    ||
-       state & AAX_TIMED_TRANSITION ||
-       state & AAX_ENVELOPE_FOLLOW_EXP)
+       (wstate >= AAX_1ST_SOURCE && wstate <= AAX_LAST_SOURCE))
    {
       _aaxRingBufferFreqFilterData *flt = filter->slot[0]->data;
 

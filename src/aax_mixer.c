@@ -492,8 +492,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
 
                   lfo = _FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER);
                   state =_FILTER_GET_STATE(mixer->props2d, DYNAMIC_GAIN_FILTER);
-                  if (lfo && ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW ||
-                             (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_EXP))
+                  if (lfo && (state & AAX_WAVEFORM_MASK) == AAX_ENVELOPE_FOLLOW)
                   {
                      if (lfo->average[track] <= lfo->gate_threshold) {
                         rv = AAX_TRUE;

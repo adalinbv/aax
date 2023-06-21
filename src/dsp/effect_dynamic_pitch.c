@@ -71,13 +71,11 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
-   int mask;
 
    assert(effect->info);
 
    effect->state = state;
-   mask = (AAX_LFO_STEREO|AAX_INVERSE|AAX_LFO_EXPONENTIAL);
-   switch (state & ~mask)
+   switch (state & AAX_WAVEFORM_MASK)
    {
    case AAX_CONSTANT:
    case AAX_SAWTOOTH:

@@ -72,13 +72,11 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = AAX_FALSE;
-   int mask;
 
    assert(filter->info);
 
    filter->state = state;
-   mask = (AAX_LFO_STEREO|AAX_INVERSE|AAX_LFO_EXPONENTIAL);
-   switch (state & ~mask)
+   switch (state & AAX_WAVEFORM_MASK)
    {
    case AAX_CONSTANT:
    case AAX_SAWTOOTH:

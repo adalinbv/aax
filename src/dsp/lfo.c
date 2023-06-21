@@ -181,7 +181,7 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
    int rv = AAX_TRUE;
    if (!constant)
    {
-      switch (lfo->state & ~AAX_INVERSE)
+      switch (lfo->state & AAX_WAVEFORM_MASK)
       {
       case AAX_CONSTANT: /* equals to AAX_TRUE */
          lfo->get = _aaxLFOGetFixedValue;
@@ -215,6 +215,8 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
          lfo->get = _aaxLFOGetTimed;
          break;
       default:
+         /* reaching here is actually a bug but prevent a segmentation fault */
+         lfo->get = _aaxLFOGetFixedValue;
          rv = AAX_FALSE;
          break;
       }
@@ -277,23 +279,22 @@ _lfo_set_timing(_aaxLFOData *lfo)
             lfo->value0[t] = lfo->max;
          }
 
-         switch (lfo->state)
+         switch(lfo->state & AAX_WAVEFORM_MASK)
          {
          case AAX_SAWTOOTH:
             lfo->step[t] *= 0.5f;
             break;
          case AAX_ENVELOPE_FOLLOW:
-         {
             lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
             lfo->value0[t] = 0.0f;
             break;
-         }
          case AAX_RANDOMNESS:
          {
             float fs = lfo->period_rate;
             float fc = lfo->f;
             float cfc = cosf(GMATH_2PI*fc/fs);
             lfo->step[t] = -1.0f + cfc + sqrtf(cfc*cfc -4.0f*cfc + 3.0f);
+            break;
          }
          default:
             break;
