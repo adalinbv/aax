@@ -2277,7 +2277,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
 
    if (!rv)
    {
-      enum aaxSourceType wave = wtype & AAX_ALL_WAVEFORM_MASK;
+      enum aaxSourceType wave = wtype & AAX_ALL_SOURCE_MASK;
       if (wave < AAX_1ST_WAVE || wave > AAX_LAST_NOISE ||
           (wave > AAX_LAST_WAVE && wave < AAX_1ST_NOISE))
       {
@@ -2340,7 +2340,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
          break;
       case AAX_MIX:
       {
-         enum aaxSourceType wave = wtype & AAX_ALL_WAVEFORM_MASK;
+         enum aaxSourceType wave = wtype & AAX_ALL_SOURCE_MASK;
          float ratio_orig = FNMINMAX(1.0f-ratio, 0.0f, 1.0f);
 
          ratio = 2.0f*(1.0f - ratio_orig);
@@ -2367,7 +2367,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
       if (scratch)
       {
          enum aaxSourceType noise = wtype & AAX_NOISE_MASK;
-         enum aaxSourceType wave = wtype & AAX_WAVEFORM_MASK;
+         enum aaxSourceType wave = wtype & AAX_SOURCE_MASK;
          if (wave >= AAX_1ST_WAVE && wave <= AAX_LAST_WAVE)
          {
             for (q=0; q<voices; ++q)

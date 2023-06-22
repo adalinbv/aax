@@ -81,7 +81,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
    state |= AAX_EFFECT_2ND_ORDER;
 
    effect->state = state;
-   switch (state & AAX_WAVEFORM_MASK)
+   switch (state & AAX_SOURCE_MASK)
    {
    case AAX_CONSTANT:
    case AAX_SAWTOOTH:
@@ -196,7 +196,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
             flt->Q = effect->slot[1]->param[AAX_DELAY_RESONANCE & 0xF];
             flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
 
-            if ((state & AAX_WAVEFORM_MASK) == AAX_RANDOM_SELECT)
+            if ((state & AAX_SOURCE_MASK) == AAX_RANDOM_SELECT)
             {
                float lfc2 = _lin2log(fmax);
                float lfc1 = _lin2log(fc);

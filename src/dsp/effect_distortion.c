@@ -81,7 +81,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
    aaxEffect rv = AAX_FALSE;
 
    effect->state = state;
-   switch (state & AAX_WAVEFORM_MASK)
+   switch (state & AAX_SOURCE_MASK)
    {
    case AAX_RANDOMNESS:
    case AAX_TIMED_TRANSITION:

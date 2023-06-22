@@ -75,7 +75,7 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
    assert(effect->info);
 
    effect->state = state;
-   switch (state & AAX_WAVEFORM_MASK)
+   switch (state & AAX_SOURCE_MASK)
    {
    case AAX_CONSTANT:
    case AAX_SAWTOOTH:

@@ -584,7 +584,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
             slen = xmlAttributeCopyString(xid, "src", src, 64);
             if (slen)
             {
-               int s = aaxGetByName(src, AAX_WAVEFORM_NAME);
+               int s = aaxGetByName(src, AAX_SOURCE_NAME);
                if (s == AAX_INVERSE_ENVELOPE_FOLLOW) {
                   state |= AAX_INVERSE_ENVELOPE_FOLLOW;
                } else if (s == AAX_ENVELOPE_FOLLOW) {
@@ -613,7 +613,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
                   state = xmlAttributeGetBool(xid, "src");
                   break;
                default:
-                  state = aaxGetByName(src, AAX_WAVEFORM_NAME);
+                  state = aaxGetByName(src, AAX_SOURCE_NAME);
                   break;
                }
             }
@@ -667,7 +667,7 @@ _aaxGetEffectFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
          if (slen)
          {
             src[slen] = 0;
-            state = aaxGetByName(src, AAX_WAVEFORM_NAME);
+            state = aaxGetByName(src, AAX_SOURCE_NAME);
          }
 
          if (xmlAttributeExists(xid, "stereo") &&

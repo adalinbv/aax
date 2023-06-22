@@ -196,7 +196,7 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
    int rv = AAX_TRUE;
    if (!constant)
    {
-      switch (lfo->state & AAX_WAVEFORM_MASK)
+      switch (lfo->state & AAX_SOURCE_MASK)
       {
       case AAX_CONSTANT: /* equals to AAX_TRUE */
          lfo->get = _aaxLFOGetFixedValue;
@@ -294,7 +294,7 @@ _lfo_set_timing(_aaxLFOData *lfo)
             lfo->value0[t] = lfo->max;
          }
 
-         switch(lfo->state & AAX_WAVEFORM_MASK)
+         switch(lfo->state & AAX_SOURCE_MASK)
          {
          case AAX_SAWTOOTH:
             lfo->step[t] *= 0.5f;

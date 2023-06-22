@@ -4,7 +4,7 @@
 #include <aax/aax.h>
 
 #define DIST(a,b)	testDist((a),(b),__LINE__)
-#define WAVE(a,b)       testWave((a),(b),__LINE__)
+#define WAVE(a,b)       testSource((a),(b),__LINE__)
 #define FREQ(a,b)	testFreq((a),(b),__LINE__)
 #define FLT(a,b)	testFilter((a),(b),__LINE__)
 #define EFF(a,b)	testEffect((a),(b),__LINE__)
@@ -21,9 +21,9 @@ testDist(const char *name, int type, int lineno)
 }
 
 void
-testWave(const char *name, int type, int lineno)
+testSource(const char *name, int type, int lineno)
 {   
-    int res = aaxGetByName(name, AAX_WAVEFORM_NAME);
+    int res = aaxGetByName(name, AAX_SOURCE_NAME);
     if (res != type)
     {
         printf("at line: %i, %s:\t\t0x%x != 0x%x\n", lineno, name, res, type);

@@ -79,7 +79,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
       state &= ~AAX_TRUE;
    }
 
-   switch (state & AAX_WAVEFORM_MASK)
+   switch (state & AAX_SOURCE_MASK)
    {
    case AAX_ENVELOPE_FOLLOW:
    {
@@ -95,7 +95,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
 
 			// AAX_LFO_DEPTH == AAX_COMPRESSION_RATIO
          depth = _MAX(filter->slot[0]->param[AAX_LFO_DEPTH], 0.01f);
-         if ((state & AAX_WAVEFORM_MASK) == AAX_ENVELOPE_FOLLOW)
+         if ((state & AAX_SOURCE_MASK) == AAX_ENVELOPE_FOLLOW)
          {
             if (filter->type == AAX_COMPRESSOR)
             {
@@ -128,7 +128,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
             lfo->step[t] /= filter->info->period_rate;
             lfo->value[t] = 1.0f;
 
-            switch (state & AAX_WAVEFORM_MASK)
+            switch (state & AAX_SOURCE_MASK)
             {
             case AAX_ENVELOPE_FOLLOW:
             {
@@ -161,7 +161,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
 
          if (depth > 0.001f)
          {
-            switch (state & AAX_WAVEFORM_MASK)
+            switch (state & AAX_SOURCE_MASK)
             {
             case AAX_ENVELOPE_FOLLOW:
                lfo->envelope = AAX_TRUE;

@@ -123,12 +123,12 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
    state &= ~AAX_LFO_STEREO;
 
-   if ((state & AAX_WAVEFORM_MASK) == 0) {
+   if ((state & AAX_SOURCE_MASK) == 0) {
       state |= AAX_TRUE;
    }
 
    filter->state = state;
-   switch (state & AAX_WAVEFORM_MASK)
+   switch (state & AAX_SOURCE_MASK)
    {
    case AAX_CONSTANT:
    case AAX_TRIANGLE:
@@ -182,8 +182,8 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          bitcrush->fs = filter->slot[1]->param[AAX_SAMPLE_RATE & 0xF];
 
          /* bit reduction */
-         if (((state & AAX_WAVEFORM_MASK) == AAX_ENVELOPE_FOLLOW ||
-              (state & AAX_WAVEFORM_MASK) == AAX_TIMED_TRANSITION) &&
+         if (((state & AAX_SOURCE_MASK) == AAX_ENVELOPE_FOLLOW ||
+              (state & AAX_SOURCE_MASK) == AAX_TIMED_TRANSITION) &&
              (state & AAX_LFO_EXPONENTIAL))
          {
             bitcrush->lfo.convert = _squared;

@@ -330,16 +330,16 @@ static inline std::string to_string(enum aaxSourceType type)
 
     if (type & AAX_INVERSE) result += "inverse-";
 
-    enum aaxSourceType wtype;
-    wtype = static_cast<aaxSourceType>(type & AAX_WAVEFORM_MASK);
-    if (wtype == AAX_CONSTANT) result += "constant";
-    else if (wtype == AAX_SAWTOOTH) result += "sawtooth";
-    else if (wtype == AAX_SQUARE) result += "square";
-    else if (wtype == AAX_TRIANGLE) result += "triangle";
-    else if (wtype == AAX_SINE) result += "sine";
-    else if (wtype == AAX_CYCLOID) result += "cycloid";
-    else if (wtype == AAX_IMPULSE) result += "impulse";
-    if (wtype) m = true;
+    enum aaxSourceType stype;
+    stype = static_cast<aaxSourceType>(type & AAX_SOURCE_MASK);
+    if (stype == AAX_CONSTANT) result += "constant";
+    else if (stype == AAX_SAWTOOTH) result += "sawtooth";
+    else if (stype == AAX_SQUARE) result += "square";
+    else if (stype == AAX_TRIANGLE) result += "triangle";
+    else if (stype == AAX_SINE) result += "sine";
+    else if (stype == AAX_CYCLOID) result += "cycloid";
+    else if (stype == AAX_IMPULSE) result += "impulse";
+    if (stype) m = true;
 
     if (type & AAX_TIMED_TRANSITION)
     {

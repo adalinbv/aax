@@ -67,8 +67,8 @@ inline enum aaxType type(const char *s) {
     return aaxType(aaxGetByName(s, AAX_TYPE_NAME));
 }
 
-inline enum aaxSourceType waveform_type(const char *s) {
-    return aaxSourceType(aaxGetByName(s, AAX_WAVEFORM_NAME));
+inline enum aaxSourceType source_type(const char *s) {
+    return aaxSourceType(aaxGetByName(s, AAX_SOURCE_NAME));
 }
 
 inline enum aaxSourceType frequency_filter_type(const char *s) {

@@ -571,7 +571,6 @@ static enum aaxSourceType
 aaxGetSourceTypeByName(const char *wave)
 {
    enum aaxSourceType rv = AAX_WAVE_NONE;
-   int mask;
 
    if (wave)
    {
@@ -722,7 +721,7 @@ aaxGetSourceTypeByName(const char *wave)
    }
 
    /* if only exponential is defined, assume exponential envelope following */
-   if ((rv & AAX_LFO_EXPONENTIAL) && (rv & AAX_WAVEFORM_MASK) == 0) {
+   if ((rv & AAX_LFO_EXPONENTIAL) && (rv & AAX_SOURCE_MASK) == 0) {
       rv |= AAX_ENVELOPE_FOLLOW;
    }
 
@@ -935,7 +934,7 @@ aaxGetByName(const char* name, enum aaxTypeName type)
       if (!rv) rv = aaxGetTypeByName(name);
       if (!rv) rv = aaxGetDistanceModelByName(name);
       break;
-   case AAX_WAVEFORM_NAME:
+   case AAX_SOURCE_NAME:
    case AAX_FREQUENCY_FILTER_NAME:
       rv = aaxGetSourceTypeByName(name);
       break;

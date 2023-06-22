@@ -252,7 +252,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 
             _aax_butterworth_compute(reverb->fc, flt);
 
-            if ((state & AAX_WAVEFORM_MASK) == AAX_ENVELOPE_FOLLOW)
+            if ((state & AAX_SOURCE_MASK) == AAX_ENVELOPE_FOLLOW)
             {
                _aaxLFOData* lfo = flt->lfo;
 

@@ -93,7 +93,7 @@ enum aaxHandleType
 enum aaxTypeName
 {
     AAX_ALL = -1,
-    AAX_WAVEFORM_NAME,
+    AAX_SOURCE_NAME,
     AAX_FILTER_NAME,
     AAX_EFFECT_NAME,
     AAX_DISTANCE_MODEL_NAME,
@@ -560,9 +560,7 @@ enum aaxSourceType
    AAX_BROWNIAN_NOISE        = 0x0030,      AAX_LAST_NOISE = AAX_BROWNIAN_NOISE,
    AAX_MAX_NOISE             = (AAX_LAST_NOISE-AAX_1ST_NOISE+1),
 
-   AAX_WAVEFORM_MASK         = 0x000F, /* bit-mask covering all waveforms   */
    AAX_NOISE_MASK            = 0x00F0, /* bit-mask covering all noise types */
-   AAX_ALL_WAVEFORM_MASK     = (AAX_WAVEFORM_MASK | AAX_NOISE_MASK),
 
    /* waveforms */
    /* 0x0001 - 0x000F are reserved for waveforms and LFO source types */
@@ -591,11 +589,14 @@ enum aaxSourceType
    AAX_INVERSE_ENVELOPE_FOLLOW = (AAX_INVERSE | AAX_ENVELOPE_FOLLOW),
    AAX_INVERSE_TIMED_TRANSITION = (AAX_INVERSE | AAX_TIMED_TRANSITION),
 
+   AAX_SOURCE_MASK           = 0x000F, /* bit-mask covering all waveforms   */
+   AAX_ALL_SOURCE_MASK       = (AAX_SOURCE_MASK | AAX_NOISE_MASK),
+
    /* bit-mask covering all waveforms, noise types and filter orders */
-   AAX_WAVEVORM_ORDER_MASK   = (AAX_ORDER_MASK | AAX_ALL_WAVEFORM_MASK),
+   AAX_SOURCE_ORDER_MASK     = (AAX_ORDER_MASK | AAX_ALL_SOURCE_MASK),
 
    /* timed gain filter */
-   AAX_REPEAT_MASK           = AAX_WAVEVORM_ORDER_MASK,
+   AAX_REPEAT_MASK           = AAX_SOURCE_ORDER_MASK,
    AAX_MAX_REPEAT            = (AAX_REPEAT_MASK-1)
 };
 
