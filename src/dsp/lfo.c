@@ -435,12 +435,12 @@ _aaxLFOGetFixedValue(void* data, UNUSED(void *env), UNUSED(const void *ptr), uns
    return rv;
 }
 
-/* domain for x: -inf .. inf */
+/* domain for x: -1.0 .. 1.0 */
 static float
 _triangle(float x)
 {
-   float y = GMATH_PI*x;
-   return tanf(sinf(y));
+   float y = GMATH_PI*fmodf(0.5f*x, 1.0f);
+   return tanf(sinf(y))/1.557f;
 }
 
 float
@@ -602,12 +602,12 @@ _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
    return rv;
 }
 
-/* domain for x: 0.0 .. 1.0 */
+/* domain for x: -1.0 .. 1.0 */
 static float
 _sawtooth(float x)
 {
-   float y = GMATH_2PI*fmodf(x, 1.0f);
-   return -sinf(tanf((y-GMATH_PI)/2.4884f));
+   float y = fmodf(x-1.04f, 1.0f);
+   return -sinf(tanf(1.263f*y));
 }
 
 float
@@ -623,6 +623,10 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
       assert(max);
 
       rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
+
+      if (lfo->convert != _exponential) {
+         rv = lfo->convert(_sawtooth(rv), lfo);
+      }
 
       lfo->value[track] += step;
       if (lfo->value[track] <= lfo->min) {
