@@ -73,7 +73,7 @@ typedef struct _aaxLFOData_t
    _aaxLFOGetFn *get;
    _convert_fn *convert;
    void *data;				/* used for occlusion              */
-   char inv, envelope, stereo_lnk;
+   char inverse, envelope, stereo_link;
 
    float delay, dt;
    float fs, period_rate;

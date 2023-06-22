@@ -49,7 +49,7 @@ float _linear(float v, _aaxLFOData *lfo)
    float depth = (lfo->max-lfo->min);
    float rv;
 
-   if (lfo->inv) {
+   if (lfo->inverse) {
       rv = lfo->max - depth*v;
    } else {
       rv = lfo->min + depth*v;
@@ -62,7 +62,7 @@ float _squared(float v, _aaxLFOData *lfo)
    float depth = (lfo->max-lfo->min);
    float rv;
 
-   if (lfo->inv) {
+   if (lfo->inverse) {
       rv = lfo->max - depth*v*v;
    } else {
       rv = lfo->min + depth*v*v;
@@ -75,7 +75,7 @@ float _logarithmic(float v, _aaxLFOData *lfo)
    float depth = (lfo->max-lfo->min);
    float rv;
 
-   if (lfo->inv) {
+   if (lfo->inverse) {
       rv = _log2lin(lfo->max - depth*v);
    } else {
       rv = _log2lin(lfo->min + depth*v);
@@ -88,7 +88,7 @@ float _exponential(float v, _aaxLFOData *lfo)
    float depth = (lfo->max-lfo->min);
    float rv;
 
-   if (lfo->inv) {
+   if (lfo->inverse) {
       rv = lfo->max - depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
    } else {
       rv = lfo->min + depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
@@ -102,7 +102,7 @@ float _exp_distortion(float v, _aaxLFOData *lfo)
    float x = v*v;
    float rv;
 
-   if (lfo->inv) {
+   if (lfo->inverse) {
       rv = lfo->max - 0.5f*depth*(x*x-x+v);
    } else {
       rv = lfo->min + 0.5f*depth*(x*x-x+v);
@@ -140,8 +140,8 @@ _lfo_setup(_aaxLFOData *lfo, void *i, int state)
    lfo->period_rate = info->period_rate;
    lfo->convert = (exponential) ? _exponential : _linear;
    lfo->state = state & ~(AAX_LFO_STEREO|AAX_LFO_EXPONENTIAL|AAX_EFFECT_ORDER_MASK);
-   lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-   lfo->stereo_lnk = !stereo;
+   lfo->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+   lfo->stereo_link = !stereo;
    lfo->depth = 1.0f;
    lfo->offset = 0.0f;
 }
@@ -168,9 +168,9 @@ _lfo_swap(_aaxLFOData *dlfo, _aaxLFOData *slfo)
 
       dlfo->get = slfo->get;
       dlfo->convert = slfo->convert;
-      dlfo->inv = slfo->inv;
+      dlfo->inverse = slfo->inverse;
       dlfo->envelope = slfo->envelope;
-      dlfo->stereo_lnk = slfo->stereo_lnk;
+      dlfo->stereo_link = slfo->stereo_link;
    }
 }
 
@@ -273,7 +273,7 @@ _lfo_set_timing(_aaxLFOData *lfo)
       int t;
       for (t=0; t<_AAX_MAX_SPEAKERS; t++)
       {
-         if (!lfo->stereo_lnk) {
+         if (!lfo->stereo_link) {
             lfo->value0[t] = (t % 2)*1e9f;
          }
 
@@ -417,7 +417,7 @@ _aaxLFOCalculate(_aaxLFOData *lfo, float val, unsigned track)
  * lfo->step is a user defined, time (refresh rate) compensated step value
  * that assures the oscillator will run one cycle in the desired frequency.
  *
- * lfo->inv is an internal parameter that defines the counting direction.
+ * lfo->inverse is an internal parameter that defines the counting direction.
  *
  * lfo->value is the current LFO output value in the used defined range
  * (between lfo->min and lfo->max).
@@ -607,7 +607,7 @@ static float
 _sawtooth(float x)
 {
    float y = fmodf(x-1.04f, 1.0f);
-   return -sinf(tanf(1.263f*y));
+   return sinf(tanf(1.263f*y));
 }
 
 float
@@ -687,7 +687,7 @@ _aaxLFOGetRandomness(void* data, UNUSED(void *env), UNUSED(const void *ptr), uns
       rv = lfo->value[0];
 
       /* In stereo-link mode the left track (0) provides the data */
-      if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
+      if (track == 0 || lfo->stereo_link == AAX_FALSE)
       {
          float alpha = lfo->step[track];
          float olvl = lfo->value[track];
@@ -748,7 +748,7 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
       float olvl = lfo->value[0];
 
       /* In stereo-link mode the left track (0) provides the data */
-      if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
+      if (track == 0 || lfo->stereo_link == AAX_FALSE)
       {
          float fact = lfo->step[track];
          float lvl;
@@ -773,7 +773,7 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
 
       rv = _aaxLFODelay(lfo, olvl);
 
-      rv = lfo->inv ? 1.0f-rv : rv;
+      rv = lfo->inverse ? 1.0f-rv : rv;
       lfo->compression[track] = 1.0f-rv;
 
       rv = lfo->convert(rv, lfo);
@@ -802,7 +802,7 @@ _aaxLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned tr
       /* just to make sure those aren't still producing sound and hence  */
       /* are amplified to extreme values.                                */
       gf = _MIN(powf(oavg/lfo->gate_threshold, 10.0f), 1.0f);
-      if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
+      if (track == 0 || lfo->stereo_link == AAX_FALSE)
       {
          float lvl, fact = 1.0f;
          float rms, peak;
@@ -827,13 +827,13 @@ _aaxLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned tr
 
       l.min = 0.0f;
       l.max = 1.0f;
-      l.inv = AAX_FALSE;
+      l.inverse = AAX_FALSE;
       rv = lfo->convert(rv, &l);
 
       assert(rv);
 
       lfo->compression[track] = 1.0f - (1.0f/rv);
-      rv = lfo->inv ? 1.0f/(0.001+0.999f*rv) : rv;
+      rv = lfo->inverse ? 1.0f/(0.001+0.999f*rv) : rv;
    }
 
    return rv;

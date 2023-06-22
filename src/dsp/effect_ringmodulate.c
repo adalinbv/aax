@@ -124,14 +124,14 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
          modulator->lfo.min = effect->slot[0]->param[AAX_LFO_OFFSET];
          modulator->lfo.max = modulator->lfo.min + effect->slot[0]->param[AAX_LFO_DEPTH];
          modulator->lfo.envelope = AAX_FALSE;
-         modulator->lfo.stereo_lnk = !stereo;
+         modulator->lfo.stereo_link = !stereo;
 
          modulator->lfo.min_sec = modulator->lfo.min/modulator->lfo.fs;
          modulator->lfo.max_sec = modulator->lfo.max/modulator->lfo.fs;
          modulator->lfo.depth = 1.0f;
          modulator->lfo.offset = 0.0f;
          modulator->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
-         modulator->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         modulator->lfo.inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
          constant = _lfo_set_timing(&modulator->lfo);
          if (!_lfo_set_function(&modulator->lfo, constant)) {

@@ -208,7 +208,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       if (lfo->envelope)
       {
          float g = lfo->get(lfo, genv, sptr[track]+offs, 0, dno_samples);
-         if (lfo->inv) g = 1.0f/g;
+         if (lfo->inverse) g = 1.0f/g;
          gain *= g;
       }
       else {

@@ -290,8 +290,8 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
                   lfo->depth = 1.0f;
                   lfo->offset = 0.0f;
                   lfo->f = 1.0f;
-                  lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-                  lfo->stereo_lnk = !(state & AAX_LFO_STEREO);
+                  lfo->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+                  lfo->stereo_link = !(state & AAX_LFO_STEREO);
 
                   constant = _lfo_set_timing(lfo);
                   lfo->envelope = AAX_FALSE;

@@ -171,7 +171,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
 //          data->lfo.offset = offset*CHORUS_MAX/PHASING_MAX;
 //       }
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
-         data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         data->lfo.inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
          if ((data->lfo.offset + data->lfo.depth) > 1.0f) {
             data->lfo.depth = 1.0f - data->lfo.offset;

@@ -101,7 +101,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
 
             lfo->convert = _linear;
             lfo->envelope = AAX_TRUE;
-            lfo->stereo_lnk = AAX_TRUE;
+            lfo->stereo_link = AAX_TRUE;
 
             f = filter->slot[0]->param[AAX_RELEASE_RATE];
             lfo->min_sec = _aaxDynamicGainFilterMinMax(f, 0, AAX_RELEASE_RATE);

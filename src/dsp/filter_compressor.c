@@ -116,9 +116,9 @@ _aaxCompressorSetState(_filter_t* filter, int state)
             lfo->max = offs + depth;
          }
          lfo->envelope = AAX_FALSE;
-         lfo->stereo_lnk = AAX_FALSE;
+         lfo->stereo_link = AAX_FALSE;
          lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
-         lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         lfo->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
          lfo->convert = _linear;
 
          for (t=0; t<_AAX_MAX_SPEAKERS; t++)
@@ -165,7 +165,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
             {
             case AAX_ENVELOPE_FOLLOW:
                lfo->envelope = AAX_TRUE;
-               lfo->stereo_lnk = AAX_TRUE;
+               lfo->stereo_link = AAX_TRUE;
                if (filter->type == AAX_COMPRESSOR)
                {
                   float dt = 1.0f/filter->info->period_rate;

@@ -253,8 +253,8 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                lfo->max_sec = lfo->max/lfo->fs;
 
                lfo->f = filter->slot[1]->param[AAX_SWEEP_RATE & 0xF];
-               lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-               lfo->stereo_lnk = !stereo;
+               lfo->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+               lfo->stereo_link = !stereo;
 
                constant = _lfo_set_timing(lfo);
                lfo->envelope = AAX_FALSE;

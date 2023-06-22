@@ -297,7 +297,7 @@ _aaxSensorPostProcess(const _aaxRendererData *data)
          float gain;
 
          gain = compressor->get(compressor, NULL, tracks[t], t, no_samples);
-         if (compressor->inv) gain = 1.0f/gain;
+         if (compressor->inverse) gain = 1.0f/gain;
          if (gain < g) g = gain;
       }
       rb->data_multiply(rb, 0, 0, g);
