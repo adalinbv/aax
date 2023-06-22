@@ -435,6 +435,14 @@ _aaxLFOGetFixedValue(void* data, UNUSED(void *env), UNUSED(const void *ptr), uns
    return rv;
 }
 
+/* domain for x: -inf .. inf */
+static float
+_triangle(float x)
+{
+   float y = GMATH_PI*x;
+   return tanf(sinf(y));
+}
+
 float
 _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
 {
@@ -445,6 +453,10 @@ _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
       float step = lfo->step[track];
 
       rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
+
+      if (lfo->convert != _exponential) {
+         rv = lfo->convert(_triangle(rv), lfo);
+      }
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -488,7 +500,11 @@ _aaxLFOGetSine(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned 
 
       lfo->compression[track] = 1.0f-rv;
 
-      rv = lfo->convert(_fast_sin1(rv), lfo);
+      if (lfo->convert == _exponential) {
+         rv = lfo->convert(sinf(rv), lfo);
+      } else {
+         rv = lfo->convert(_fast_sin1(rv), lfo);
+      }
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -569,7 +585,11 @@ _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
       rv = _aaxLFODelay(lfo, rv);
       lfo->compression[track] = 1.0f-rv;
 
-      rv = lfo->convert(_impulse(rv), lfo);
+      if (lfo->convert == _exponential) {
+         rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo);
+      } else {
+         rv = lfo->convert(_impulse(rv), lfo);
+      }
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -580,6 +600,14 @@ _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
       }
    }
    return rv;
+}
+
+/* domain for x: 0.0 .. 1.0 */
+static float
+_sawtooth(float x)
+{
+   float y = GMATH_2PI*fmodf(x, 1.0f);
+   return -sinf(tanf((y-GMATH_PI)/2.4884f));
 }
 
 float
