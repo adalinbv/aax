@@ -43,6 +43,7 @@ static inline float _analog_sawtooth(float);
 static inline float _analog_square(float);
 static inline float _analog_triangle(float);
 static inline float _analog_sin(float);
+static inline float _analog_cycloid(float);
 static inline float _cycloid(float);
 
 _aaxLFOData*
@@ -551,7 +552,11 @@ _aaxLFOGetCycloid(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
 
       lfo->compression[track] = 1.0f-rv;
 
-      rv = lfo->convert(_cycloid(rv), lfo);
+      if (lfo->convert == _exponential) {
+         rv = lfo->convert(_cycloid(rv), lfo);
+      } else {
+         rv = lfo->convert(_analog_cycloid(rv), lfo);
+      }
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -883,12 +888,12 @@ _exp_distortion(float v, _aaxLFOData *lfo)
  * Should start at 0.0f and start to increase over time
  * until a maximum of 1.0 is reached.
  *
- * domain for x: -1.0 .. 1.0
+ * domain for x: 0.0 .. 1.0
  */
 static inline float
 _analog_sawtooth(float x)
 {
-   float y = 1.263f*fmodf(x-1.04f, 1.0f);
+   float y = 1.263f*fmodf(x, 1.0f);
    return sinf(tanf(y));
 }
 
@@ -912,6 +917,13 @@ _analog_sin(float x)
 {
    float y = fmodf(x-0.5f, 1.0f);
    return 0.5f + 2.0f*(y - y*fabsf(y));
+}
+
+static float
+_analog_cycloid(float x)
+{
+   float y = 1.263f*fmodf(x, 1.0f);
+   return 0.5f-0.5f*cosf(tanf(y));
 }
 
 static float
