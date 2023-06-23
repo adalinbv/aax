@@ -39,76 +39,11 @@
 #include "api.h"
 #include "lfo.h"
 
-/*
- * Periodic waveforms should start at 0.0f and start to increase over time
- * until a maximum of 1.0 is reached.
- */
-
-float _linear(float v, _aaxLFOData *lfo)
-{
-   float depth = (lfo->max-lfo->min);
-   float rv;
-
-   if (lfo->inverse) {
-      rv = lfo->max - depth*v;
-   } else {
-      rv = lfo->min + depth*v;
-   }
-   return rv;
-}
-
-float _squared(float v, _aaxLFOData *lfo)
-{
-   float depth = (lfo->max-lfo->min);
-   float rv;
-
-   if (lfo->inverse) {
-      rv = lfo->max - depth*v*v;
-   } else {
-      rv = lfo->min + depth*v*v;
-   }
-   return rv;
-}
-
-float _logarithmic(float v, _aaxLFOData *lfo)
-{
-   float depth = (lfo->max-lfo->min);
-   float rv;
-
-   if (lfo->inverse) {
-      rv = _log2lin(lfo->max - depth*v);
-   } else {
-      rv = _log2lin(lfo->min + depth*v);
-   }
-   return rv;
-}
-
-float _exponential(float v, _aaxLFOData *lfo)
-{
-   float depth = (lfo->max-lfo->min);
-   float rv;
-
-   if (lfo->inverse) {
-      rv = lfo->max - depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
-   } else {
-      rv = lfo->min + depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
-   }
-   return rv;
-}
-
-float _exp_distortion(float v, _aaxLFOData *lfo)
-{
-   float depth = (lfo->max-lfo->min);
-   float x = v*v;
-   float rv;
-
-   if (lfo->inverse) {
-      rv = lfo->max - 0.5f*depth*(x*x-x+v);
-   } else {
-      rv = lfo->min + 0.5f*depth*(x*x-x+v);
-   }
-   return rv;
-}
+static inline float _analog_sawtooth(float);
+static inline float _analog_square(float);
+static inline float _analog_triangle(float);
+static inline float _analog_sin(float);
+static inline float _cycloid(float);
 
 _aaxLFOData*
 _lfo_create()
@@ -435,14 +370,6 @@ _aaxLFOGetFixedValue(void* data, UNUSED(void *env), UNUSED(const void *ptr), uns
    return rv;
 }
 
-/* domain for x: -1.0 .. 1.0 */
-static float
-_triangle(float x)
-{
-   float y = GMATH_PI*fmodf(0.5f*x, 1.0f);
-   return tanf(sinf(y))/1.557f;
-}
-
 float
 _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
 {
@@ -455,7 +382,7 @@ _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
       rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
 
       if (lfo->convert != _exponential) {
-         rv = lfo->convert(_triangle(rv), lfo);
+         rv = lfo->convert(_analog_triangle(rv), lfo);
       }
 
       lfo->value[track] += step;
@@ -467,19 +394,6 @@ _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
       }
       lfo->compression[track] = 1.0f - rv;
    }
-   return rv;
-}
-
-
-/* domain for x: -1.0 .. 1.0 */
-static float
-_fast_sin1(float y)
-{
-   float rv, x = fmodf(y-0.5f, 1.0f);
-
-   /* domain for the return value: 0.0 .. 1.0 */
-   /* swap sign to start at 0.0f     */
-   rv = 0.5f + 2.0f*(x - x*fabsf(x));
    return rv;
 }
 
@@ -503,7 +417,7 @@ _aaxLFOGetSine(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned 
       if (lfo->convert == _exponential) {
          rv = lfo->convert(sinf(rv), lfo);
       } else {
-         rv = lfo->convert(_fast_sin1(rv), lfo);
+         rv = lfo->convert(_analog_sin(rv), lfo);
       }
 
       lfo->value[track] += step;
@@ -516,17 +430,6 @@ _aaxLFOGetSine(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned 
    }
    return rv;
 }
-
-/* domain for x: -1.0 .. 1.0 */
-/* alternative: y=sin(x)/(0.05+sin(x)^2)^0.5, domain: 0..2pi */
-static float
-_square1(float x)
-{
-   float y = GMATH_PI*(1.0f-x);
-   float y2 = y*y;
-   return cos(atan(y2*y2));
-}
-
 
 float
 _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
@@ -547,7 +450,7 @@ _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigne
       if (lfo->convert == _exponential) {
          rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo);
       } else {
-         rv = lfo->convert(_square1(rv), lfo);
+         rv = lfo->convert(_analog_square(rv), lfo);
       }
 
       lfo->value[track] += step;
@@ -602,14 +505,6 @@ _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
    return rv;
 }
 
-/* domain for x: -1.0 .. 1.0 */
-static float
-_sawtooth(float x)
-{
-   float y = fmodf(x-1.04f, 1.0f);
-   return sinf(tanf(1.263f*y));
-}
-
 float
 _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
 {
@@ -625,7 +520,7 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
       rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
 
       if (lfo->convert != _exponential) {
-         rv = lfo->convert(_sawtooth(rv), lfo);
+         rv = lfo->convert(_analog_sawtooth(rv), lfo);
       }
 
       lfo->value[track] += step;
@@ -637,14 +532,6 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
       lfo->compression[track] = 1.0f - rv;
    }
    return rv;
-}
-
-/* domain for x: -1.0 .. 1.0 */
-static float
-_cycloid(float x)
-{
-   float y = fmodf(x, 1.0f);
-   return 1.0f-sqrtf(1.0f-y*y);
 }
 
 float
@@ -911,5 +798,126 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
       *velocity *= fabsf((rv > FLT_EPSILON) ? env->value/rv : env->value);
    }
    return rv;
+}
+
+/* -------------------------------------------------------------------------- */
+
+/*
+ * Periodic waveforms
+ * Should start at 0.0f and start to increase over time
+ * until a maximum of 1.0 is reached.
+ */
+float
+_linear(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
+   float rv;
+
+   if (lfo->inverse) {
+      rv = lfo->max - depth*v;
+   } else {
+      rv = lfo->min + depth*v;
+   }
+   return rv;
+}
+
+float
+_squared(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
+   float rv;
+
+   if (lfo->inverse) {
+      rv = lfo->max - depth*v*v;
+   } else {
+      rv = lfo->min + depth*v*v;
+   }
+   return rv;
+}
+
+float
+_logarithmic(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
+   float rv;
+
+   if (lfo->inverse) {
+      rv = _log2lin(lfo->max - depth*v);
+   } else {
+      rv = _log2lin(lfo->min + depth*v);
+   }
+   return rv;
+}
+
+float
+_exponential(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
+   float rv;
+
+   if (lfo->inverse) {
+      rv = lfo->max - depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
+   } else {
+      rv = lfo->min + depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
+   }
+   return rv;
+}
+
+float
+_exp_distortion(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
+   float x = v*v;
+   float rv;
+
+   if (lfo->inverse) {
+      rv = lfo->max - 0.5f*depth*(x*x-x+v);
+   } else {
+      rv = lfo->min + 0.5f*depth*(x*x-x+v);
+   }
+   return rv;
+}
+
+/*
+ * Analog equivalents of standard waveforms
+ * Should start at 0.0f and start to increase over time
+ * until a maximum of 1.0 is reached.
+ *
+ * domain for x: -1.0 .. 1.0
+ */
+static inline float
+_analog_sawtooth(float x)
+{
+   float y = 1.263f*fmodf(x-1.04f, 1.0f);
+   return sinf(tanf(y));
+}
+
+static inline float
+_analog_square(float x)
+{
+   float y = GMATH_PI*(1.0f-x);
+   float y2 = y*y;
+   return cos(atan(y2*y2));
+}
+
+static inline float
+_analog_triangle(float x)
+{
+   float y = GMATH_PI*fmodf(0.5f*x, 1.0f);
+   return tanf(sinf(y))/1.557f;
+}
+
+static inline float
+_analog_sin(float x)
+{
+   float y = fmodf(x-0.5f, 1.0f);
+   return 0.5f + 2.0f*(y - y*fabsf(y));
+}
+
+static float
+_cycloid(float x)
+{
+   float y = fmodf(x, 1.0f);
+   return 1.0f-sqrtf(1.0f-y*y);
 }
 
