@@ -897,7 +897,7 @@ _analog_square(float x)
 {
    float y = GMATH_PI*(1.0f-x);
    float y2 = y*y;
-   return cos(atan(y2*y2));
+   return cosf(atanf(y2*y2));
 }
 
 static inline float
