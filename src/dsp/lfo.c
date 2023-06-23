@@ -132,7 +132,10 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
    int rv = AAX_TRUE;
    if (!constant)
    {
-      switch (lfo->state & AAX_SOURCE_MASK)
+      enum aaxSourceType wave;
+
+      wave = lfo->state & (AAX_SOURCE_MASK & ~AAX_PURE_WAVEFORM);
+      switch (wave)
       {
       case AAX_CONSTANT: /* equals to AAX_TRUE */
          lfo->get = _aaxLFOGetFixedValue;
@@ -382,7 +385,7 @@ _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 
       rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
 
-      if (lfo->convert != _exponential) {
+      if ((lfo->state & AAX_PURE_WAVEFORM) == 0)
          rv = lfo->convert(_analog_triangle(rv), lfo);
       }
 
@@ -415,7 +418,7 @@ _aaxLFOGetSine(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned 
 
       lfo->compression[track] = 1.0f-rv;
 
-      if (lfo->convert == _exponential) {
+      if (lfo->state & AAX_PURE_WAVEFORM) {
          rv = lfo->convert(sinf(rv), lfo);
       } else {
          rv = lfo->convert(_analog_sin(rv), lfo);
@@ -448,7 +451,7 @@ _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigne
       rv = _aaxLFODelay(lfo, rv);
       lfo->compression[track] = 1.0f-rv;
 
-      if (lfo->convert == _exponential) {
+      if (lfo->state & AAX_PURE_WAVEFORM) {
          rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo);
       } else {
          rv = lfo->convert(_analog_square(rv), lfo);
@@ -489,7 +492,7 @@ _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
       rv = _aaxLFODelay(lfo, rv);
       lfo->compression[track] = 1.0f-rv;
 
-      if (lfo->convert == _exponential) {
+      if (lfo->state & AAX_PURE_WAVEFORM) {
          rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo);
       } else {
          rv = lfo->convert(_impulse(rv), lfo);
@@ -520,7 +523,7 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 
       rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
 
-      if (lfo->convert != _exponential) {
+      if (lfo->state & AAX_PURE_WAVEFORM) {
          rv = lfo->convert(_analog_sawtooth(rv), lfo);
       }
 
@@ -552,7 +555,7 @@ _aaxLFOGetCycloid(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
 
       lfo->compression[track] = 1.0f-rv;
 
-      if (lfo->convert == _exponential) {
+      if (lfo->state & AAX_PURE_WAVEFORM) {
          rv = lfo->convert(_cycloid(rv), lfo);
       } else {
          rv = lfo->convert(_analog_cycloid(rv), lfo);
