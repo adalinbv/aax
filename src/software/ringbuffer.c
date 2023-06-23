@@ -1289,7 +1289,7 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSour
       int32_t *ptr = data[track];
 
       f = rb->get_paramf(rb, RB_FREQUENCY)/f;
-      switch (type)
+      switch (type & ~AAX_PURE_WAVEFORM)
       {
       case AAX_CONSTANT:
       case AAX_SAWTOOTH:

@@ -555,12 +555,12 @@ enum aaxSourceType
 
    /* noise, may be combined with waveforms */
    /* 0x0010 - 0x00F0 are reserved for noise types */
-   AAX_WHITE_NOISE           = 0x0010,      AAX_1ST_NOISE = AAX_WHITE_NOISE,
-   AAX_PINK_NOISE            = 0x0020,
-   AAX_BROWNIAN_NOISE        = 0x0030,      AAX_LAST_NOISE = AAX_BROWNIAN_NOISE,
+   AAX_WHITE_NOISE           = 0x0020,      AAX_1ST_NOISE = AAX_WHITE_NOISE,
+   AAX_PINK_NOISE            = 0x0040,
+   AAX_BROWNIAN_NOISE        = 0x0060,      AAX_LAST_NOISE = AAX_BROWNIAN_NOISE,
    AAX_MAX_NOISE             = (AAX_LAST_NOISE-AAX_1ST_NOISE+1),
 
-   AAX_NOISE_MASK            = 0x00F0, /* bit-mask covering all noise types */
+   AAX_NOISE_MASK            = 0x00E0, /* bit-mask covering all noise types */
 
    /* waveforms */
    /* 0x0001 - 0x000F are reserved for waveforms and LFO source types */
@@ -589,7 +589,10 @@ enum aaxSourceType
    AAX_INVERSE_ENVELOPE_FOLLOW = (AAX_INVERSE | AAX_ENVELOPE_FOLLOW),
    AAX_INVERSE_TIMED_TRANSITION = (AAX_INVERSE | AAX_TIMED_TRANSITION),
 
-   AAX_SOURCE_MASK           = 0x000F, /* bit-mask covering all waveforms   */
+   AAX_PURE_WAVEFORM         = 0x0010,
+   AAX_ANALOG_WAVEFORM       = 0,
+
+   AAX_SOURCE_MASK           = 0x001F, /* bit-mask covering all waveforms   */
    AAX_ALL_SOURCE_MASK       = (AAX_SOURCE_MASK | AAX_NOISE_MASK),
 
    /* bit-mask covering all waveforms, noise types and filter orders */

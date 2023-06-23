@@ -1373,37 +1373,49 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
    }
 
    if (!xmlAttributeCompareString(xwid, "src", "sawtooth")) {
-       wtype = AAX_SAWTOOTH;
+      wtype = AAX_SAWTOOTH;
    } else if (!xmlAttributeCompareString(xwid, "src", "square")) {
       wtype = AAX_SQUARE;
    } else if (!xmlAttributeCompareString(xwid, "src", "triangle")) {
-       wtype = AAX_TRIANGLE;
+      wtype = AAX_TRIANGLE;
    } else if (!xmlAttributeCompareString(xwid, "src", "sine")) {
       wtype = AAX_SINE;
    } else if (!xmlAttributeCompareString(xwid, "src", "cycloid")) {
-       wtype = AAX_CYCLOID;
+      wtype = AAX_CYCLOID;
    } else if (!xmlAttributeCompareString(xwid, "src", "impulse")) {
-       wtype = AAX_IMPULSE;
+      wtype = AAX_IMPULSE;
    } else if (!xmlAttributeCompareString(xwid, "src", "true") ||
               !xmlAttributeCompareString(xwid, "src", "constant")) {
-       wtype = AAX_CONSTANT;
+      wtype = AAX_CONSTANT;
    }
    else if (!xmlAttributeCompareString(xwid, "src","white-noise"))
    {
-       wtype = AAX_WHITE_NOISE;
-       if (midi_mode != AAX_RENDER_NORMAL) pitch = 1.0f;
+      wtype = AAX_WHITE_NOISE;
+      if (midi_mode != AAX_RENDER_NORMAL) pitch = 1.0f;
    }
    else if (!xmlAttributeCompareString(xwid, "src","pink-noise"))
    {
-       wtype = AAX_PINK_NOISE;
-       if (midi_mode != AAX_RENDER_NORMAL) pitch = 1.0f;
+      wtype = AAX_PINK_NOISE;
+      if (midi_mode != AAX_RENDER_NORMAL) pitch = 1.0f;
    }
    else if (!xmlAttributeCompareString(xwid, "src", "brownian-noise"))
    {
-       wtype = AAX_BROWNIAN_NOISE;
-       if (midi_mode != AAX_RENDER_NORMAL) pitch = 1.0f;
+      wtype = AAX_BROWNIAN_NOISE;
+      if (midi_mode != AAX_RENDER_NORMAL) pitch = 1.0f;
    }
-   else {
+   else if (!xmlAttributeCompareString(xwid, "src", "pure-sawtooth")) {
+      wtype = AAX_PURE_WAVEFORM|AAX_SAWTOOTH;
+   } else if (!xmlAttributeCompareString(xwid, "src", "pure-square")) {
+      wtype = AAX_PURE_WAVEFORM|AAX_SQUARE;
+   } else if (!xmlAttributeCompareString(xwid, "src", "pure-triangle")) {
+      wtype = AAX_PURE_WAVEFORM|AAX_TRIANGLE;
+   } else if (!xmlAttributeCompareString(xwid, "src", "pure-sine")) {
+      wtype = AAX_PURE_WAVEFORM|AAX_SINE;
+   } else if (!xmlAttributeCompareString(xwid, "src", "pure-cycloid")) {
+      wtype = AAX_PURE_WAVEFORM|AAX_CYCLOID;
+   } else if (!xmlAttributeCompareString(xwid, "src", "pure-impulse")) {
+      wtype = AAX_PURE_WAVEFORM|AAX_IMPULSE;
+   }else {
       wtype = AAX_WAVE_NONE;
    }
 
@@ -2272,12 +2284,12 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int samples)
 static int
 _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float pitch, float staticity, float random, unsigned char pitch_level, int voices, float spread, enum aaxSourceType wtype, float ratio, enum aaxProcessingType ptype, limitType limiter)
 {
+   enum aaxSourceType wave = wtype & (AAX_ALL_SOURCE_MASK & ~AAX_PURE_WAVEFORM);
    _buffer_t* handle = get_buffer(buffer, __func__);
    int rv = __release_mode;
 
    if (!rv)
    {
-      enum aaxSourceType wave = wtype & AAX_ALL_SOURCE_MASK;
       if (wave < AAX_1ST_WAVE || wave > AAX_LAST_NOISE ||
           (wave > AAX_LAST_WAVE && wave < AAX_1ST_NOISE))
       {
@@ -2340,7 +2352,6 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
          break;
       case AAX_MIX:
       {
-         enum aaxSourceType wave = wtype & AAX_ALL_SOURCE_MASK;
          float ratio_orig = FNMINMAX(1.0f-ratio, 0.0f, 1.0f);
 
          ratio = 2.0f*(1.0f - ratio_orig);
@@ -2367,7 +2378,6 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
       if (scratch)
       {
          enum aaxSourceType noise = wtype & AAX_NOISE_MASK;
-         enum aaxSourceType wave = wtype & AAX_SOURCE_MASK;
          if (wave >= AAX_1ST_WAVE && wave <= AAX_LAST_WAVE)
          {
             for (q=0; q<voices; ++q)
@@ -2381,8 +2391,8 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
                nfw = nfw*ceilf(ffact)/ffact;
                nphase = phase + q*GMATH_2PI/voices;
                nratio = (q == hvoices) ? 0.8f*ratio : 0.6f*ratio;
-               rv = rb->data_mix_waveform(rb, scratch, wave, track, nfw, nratio,
-                                          nphase, modulate, limiter);
+               rv = rb->data_mix_waveform(rb, scratch, wtype, track, nfw,
+                                          nratio, nphase, modulate, limiter);
             }
          }
 

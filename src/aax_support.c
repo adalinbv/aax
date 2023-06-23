@@ -613,6 +613,15 @@ aaxGetSourceTypeByName(const char *wave)
                rv |= AAX_INVERSE;
             }
 
+            invlen = strlen("pure");
+            if (!strncasecmp(name, "pure", invlen) &&
+                (len > ++invlen))
+            {
+               name += invlen;
+               len -= invlen;
+               rv |= AAX_PURE_WAVEFORM;
+            }
+
             if (!strncasecmp(name, "bessel", len)) {
                rv |= AAX_BESSEL;
             }

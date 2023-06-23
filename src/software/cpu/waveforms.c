@@ -57,13 +57,6 @@ static void _aax_add_data(int32_t*, const_float32_ptr, unsigned int, char, float
 static void _aax_mul_data(int32_t*, const_float32_ptr, unsigned int, char, float, limitType);
 static float* _aax_generate_noise_float(float*, size_t, uint64_t, unsigned char, float);
 
-#if 0
-static float* _aax_generate_sine(size_t, float, float);
-static float* _aax_generate_sawtooth(size_t, float, float);
-static float* _aax_generate_triangle(size_t, float, float);
-static float* _aax_generate_square(size_t, float, float);
-#endif
-
 _aax_generate_waveform_proc _aax_generate_waveform_float = _aax_generate_waveform_cpu;
 
 static float _aax_linear(float v) {
@@ -80,14 +73,99 @@ _aax_atanf(float v) {
    return fast_atanf( _MINMAX(v*GMATH_1_PI_2, -1.94139795f, 1.94139795f) );
 }
 
+static inline float // http://rrrola.wz.cz/inv_sqrt.html
+fast_inv_sqrt(float x)
+{
+  union { float f; uint32_t u; } y = { .f = x };
+  y.u = 0x5f1ffff9 - (y.u >> 1);
+  return 0.703952253f * y.f * (2.38924456f - x * y.f * y.f);
+}
+
+static void
+_bufferGenerateWaveform(float32_ptr rv, size_t no_samples, float freq, float phase, enum aaxSourceType wtype)
+{
+   if (wtype & AAX_PURE_WAVEFORM)
+   {
+      const_float32_ptr harmonics;
+      float s = -1.0f + phase/GMATH_PI;
+      float ngain, dt = 2.0f/freq;
+      int wave, i = no_samples;
+      float *ptr = rv;
+
+      wave = wtype & ~AAX_PURE_WAVEFORM;
+      harmonics = _harmonics[wave-AAX_1ST_WAVE];
+      ngain = harmonics[0];
+
+      switch(wave)
+      {
+      case AAX_SAWTOOTH:
+         do
+         {
+            *ptr++ = ngain * s;
+            if ((s += dt) >= 1.0f) s -= 2.0f;
+         }
+         while (--i);
+         break;
+      case AAX_SQUARE:
+         do
+         {
+            *ptr++ = (s >= 0.0f) ? ngain : 0.0f;
+            if ((s += dt) >= 1.0f) s -= 2.0f;
+         }
+         while (--i);
+         break;
+      case AAX_TRIANGLE:
+         do
+         {
+            *ptr++ = ngain * s;
+            s += 2.0f*dt;
+            if (s >= 1.0f || s <= -1.0f) dt = -dt;
+         }
+         while (--i);
+         break;
+      case AAX_SINE:
+         do
+         {
+            *ptr++ = ngain * sinf(GMATH_PI*s);
+            if ((s += dt) >= 1.0f) s -= 2.0f;
+         }
+         while (--i);
+         break;
+      case AAX_CYCLOID:
+         do
+         {
+            *ptr++ = ngain/fast_inv_sqrt(1.0f - s*s);
+            if ((s += dt) >= 1.0f) s -= 2.0f;
+         }
+         while (--i);
+         break;
+      case AAX_IMPULSE:
+         do
+         {
+            *ptr++ = (s > 0.8f) ? ngain * 4.0f : 0.0f;
+            if ((s += dt) >= 1.0f) s -= 2.0f;
+         }
+         while (--i);
+         break;
+      default:
+         break;
+      }
+   }
+   else {
+      _aax_generate_waveform_float(rv, no_samples, freq, phase, wtype);
+   }
+}
+
 void
 _bufferMixWaveform(int32_t* data, _data_t *scratch, enum aaxSourceType wtype, float freq, char bps, size_t no_samples, float gain, float phase, unsigned char modulate, limitType limiter)
 {
-   gain *= _gains[wtype-AAX_1ST_WAVE];
+   int wave = wtype & ~AAX_PURE_WAVEFORM;
+   gain *= _gains[wave-AAX_1ST_WAVE];
    if (data && gain && no_samples*sizeof(int32_t) < _aaxDataGetSize(scratch))
    {
       float *ptr = _aaxDataGetData(scratch, 0);
-      _aax_generate_waveform_float(ptr, no_samples, freq, phase, wtype);
+
+      _bufferGenerateWaveform(ptr, no_samples, freq, phase, wtype);
       if (modulate) {
          _aax_mul_data(data, ptr, no_samples, bps, fabsf(gain), limiter);
       } else {
@@ -197,7 +275,7 @@ ALIGN float _harmonic_phases[AAX_MAX_WAVE][2*MAX_HARMONICS] =
     .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f
   },
 
-  /* AAX_SQUARE */ 
+  /* AAX_SQUARE */
   { .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
     .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
     .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
