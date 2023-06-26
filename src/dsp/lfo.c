@@ -385,7 +385,7 @@ _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 
       rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
 
-      if ((lfo->state & AAX_PURE_WAVEFORM) == 0)
+      if ((lfo->state & AAX_PURE_WAVEFORM) == 0) {
          rv = lfo->convert(_analog_triangle(rv), lfo);
       }
 
