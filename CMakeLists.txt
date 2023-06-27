@@ -18,7 +18,7 @@ include(CheckFunctionExists)
 set(CMAKE_GNUtoMS ON)
 project(AeonWave)
 set(PACKAGE_NAME "AeonWave")
-set(PACKAGE "libaax3")
+set(PACKAGE "libaax4")
 
 option(LTO "Enabel linkt-time optimizations" OFF)
 option(RELEASE "Enable for final release builds" OFF)
@@ -116,7 +116,7 @@ else(WIN32)
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), debconf")
   set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "alsa-base | oss4-base")
   set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libmpg123-0, libopus0")
-  set(CPACK_DEBIAN_PACKAGE_REPLACES "libaax2-bin, libaax2-dev, libaax3-bin, libaax3-dev")
+  set(CPACK_DEBIAN_PACKAGE_REPLACES "libaax3-bin, libaax3-dev, libaax4-bin, libaax4-dev")
   set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${AeonWave_SOURCE_DIR}/admin/deb/postinst;${AeonWave_SOURCE_DIR}/admin/deb/postrm;")
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
@@ -127,7 +127,7 @@ else(WIN32)
   # RPM
   set(CPACK_RPM_PACKAGE_LICENSE "GPL")
   set(CPACK_RPM_PACKAGE_GROUP "System/Libraries")
-  set(CPACK_RPM_PACKAGE_PROVIDES "libaax2, libaax3")
+  set(CPACK_RPM_PACKAGE_PROVIDES "libaax3, libaax4")
 endif(WIN32)
 
 # ZIP
