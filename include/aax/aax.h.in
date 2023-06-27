@@ -600,7 +600,7 @@ enum aaxSourceType
 
    /* timed gain filter */
    AAX_REPEAT_MASK           = AAX_SOURCE_ORDER_MASK,
-   AAX_MAX_REPEAT            = (AAX_REPEAT_MASK-1)
+   AAX_MAX_REPEAT            = AAX_REPEAT_MASK
 };
 
 enum aaxSignalLevelType
