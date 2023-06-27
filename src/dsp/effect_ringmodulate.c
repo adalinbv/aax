@@ -85,19 +85,18 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
    state &= ~AAX_LFO_STEREO;
 
    effect->state = state;
-   switch (state & ~AAX_INVERSE)
+   switch (state & AAX_SOURCE_MASK)
    {
-   case AAX_CONSTANT_VALUE:
-   case AAX_TRIANGLE_WAVE:
-   case AAX_SINE_WAVE:
-   case AAX_SQUARE_WAVE:
-   case AAX_IMPULSE_WAVE:
-   case AAX_SAWTOOTH_WAVE:
-   case AAX_CYCLOID_WAVE:
+   case AAX_CONSTANT:
+   case AAX_SAWTOOTH:
+   case AAX_SQUARE:
+   case AAX_TRIANGLE:
+   case AAX_SINE:
+   case AAX_CYCLOID:
+   case AAX_IMPULSE:
    case AAX_RANDOMNESS:
-   case AAX_TIMED_TRANSITION:
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_LOG:
+   case AAX_TIMED_TRANSITION:
    {
       _aaxRingBufferModulatorData *modulator = effect->slot[0]->data;
       if (modulator == NULL)
@@ -125,14 +124,14 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
          modulator->lfo.min = effect->slot[0]->param[AAX_LFO_OFFSET];
          modulator->lfo.max = modulator->lfo.min + effect->slot[0]->param[AAX_LFO_DEPTH];
          modulator->lfo.envelope = AAX_FALSE;
-         modulator->lfo.stereo_lnk = !stereo;
+         modulator->lfo.stereo_link = !stereo;
 
          modulator->lfo.min_sec = modulator->lfo.min/modulator->lfo.fs;
          modulator->lfo.max_sec = modulator->lfo.max/modulator->lfo.fs;
          modulator->lfo.depth = 1.0f;
          modulator->lfo.offset = 0.0f;
          modulator->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
-         modulator->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         modulator->lfo.inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
          constant = _lfo_set_timing(&modulator->lfo);
          if (!_lfo_set_function(&modulator->lfo, constant)) {

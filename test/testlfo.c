@@ -10,7 +10,7 @@
   exit(-1); \
 }
 
-void testLFO(enum aaxWaveformType state, const char *name)
+void testLFO(enum aaxSourceType state, const char *name)
 {
     int constant;
     _aaxMixerInfo info;
@@ -49,17 +49,17 @@ void testLFO(enum aaxWaveformType state, const char *name)
 
 int main()
 {
-    testLFO(AAX_IMPULSE_WAVE, "impulse");
-    testLFO(AAX_CYCLOID_WAVE, "cycloid");
-    testLFO(AAX_SINE_WAVE, "sine");
-    testLFO(AAX_TRIANGLE_WAVE, "triangle");
-    testLFO(AAX_SQUARE_WAVE, "square");
-    testLFO(AAX_SAWTOOTH_WAVE, "sawtooth");
+    testLFO(AAX_IMPULSE, "impulse");
+    testLFO(AAX_CYCLOID, "cycloid");
+    testLFO(AAX_SINE, "sine");
+    testLFO(AAX_TRIANGLE, "triangle");
+    testLFO(AAX_SQUARE, "square");
+    testLFO(AAX_SAWTOOTH, "sawtooth");
 
-    testLFO(AAX_INVERSE_IMPULSE_WAVE, "inverse-impulse");
-    testLFO(AAX_INVERSE_CYCLOID_WAVE, "inverse-cycloid");
-    testLFO(AAX_INVERSE_SINE_WAVE, "inverse-sine");
-    testLFO(AAX_INVERSE_TRIANGLE_WAVE, "inverse-triangle");
-    testLFO(AAX_INVERSE_SQUARE_WAVE, "inverse-square");
-    testLFO(AAX_INVERSE_SAWTOOTH_WAVE, "inverse-sawtooth");
+    testLFO(AAX_INVERSE_IMPULSE, "inverse-impulse");
+    testLFO(AAX_INVERSE_CYCLOID, "inverse-cycloid");
+    testLFO(AAX_INVERSE_SINE, "inverse-sine");
+    testLFO(AAX_INVERSE_TRIANGLE, "inverse-triangle");
+    testLFO(AAX_INVERSE_SQUARE, "inverse-square");
+    testLFO(AAX_INVERSE_SAWTOOTH, "inverse-sawtooth");
 }

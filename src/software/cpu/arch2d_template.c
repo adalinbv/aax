@@ -45,82 +45,50 @@ FN(fast_sin,A)(float x)
    return -4.0f*(x - x*fabsf(x));
 }
 
-float // http://rrrola.wz.cz/inv_sqrt.html
-FN(fast_inv_sqrt,A)(float x)
-{
-  union { float f; uint32_t u; } y = { .f = x };
-  y.u = 0x5f1ffff9 - (y.u >> 1);
-  return 0.703952253f * y.f * (2.38924456f - x * y.f * y.f);
-}
-
 float *
-FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float phase, enum wave_types wtype)
+FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float phase, enum aaxSourceType wtype)
 {
-   const_float32_ptr harmonics = _harmonics[wtype];
+   const_float32_ptr harmonics = _harmonics[wtype-AAX_1ST_WAVE];
    if (rv)
    {
-      int i = no_samples;
+      float ngain = harmonics[0];
+      float hdt = 2.0f/freq;
+      float s = -1.0f + phase/GMATH_PI;
+      int h, i = no_samples;
       float *ptr = rv;
 
-      if (wtype == _CONSTANT_VALUE)
+      // first harmonic
+      do
       {
-         do {
-            *ptr++ = 1.0f;
-         } while (--i);
+         *ptr++ = ngain * FN(fast_sin,A)(s);
+         s = s+hdt;
+         if (s >= 1.0f) s -= 2.0f;
       }
-      else if (wtype == _CYCLOID_WAVE)
+      while (--i);
+
+      // remaining harmonics, if required
+      if (wtype != AAX_SINE)
       {
-         float hdt = 2.0f/freq;
-         float s = -1.0f + phase/GMATH_PI;
+          for(h=1; h<MAX_HARMONICS; ++h)
+          {
+             float nfreq = freq/(h+1);
+             if (nfreq < 2.0f) break;    // higher than the nyquist-frequency
 
-         do
-         {
-            *ptr++ = 1.0f/FN(fast_inv_sqrt,A)(1.0f - s*s);
-            s = s+hdt;
-            if (s >= 1.0f) s -= 2.0f;
-         }
-         while (--i);
-      }
-      else
-      {
-         float ngain = harmonics[0];
-         float hdt = 2.0f/freq;
-         float s = -1.0f + phase/GMATH_PI;
-         int h;
-
-         // first harmonic
-         do
-         {
-            *ptr++ = ngain * FN(fast_sin,A)(s);
-            s = s+hdt;
-            if (s >= 1.0f) s -= 2.0f;
-         }
-         while (--i);
-
-         // remaining harmonics, if required
-         if (wtype != _SINE_WAVE)
-         {
-             for(h=1; h<MAX_HARMONICS; ++h)
+             ngain = harmonics[h];
+             if (ngain)
              {
-                float nfreq = freq/(h+1);
-                if (nfreq < 2.0f) break;    // higher than the nyquist-frequency
+                int i = no_samples;
+                float hdt = 2.0f/nfreq;
+                float s = -1.0f + phase/GMATH_PI;
 
-                ngain = harmonics[h];
-                if (ngain)
+                ptr = rv;
+                do
                 {
-                   int i = no_samples;
-                   float hdt = 2.0f/nfreq;
-                   float s = -1.0f + phase/GMATH_PI;
-
-                   ptr = rv;
-                   do
-                   {
-                      *ptr++ += ngain * FN(fast_sin,A)(s);
-                      s = s+hdt;
-                      if (s >= 1.0f) s -= 2.0f;
-                   }
-                   while (--i);
-               }
+                   *ptr++ += ngain * FN(fast_sin,A)(s);
+                   s = s+hdt;
+                   if (s >= 1.0f) s -= 2.0f;
+                }
+                while (--i);
             }
          }
       }

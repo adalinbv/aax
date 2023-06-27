@@ -116,35 +116,30 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = AAX_FALSE;
-   int noise_mask, stereo;
+   int stereo;
 
    assert(filter->info);
 
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
    state &= ~AAX_LFO_STEREO;
 
-   noise_mask = (AAX_WHITE_NOISE|AAX_PINK_NOISE|AAX_BROWNIAN_NOISE);
-
-   if ((state & ~(noise_mask|AAX_INVERSE)) == 0) {
+   if ((state & AAX_SOURCE_MASK) == 0) {
       state |= AAX_TRUE;
    }
 
    filter->state = state;
-   switch (state & ~(noise_mask|AAX_INVERSE))
+   switch (state & AAX_SOURCE_MASK)
    {
-   case AAX_CONSTANT_VALUE:
-   case AAX_TRIANGLE_WAVE:
-   case AAX_SINE_WAVE:
-   case AAX_SQUARE_WAVE:
-   case AAX_IMPULSE_WAVE:
-   case AAX_SAWTOOTH_WAVE:
-   case AAX_CYCLOID_WAVE:
+   case AAX_CONSTANT:
+   case AAX_TRIANGLE:
+   case AAX_SINE:
+   case AAX_SQUARE:
+   case AAX_IMPULSE:
+   case AAX_SAWTOOTH:
+   case AAX_CYCLOID:
    case AAX_RANDOMNESS:
-   case AAX_TIMED_TRANSITION:
-   case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_LOG:
-   case AAX_ENVELOPE_FOLLOW_MASK:
+   case AAX_TIMED_TRANSITION:
    {
       _aaxRingBufferBitCrusherData *bitcrush = filter->slot[0]->data;
       if (bitcrush == NULL)
@@ -187,24 +182,25 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          bitcrush->fs = filter->slot[1]->param[AAX_SAMPLE_RATE & 0xF];
 
          /* bit reduction */
-         if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
-             (state & AAX_ENVELOPE_FOLLOW_LOG))
+         if (((state & AAX_SOURCE_MASK) == AAX_ENVELOPE_FOLLOW ||
+              (state & AAX_SOURCE_MASK) == AAX_TIMED_TRANSITION) &&
+             (state & AAX_LFO_EXPONENTIAL))
          {
             bitcrush->lfo.convert = _squared;
          } else {
             bitcrush->lfo.convert = _linear;
          }
-         bitcrush->lfo.state = filter->state & ~noise_mask;
+         bitcrush->lfo.state = filter->state;
          bitcrush->lfo.fs = fs;
          bitcrush->lfo.period_rate = filter->info->period_rate;
-         bitcrush->lfo.stereo_lnk = !stereo;
+         bitcrush->lfo.stereo_link = !stereo;
 
          bitcrush->lfo.min_sec = offset/fs;
          bitcrush->lfo.max_sec = bitcrush->lfo.min_sec + depth/fs;
          bitcrush->lfo.depth = 1.0f;
          bitcrush->lfo.offset = 0.0f;
          bitcrush->lfo.f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
-         bitcrush->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         bitcrush->lfo.inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
          if ((bitcrush->lfo.offset + bitcrush->lfo.depth) > 1.0f) {
             bitcrush->lfo.depth = 1.0f - bitcrush->lfo.offset;
@@ -221,24 +217,23 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          bitcrush->staticity = filter->slot[1]->param[AAX_STATICITY & 0xF];
 
          depth = filter->slot[0]->param[AAX_NOISE_LEVEL];
-         if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
-             (state & AAX_ENVELOPE_FOLLOW_LOG))
+         if (state & AAX_LFO_EXPONENTIAL)
          {
             bitcrush->env.convert = _squared;
          } else {
             bitcrush->env.convert = _linear;
          }
-         bitcrush->env.state = filter->state & ~noise_mask;
+         bitcrush->env.state = filter->state;
          bitcrush->env.fs = fs;
          bitcrush->env.period_rate = filter->info->period_rate;
-         bitcrush->env.stereo_lnk = !stereo;
+         bitcrush->env.stereo_link = !stereo;
 
          bitcrush->env.min_sec = 0.0f;
          bitcrush->env.max_sec = depth/fs;
          bitcrush->env.depth = 1.0f;
          bitcrush->env.offset = 0.0f;
          bitcrush->env.f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
-         bitcrush->env.inv = (state & AAX_INVERSE) ? AAX_FALSE : AAX_TRUE;
+         bitcrush->env.inverse = (state & AAX_INVERSE) ? AAX_FALSE : AAX_TRUE;
 
          if ((bitcrush->env.offset + bitcrush->env.depth) > 1.0f) {
             bitcrush->env.depth = 1.0f - bitcrush->env.offset;

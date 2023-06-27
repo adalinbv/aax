@@ -12,7 +12,7 @@
 #include <src/software/cpu/arch2d_simd.h>
 #include <arch.h>
 
-#define WAVE_TYPE	_SAWTOOTH_WAVE
+#define WAVE_TYPE	AAX_SAWTOOTH
 #define VSTEP		-0.000039f
 #define FACTOR		0.7723678263f
 

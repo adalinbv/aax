@@ -74,7 +74,6 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
-   int mask, istate, wstate;
 
    assert(effect->info);
 
@@ -82,31 +81,19 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
       state |= (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
    }
 
-   mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_IMPULSE_WAVE|
-          AAX_SAWTOOTH_WAVE|AAX_RANDOMNESS|AAX_CYCLOID_WAVE |
-          AAX_TIMED_TRANSITION | AAX_ENVELOPE_FOLLOW_MASK | AAX_CONSTANT_VALUE;
-
-   istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL|AAX_RANDOM_SELECT|
-                      AAX_ENVELOPE_FOLLOW_LOG);
-   if (istate == 0) istate = AAX_12DB_OCT;
-   wstate = istate & mask;
-
    effect->state = state;
-   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG|
-           AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
-   switch (state & ~mask)
+   switch (state & AAX_SOURCE_MASK)
    {
-   case AAX_CONSTANT_VALUE:
-   case AAX_TRIANGLE_WAVE:
-   case AAX_SINE_WAVE:
-   case AAX_SQUARE_WAVE:
-   case AAX_IMPULSE_WAVE:
-   case AAX_SAWTOOTH_WAVE:
-   case AAX_CYCLOID_WAVE:
+   case AAX_CONSTANT:
+   case AAX_SAWTOOTH:
+   case AAX_SQUARE:
+   case AAX_TRIANGLE:
+   case AAX_SINE:
+   case AAX_CYCLOID:
+   case AAX_IMPULSE:
    case AAX_RANDOMNESS:
-   case AAX_TIMED_TRANSITION:
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_MASK:
+   case AAX_TIMED_TRANSITION:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
       float feedback = effect->slot[1]->param[AAX_FEEDBACK_GAIN & 0xF];
@@ -133,6 +120,10 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
          if ((fc > MINIMUM_CUTOFF && fc < MAXIMUM_CUTOFF) ||
              ( fmax > MINIMUM_CUTOFF && fmax < MAXIMUM_CUTOFF))
          {
+            if ((state & AAX_ORDER_MASK) == 0) {
+               state |= AAX_2ND_ORDER;
+            }
+
             if (!flt)
             {
                flt = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterData));
@@ -180,7 +171,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
 //          data->lfo.offset = offset*CHORUS_MAX/PHASING_MAX;
 //       }
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
-         data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         data->lfo.inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
          if ((data->lfo.offset + data->lfo.depth) > 1.0f) {
             data->lfo.depth = 1.0f - data->lfo.offset;
@@ -217,7 +208,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
             flt->Q = effect->slot[1]->param[AAX_DELAY_RESONANCE & 0xF];
             flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
 
-            if (state & AAX_RANDOM_SELECT)
+            if ((state & AAX_SOURCE_MASK) == AAX_RANDOM_SELECT)
             {
                float lfc2 = _lin2log(fmax);
                float lfc1 = _lin2log(fc);
@@ -261,13 +252,13 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
                {
                   int constant;
 
-                  _lfo_setup(lfo, effect->info, wstate);
+                  _lfo_setup(lfo, effect->info, state);
 
                   /* sweeprate */
                   lfo->min = fc;
                   lfo->max = fmax;
 
-                  if (state & AAX_ENVELOPE_FOLLOW_LOG)
+                  if (state & AAX_LFO_EXPONENTIAL)
                   {
                      lfo->convert = _logarithmic;
                      if (fabsf(lfo->max - lfo->min) < 200.0f)

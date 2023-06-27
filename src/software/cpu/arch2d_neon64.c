@@ -246,76 +246,90 @@ fast_atan4_neon64(float32x4_t x)
 #endif
 
 float *
-_aax_generate_waveform_neon64(float32_ptr rv, size_t num, float freq, float phase, enum wave_types wtype)
+_aax_generate_waveform_neon64(float32_ptr rv, size_t no_samples, float freq, float phase, enum aaxSourceType wtype)
 {
-   const_float32_ptr harmonics = _harmonics[wtype];
+   const_float32_ptr phases = _harmonic_phases[wtype-AAX_1ST_WAVE];
+   const_float32_ptr harmonics = _harmonics[wtype-AAX_1ST_WAVE];
 
-   if (wtype == _SINE_WAVE || wtype == _CYCLOID_WAVE || wtype == _CONSTANT_VALUE) {
-      rv = _aax_generate_waveform_cpu(rv, num, freq, phase, wtype);
-   }
-   else if (rv)
+   switch(wtype)
    {
-      static const float fact[8] = { 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f };
-      float32x4x2_t phase8, freq8, h8;
-      float32x4x2_t one, two, eight;
-      float32x4x2_t ngain, nfreq;
-      float32x4x2_t hdt, s;
-      int i, h;
-      float *ptr;
-
-      assert(MAX_HARMONICS % 8 == 0);
-
-      one = vdup2q_n_f32(1.0f);
-      two = vdup2q_n_f32(2.0f);
-      eight = vdup2q_n_f32(8.0f);
-
-      phase8 = vdup2q_n_f32(-1.0f + phase/GMATH_PI);
-      freq8 = vdup2q_n_f32(freq);
-      h8 = vld2q_f32(fact);
-
-      nfreq = vdiv2q_f32(freq8, h8);
-      ngain = vand2q_f32(vclt2q_f32(two, nfreq), vld2q_f32(harmonics));
-      hdt = vdiv2q_f32(two, nfreq);
-
-      ptr = rv;
-      i = num;
-      s = phase8;
-      do
+   case AAX_SINE:
+      rv = _aax_generate_waveform_cpu(rv, no_samples, freq, phase, wtype);
+      break;
+   case AAX_SAWTOOTH:
+   case AAX_SQUARE:
+   case AAX_TRIANGLE:
+   case AAX_CYCLOID:
+   case AAX_IMPULSE:
+      if (rv)
       {
-         float32x4x2_t rv = fast_sin8_neon64(s);
+         static const float fact[8] = { 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f };
+         float32x4x2_t phase8, freq8, h8;
+         float32x4x2_t one, two, eight;
+         float32x4x2_t ngain, nfreq;
+         float32x4x2_t hdt, s;
+         int i, h;
+         float *ptr;
 
-         *ptr++ = hsum_float32x4x2_neon64(vmul2q_f32(ngain, rv));
+         assert(MAX_HARMONICS % 8 == 0);
 
-         s = vadd2q_f32(s, hdt);
-         s = vsub2q_f32(s, vand2q_f32(two, vcge2q_f32(s, one)));
-      }
-      while (--i);
+         one = vdup2q_n_f32(1.0f);
+         two = vdup2q_n_f32(2.0f);
+         eight = vdup2q_n_f32(8.0f);
 
-      h8 = vadd2q_f32(h8, eight);
-      for(h=8; h<MAX_HARMONICS; h += 8)
-      {
+         phase8 = vdup2q_n_f32(-1.0f + phase/GMATH_PI);
+         freq8 = vdup2q_n_f32(freq);
+         h8 = vld2q_f32(fact);
+
          nfreq = vdiv2q_f32(freq8, h8);
-         ngain = vand2q_f32(vclt2q_f32(two, nfreq), vld2q_f32(harmonics+h));
-         if (vtestz2q_f32(ngain))
+         ngain = vand2q_f32(vclt2q_f32(two, nfreq), vld2q_f32(harmonics));
+         hdt = vdiv2q_f32(two, nfreq);
+
+         ptr = rv;
+         i = no_samples;
+         s = vadd2q_f32(phase8, vld2q_f32(phases));
+         s = vsub2q_f32(s, vand2q_f32(one, vcge2q_f32(s, one)));
+         do
          {
-            hdt = vdiv2q_f32(two, nfreq);
+            float32x4x2_t rv = fast_sin8_neon64(s);
 
-            ptr = rv;
-            i = num;
-            s = phase8;
-            do
-            {
-               float32x4x2_t rv = fast_sin8_neon64(s);
+            *ptr++ = hsum_float32x4x2_neon64(vmul2q_f32(ngain, rv));
 
-               *ptr++ += hsum_float32x4x2_neon64(vmul2q_f32(ngain, rv));
-
-               s = vadd2q_f32(s, hdt);
-               s = vsub2q_f32(s, vand2q_f32(two, vcge2q_f32(s, one)));
-            }
-            while (--i);
+            s = vadd2q_f32(s, hdt);
+            s = vsub2q_f32(s, vand2q_f32(two, vcge2q_f32(s, one)));
          }
+         while (--i);
+
          h8 = vadd2q_f32(h8, eight);
+         for(h=8; h<MAX_HARMONICS; h += 8)
+         {
+            nfreq = vdiv2q_f32(freq8, h8);
+            ngain = vand2q_f32(vclt2q_f32(two, nfreq), vld2q_f32(harmonics+h));
+            if (vtestz2q_f32(ngain))
+            {
+               hdt = vdiv2q_f32(two, nfreq);
+
+               ptr = rv;
+               i = no_samples;
+               s = vadd2q_f32(phase8, vld2q_f32(phases));
+               s = vsub2q_f32(s, vand2q_f32(one, vcge2q_f32(s, one)));
+               do
+               {
+                  float32x4x2_t rv = fast_sin8_neon64(s);
+
+                  *ptr++ += hsum_float32x4x2_neon64(vmul2q_f32(ngain, rv));
+
+                  s = vadd2q_f32(s, hdt);
+                  s = vsub2q_f32(s, vand2q_f32(two, vcge2q_f32(s, one)));
+               }
+               while (--i);
+            }
+            h8 = vadd2q_f32(h8, eight);
+         }
       }
+      break;
+   default:
+      break;
    }
    return rv;
 }
@@ -851,7 +865,7 @@ _batch_cvt24_16_neon64(void_ptr dst, const_void_ptr src, size_t num)
    if (!num) return;
 
    step = sizeof(int32x4x2_t)/sizeof(int32_t);
-   
+
    i = num/step;
    num -= i*step;
    if (i)
@@ -1344,7 +1358,7 @@ _aaxBufResampleDecimate_float_neon64(float32_ptr dptr, const_float32_ptr sptr, s
 
             smu -= step;
             s += step-1;
-            samp = *s++; 
+            samp = *s++;
             dsamp = *s - samp;
          }
          while (--i);

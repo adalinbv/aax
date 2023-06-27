@@ -115,7 +115,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       rstate = (AAX_EFFECT_1ST_ORDER | AAX_EFFECT_2ND_ORDER);
    }
 
-   switch (state & ~AAX_ENVELOPE_FOLLOW)
+   switch (state)
    {
    case AAX_TRUE:
    case AAX_INVERSE:
@@ -252,7 +252,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 
             _aax_butterworth_compute(reverb->fc, flt);
 
-            if (state & AAX_ENVELOPE_FOLLOW)
+            if ((state & AAX_SOURCE_MASK) == AAX_ENVELOPE_FOLLOW)
             {
                _aaxLFOData* lfo = flt->lfo;
 
@@ -290,8 +290,8 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
                   lfo->depth = 1.0f;
                   lfo->offset = 0.0f;
                   lfo->f = 1.0f;
-                  lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-                  lfo->stereo_lnk = !(state & AAX_LFO_STEREO);
+                  lfo->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+                  lfo->stereo_link = !(state & AAX_LFO_STEREO);
 
                   constant = _lfo_set_timing(lfo);
                   lfo->envelope = AAX_FALSE;

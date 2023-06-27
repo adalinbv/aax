@@ -504,7 +504,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
    slen = xmlAttributeCopyString(xid, "type", src, 64);
    if (slen)
    {
-      int state = AAX_CONSTANT_VALUE;
+      int state = AAX_CONSTANT;
       enum aaxFilterType ftype;
       aaxFilter flt;
 
@@ -539,6 +539,10 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
             float release_factor = midi ? midi->release_factor : 1.0f;
             int repeat = 0;
 
+            /*
+             * It is not possible to define both AAX_REPEAT and AAX_RELEASE_FACTOR.
+             * In such a case AAX_REPEAT takes precedence.
+             */
             if (xmlAttributeExists(xid, "repeat"))
             {
                state = 0;
@@ -557,7 +561,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
             else if (xmlAttributeExists(xid, "release-factor")) {
                release_factor *= xmlAttributeGetDouble(xid, "release-factor");
             }
-            else if (xmlAttributeExists(xid, "release-time")) {
+            else if (xmlAttributeExists(xid, "release-time")) { /* for MIDI use */
                float dt = 2.5f*xmlAttributeGetDouble(xid, "release-time");
                _handle_t *handle = get_driver_handle(config);
                if (handle)
@@ -566,21 +570,21 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
                   release_factor *= dt*period/86.132812f;
                }
             }
-
             if (release_factor != 1.0f)
             {
                state = _MAX(10.0f*release_factor, 1);
-               if (state >= AAX_ENVELOPE_FOLLOW_LOG) {
-                  state = AAX_ENVELOPE_FOLLOW_LOG-1;
+               if (state > AAX_MAX_REPEAT) {
+                  state = AAX_MAX_REPEAT;
                } else if (state < 1) {
                   state = 0;
                }
-               state |= AAX_MIDI_RELEASE_FACTOR;
+               state |= AAX_RELEASE_FACTOR;
             }
+
             slen = xmlAttributeCopyString(xid, "src", src, 64);
             if (slen)
             {
-               int s = aaxGetByName(src, AAX_WAVEFORM_NAME);
+               int s = aaxGetByName(src, AAX_SOURCE_NAME);
                if (s == AAX_INVERSE_ENVELOPE_FOLLOW) {
                   state |= AAX_INVERSE_ENVELOPE_FOLLOW;
                } else if (s == AAX_ENVELOPE_FOLLOW) {
@@ -609,7 +613,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
                   state = xmlAttributeGetBool(xid, "src");
                   break;
                default:
-                  state = aaxGetByName(src, AAX_WAVEFORM_NAME);
+                  state = aaxGetByName(src, AAX_SOURCE_NAME);
                   break;
                }
             }
@@ -638,7 +642,7 @@ _aaxGetEffectFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
    slen = xmlAttributeCopyString(xid, "type", src, 64);
    if (slen)
    {
-      enum aaxWaveformType state = AAX_CONSTANT_VALUE;
+      enum aaxSourceType state = AAX_CONSTANT;
       enum aaxEffectType etype;
       aaxEffect eff;
 
@@ -663,7 +667,7 @@ _aaxGetEffectFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
          if (slen)
          {
             src[slen] = 0;
-            state = aaxGetByName(src, AAX_WAVEFORM_NAME);
+            state = aaxGetByName(src, AAX_SOURCE_NAME);
          }
 
          if (xmlAttributeExists(xid, "stereo") &&

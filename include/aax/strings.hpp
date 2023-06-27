@@ -313,35 +313,93 @@ static inline std::string to_string(enum aaxEffectType type) {
     return aaxEffectGetNameByType(0, type);
 }
 
-static inline std::string to_string(enum aaxWaveformType type)
+static inline std::string to_string(enum aaxSourceType type)
 {
     if (!type) return "{}";
-    std::string result;
-    if (type & AAX_INVERSE) result += "inverse ";
-    if (type & AAX_CONSTANT_VALUE) result += "constant | ";
-    if (type & AAX_TRIANGLE_WAVE) result += "triangle | ";
-    if (type & AAX_SINE_WAVE) result += "sine | ";
-    if (type & AAX_SQUARE_WAVE) result += "square | ";
-    if (type & AAX_SAWTOOTH_WAVE) result += " sawtooth | ";
-    if (type & AAX_IMPULSE_WAVE) result += " impulse | ";
-    if (type & AAX_WHITE_NOISE) result += "white noise | ";
-    if (type & AAX_PINK_NOISE) result += "pink noise | ";
-    if (type & AAX_BROWNIAN_NOISE) result += "brownian noise | ";
-    if (type & AAX_ENVELOPE_FOLLOW) result += "envelope follow | ";
-    return "{" + result.substr(0, result.size() - 3) + "}";
-}
 
-static inline std::string to_string(enum aaxFrequencyFilterType type)
-{
+    bool m = false;
     std::string result;
-    if (type & AAX_6DB_OCT) result += "6dB/oct ";
-    else if (type & AAX_12DB_OCT) result += "12dB/oct ";
-    else if (type & AAX_24DB_OCT) result += "24dB/oct ";
-    else if (type & AAX_36DB_OCT) result += "36dB/oct ";
-    else if (type & AAX_48DB_OCT) result += "48dB/oct ";
-    if (type & AAX_BESSEL) result += "bessel";
-    else result += "butterworth";
-    return result;
+
+    if (type & AAX_REPEAT_MASK);
+    {
+        /* timed gain filter */
+        result += "repeat: ";
+        result += std::to_string(type & AAX_REPEAT_MASK);
+        return result;
+    }
+
+    if (type & AAX_INVERSE) result += "inverse-";
+
+    enum aaxSourceType stype;
+    stype = static_cast<aaxSourceType>(type & AAX_SOURCE_MASK);
+    if (stype == AAX_CONSTANT) result += "constant";
+    else if (stype == AAX_SAWTOOTH) result += "sawtooth";
+    else if (stype == AAX_SQUARE) result += "square";
+    else if (stype == AAX_TRIANGLE) result += "triangle";
+    else if (stype == AAX_SINE) result += "sine";
+    else if (stype == AAX_CYCLOID) result += "cycloid";
+    else if (stype == AAX_IMPULSE) result += "impulse";
+    if (stype) m = true;
+
+    if (type & AAX_TIMED_TRANSITION)
+    {
+        if (m) result += " | ";
+        result += "timed";
+        m = true;
+    }
+    else if (type & AAX_ENVELOPE_FOLLOW)
+    {
+        if (m) result += " | ";
+        result += "envelope follow";
+        m = true;
+    }
+
+    if (type & AAX_LFO_EXPONENTIAL)
+    {
+        if (m) result += " | ";
+        result += "exponential";
+        m = true;
+    }
+
+    enum aaxSourceType otype;
+    otype = static_cast<aaxSourceType>(type & AAX_ORDER_MASK);
+    if (otype)
+    {
+        /* frequency filter */
+        if (m) result += " | ";
+        if (otype == AAX_6DB_OCT) result += "6dB/oct";
+        else if (otype == AAX_12DB_OCT) result += "12dB/oct";
+        else if (otype == AAX_24DB_OCT) result += "24dB/oct";
+        else if (otype == AAX_36DB_OCT) result += "36dB/oct";
+        else if (otype == AAX_48DB_OCT) result += "48dB/oct";
+        else if (otype == AAX_EFFECT_1ST_ORDER) result += "1st_order";
+        else if (otype == AAX_EFFECT_2ND_ORDER) result += "2nd_order";
+        if (type & AAX_BESSEL)
+        {
+            if (m) result += " | ";
+            result += "bessel";
+            m = true;
+        }
+    }
+
+    enum aaxSourceType ntype;
+    ntype = static_cast<aaxSourceType>(type & AAX_NOISE_MASK);
+    if (ntype && m) result += " | ";
+    if (ntype == AAX_WHITE_NOISE) result += "white noise";
+    else if (ntype == AAX_PINK_NOISE) result += "pink noise";
+    else if (ntype == AAX_BROWNIAN_NOISE) result += "brownian noise";
+    else if (ntype == AAX_RANDOMNESS) result += "randomness";
+    else if (ntype == AAX_RANDOM_SELECT) result += "random";
+    if (ntype) m = true;
+
+    if (type & AAX_LFO_STEREO)
+    {
+        if (m) result += " | ";
+        result += "stereo";
+        m = true;
+    }
+
+    return "{" + result.substr(0, result.size() - 3) + "}";
 }
 
 static inline std::string to_string(enum aaxProcessingType type)

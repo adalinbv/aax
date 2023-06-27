@@ -277,8 +277,8 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
             lfo->depth = 1.0f;
             lfo->offset = 0.0f;
             lfo->f = 0.6f;
-            lfo->inv = AAX_TRUE;
-            lfo->stereo_lnk = AAX_TRUE;
+            lfo->inverse = AAX_TRUE;
+            lfo->stereo_link = AAX_TRUE;
             lfo->envelope = AAX_FALSE;
 
             lfo->get = _occlusion_lfo;

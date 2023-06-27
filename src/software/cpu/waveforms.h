@@ -25,17 +25,7 @@
 // must be a multiple of 4 because of SIMD optimizations
 #define MAX_HARMONICS           16
 
-enum wave_types
-{
-   _CONSTANT_VALUE = 0,
-   _SAWTOOTH_WAVE,
-   _SQUARE_WAVE,
-   _TRIANGLE_WAVE,
-   _SINE_WAVE,
-   _CYCLOID_WAVE,
-   _IMPULSE_WAVE
-};
-
-extern float ALIGN _harmonics[AAX_MAX_WAVE+1][2*MAX_HARMONICS];
+extern float ALIGN _harmonic_phases[AAX_MAX_WAVE][2*MAX_HARMONICS];
+extern float ALIGN _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS];
 
 #endif /* WAVEFORMS_H */

@@ -78,50 +78,22 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = AAX_FALSE;
-   int mask, istate, wstate;
+   int ostate, sstate;
    int resonance, stereo;
 
    assert(filter->info);
 
-   resonance = ((state & AAX_RESONANCE_FACTOR) == AAX_RESONANCE_FACTOR)
-               ? AAX_TRUE : AAX_FALSE;
-   if (resonance)
-   {
-      state &= ~AAX_1ST_ORDER;
-      if ((state & AAX_ORDER_MASK) != AAX_2ND_ORDER) state &= ~AAX_2ND_ORDER;
-   }
-
-   mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_IMPULSE_WAVE|
-          AAX_SAWTOOTH_WAVE|AAX_RANDOMNESS|AAX_CYCLOID_WAVE |
-          AAX_TIMED_TRANSITION | AAX_ENVELOPE_FOLLOW_MASK;
-
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
    state &= ~AAX_LFO_STEREO;
 
-   istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL|AAX_RANDOM_SELECT|AAX_ENVELOPE_FOLLOW_LOG);
-   if (istate == 0) istate = AAX_12DB_OCT;
-   wstate = istate & mask;
+   sstate = state & AAX_SOURCE_MASK;
+   ostate = state & AAX_ORDER_MASK;
+   resonance = (ostate == AAX_RESONANCE_FACTOR) ? AAX_TRUE : AAX_FALSE;
+   if (ostate == 0) ostate = AAX_12DB_OCT;
 
-   if (wstate == AAX_6DB_OCT          ||
-       wstate == AAX_12DB_OCT         ||
-       wstate == AAX_24DB_OCT         ||
-       wstate == AAX_36DB_OCT         ||
-       wstate == AAX_48DB_OCT         ||
-       wstate == AAX_TRIANGLE_WAVE    ||
-       wstate == AAX_SINE_WAVE        ||
-       wstate == AAX_SQUARE_WAVE      ||
-       wstate == AAX_IMPULSE_WAVE     ||
-       wstate == AAX_CYCLOID_WAVE     ||
-       wstate == AAX_SAWTOOTH_WAVE    ||
-       wstate == AAX_RANDOMNESS       ||
-       wstate == AAX_TIMED_TRANSITION ||
-       wstate == AAX_ENVELOPE_FOLLOW  ||
-       istate == AAX_RANDOM_SELECT    ||
-       istate == AAX_6DB_OCT          ||
-       istate == AAX_12DB_OCT         ||
-       istate == AAX_24DB_OCT         ||
-       istate == AAX_36DB_OCT         ||
-       istate == AAX_48DB_OCT)
+   if ((ostate >= AAX_1ST_ORDER && ostate <= AAX_LAST_ORDER) || resonance ||
+       (sstate >= AAX_CONSTANT && sstate <= AAX_LAST_WAVE) ||
+       (sstate >= AAX_1ST_SOURCE && sstate <= AAX_LAST_SOURCE))
    {
       _aaxRingBufferFreqFilterData *flt = filter->slot[0]->data;
 
@@ -172,10 +144,10 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
              flt->high_gain *= 0.9f;
          }
 
-         if (state & AAX_48DB_OCT) stages = 4;
-         else if (state & AAX_36DB_OCT) stages = 3;
-         else if (state & AAX_24DB_OCT) stages = 2;
-         else if (state & AAX_6DB_OCT) stages = 0;
+         if (ostate == AAX_48DB_OCT) stages = 4;
+         else if (ostate == AAX_36DB_OCT) stages = 3;
+         else if (ostate == AAX_24DB_OCT) stages = 2;
+         else if (ostate == AAX_6DB_OCT) stages = 0;
          else stages = 1;
 
          flt->no_stages = stages;
@@ -184,7 +156,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
          flt->resonance = resonance ? flt->Q/fmax : 0.0f;
 
-         if (state & AAX_RANDOM_SELECT)
+         if ((state & AAX_SOURCE_MASK) == AAX_RANDOM_SELECT)
          {
             float lfc2 = _lin2log(fmax);
             float lfc1 = _lin2log(fc);
@@ -220,7 +192,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 #endif
 
          // Non-Manual only
-         if (wstate && EBF_VALID(filter) && filter->slot[1])
+         if (sstate && EBF_VALID(filter) && filter->slot[1])
          {
             _aaxLFOData* lfo = flt->lfo;
 
@@ -233,14 +205,14 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                int constant;
 
                /* sweeprate */
-               lfo->state = wstate;
+               lfo->state = sstate;
                lfo->fs = filter->info->frequency;
                lfo->period_rate = filter->info->period_rate;
 
                lfo->min = fc;
                lfo->max = fmax;
 
-               if (state & AAX_ENVELOPE_FOLLOW_LOG)
+               if (state & AAX_LFO_EXPONENTIAL)
                {
                   lfo->convert = _logarithmic;
                   if (fabsf(lfo->max - lfo->min) < 200.0f)
@@ -281,8 +253,8 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                lfo->max_sec = lfo->max/lfo->fs;
 
                lfo->f = filter->slot[1]->param[AAX_SWEEP_RATE & 0xF];
-               lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-               lfo->stereo_lnk = !stereo;
+               lfo->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+               lfo->stereo_link = !stereo;
 
                constant = _lfo_set_timing(lfo);
                lfo->envelope = AAX_FALSE;
@@ -292,7 +264,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                }
             } /* flt->lfo */
          } /* flt */
-         else if (wstate == AAX_FALSE)
+         else if (sstate == AAX_FALSE)
          {
             _lfo_destroy(flt->lfo);
             flt->lfo = NULL;
@@ -300,7 +272,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
    }
-   else if (wstate == AAX_FALSE)
+   else if (sstate == AAX_FALSE)
    {
       if (filter->slot[0]->data)
       {
@@ -420,8 +392,6 @@ _freqfilter_reset(void *data)
 void
 _freqfilter_data_swap( _aaxRingBufferFreqFilterData *dflt, _aaxRingBufferFreqFilterData *sflt)
 {
-   assert(dst->data_size == src->data_size);
-
    _lfo_swap(dflt->lfo, sflt->lfo);
    memcpy(dflt->coeff, sflt->coeff, sizeof(float[4*_AAX_MAX_STAGES]));
    dflt->Q = sflt->Q;

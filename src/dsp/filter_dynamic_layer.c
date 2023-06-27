@@ -72,24 +72,22 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = AAX_FALSE;
-   int mask;
 
    assert(filter->info);
 
    filter->state = state;
-   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
-   switch (state & ~mask)
+   switch (state & AAX_SOURCE_MASK)
    {
-   case AAX_CONSTANT_VALUE:
-   case AAX_TRIANGLE_WAVE:
-   case AAX_SINE_WAVE:
-   case AAX_SQUARE_WAVE:
-   case AAX_IMPULSE_WAVE:
-   case AAX_SAWTOOTH_WAVE:
+   case AAX_CONSTANT:
+   case AAX_SAWTOOTH:
+   case AAX_SQUARE:
+   case AAX_TRIANGLE:
+   case AAX_SINE:
+   case AAX_CYCLOID:
+   case AAX_IMPULSE:
    case AAX_RANDOMNESS:
-   case AAX_TIMED_TRANSITION:
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_MASK:
+   case AAX_TIMED_TRANSITION:
    {
       _aaxLFOData* lfo = filter->slot[0]->data;
       if (lfo == NULL) {

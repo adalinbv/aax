@@ -50,19 +50,12 @@
 #include "arch2d_simd.h"
 #include "waveforms.h"
 
-static float _gains[AAX_MAX_WAVE+1];
+static float _gains[AAX_MAX_WAVE];
 
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_add_data(int32_t*, const_float32_ptr, unsigned int, char, float, limitType);
 static void _aax_mul_data(int32_t*, const_float32_ptr, unsigned int, char, float, limitType);
 static float* _aax_generate_noise_float(float*, size_t, uint64_t, unsigned char, float);
-
-#if 0
-static float* _aax_generate_sine(size_t, float, float);
-static float* _aax_generate_sawtooth(size_t, float, float);
-static float* _aax_generate_triangle(size_t, float, float);
-static float* _aax_generate_square(size_t, float, float);
-#endif
 
 _aax_generate_waveform_proc _aax_generate_waveform_float = _aax_generate_waveform_cpu;
 
@@ -80,14 +73,99 @@ _aax_atanf(float v) {
    return fast_atanf( _MINMAX(v*GMATH_1_PI_2, -1.94139795f, 1.94139795f) );
 }
 
-void
-_bufferMixWaveform(int32_t* data, _data_t *scratch, enum wave_types wtype, float freq, char bps, size_t no_samples, float gain, float phase, unsigned char modulate, limitType limiter)
+static inline float // http://rrrola.wz.cz/inv_sqrt.html
+fast_inv_sqrt(float x)
 {
-   gain *= _gains[wtype];
+  union { float f; uint32_t u; } y = { .f = x };
+  y.u = 0x5f1ffff9 - (y.u >> 1);
+  return 0.703952253f * y.f * (2.38924456f - x * y.f * y.f);
+}
+
+static void
+_bufferGenerateWaveform(float32_ptr rv, size_t no_samples, float freq, float phase, enum aaxSourceType wtype)
+{
+   if (wtype & AAX_PURE_WAVEFORM)
+   {
+      const_float32_ptr harmonics;
+      float s = -1.0f + phase/GMATH_PI;
+      float ngain, dt = 2.0f/freq;
+      int wave, i = no_samples;
+      float *ptr = rv;
+
+      wave = wtype & ~AAX_PURE_WAVEFORM;
+      harmonics = _harmonics[wave-AAX_1ST_WAVE];
+      ngain = harmonics[0];
+
+      switch(wave)
+      {
+      case AAX_SAWTOOTH:
+         do
+         {
+            *ptr++ = ngain * s;
+            if ((s += dt) >= 1.0f) s -= 2.0f;
+         }
+         while (--i);
+         break;
+      case AAX_SQUARE:
+         do
+         {
+            *ptr++ = (s >= 0.0f) ? ngain : 0.0f;
+            if ((s += dt) >= 1.0f) s -= 2.0f;
+         }
+         while (--i);
+         break;
+      case AAX_TRIANGLE:
+         do
+         {
+            *ptr++ = ngain * s;
+            s += 2.0f*dt;
+            if (s >= 1.0f || s <= -1.0f) dt = -dt;
+         }
+         while (--i);
+         break;
+      case AAX_SINE:
+         do
+         {
+            *ptr++ = ngain * sinf(GMATH_PI*s);
+            if ((s += dt) >= 1.0f) s -= 2.0f;
+         }
+         while (--i);
+         break;
+      case AAX_CYCLOID:
+         do
+         {
+            *ptr++ = ngain/fast_inv_sqrt(1.0f - s*s);
+            if ((s += dt) >= 1.0f) s -= 2.0f;
+         }
+         while (--i);
+         break;
+      case AAX_IMPULSE:
+         do
+         {
+            *ptr++ = (s > 0.8f) ? ngain * 4.0f : 0.0f;
+            if ((s += dt) >= 1.0f) s -= 2.0f;
+         }
+         while (--i);
+         break;
+      default:
+         break;
+      }
+   }
+   else {
+      _aax_generate_waveform_float(rv, no_samples, freq, phase, wtype);
+   }
+}
+
+void
+_bufferMixWaveform(int32_t* data, _data_t *scratch, enum aaxSourceType wtype, float freq, char bps, size_t no_samples, float gain, float phase, unsigned char modulate, limitType limiter)
+{
+   int wave = wtype & ~AAX_PURE_WAVEFORM;
+   gain *= _gains[wave-AAX_1ST_WAVE];
    if (data && gain && no_samples*sizeof(int32_t) < _aaxDataGetSize(scratch))
    {
       float *ptr = _aaxDataGetData(scratch, 0);
-      _aax_generate_waveform_float(ptr, no_samples, freq, phase, wtype);
+
+      _bufferGenerateWaveform(ptr, no_samples, freq, phase, wtype);
       if (modulate) {
          _aax_mul_data(data, ptr, no_samples, bps, fabsf(gain), limiter);
       } else {
@@ -179,8 +257,7 @@ _bufferMixBrownianNoise(int32_t* data, _data_t *scratch, size_t no_samples, char
 
 /* -------------------------------------------------------------------------- */
 
-static float _gains[AAX_MAX_WAVE+1] = {
-    1.0f, // AAX_CONSTANT_VALUE
+static float _gains[AAX_MAX_WAVE] = {
     0.7f, // AAX_SAWTOOTH_WAVE
     0.95f, // AAX_SQUARE_WAVE
     0.9f, // AAX_TRIANGLE_WAVE
@@ -189,16 +266,54 @@ static float _gains[AAX_MAX_WAVE+1] = {
     1.1f // AAX_IMPULSE_WAVE
 };
 
-ALIGN float _harmonics[AAX_MAX_WAVE+1][2*MAX_HARMONICS] =
+ALIGN float _harmonic_phases[AAX_MAX_WAVE][2*MAX_HARMONICS] =
 {
-  /* AAX_CONSTANT_VALUE */
-  { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f
+  /* AAX_SAWTOOTH */
+  { .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f
   },
 
-  /* _SAWTOOTH_WAVE */
+  /* AAX_SQUARE */
+  { .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f
+  },
+
+  /* AAX_TRIANGLE */
+  { .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f
+  },
+
+  /* AAX_SINE */
+  { .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f
+  },
+
+  /* AAX_CYCLOID */
+  { 1.f/4.f, 1.f/8.f, 1.f/4.f, 1.f/3.f, 1.f/3.0f, 1.f/2.f, 1.f/7.f, 1.f/3.f,
+    1.f/5.f, 1.f/7.f, 1.f/4.f, 1.f/4.f, 1.f/7.f, 1.f/2.f, 1.f/3.f, 1.f/3.f,
+    1.f/45.f, 1.f/2.f, 1.f/4.f, 1.f/2.f, 1.f/6.f, 1.f/3.f, 1.f/9.f, 1.f/152.f,
+    1.f/3.f,  1.f/10.f, 1.f/4.f, 1.f/4.f, 1.f/9.f, 1.f/3.f, 1.f/2.f, 1.f/4.f
+  },
+
+  /* AAX_IMPULSE */
+  { .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f
+  }
+};
+
+ALIGN float _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS] =
+{
+  /* AAX_SAWTOOTH */
   { 1.f, 1.f/2.f, 1.f/3.f, 1.f/4.f, 1.f/5.f, 1.f/6.f, 1.f/7.f, 1.f/8.f,
     1.f/9.f, 1.f/10.f, 1.f/11.f, 1.f/12.f, 1.f/13.f, 1.f/14.f, 1.f/15.f,
     1.f/16.f, 1.f/17.f, 1.f/18.f, 1.f/19.f, 1.f/20.f, 1.f/21.f, 1.f/22.f,
@@ -206,28 +321,28 @@ ALIGN float _harmonics[AAX_MAX_WAVE+1][2*MAX_HARMONICS] =
     1.f/30.f, 1.f/31.f
   },
 
-  /* _SQUARE_WAVE */
+  /* AAX_SQUARE */
   { 1.f, 0.0f, 1.f/3.f, 0.f, 1.f/5.f, 0.f, 1.f/7.f, 0.f,
     1.f/9.f, 0.f, 1.f/11.f, 0.f, 1.f/13.f, 0.f, 1.f/15.f, 0.f,
     1.f/17.f, 0.f, 1.f/19.f, 0.f, 1.f/21.f, 0.f, 1.f/23.f, 0.f,
     1.f/25.f, 0.f, 1.f/27.f, 0.f, 1.f/29.f, 0.f, 1.f/31.f, 0.f
   },
 
-  /* _TRIANGLE_WAVE */
+  /* AAX_TRIANGLE */
   { 1.f, 0.f, -1.f/9.f, 0.f, 1.f/25.f, 0.f, -1.f/49.f, 0.f,
     1.f/81.f, 0.f, -1.f/121.f, 0.f, 1.f/169.f, 0.0f, -1.f/225.f, 0.f,
     1.f/289.f, 0.f, -1.f/361.f, 0.f, 1.f/441.f, 0.0f, -1.f/529.f, 0.f,
     1.f/625.f, 0.f, -1.f/729.f, 0.f, 1.f/841.f, 0.0f, -1.f/961.f, 0.f
   },
 
-  /* _SINE_WAVE */
+  /* AAX_SINE */
   { 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
     0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
     0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
     0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f
   },
 
-  /* CYCLOID_WAVE */
+  /* AAX_CYCLOID */
   { 1.f, 1.f/4.f, 1.f/8.f, 1.f/12.f, 1.f/16.f, 1.f/20.f, 1.f/24.0f,
     1.f/28.f, 1.f/32.f, 1.f/36.f, 1.f/40.f, 1.f/44.f, 1.f/48.f, 1.f/52.f,
     1.f/56.f, 1.f/60.f, 1.f/64.f, 1.f/68.f, 1.f/72.f, 1.f/76.f, 1.f/80.f,
@@ -235,7 +350,7 @@ ALIGN float _harmonics[AAX_MAX_WAVE+1][2*MAX_HARMONICS] =
     1.f/112.f, 1.f/116.f, 1.f/120.f, 1.f/124.f
   },
 
-  /* _IMPULSE_WAVE */
+  /* AAX_IMPULSE */
   { 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
     1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
     1.f/16.f, 1.f/16.f,

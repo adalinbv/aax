@@ -39,61 +39,12 @@
 #include "api.h"
 #include "lfo.h"
 
-/*
- * Periodic waveforms should start at 0.0f and start to increase over time
- * until a maximum of 1.0 is reached.
- */
-
-float _linear(float v, _aaxLFOData *lfo)
-{
-   float depth = (lfo->max-lfo->min);
-   if (lfo->inv) {
-      return lfo->max - depth*v;
-   } else {
-      return lfo->min + depth*v;
-   }
-}
-
-float _squared(float v, _aaxLFOData *lfo)
-{
-   float depth = (lfo->max-lfo->min);
-   if (lfo->inv) {
-      return lfo->max - depth*v*v;
-   } else {
-      return lfo->min + depth*v*v;
-   }
-}
-
-float _logarithmic(float v, _aaxLFOData *lfo)
-{
-   float depth = (lfo->max-lfo->min);
-   if (lfo->inv) {
-      return _log2lin(lfo->max - depth*v);
-   } else {
-      return _log2lin(lfo->min + depth*v);
-   }
-}
-
-float _exponential(float v, _aaxLFOData *lfo)
-{
-   float depth = (lfo->max-lfo->min);
-   if (lfo->inv) {
-      return lfo->max - depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
-   } else {
-      return lfo->min + depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
-   }
-}
-
-float _exp_distortion(float v, _aaxLFOData *lfo)
-{
-   float depth = (lfo->max-lfo->min);
-   float x = v*v;
-   if (lfo->inv) {
-      return lfo->max - 0.5f*depth*(x*x-x+v);
-   } else {
-      return lfo->min + 0.5f*depth*(x*x-x+v);
-   }
-}
+static inline float _analog_sawtooth(float);
+static inline float _analog_square(float);
+static inline float _analog_triangle(float);
+static inline float _analog_sin(float);
+static inline float _analog_cycloid(float);
+static inline float _cycloid(float);
 
 _aaxLFOData*
 _lfo_create()
@@ -118,15 +69,15 @@ void
 _lfo_setup(_aaxLFOData *lfo, void *i, int state)
 {
    _aaxMixerInfo *info = (_aaxMixerInfo*)i;
-   int log = (state & AAX_ENVELOPE_FOLLOW_LOG) ? AAX_TRUE : AAX_FALSE;
+   int exponential = (state & AAX_LFO_EXPONENTIAL) ? AAX_TRUE : AAX_FALSE;
    int stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
 
    lfo->fs = info->frequency;
    lfo->period_rate = info->period_rate;
-   lfo->convert = (log) ? _exponential : _linear;
-   lfo->state = state & ~(AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG|AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
-   lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-   lfo->stereo_lnk = !stereo;
+   lfo->convert = (exponential) ? _exponential : _linear;
+   lfo->state = state & ~(AAX_LFO_STEREO|AAX_LFO_EXPONENTIAL|AAX_EFFECT_ORDER_MASK);
+   lfo->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+   lfo->stereo_link = !stereo;
    lfo->depth = 1.0f;
    lfo->offset = 0.0f;
 }
@@ -153,9 +104,9 @@ _lfo_swap(_aaxLFOData *dlfo, _aaxLFOData *slfo)
 
       dlfo->get = slfo->get;
       dlfo->convert = slfo->convert;
-      dlfo->inv = slfo->inv;
+      dlfo->inverse = slfo->inverse;
       dlfo->envelope = slfo->envelope;
-      dlfo->stereo_lnk = slfo->stereo_lnk;
+      dlfo->stereo_link = slfo->stereo_link;
    }
 }
 
@@ -181,43 +132,45 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
    int rv = AAX_TRUE;
    if (!constant)
    {
-      switch (lfo->state & ~AAX_INVERSE)
+      enum aaxSourceType wave;
+
+      wave = lfo->state & (AAX_SOURCE_MASK & ~AAX_PURE_WAVEFORM);
+      switch (wave)
       {
-      case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
+      case AAX_CONSTANT: /* equals to AAX_TRUE */
          lfo->get = _aaxLFOGetFixedValue;
          break;
-      case AAX_TRIANGLE_WAVE:
-         lfo->get = _aaxLFOGetTriangle;
+      case AAX_SAWTOOTH:
+         lfo->get = _aaxLFOGetSawtooth;
          break;
-      case AAX_SINE_WAVE:
-         lfo->get = _aaxLFOGetSine;
-         break;
-      case AAX_SQUARE_WAVE:
+      case AAX_SQUARE:
          lfo->get = _aaxLFOGetSquare;
          break;
-      case AAX_IMPULSE_WAVE:
-         lfo->get = _aaxLFOGetImpulse;
+      case AAX_TRIANGLE:
+         lfo->get = _aaxLFOGetTriangle;
          break;
-      case AAX_SAWTOOTH_WAVE:
-         lfo->get = _aaxLFOGetSawtooth;
+      case AAX_SINE:
+         lfo->get = _aaxLFOGetSine;
+         break;
+      case AAX_CYCLOID:
+         lfo->get = _aaxLFOGetCycloid;
+         break;
+      case AAX_IMPULSE:
+         lfo->get = _aaxLFOGetImpulse;
          break;
       case AAX_RANDOMNESS:
          lfo->get = _aaxLFOGetRandomness;
          break;
-      case AAX_CYCLOID_WAVE:
-         lfo->get = _aaxLFOGetCycloid;
-         break;
       case AAX_ENVELOPE_FOLLOW:
-      case AAX_ENVELOPE_FOLLOW_LOG:
-      case AAX_ENVELOPE_FOLLOW_MASK:
          lfo->get = _aaxLFOGetGainFollow;
          lfo->envelope = AAX_TRUE;
          break;
       case AAX_TIMED_TRANSITION:
-      case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):
          lfo->get = _aaxLFOGetTimed;
          break;
       default:
+         /* reaching here is actually a bug but prevent a segmentation fault */
+         lfo->get = _aaxLFOGetFixedValue;
          rv = AAX_FALSE;
          break;
       }
@@ -259,7 +212,7 @@ _lfo_set_timing(_aaxLFOData *lfo)
       int t;
       for (t=0; t<_AAX_MAX_SPEAKERS; t++)
       {
-         if (!lfo->stereo_lnk) {
+         if (!lfo->stereo_link) {
             lfo->value0[t] = (t % 2)*1e9f;
          }
 
@@ -280,24 +233,22 @@ _lfo_set_timing(_aaxLFOData *lfo)
             lfo->value0[t] = lfo->max;
          }
 
-         switch (lfo->state & ~AAX_INVERSE)
+         switch(lfo->state & AAX_SOURCE_MASK)
          {
-         case AAX_SAWTOOTH_WAVE:
+         case AAX_SAWTOOTH:
             lfo->step[t] *= 0.5f;
             break;
          case AAX_ENVELOPE_FOLLOW:
-         case AAX_ENVELOPE_FOLLOW_LOG:
-         {
             lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
             lfo->value0[t] = 0.0f;
             break;
-         }
          case AAX_RANDOMNESS:
          {
             float fs = lfo->period_rate;
             float fc = lfo->f;
             float cfc = cosf(GMATH_2PI*fc/fs);
             lfo->step[t] = -1.0f + cfc + sqrtf(cfc*cfc -4.0f*cfc + 3.0f);
+            break;
          }
          default:
             break;
@@ -405,7 +356,7 @@ _aaxLFOCalculate(_aaxLFOData *lfo, float val, unsigned track)
  * lfo->step is a user defined, time (refresh rate) compensated step value
  * that assures the oscillator will run one cycle in the desired frequency.
  *
- * lfo->inv is an internal parameter that defines the counting direction.
+ * lfo->inverse is an internal parameter that defines the counting direction.
  *
  * lfo->value is the current LFO output value in the used defined range
  * (between lfo->min and lfo->max).
@@ -434,6 +385,10 @@ _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 
       rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
 
+      if ((lfo->state & AAX_PURE_WAVEFORM) == 0) {
+         rv = lfo->convert(_analog_triangle(rv), lfo);
+      }
+
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
           || ((lfo->value[track] >= lfo->max) && (step > 0)))
@@ -443,19 +398,6 @@ _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
       }
       lfo->compression[track] = 1.0f - rv;
    }
-   return rv;
-}
-
-
-/* domain for x: -1.0 .. 1.0 */
-static float
-_fast_sin1(float y)
-{
-   float rv, x = fmodf(y-0.5f, 1.0f);
-
-   /* domain for the return value: 0.0 .. 1.0 */
-   /* swap sign to start at 0.0f     */
-   rv = 0.5f + 2.0f*(x - x*fabsf(x));
    return rv;
 }
 
@@ -476,7 +418,11 @@ _aaxLFOGetSine(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned 
 
       lfo->compression[track] = 1.0f-rv;
 
-      rv = lfo->convert(_fast_sin1(rv), lfo);
+      if (lfo->state & AAX_PURE_WAVEFORM) {
+         rv = lfo->convert(sinf(rv), lfo);
+      } else {
+         rv = lfo->convert(_analog_sin(rv), lfo);
+      }
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -488,17 +434,6 @@ _aaxLFOGetSine(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned 
    }
    return rv;
 }
-
-/* domain for x: -1.0 .. 1.0 */
-/* alternative: y=sin(x)/(0.05+sin(x)^2)^0.5, domain: 0..2pi */
-static float
-_square1(float x)
-{
-   float y = GMATH_PI*(1.0f-x);
-   float y2 = y*y;
-   return cos(atan(y2*y2));
-}
-
 
 float
 _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
@@ -516,10 +451,10 @@ _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigne
       rv = _aaxLFODelay(lfo, rv);
       lfo->compression[track] = 1.0f-rv;
 
-      if (lfo->convert == _exponential) {
+      if (lfo->state & AAX_PURE_WAVEFORM) {
          rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo);
       } else {
-         rv = lfo->convert(_square1(rv), lfo);
+         rv = lfo->convert(_analog_square(rv), lfo);
       }
 
       lfo->value[track] += step;
@@ -557,7 +492,11 @@ _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
       rv = _aaxLFODelay(lfo, rv);
       lfo->compression[track] = 1.0f-rv;
 
-      rv = lfo->convert(_impulse(rv), lfo);
+      if (lfo->state & AAX_PURE_WAVEFORM) {
+         rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo);
+      } else {
+         rv = lfo->convert(_impulse(rv), lfo);
+      }
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -584,6 +523,10 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 
       rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
 
+      if (lfo->state & AAX_PURE_WAVEFORM) {
+         rv = lfo->convert(_analog_sawtooth(rv), lfo);
+      }
+
       lfo->value[track] += step;
       if (lfo->value[track] <= lfo->min) {
          lfo->value[track] += max;
@@ -593,14 +536,6 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
       lfo->compression[track] = 1.0f - rv;
    }
    return rv;
-}
-
-/* domain for x: -1.0 .. 1.0 */
-static float
-_cycloid(float x)
-{
-   float y = fmodf(x, 1.0f);
-   return 1.0f-sqrtf(1.0f-y*y);
 }
 
 float
@@ -620,7 +555,11 @@ _aaxLFOGetCycloid(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
 
       lfo->compression[track] = 1.0f-rv;
 
-      rv = lfo->convert(_cycloid(rv), lfo);
+      if (lfo->state & AAX_PURE_WAVEFORM) {
+         rv = lfo->convert(_cycloid(rv), lfo);
+      } else {
+         rv = lfo->convert(_analog_cycloid(rv), lfo);
+      }
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -643,7 +582,7 @@ _aaxLFOGetRandomness(void* data, UNUSED(void *env), UNUSED(const void *ptr), uns
       rv = lfo->value[0];
 
       /* In stereo-link mode the left track (0) provides the data */
-      if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
+      if (track == 0 || lfo->stereo_link == AAX_FALSE)
       {
          float alpha = lfo->step[track];
          float olvl = lfo->value[track];
@@ -704,7 +643,7 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
       float olvl = lfo->value[0];
 
       /* In stereo-link mode the left track (0) provides the data */
-      if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
+      if (track == 0 || lfo->stereo_link == AAX_FALSE)
       {
          float fact = lfo->step[track];
          float lvl;
@@ -729,7 +668,7 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
 
       rv = _aaxLFODelay(lfo, olvl);
 
-      rv = lfo->inv ? 1.0f-rv : rv;
+      rv = lfo->inverse ? 1.0f-rv : rv;
       lfo->compression[track] = 1.0f-rv;
 
       rv = lfo->convert(rv, lfo);
@@ -758,7 +697,7 @@ _aaxLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned tr
       /* just to make sure those aren't still producing sound and hence  */
       /* are amplified to extreme values.                                */
       gf = _MIN(powf(oavg/lfo->gate_threshold, 10.0f), 1.0f);
-      if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
+      if (track == 0 || lfo->stereo_link == AAX_FALSE)
       {
          float lvl, fact = 1.0f;
          float rms, peak;
@@ -783,13 +722,13 @@ _aaxLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned tr
 
       l.min = 0.0f;
       l.max = 1.0f;
-      l.inv = AAX_FALSE;
+      l.inverse = AAX_FALSE;
       rv = lfo->convert(rv, &l);
 
       assert(rv);
 
       lfo->compression[track] = 1.0f - (1.0f/rv);
-      rv = lfo->inv ? 1.0f/(0.001+0.999f*rv) : rv;
+      rv = lfo->inverse ? 1.0f/(0.001+0.999f*rv) : rv;
    }
 
    return rv;
@@ -813,7 +752,7 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
          float step = env->step[stage];
          float fact = 1.0f;
 
-         if (fabsf(step) > LEVEL_128DB && env->state & AAX_ENVELOPE_FOLLOW_MASK)
+         if ((fabsf(step) > LEVEL_128DB) && (env->state & AAX_LFO_EXPONENTIAL))
          {
              if (rv > 1.0f) {
                 fact = _MIN(powf(rv, GMATH_E1), GMATH_E1);
@@ -867,5 +806,133 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
       *velocity *= fabsf((rv > FLT_EPSILON) ? env->value/rv : env->value);
    }
    return rv;
+}
+
+/* -------------------------------------------------------------------------- */
+
+/*
+ * Periodic waveforms
+ * Should start at 0.0f and start to increase over time
+ * until a maximum of 1.0 is reached.
+ */
+float
+_linear(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
+   float rv;
+
+   if (lfo->inverse) {
+      rv = lfo->max - depth*v;
+   } else {
+      rv = lfo->min + depth*v;
+   }
+   return rv;
+}
+
+float
+_squared(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
+   float rv;
+
+   if (lfo->inverse) {
+      rv = lfo->max - depth*v*v;
+   } else {
+      rv = lfo->min + depth*v*v;
+   }
+   return rv;
+}
+
+float
+_logarithmic(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
+   float rv;
+
+   if (lfo->inverse) {
+      rv = _log2lin(lfo->max - depth*v);
+   } else {
+      rv = _log2lin(lfo->min + depth*v);
+   }
+   return rv;
+}
+
+float
+_exponential(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
+   float rv;
+
+   if (lfo->inverse) {
+      rv = lfo->max - depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
+   } else {
+      rv = lfo->min + depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
+   }
+   return rv;
+}
+
+float
+_exp_distortion(float v, _aaxLFOData *lfo)
+{
+   float depth = (lfo->max-lfo->min);
+   float x = v*v;
+   float rv;
+
+   if (lfo->inverse) {
+      rv = lfo->max - 0.5f*depth*(x*x-x+v);
+   } else {
+      rv = lfo->min + 0.5f*depth*(x*x-x+v);
+   }
+   return rv;
+}
+
+/*
+ * Analog equivalents of standard waveforms
+ * Should start at 0.0f and start to increase over time
+ * until a maximum of 1.0 is reached.
+ *
+ * domain for x: 0.0 .. 1.0
+ */
+static inline float
+_analog_sawtooth(float x)
+{
+   float y = 1.263f*fmodf(x, 1.0f);
+   return sinf(tanf(y));
+}
+
+static inline float
+_analog_square(float x)
+{
+   float y = GMATH_PI*(1.0f-x);
+   float y2 = y*y;
+   return cosf(atanf(y2*y2));
+}
+
+static inline float
+_analog_triangle(float x)
+{
+   float y = GMATH_PI*fmodf(0.5f*x, 1.0f);
+   return tanf(sinf(y))/1.557f;
+}
+
+static inline float
+_analog_sin(float x)
+{
+   float y = fmodf(x-0.5f, 1.0f);
+   return 0.5f + 2.0f*(y - y*fabsf(y));
+}
+
+static float
+_analog_cycloid(float x)
+{
+   float y = 1.263f*fmodf(x, 1.0f);
+   return 0.5f-0.5f*cosf(tanf(y));
+}
+
+static float
+_cycloid(float x)
+{
+   float y = fmodf(x, 1.0f);
+   return 1.0f-sqrtf(1.0f-y*y);
 }
 
