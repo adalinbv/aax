@@ -44,6 +44,7 @@ static inline float _analog_square(float);
 static inline float _analog_triangle(float);
 static inline float _analog_sin(float);
 static inline float _analog_cycloid(float);
+static inline float _analog_impulse(float);
 static inline float _cycloid(float);
 
 _aaxLFOData*
@@ -468,14 +469,6 @@ _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigne
    return rv;
 }
 
-/* domain for x: -1.0 .. 1.0 */
-static float
-_impulse(float x)
-{
-   float y = 2.0f*GMATH_2PI*(1.0f-x);
-   return cos(atan(y*y));
-}
-
 float
 _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
 {
@@ -495,7 +488,7 @@ _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
       if (lfo->state & AAX_PURE_WAVEFORM) {
          rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo);
       } else {
-         rv = lfo->convert(_impulse(rv), lfo);
+         rv = lfo->convert(_analog_impulse(rv), lfo);
       }
 
       lfo->value[track] += step;
@@ -934,5 +927,12 @@ _cycloid(float x)
 {
    float y = fmodf(x, 1.0f);
    return 1.0f-sqrtf(1.0f-y*y);
+}
+
+static float
+_analog_impulse(float x)
+{
+   float y = 2.0f*GMATH_2PI*(1.0f-x);
+   return cos(atan(y*y));
 }
 
