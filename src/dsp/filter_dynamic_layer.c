@@ -29,6 +29,7 @@
 
 #include <base/types.h>		/* for rintf */
 #include <base/gmath.h>
+#include <base/random.h>
 
 #include "lfo.h"
 #include "filters.h"
@@ -86,6 +87,7 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
    case AAX_CYCLOID:
    case AAX_IMPULSE:
    case AAX_RANDOMNESS:
+   case AAX_RANDOM_SELECT:
    case AAX_ENVELOPE_FOLLOW:
    case AAX_TIMED_TRANSITION:
    {
@@ -104,6 +106,12 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
          lfo->max_sec = filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs;
          lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
          lfo->delay = filter->slot[0]->param[AAX_INITIAL_DELAY];
+
+         if ((state & AAX_SOURCE_MASK) == AAX_RANDOM_SELECT)
+         {
+            lfo->min_sec += (lfo->max_sec-lfo->min_sec)*_aax_random();
+            lfo->max_sec = 0.0f;
+         }
 
          constant = _lfo_set_timing(lfo);
          if (!_lfo_set_function(lfo, constant)) {

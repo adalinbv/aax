@@ -92,6 +92,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
    case AAX_CYCLOID:
    case AAX_IMPULSE:
    case AAX_RANDOMNESS:
+   case AAX_RANDOM_SELECT:
    case AAX_ENVELOPE_FOLLOW:
    case AAX_TIMED_TRANSITION:
    {
