@@ -454,9 +454,6 @@ _aaxSetSlotFromAAXS(const xmlId *xid, int (*setStateFn)(void*, int, int), int (*
                         }
  
                         adjust = xmlAttributeGetDouble(xpid, "auto");
-                        if (adjust == 0.0f) {
-                           adjust = xmlAttributeGetDouble(xpid, "auto-sustain");
-                        }
                         if (adjust != 0.0f)
                         {
                            float min = xmlAttributeGetDouble(xpid, "min");
