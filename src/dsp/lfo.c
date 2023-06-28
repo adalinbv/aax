@@ -160,6 +160,7 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
          lfo->get = _aaxLFOGetImpulse;
          break;
       case AAX_RANDOMNESS:
+      case AAX_RANDOM_SELECT:
          lfo->get = _aaxLFOGetRandomness;
          break;
       case AAX_ENVELOPE_FOLLOW:

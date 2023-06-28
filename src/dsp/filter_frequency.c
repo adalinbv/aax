@@ -131,6 +131,17 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          fmax = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY_HF & 0xF];
          fc = CLIP_FREQUENCY(fc, flt->fs);
          fmax = CLIP_FREQUENCY(fmax, flt->fs);
+         if ((state & AAX_SOURCE_MASK) == AAX_RANDOM_SELECT)
+         {
+            float lfc2 = _lin2log(fmax);
+            float lfc1 = _lin2log(fc);
+            
+            lfc2 -= 0.1f*(lfc2 - lfc1)*_aax_random();
+            fmax = _log2lin(lfc2);
+
+            flt->fc_high = fmax;
+            flt->random = 1;
+         }
          flt->fc_low = fc;
          flt->fc_high = fmax;
 
@@ -155,19 +166,6 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt->Q = filter->slot[0]->param[AAX_RESONANCE];
          flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
          flt->resonance = resonance ? flt->Q/fmax : 0.0f;
-
-         if ((state & AAX_SOURCE_MASK) == AAX_RANDOM_SELECT)
-         {
-            float lfc2 = _lin2log(fmax);
-            float lfc1 = _lin2log(fc);
-
-            flt->fc_low = fc;
-            flt->fc_high = fmax;
-            flt->random = 1;
-
-            lfc1 += (lfc2 - lfc1)*_aax_random();
-            fc = _log2lin(lfc1);
-         }
 
          if (flt->state == AAX_BESSEL) {
              _aax_bessel_compute(fc, flt);
