@@ -1404,17 +1404,17 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
       if (midi_mode != AAX_RENDER_NORMAL) pitch = 1.0f;
    }
    else if (!xmlAttributeCompareString(xwid, "src", "pure-sawtooth")) {
-      wtype = AAX_PURE_WAVEFORM|AAX_SAWTOOTH;
+      wtype = AAX_PURE_SAWTOOTH;
    } else if (!xmlAttributeCompareString(xwid, "src", "pure-square")) {
-      wtype = AAX_PURE_WAVEFORM|AAX_SQUARE;
+      wtype = AAX_PURE_SQUARE;
    } else if (!xmlAttributeCompareString(xwid, "src", "pure-triangle")) {
-      wtype = AAX_PURE_WAVEFORM|AAX_TRIANGLE;
+      wtype = AAX_PURE_TRIANGLE;
    } else if (!xmlAttributeCompareString(xwid, "src", "pure-sine")) {
-      wtype = AAX_PURE_WAVEFORM|AAX_SINE;
+      wtype = AAX_PURE_SINE;
    } else if (!xmlAttributeCompareString(xwid, "src", "pure-cycloid")) {
-      wtype = AAX_PURE_WAVEFORM|AAX_CYCLOID;
+      wtype = AAX_PURE_CYCLOID;
    } else if (!xmlAttributeCompareString(xwid, "src", "pure-impulse")) {
-      wtype = AAX_PURE_WAVEFORM|AAX_IMPULSE;
+      wtype = AAX_PURE_IMPULSE;
    }else {
       wtype = AAX_WAVE_NONE;
    }
