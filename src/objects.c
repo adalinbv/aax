@@ -537,8 +537,8 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
             int repeat = 0;
 
             /*
-             * It is not possible to define both AAX_REPEAT and
-             * AAX_RELEASE_FACTOR. In such a case AAX_REPEAT takes precedence.
+             * It is not possible to define both AAX_REPEAT and AAX_RELEASE_FACTOR.
+             * In such a case AAX_REPEAT takes precedence.
              */
             if (xmlAttributeExists(xid, "repeat"))
             {
@@ -570,11 +570,6 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
             if (release_factor != 1.0f)
             {
                state = _MINMAX(100.0f*release_factor, 1, AAX_MAX_REPEAT);
-               if (state > AAX_MAX_REPEAT) {
-                  state = AAX_MAX_REPEAT;
-               } else if (state < 1) {
-                  state = 0;
-               }
                state |= AAX_RELEASE_FACTOR;
             }
 
