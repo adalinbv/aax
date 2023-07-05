@@ -77,7 +77,7 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
    assert(filter->info);
 
    filter->state = state;
-   switch (state & AAX_SOURCE_MASK)
+   switch (state & (AAX_SOURCE_MASK & ~AAX_PURE_WAVEFORM))
    {
    case AAX_CONSTANT:
    case AAX_SAWTOOTH:

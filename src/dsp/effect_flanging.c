@@ -81,7 +81,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
    state |= AAX_EFFECT_2ND_ORDER;
 
    effect->state = state;
-   switch (state & AAX_SOURCE_MASK)
+   switch (state & (AAX_SOURCE_MASK & ~AAX_PURE_WAVEFORM))
    {
    case AAX_CONSTANT:
    case AAX_SAWTOOTH:

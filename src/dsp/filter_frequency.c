@@ -86,7 +86,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
    state &= ~AAX_LFO_STEREO;
 
-   sstate = state & AAX_SOURCE_MASK;
+   sstate = state & (AAX_SOURCE_MASK & ~AAX_PURE_WAVEFORM);
    ostate = state & AAX_ORDER_MASK;
    resonance = (ostate == AAX_RESONANCE_FACTOR) ? AAX_TRUE : AAX_FALSE;
    if (ostate == 0) ostate = AAX_12DB_OCT;
