@@ -385,9 +385,20 @@ _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
    {
       float step = lfo->step[track];
 
-      rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
+      if (lfo->state & AAX_PURE_WAVEFORM) {
+         rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
+      }
+      else
+      {
+         float max = (lfo->max - lfo->min);
 
-      if ((lfo->state & AAX_PURE_WAVEFORM) == 0) {
+         assert(max);
+
+         rv = (lfo->value[track] - lfo->min)/max;
+         rv = _aaxLFODelay(lfo, rv);
+
+         lfo->compression[track] = 1.0f-rv;
+
          rv = lfo->convert(_analog_triangle(rv), lfo);
       }
 
@@ -515,9 +526,16 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 
       assert(max);
 
-      rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
-
       if (lfo->state & AAX_PURE_WAVEFORM) {
+         rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
+      }
+      else
+      {  
+         rv = (lfo->value[track] - lfo->min)/max;
+         rv = _aaxLFODelay(lfo, rv);
+
+         lfo->compression[track] = 1.0f-rv;
+
          rv = lfo->convert(_analog_sawtooth(rv), lfo);
       }
 
