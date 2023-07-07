@@ -121,8 +121,7 @@ _aaxCPUInfo(UNUSED(void *id))
    if (strlen(info) == 0)
    {
       const char *hwstr = _aaxGetSIMDSupportString();
-      int gpu = 0;
-      snprintf(info, 32, "%s %s", gpu ? "CL" : "FP", hwstr);
+      snprintf(info, 32, "%s", hwstr);
    }
 
    return info;

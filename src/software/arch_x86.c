@@ -128,19 +128,19 @@ enum {
 static uint32_t _aax_arch_capabilities = AAX_NO_SIMD;
 static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
 {
-   SIMD_PREFIX"",
-   SIMD_PREFIX"MMX",
-   SIMD_PREFIX"SSE",
-   SIMD_PREFIX"SSE2",
-   SIMD_PREFIX"SSE3",
-   SIMD_PREFIX"SSSE3",
-   SIMD_PREFIX"SSE4a",
-   SIMD_PREFIX"SSE4.1",
-   SIMD_PREFIX"SSE4.2",
-   SIMD_PREFIX"SSE/AVX",
-   SIMD_PREFIX"SSE/XOP",
-   SIMD_PREFIX"SSE/AVX2",
-   SIMD_PREFIX"SSE/FMA3"
+   "",
+   "MMX",
+   "SSE",
+   "SSE2",
+   "SSE3",
+   "SSSE3",
+   "SSE4a",
+   "SSE4.1",
+   "SSE4.2",
+   "SSE/AVX",
+   "SSE/XOP",
+   "SSE/AVX2",
+   "SSE/FMA3"
 };
 
 static char check_cpuid_ebx(unsigned int);

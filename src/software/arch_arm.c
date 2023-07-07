@@ -77,18 +77,18 @@ enum {
 uint32_t _aax_arch_capabilities = AAX_NO_SIMD;
 static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
 {
-   SIMD_PREFIX"",
-   SIMD_PREFIX"VFPv2",
-   SIMD_PREFIX"VFPv3",
-   SIMD_PREFIX"VFPv4",
-   SIMD_PREFIX"Neon",
+   "",
+   "VFPv2",
+   "VFPv3",
+   "VFPv4",
+   "Neon",
 #if defined(__arm64__) || defined(__aarch64__)
-   SIMD_PREFIX"Neon64",
+   "Neon64",
 #else
-   SIMD_PREFIX"VFPv4/Neon",
+   "VFPv4/Neon",
 #endif
-   SIMD_PREFIX"Helium",
-   SIMD_PREFIX"VFPv4/Helium"
+   "Helium",
+   "VFPv4/Helium"
 };
 
 // Features    : fastmult vfp neon vfpv3 vfpv4 idiva idivt

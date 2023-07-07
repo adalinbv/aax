@@ -219,8 +219,7 @@ _aaxWorkerInfo(void *id)
    if (handle && strlen(info) == 0)
    {
       const char *hwstr = _aaxGetSIMDSupportString();
-      int gpu = 0;
-      snprintf(info, 32, "%s %s using %i cores", gpu ? "CL" : "FP", hwstr, handle->no_workers);
+      snprintf(info, 32, "%s using %i cores", hwstr, handle->no_workers);
    }
 
    return info;

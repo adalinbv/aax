@@ -41,7 +41,6 @@ extern "C" {
 #endif
 
 #define TIME_TO_SAMPLES(a, b)	(size_t)ceilf((a)*(b))
-#define SIMD_PREFIX	"FP "
 
 #define _aax_memcpy	memcpy
 
