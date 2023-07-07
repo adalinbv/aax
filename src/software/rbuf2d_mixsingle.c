@@ -274,13 +274,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
          float *hist = ep2d->final.freqfilter_history[0];
          MIX_PTR_T s = (MIX_PTR_T)sptr[track] + offs;
 
-#if RB_FLOAT_DATA
          _batch_movingaverage_float(s, s, dno_samples, hist+0, ep2d->final.k);
          _batch_movingaverage_float(s, s, dno_samples, hist+1, ep2d->final.k);
-#else
-         _batch_movingaverage(s, s, dno_samples, hist+0, ep2d->final.k);
-         _batch_movingaverage(s, s, dno_samples, hist+1, ep2d->final.k);
-#endif
       }
 
       gain = _MINMAX(gain*gnvel, ep2d->final.gain_min, ep2d->final.gain_max);

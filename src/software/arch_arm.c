@@ -317,11 +317,7 @@ _aaxGetSIMDSupportLevel()
          _batch_movingaverage_float = _batch_ema_iir_float_vfpv3;
          _batch_freqfilter = _batch_freqfilter_vfpv3;
          _batch_freqfilter_float = _batch_freqfilter_float_vfpv3;
-# if RB_FLOAT_DATA
          _batch_resample_float = _batch_resample_float_vfpv3;
-# else
-         _batch_resample = _batch_resample_vfpv3;
-# endif
 
 //       vec3fAdd = _vec3fAdd_vfpv3;
 //       vec3fDevide = _vec3fDevide_vfpv3;
@@ -408,11 +404,7 @@ _aaxGetSIMDSupportLevel()
          _batch_movingaverage_float = _batch_ema_iir_float_vfpv4;
          _batch_freqfilter = _batch_freqfilter_vfpv4;
          _batch_freqfilter_float = _batch_freqfilter_float_vfpv4;
-# if RB_FLOAT_DATA
          _batch_resample_float = _batch_resample_float_vfpv4;
-# else
-         _batch_resample = _batch_resample_vfpv4;
-# endif
 
 //       vec3fAdd = _vec3fAdd_vfpv4;
 //       vec3fDevide = _vec3fDevide_vfpv4;
@@ -485,7 +477,6 @@ _aaxGetSIMDSupportLevel()
          _batch_cvt16_24 = _batch_cvt16_24_neon; // 64
 # endif
 
-# if RB_FLOAT_DATA
          _batch_get_average_rms = _batch_get_average_rms_neon;
          _aax_generate_waveform_float = _aax_generate_waveform_neon;
          _batch_freqfilter_float = _batch_freqfilter_float_neon;
@@ -499,7 +490,7 @@ _aaxGetSIMDSupportLevel()
          _batch_cvtps24_24 = _batch_cvtps24_24_neon;
          _batch_cvt24_ps24 = _batch_cvt24_ps24_neon;
 
-#  if defined(__arm64__) || defined(__aarch64__)
+# if defined(__arm64__) || defined(__aarch64__)
          _batch_get_average_rms = _batch_get_average_rms_neon64;
          _aax_generate_waveform_float = _aax_generate_waveform_neon64;
          _batch_freqfilter_float = _batch_freqfilter_float_neon64;
@@ -512,9 +503,6 @@ _aaxGetSIMDSupportLevel()
 
          _batch_cvtps24_24 = _batch_cvtps24_24_neon64;
          _batch_cvt24_ps24 = _batch_cvt24_ps24_neon64;
-#  endif
-# else
-         _batch_imadd = _batch_imadd_neon;
 # endif
       }
    }

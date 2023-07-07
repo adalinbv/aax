@@ -121,12 +121,8 @@ _aaxCPUInfo(UNUSED(void *id))
    if (strlen(info) == 0)
    {
       const char *hwstr = _aaxGetSIMDSupportString();
-#if RB_FLOAT_DATA
       int gpu = 0;
       snprintf(info, 32, "%s %s", gpu ? "CL" : "FP", hwstr);
-#else
-      snprintf(info, 32, "%s", hwstr);
-#endif
    }
 
    return info;

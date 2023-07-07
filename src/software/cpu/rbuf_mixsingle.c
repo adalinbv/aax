@@ -300,11 +300,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
          if (ep2d->k <= 0.8f)
          {
             float *hist = &ep2d->freqfilter_history[t];
-#if RB_FLOAT_DATA
             _batch_movingaverage_float(dptr, dptr, dno_samples, hist, ep2d->k);
-#else
-            _batch_movingaverage(dptr, dptr, dno_samples, hist, ep2d->k);
-#endif
          }
       }
    }

@@ -3027,15 +3027,11 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, uns
          for (t=0; t<no_tracks; t++)
          {
             tracks[t] = p;
-#if RB_FLOAT_DATA
             if (rb->get_parami(rb, RB_IS_MIXER_BUFFER) == AAX_FALSE) {
                _batch_cvtps24_24(ptr[t], ptr[t], no_samples);
             }
             _batch_resample_float(tracks[t], ptr[t], 0, samples, 0, fact);
             _batch_cvt24_ps24(tracks[t], tracks[t], samples);
-#else
-            _batch_resample(tracks[t], ptr[t], 0, samples, 0, fact);
-#endif
             p += size;
          }
       }
@@ -3061,13 +3057,9 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, uns
             tracks[t] = p;
             _bufConvertDataToPCM24S(scratch[0], ptr[t], no_samples, fmt);
 
-#if RB_FLOAT_DATA
             _batch_cvtps24_24(scratch[0], scratch[0], no_samples);
             _batch_resample_float(scratch[1], scratch[0], 0, samples, 0, fact);
             _batch_cvt24_ps24(scratch[1], scratch[1], samples);
-#else
-            _batch_resample(scratch[1], scratch[0], 0, samples, 0, fact);
-#endif
             _bufConvertDataFromPCM24S(tracks[t], scratch[1], 1, samples, fmt,1);
             p += size;
          }

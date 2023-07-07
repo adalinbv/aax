@@ -75,14 +75,10 @@ void _batch_ema_iir_cpu(int32_ptr, const_int32_ptr, size_t, float*, float);
 void _batch_freqfilter_cpu(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_ema_iir_float_cpu(float32_ptr, const_float32_ptr, size_t, float*, float);
 void _batch_freqfilter_float_cpu(float32_ptr, const_float32_ptr, int, size_t, void*);
-#if RB_FLOAT_DATA
 void _batch_cvt24_ps24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_cpu(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
 void _batch_convolution_cpu(float32_ptr, const_float32_ptr, const_float32_ptr, unsigned int, unsigned int, int, float, float);
-#else
-void _batch_resample_cpu(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
-#endif
 
 void _batch_get_average_rms_cpu(const_float32_ptr, size_t, float*, float*);
 void _batch_dither_cpu(int32_t*, unsigned, size_t);
@@ -151,13 +147,9 @@ void _batch_freqfilter_sse2(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_sse2(float32_ptr, const_float32_ptr, int, size_t, void*);
 void _batch_atanps_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_roundps_sse2(void_ptr, const_void_ptr, size_t);
-#if RB_FLOAT_DATA
 void _batch_cvtps24_24_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_sse2(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
-#else
-void _batch_resample_sse2(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
-#endif
 
 void _batch_cvtps_24_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps_sse2(void_ptr, const_void_ptr, size_t);
@@ -177,11 +169,7 @@ void _batch_roundps_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_ema_iir_float_sse_vex(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
 void _batch_freqfilter_sse_vex(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_sse_vex(float32_ptr, const_float32_ptr, int, size_t, void*);
-#if RB_FLOAT_DATA
 void _batch_resample_float_sse_vex(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
-#else
-void _batch_resample_sse_vex(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
-#endif
 
 void _batch_cvt24_ps_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_sse_vex(void_ptr, const_void_ptr, size_t);
@@ -198,11 +186,8 @@ void _batch_atanps_avx(void_ptr, const_void_ptr, size_t);
 void _batch_fmul_value_avx(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_fmadd_avx(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_fadd_avx(float32_ptr, const_float32_ptr, size_t);
-#if RB_FLOAT_DATA
 void _batch_cvtps24_24_avx(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_avx(void_ptr, const_void_ptr, size_t);
-#else
-#endif
 
 void _batch_cvtps_24_avx(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps_avx(void_ptr, const_void_ptr, size_t);
@@ -234,13 +219,9 @@ void _batch_ema_iir_vfpv2(int32_ptr, const_int32_ptr, size_t, float*, float);
 void _batch_freqfilter_vfpv2(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_ema_iir_float_vfpv2(float32_ptr, const_float32_ptr, size_t, float*, float);
 void _batch_freqfilter_float_vfpv2(float32_ptr, const_float32_ptr, int, size_t, void*);
-#if RB_FLOAT_DATA
 void _batch_cvt24_ps24_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_vfpv2(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
-#else
-void _batch_resample_vfpv2(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
-#endif
 
 void _batch_get_average_rms_vfpv2(const_float32_ptr, size_t, float*, float*);
 void _batch_dither_vfpv2(int32_t*, unsigned, size_t);
@@ -308,13 +289,9 @@ void _batch_ema_iir_vfpv3(int32_ptr, const_int32_ptr, size_t, float*, float);
 void _batch_freqfilter_vfpv3(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_ema_iir_float_vfpv3(float32_ptr, const_float32_ptr, size_t, float*, float);
 void _batch_freqfilter_float_vfpv3(float32_ptr, const_float32_ptr, int, size_t, void*);
-#if RB_FLOAT_DATA
 void _batch_cvt24_ps24_vfpv3(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_vfpv3(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_vfpv3(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
-#else
-void _batch_resample_vfpv3(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
-#endif
 
 void _batch_get_average_rms_vfpv3(const_float32_ptr, size_t, float*, float*);
 void _batch_dither_vfpv3(int32_t*, unsigned, size_t);
@@ -382,13 +359,9 @@ void _batch_ema_iir_vfpv4(int32_ptr, const_int32_ptr, size_t, float*, float);
 void _batch_freqfilter_vfpv4(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_ema_iir_float_vfpv4(float32_ptr, const_float32_ptr, size_t, float*, float);
 void _batch_freqfilter_float_vfpv4(float32_ptr, const_float32_ptr, int, size_t, void*);
-#if RB_FLOAT_DATA
 void _batch_cvt24_ps24_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_vfpv4(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
-#else
-void _batch_resample_vfpv4(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
-#endif
 
 void _batch_get_average_rms_vfpv4(const_float32_ptr, size_t, float*, float*);
 void _batch_dither_vfpv4(int32_t*, unsigned, size_t);
@@ -454,15 +427,11 @@ void _batch_freqfilter_float_neon(float32_ptr, const_float32_ptr, int, size_t, v
 void _batch_fmul_value_neon(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_fmul_neon(void_ptr, const_void_ptr, size_t);
 
-#if RB_FLOAT_DATA
 void _batch_atanps_neon(void_ptr, const_void_ptr, size_t);
 void _batch_roundps_neon(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_neon(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_neon(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_neon(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
-#else
-void _batch_resample_neon(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
-#endif
 
 void _batch_cvt24_16_neon(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_24_neon(void_ptr, const_void_ptr, size_t);
@@ -476,13 +445,11 @@ void _batch_freqfilter_float_neon64(float32_ptr, const_float32_ptr, int, size_t,
 void _batch_fmul_value_neon64(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_fmul_neon64(void_ptr, const_void_ptr, size_t);
 
-#if RB_FLOAT_DATA
 void _batch_atanps_neon64(void_ptr, const_void_ptr, size_t);
 void _batch_roundps_neon64(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_neon64(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_neon64(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_neon64(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
-#endif
 
 #if defined(__cplusplus)
 }  /* extern "C" */

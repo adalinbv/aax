@@ -330,22 +330,12 @@ _aaxSensorPostProcess(const _aaxRendererData *data)
          stages = filter->no_stages;
          k = filter->k;
 
-# if RB_FLOAT_DATA
          _batch_movingaverage_float(tmp, dptr, no_samples, hist++, k);
          _batch_movingaverage_float(tmp, tmp, no_samples, hist++, k);
-# else
-         _batch_movingaverage(tmp, dptr, no_samples, hist++, k);
-         _batch_movingaverage(tmp, tmp, no_samples, hist++, k);
-#endif
          if (--stages)
          {
-# if RB_FLOAT_DATA
             _batch_movingaverage_float(tmp, tmp, no_samples, hist++, k);
             _batch_movingaverage_float(tmp, tmp, no_samples, hist++, k);
-# else
-            _batch_movingaverage(tmp, tmp, no_samples, hist++, k);
-            _batch_movingaverage(tmp, tmp, no_samples, hist++, k);
-# endif
          }
          rbd->add(tracks[lfe_track], tmp, no_samples, 1.0f, 0.0f);
          rbd->add(dptr, tmp, no_samples, -1.0f, 0.0f);

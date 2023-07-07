@@ -144,17 +144,10 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbd->block_size = rbd->bits_sample/8;
          rbd->block_size_set = AAX_FALSE;
          rbd->track_len_set = AAX_FALSE;
-#if RB_FLOAT_DATA
          rbd->freqfilter = _batch_freqfilter_float;
          rbd->resample = _batch_resample_float;
          rbd->multiply = _batch_fmul_value;
          rbd->add = _batch_fmadd;
-#else
-         rbd->freqfilter = _batch_freqfilter;
-         rbd->resample = _batch_resample;
-         rbd->multiply = _batch_imul_value;
-         rbd->add = _batch_imadd;
-#endif
          rbd->mix1 = _aaxRingBufferMixMono16Mono;
          rbd->mixmn = _aaxRingBufferMixStereo16;
          switch(rbi->mode)
@@ -502,7 +495,6 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
    if (rbd)
    {
       rbi->access = mode;
-#if RB_FLOAT_DATA
       if (rbd->mixer_fmt && (rbi->access & RB_READ))
       {
          _aaxRingBufferSample *rbd = rbi->sample;
@@ -513,7 +505,6 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
             _batch_cvt24_ps24(tracks[track], tracks[track], no_samples);
          }
       }
-#endif
       rv  = (int32_t**)rbd->track;
    }
    return rv;
@@ -523,9 +514,7 @@ int
 _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
 {
    _aaxRingBufferData *rbi;
-#if RB_FLOAT_DATA
    _aaxRingBufferSample *rbd;
-#endif
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -537,7 +526,6 @@ _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
    assert(rbi->parent == rb);
    assert(rbi->access != RB_RW_MAX);
 
-#if RB_FLOAT_DATA
    rbd = rbi->sample;
    if (rbd->mixer_fmt && (rbi->access & RB_WRITE))
    {
@@ -549,7 +537,6 @@ _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
          _batch_cvtps24_24(tracks[track], tracks[track], no_samples);
       }
    }
-#endif
    rbi->access = RB_RW_MAX;
    return AAX_TRUE;
 }
@@ -898,7 +885,6 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    switch(param)
    {
    case RB_IS_MIXER_BUFFER:
-#if RB_FLOAT_DATA
       if (rbd->mixer_fmt != val)
       {
          _aaxRingBufferSample *rbd = rbi->sample;
@@ -917,7 +903,6 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
             }
          }
       }
-#endif
       rbd->mixer_fmt = (val != 0) ? AAX_TRUE : AAX_FALSE;
       break;
    case RB_BYTES_SAMPLE:
@@ -1427,13 +1412,8 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps 
          float *hist = fp2d->final.freqfilter_history[track];
          MIX_PTR_T d = dptr;
 
-#if RB_FLOAT_DATA
          _batch_movingaverage_float(d, d, dno_samples, hist+0, fp2d->final.k);
          _batch_movingaverage_float(d, d, dno_samples, hist+1, fp2d->final.k);
-#else
-         _batch_movingaverage(d, d, dno_samples, hist+0, fp2d->final.k);
-         _batch_movingaverage(d, d, dno_samples, hist+1, fp2d->final.k);
-#endif
       }
    }
    return AAX_TRUE;

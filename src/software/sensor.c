@@ -313,7 +313,6 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
          drb->set_paramf(drb, RB_FREQUENCY, freq);
       }
 
-#if RB_FLOAT_DATA
       // be->capture can capture one extra sample to keep synchronised with
       // the capture buffer but it is in int32_t format while the mixer format
       // might be float. Convert this sample to float ourselves.
@@ -328,7 +327,6 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
             *(ptr-1) = (MIX_T)s;
          }
       }
-#endif
 
       if (res >= 0 && nframes)
       {

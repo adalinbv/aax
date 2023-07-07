@@ -37,7 +37,6 @@ extern "C" {
 #include <dsp/lfo.h>
 #include <objects.h>
 
-#define RB_FLOAT_DATA			1
 #define RB_MAX_TRACKS			(_AAX_MAX_SPEAKERS*4)
 #define _AAX_SYNTH_MAX_WAVEFORMS	4
 #define _AAX_SYNTH_MAX_HARMONICS	16
@@ -111,18 +110,11 @@ enum _aaxRingBufferMode
 };
 
 #define MIX_BPS			24	// max. 24-bits in a 32-bits sample
-#if RB_FLOAT_DATA
-# define MIX_T                  float
-# define MIX_PTR_T              float32_ptr
-# define MIX_PTRPTR_T           float32_ptrptr
-# define CONST_MIX_PTR_T        const_float32_ptr
-# define CONST_MIX_PTRPTR_T     const_float32_ptrptr
-#else
-# define MIX_T                  int32_t
-# define MIX_PTR_T              int32_ptr
-# define CONST_MIX_PTR_T        const_int32_ptr
-# define CONST_MIX_PTRPTR_T     const_int32_ptrptr
-#endif
+#define MIX_T			float
+#define MIX_PTR_T		float32_ptr
+#define MIX_PTRPTR_T		float32_ptrptr
+#define CONST_MIX_PTR_T		const_float32_ptr
+#define CONST_MIX_PTRPTR_T	const_float32_ptrptr
 
 extern float _aax_cubic_threshold;
 

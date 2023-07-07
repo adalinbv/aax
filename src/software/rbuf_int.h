@@ -133,17 +133,10 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
 
     enum aaxFormat format;
     _batch_codec_proc codec;
-#if RB_FLOAT_DATA
     _batch_fmadd_proc add;
     _batch_mul_value_proc multiply;
     _batch_resample_float_proc resample;
     _batch_freqfilter_float_proc freqfilter;
-#else
-    _batch_imadd_proc add;
-    _batch_mul_value_proc multiply;
-    _batch_resample_proc resample;
-    _batch_freqfilter_proc freqfilter;
-#endif
 
    /* called by the mix function above */
    _aaxRingBufferMix1NFn *mix1;

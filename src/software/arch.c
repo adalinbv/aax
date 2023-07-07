@@ -109,14 +109,10 @@ _batch_ema_float_proc _batch_movingaverage_float = _batch_ema_iir_float_cpu;
 _batch_freqfilter_float_proc _batch_freqfilter_float = _batch_freqfilter_float_cpu;
 
 
-#if RB_FLOAT_DATA
 _batch_cvt_from_proc _batch_cvt24_ps24 = _batch_cvt24_ps24_cpu;
 _batch_cvt_to_proc _batch_cvtps24_24 = _batch_cvtps24_24_cpu;
 _batch_resample_float_proc _batch_resample_float = _batch_resample_float_cpu;
 _batch_convolution_proc _batch_convolution = _batch_convolution_cpu;
-#else
-_batch_resample_proc _batch_resample = _batch_resample_cpu;
-#endif
 
 
 /* -------------------------------------------------------------------------- */

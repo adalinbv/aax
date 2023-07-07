@@ -260,11 +260,10 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
                srbi->codec((int32_t*)ptr, sptr, srbd->codec,
                             src_pos, sstart, send, 0, samples,
                             sbps, src_loops);
-#if RB_FLOAT_DATA
+
                // convert from int32_t to float32
                _batch_cvtps24_24(ptr, ptr, samples);
                DBG_TESTNAN(ptr, samples);
-#endif
             }
 
             /* update the history */
@@ -282,9 +281,7 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
 
             drbd->resample(dst-ddesamps, scratch0-rdesamps,
                            dest_pos, dest_pos+dno_samples+ddesamps, smu, fact);
-#if RB_FLOAT_DATA
             DBG_TESTNAN(dst-ddesamps+dest_pos, dno_samples+ddesamps);
-#endif
 
             if (eff)
             {	// emitter effects
@@ -297,9 +294,7 @@ memcpy(dptr+dest_pos, dst+dest_pos, dno_samples*sizeof(MIX_T));
                              dest_pos, dend, dno_samples, ddesamps, t,
                              p2d, ctr, AAX_FALSE);
 #endif
-#if RB_FLOAT_DATA
                DBG_TESTNAN(dptr-ddesamps+dest_pos, dno_samples+ddesamps);
-#endif
             }
          }
       }

@@ -418,7 +418,6 @@ _aaxGetSIMDSupportLevel()
             _batch_cvt16_24 = _batch_cvt16_24_sse2;
             _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse2;
 
-#  if RB_FLOAT_DATA
             _batch_fmadd = _batch_fmadd_sse2;
             _batch_fmul = _batch_fmul_sse2;
             _batch_fmul_value = _batch_fmul_value_sse2;
@@ -427,11 +426,6 @@ _aaxGetSIMDSupportLevel()
             _batch_movingaverage_float = _batch_ema_iir_float_sse2;
             _batch_freqfilter_float = _batch_freqfilter_float_sse2;
             _batch_resample_float = _batch_resample_float_sse2;
-#  else
-            _batch_imadd = _batch_imadd_sse2;
-            _batch_freqfilter = _batch_freqfilter_sse2;
-            _batch_resample = _batch_resample_sse2;
-#  endif
          }
          if (_aax_arch_capabilities & AAX_ARCH_SSE3)
          {
@@ -439,12 +433,6 @@ _aaxGetSIMDSupportLevel()
             vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse3;
             vec3fDotProduct = _vec3fDotProduct_sse3;
             _batch_imul_value = _batch_imul_value_sse3;
-
-#  if RB_FLOAT_DATA
-//          _batch_resample_float = _batch_resample_float_sse3;
-#  else
-            _batch_resample = _batch_resample_sse3;
-#  endif
          }
 
          if (_aax_arch_capabilities & AAX_ARCH_SSE41)
@@ -452,7 +440,6 @@ _aaxGetSIMDSupportLevel()
             _batch_roundps = _batch_roundps_sse4;
          }
 
-#  if SIZEOF_SIZE_T == 8
          if (support_simd256)
          {
             if (_aax_arch_capabilities & AAX_ARCH_AVX)
@@ -488,29 +475,20 @@ _aaxGetSIMDSupportLevel()
                _batch_roundps = _batch_roundps_cpu;
 
                _batch_atanps = _batch_atanps_avx;
-#   if RB_FLOAT_DATA
                _batch_movingaverage_float = _batch_ema_iir_float_sse_vex;
                _batch_freqfilter_float = _batch_freqfilter_float_sse_vex;
                _batch_resample_float = _batch_resample_float_sse_vex;
-#   else
-               _batch_imadd = _batch_imadd_sse_vex;
-               _batch_freqfilter = _batch_freqfilter_sse_vex;
-               _batch_resample = _batch_resample_sse_vex;
-#   endif
 
 //             _aax_memcpy = _aax_memcpy_avx;
                _batch_cvtps_24 = _batch_cvtps_24_avx;
                _batch_cvt24_ps = _batch_cvt24_ps_avx;
 
-#   if RB_FLOAT_DATA
                _batch_fmul = _batch_fmul_avx;
                _batch_fmul_value = _batch_fmul_value_avx;
                _batch_fmadd = _batch_fmadd_avx;
                _batch_cvtps24_24 = _batch_cvtps24_24_avx;
                _batch_cvt24_ps24 = _batch_cvt24_ps24_avx;
             }
-#   else
-#   endif
 
             if (_aax_arch_capabilities & AAX_ARCH_FMA3)
             {
@@ -520,7 +498,6 @@ _aaxGetSIMDSupportLevel()
                _batch_get_average_rms = _batch_get_average_rms_fma3;
 
                _batch_atanps = _batch_atanps_fma3;
-#   if RB_FLOAT_DATA
                _batch_freqfilter_float = _batch_freqfilter_float_fma3;
                _batch_resample_float = _batch_resample_float_fma3;
 
@@ -529,10 +506,8 @@ _aaxGetSIMDSupportLevel()
                mtx4dMul = _mtx4dMul_fma3;
                mtx4dMulVec4 = _mtx4dMulVec4_fma3;
                vec3dAltitudeVector = _vec3dAltitudeVector_fma3;
-#   endif
             }
          }
-#  endif // SIZEOF_SIZE_T == 8
       }
    }
 # endif // __TINYC__
