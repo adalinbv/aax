@@ -50,21 +50,13 @@ extern "C" {
 # define OFF_T_MAX	(off_t)-1
 #endif
 
-#if SIZEOF_SIZE_T == 8
-# define MEMALIGN	32
-#else
-# define MEMALIGN	16
-#endif
+#define MEMALIGN	32
 #define MEMMASK		(MEMALIGN-1)
 #define MEMALIGN16	16
 #define MEMMASK16	(MEMALIGN16-1)
 
 #ifdef _MSC_VER
-# if SIZEOF_SIZE_T == 8
-#  define ALIGN	__declspec(align(32))
-# else
-#  define ALIGN	__declspec(align(16))
-# endif
+# define ALIGN	__declspec(align(32))
 # define ALIGNC
 # define ALIGN16 __declspec(align(16))
 # define ALIGN16C
@@ -72,11 +64,7 @@ extern "C" {
 # define ALIGN32C
 #elif defined(__GNUC__) || defined(__TINYC__)
 # define ALIGN
-# if SIZEOF_SIZE_T == 8
-#  define ALIGNC __attribute__((aligned(32)))
-# else
-#  define ALIGNC __attribute__((aligned(16)))
-# endif
+# define ALIGNC __attribute__((aligned(32)))
 # define ALIGN16
 # define ALIGN16C __attribute__((aligned(16)))
 # define ALIGN32
@@ -204,11 +192,7 @@ char* strcasestr(const char*, const char*);
 int _aax_snprintf(char*, size_t, const char*, ...);
 
 typedef long	off_t;
-# if SIZEOF_SIZE_T == 4
-typedef INT32	ssize_t;
-# else
 typedef INT64	ssize_t;
-# endif
 
 #else		// WIN32
 

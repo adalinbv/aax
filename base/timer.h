@@ -56,11 +56,7 @@ int gettimeofday(struct timeval*, void*);
 int clock_gettime(int, struct timespec*);
 
 typedef long    off_t;
-# if SIZEOF_SIZE_T == 4
-typedef INT32   ssize_t;
-# else
 typedef INT64   ssize_t;
-# endif
 
 #else	/* _WIN32 */
 # if HAVE_SYS_TIME_H
