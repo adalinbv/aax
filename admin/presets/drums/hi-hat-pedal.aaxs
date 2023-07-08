@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,35 +14,37 @@
 
  <info name="Pedal Hi-hat" bank="0" program="44">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.19" frequency="1540" duration="0.3">
-  <waveform src="square"/>
-  <waveform src="white-noise" processing="mix" ratio="0.29" pitch="0.9"/>
-  <waveform src="square" processing="modulate" ratio="0.9" pitch="4.1"/>
+ <sound gain="1.67" frequency="1567.98" duration="0.33">
+  <layer n="0">
+   <waveform src="square"/>
+   <waveform src="white-noise" processing="mix" ratio="0.8" pitch="0.25"/>
+   <waveform src="square" processing="modulate" pitch="4.1"/>
+   <filter type="frequency">
+    <slot n="0">
+     <param n="0">3500.0</param>
+     <param n="1">0.0</param>
+     <param n="2">1.0</param>
+     <param n="3">1.0</param>
+    </slot>
+   </filter>
+  </layer>
  </sound>
 
  <emitter looping="true" pan="0.31">
   <filter type="timed-gain" src="envelope" release-time="0.1">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">0.02</param>
-    <param n="2">2.43</param>
-    <param n="3">0.18</param>
-   </slot>
-  </filter>
-  <effect type="timed-pitch" src="envelope">
-   <slot n="0">
-    <param n="0">0.925</param>
-    <param n="1">0.02</param>
-    <param n="2">1.0</param>
+    <param n="1">0.4</param>
+    <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
-  </effect>
+  </filter>
  </emitter>
 
 </aeonwave>

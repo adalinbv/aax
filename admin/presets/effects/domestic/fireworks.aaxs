@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,18 +14,18 @@
 
  <info name="Fireworks" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" min="60" max="96" step="1" pitch-fraction="0.2"/>
   <aftertouch mode="2"/>
  </info>
 
  <sound gain="0.97" frequency="1479.98" duration="3.33">
-  <layer ratio="0.25">
+  <layer n="0" ratio="0.25">
    <waveform src="white-noise" pitch="0.27"/>
   </layer>
-  <layer ratio="3.0">
+  <layer n="1" ratio="3.0">
    <waveform src="white-noise" ratio="10.0" pitch="0.03" staticity="0.7"/>
    <filter type="frequency" src="24db">
     <slot n="0">
@@ -39,7 +39,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="envelope|logarithmic">
+  <filter type="dynamic-layer" src="envelope|exponential">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">5.0</param>

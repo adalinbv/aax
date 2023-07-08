@@ -20,36 +20,54 @@
   <note polyphony="1" min="21" max="108" step="6"/>
  </info>
 
- <sound gain="2.82" frequency="466.164" duration="0.3">
-  <waveform src="sine"/>
-  <waveform src="sine" processing="modulate" pitch="6.3"/>
-  <waveform src="white-noise" processing="add" ratio="0.7" pitch="0.25"/>
-  <waveform src="sine" processing="modulate" pitch="5.1"/>
+ <sound gain="1.67" frequency="466.164" duration="0.3">
+  <layer n="0">
+   <waveform src="square" pitch="0.985"/>
+   <waveform src="sawtooth" processing="mix" pitch="2.9"/>
+   <waveform src="pink-noise" processing="add" ratio="1.2"/>
+   <waveform src="sine" processing="modulate" pitch="6.3"/>
+   <filter type="frequency">
+    <slot n="0">
+     <param n="0">1800.0</param>
+     <param n="1">0.1</param>
+     <param n="2">1.2</param>
+     <param n="3">2.0</param>
+    </slot>
+   </filter>
+  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" src="envelope">
+  <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">1.5</param>
-    <param n="2">0.805</param>
-    <param n="3">0.3</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">0.1</param>
-    <param n="2">0.667</param>
-    <param n="3">0.5</param>
+    <param n="1">1.9</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="sawtooth">
    <slot n="0">
-    <param n="0">0.5</param>
-    <param n="1">25.0</param>
-    <param n="2">0.25</param>
-    <param n="3">0.75</param>
+    <param n="0">0.8</param>
+    <param n="1">50.0</param>
+    <param n="2">0.4</param>
+    <param n="3">0.6</param>
    </slot>
   </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">1.9</param>
+    <param n="2">1.0</param>
+    <param n="3">0.02</param>
+   </slot>
+   <slot n="1">
+    <param n="0">2.85</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
  </emitter>
 
 </aeonwave>

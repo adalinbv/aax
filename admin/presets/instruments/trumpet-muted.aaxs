@@ -20,22 +20,25 @@
   <note polyphony="2" min="48" max="94" step="12"/>
  </info>
 
- <sound gain="1.57" frequency="880" duration="0.5">
-  <waveform src="impulse"/>
+ <sound gain="1.12" frequency="880" duration="0.5">
+  <layer n="0">
+   <waveform src="cycloid" pitch="2.0"/>
+   <waveform src="sawtooth" processing="add"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.06">
    <slot n="0">
-    <param n="0">0.778</param>
+    <param n="0">0.776</param>
     <param n="1">0.02</param>
     <param n="2">1.0</param>
-    <param n="3">0.15</param>
+    <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.691</param>
+    <param n="0">0.689</param>
     <param n="1">7.5</param>
-    <param n="2">0.916</param>
+    <param n="2">0.91</param>
     <param n="3">3.2</param>
    </slot>
   </filter>
@@ -59,8 +62,8 @@
   <filter type="frequency" optional="true">
    <slot n="0">
     <param n="0">1800.0</param>
-    <param n="1">0.6</param>
-    <param n="2">3.5</param>
+    <param n="1">0.4</param>
+    <param n="2">1.0</param>
     <param n="3">1.5</param>
    </slot>
   </filter>
@@ -74,15 +77,15 @@
    <slot n="1">
     <param n="0">550.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.6</param>
+    <param n="2">0.4</param>
     <param n="3">1.0</param>
    </slot>
   </filter>
   <effect type="distortion" src="envelope|exponential">
    <slot n="0">
-    <param n="0">0.5</param>
+    <param n="0">0.1</param>
     <param n="1">0.5</param>
-    <param n="2">0.1</param>
+    <param n="2">0.2</param>
     <param n="3">0.5</param>
    </slot>
   </effect>

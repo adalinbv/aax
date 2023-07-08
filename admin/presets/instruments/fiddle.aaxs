@@ -20,74 +20,53 @@
   <note polyphony="4" min="55" max="96" step="12"/>
  </info>
 
- <sound gain="3.10" frequency="440" duration="0.75">
-  <waveform src="sawtooth"/>
-  <waveform src="square" processing="modulate" ratio="0.5" pitch="3.0"/>
-  <waveform src="impulse" processing="mix" ratio="0.15" pitch="0.9899"/>
+ <sound mode="1" gain="1.51" frequency="220" duration="0.5">
+  <layer n="0">
+   <waveform src="impulse" pitch="2.0"/>
+   <waveform src="sawtooth" processing="add"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="bitcrusher" src="timed">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.3</param>
-    <param n="2">0.33</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
-  <filter type="timed-gain">
-   <slot n="0">
-    <param n="0">0.437</param>
-    <param n="1">0.1</param>
-    <param n="2">1.0</param>
-    <param n="3">0.05</param>
+    <param n="0">0.571</param>
+    <param n="1">0.0829</param>
+    <param n="2">0.759</param>
+    <param n="3">0.4</param>
    </slot>
    <slot n="1">
-    <param n="0">0.897</param>
+    <param n="0">0.679</param>
     <param n="1">inf</param>
-    <param n="2">0.992</param>
-    <param n="3">0.2</param>
+    <param n="2">1.0</param>
+    <param n="3">0.03</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.985</param>
-    <param n="1">0.45</param>
+    <param n="1">0.0829</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
- <audioframe pan="-0.6">
+ <audioframe pan="-0.3">
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">280.0</param>
-    <param n="1">0.2</param>
-    <param n="2">0.7</param>
-    <param n="3">1.5</param>
+    <param n="0">294.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">4.0</param>
    </slot>
    <slot n="1">
-    <param n="0">600.0</param>
-    <param n="1">0.7</param>
-    <param n="2">1.0</param>
-    <param n="3">2.0</param>
-   </slot>
-   <slot n="2">
-    <param n="0">2000.0</param>
+    <param n="0">440.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.4</param>
+    <param n="2">1.1</param>
     <param n="3">3.0</param>
    </slot>
   </filter>
-  <effect type="distortion" src="envelope|exponential">
-   <slot n="0">
-    <param n="0">0.8</param>
-    <param n="1">0.0</param>
-    <param n="2">0.1</param>
-    <param n="3">1.0</param>
-   </slot>
-  </effect>
  </audioframe>
 
 </aeonwave>

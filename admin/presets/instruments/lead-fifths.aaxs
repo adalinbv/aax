@@ -20,9 +20,11 @@
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.89" frequency="220" duration="0.3">
-  <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.15" pitch="1.4989"/>
+ <sound gain="1.47" frequency="220" duration="0.3">
+  <layer n="0">
+   <waveform src="sawtooth"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.15" pitch="1.4989"/>
+  </layer>
  </sound>
 
  <emitter looping="true">

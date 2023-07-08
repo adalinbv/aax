@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,30 +14,32 @@
 
  <info name="Snare Brush Tap" bank="40" program="38">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound mode="2" gain="1.33" frequency="286" duration="0.5">
-  <waveform src="white-noise" ratio="0.5" pitch="0.4" staticity="0.025"/>
-  <filter type="bitcrusher">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.55</param>
-   </slot>
-  </filter>
+ <sound mode="2" gain="2.80" frequency="233.082" duration="0.5">
+  <layer n="0">
+   <waveform src="white-noise" pitch="0.33" staticity="0.025"/>
+   <filter type="bitcrusher">
+    <slot n="0">
+     <param n="0">0.0</param>
+     <param n="1">0.0</param>
+     <param n="2">0.0</param>
+     <param n="3">0.55</param>
+    </slot>
+   </filter>
+  </layer>
  </sound>
 
- <emitter looping="true">
-  <filter type="timed-gain" release-time="0.8">
+ <emitter looping="true" pan="0.2">
+  <filter type="timed-gain" release-time="0.1">
    <slot n="0">
-    <param n="0">0.988</param>
+    <param n="0">1.0</param>
     <param n="1">0.05</param>
-    <param n="2">0.587</param>
+    <param n="2">0.594</param>
     <param n="3">0.17</param>
    </slot>
   </filter>

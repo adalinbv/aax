@@ -20,21 +20,23 @@
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.41" frequency="1760" duration="0.25">
-  <waveform src="sawtooth" ratio="0.75" pitch="0.993"/>
-  <waveform src="impulse" processing="add" pitch="1.4983"/>
+ <sound gain="1.82" frequency="1760">
+  <layer n="0">
+   <waveform src="sawtooth" pitch="0.989"/>
+   <waveform src="impulse" processing="add" ratio="0.75" pitch="1.4983"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.0</param>
+    <param n="0">0.679</param>
     <param n="1">0.05</param>
     <param n="2">1.0</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.839</param>
+    <param n="0">1.1</param>
     <param n="1">inf</param>
     <param n="2">0.42</param>
     <param n="3">0.13</param>

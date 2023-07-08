@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,16 +14,18 @@
 
  <info name="Humming" bank="1" program="53">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="48" max="79" step="12"/>
  </info>
 
  <sound gain="7.36" frequency="220" duration="0.33">
-  <waveform src="sine" pitch="0.49"/>
-  <waveform src="sawtooth" processing="add" ratio="0.25"/>
-  <waveform src="sine" processing="modulate"/>
+  <layer n="0">
+   <waveform src="sine" pitch="0.49"/>
+   <waveform src="sawtooth" processing="add" ratio="0.25"/>
+   <waveform src="sine" processing="modulate"/>
+  </layer>
  </sound>
 
  <emitter looping="true">

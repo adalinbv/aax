@@ -20,29 +20,41 @@
   <note polyphony="6" min="36" max="77" step="12"/>
  </info>
 
- <sound gain="1.61" frequency="65.4064" duration="0.75">
-  <waveform src="impulse"/>
-  <waveform src="impulse" processing="add" pitch="0.987"/>
-  <waveform src="impulse" processing="add" ratio="0.666" pitch="1.987"/>
+ <sound mode="1" gain="1.09" frequency="65.4064" duration="0.75">
+  <layer n="0">
+   <waveform src="impulse"/>
+   <waveform src="impulse" processing="add" ratio="0.3" pitch="1.987"/>
+   <waveform src="impulse" processing="add" ratio="0.2" pitch="2.987"/>
+   <waveform src="impulse" processing="add" ratio="0.1" pitch="3.987"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.73</param>
+    <param n="0">0.762</param>
     <param n="1">0.1</param>
-    <param n="2">1.0</param>
-    <param n="3">0.05</param>
+    <param n="2">0.997</param>
+    <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">0.877</param>
-    <param n="1">inf</param>
-    <param n="2">0.844</param>
-    <param n="3">0.2</param>
+    <param n="0">0.955</param>
+    <param n="1">0.2</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>
 
- <audioframe pan="-0.2"/>
+ <audioframe pan="-0.2">
+  <effect type="distortion" src="envelope|exponential">
+   <slot n="0">
+    <param n="0">0.1</param>
+    <param n="1">0.0</param>
+    <param n="2">0.5</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </audioframe>
 
 </aeonwave>

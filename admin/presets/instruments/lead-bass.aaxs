@@ -20,18 +20,20 @@
   <note polyphony="2" min="37" max="88" step="12"/>
  </info>
 
- <sound gain="2.83" frequency="440" duration="0.75">
-  <waveform src="impulse"/>
-  <waveform src="impulse" processing="add" pitch="2.0"/>
-  <waveform src="impulse" processing="modulate" ratio="2.0"/>
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0" pitch="0.5">220.0</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">4.0</param>
-   </slot>
-  </filter>
+ <sound gain="3.03" frequency="440" duration="0.75">
+  <layer n="0">
+   <waveform src="impulse"/>
+   <waveform src="impulse" processing="add" pitch="2.0"/>
+   <waveform src="impulse" processing="modulate" ratio="2.0"/>
+   <filter type="frequency">
+    <slot n="0">
+     <param n="0" pitch="0.5">220.0</param>
+     <param n="1">0.0</param>
+     <param n="2">1.0</param>
+     <param n="3">4.0</param>
+    </slot>
+   </filter>
+  </layer>
  </sound>
 
  <emitter looping="true">

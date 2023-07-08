@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,35 +14,37 @@
 
  <info name="Whistle (Short)" bank="0" program="71">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.33" frequency="350" duration="0.3">
-  <waveform src="white-noise"/>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0" pitch="10.0">3500.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">30.0</param>
-   </slot>
-  </filter>
-  <waveform src="sine" processing="mix" ratio="0.2" pitch="10.0"/>
+ <sound gain="0.92" frequency="349.228" duration="0.3">
+  <layer n="0">
+   <waveform src="white-noise"/>
+   <filter type="frequency" src="24db">
+    <slot n="0">
+     <param n="0" pitch="10.0">3492.3</param>
+     <param n="1">1.0</param>
+     <param n="2">0.0</param>
+     <param n="3">30.0</param>
+    </slot>
+   </filter>
+   <waveform src="sine" processing="mix" ratio="0.2" pitch="10.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true" pan="0.55">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.53</param>
+    <param n="0">0.994</param>
     <param n="1">0.05</param>
-    <param n="2">1.54</param>
+    <param n="2">1.0</param>
     <param n="3">0.35</param>
    </slot>
    <slot n="1">
-    <param n="0">0.881</param>
+    <param n="0">0.572</param>
     <param n="1">0.15</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

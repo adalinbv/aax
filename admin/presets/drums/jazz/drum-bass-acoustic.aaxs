@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,30 +14,31 @@
 
  <info name="Acoustic Bass Drum" bank="32" program="35">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound mode="2" gain="0.95" frequency="88" duration="0.3">
-  <waveform src="pink-noise" ratio="0.5" pitch="0.12"/>
-  <waveform src="triangle" processing="add" ratio="0.5"/>
-  <waveform src="triangle" processing="add" ratio="0.5" pitch="0.6"/>
+ <sound mode="2" gain="1.69" frequency="130.813" duration="0.3">
+  <layer n="0">
+   <waveform src="pink-noise" ratio="0.7" pitch="0.12"/>
+   <waveform src="triangle" processing="add" ratio="0.75" pitch="0.6"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.1">
    <slot n="0">
-    <param n="0">1.48</param>
+    <param n="0">1.0</param>
     <param n="1">0.1</param>
-    <param n="2">1.23</param>
+    <param n="2">0.831</param>
     <param n="3">0.08</param>
    </slot>
    <slot n="1">
-    <param n="0">0.617</param>
+    <param n="0">0.417</param>
     <param n="1">0.3</param>
-    <param n="2">0.123</param>
+    <param n="2">0.0831</param>
     <param n="3">0.2</param>
    </slot>
   </filter>

@@ -20,11 +20,12 @@
   <note polyphony="6" min="53" max="89" step="12"/>
  </info>
 
- <sound gain="1.63" frequency="174.614" duration="0.75">
-  <waveform src="sawtooth" ratio="0.8"/>
-  <waveform src="sawtooth" processing="add" ratio="0.15" pitch="3.0"/>
-  <waveform src="triangle" processing="mix" ratio="0.3" pitch="3.993"/>
-  <waveform src="triangle" processing="mix" ratio="0.2" pitch="2.0"/>
+ <sound gain="1.82" frequency="174.614" duration="0.75">
+  <layer n="0">
+   <waveform src="sawtooth" ratio="0.5"/>
+   <waveform src="triangle" processing="add" ratio="0.15" pitch="2.987"/>
+   <waveform src="triangle" processing="mix" ratio="0.35" pitch="3.993"/>
+  </layer>
  </sound>
 
  <emitter looping="true">

@@ -20,12 +20,14 @@
   <note polyphony="8" min="48" max="96" step="6"/>
  </info>
 
- <sound gain="4.43" frequency="1760" duration="0.1">
-  <waveform src="triangle"/>
-  <waveform src="sine" processing="modulate" pitch="3.5"/>
-  <waveform src="sine" processing="modulate" pitch="11.5"/>
-  <waveform src="triangle" processing="modulate" pitch="18.5"/>
-  <waveform src="sine" processing="mix" ratio="0.07" pitch="4.975"/>
+ <sound gain="2.95" frequency="1760" duration="0.1">
+  <layer n="0">
+   <waveform src="triangle"/>
+   <waveform src="sine" processing="modulate" pitch="3.5"/>
+   <waveform src="sine" processing="modulate" pitch="11.5"/>
+   <waveform src="triangle" processing="modulate" pitch="18.5"/>
+   <waveform src="sine" processing="mix" ratio="0.07" pitch="4.975"/>
+  </layer>
  </sound>
 
  <emitter looping="true">

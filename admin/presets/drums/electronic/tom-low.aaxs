@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,16 +14,18 @@
 
  <info name="Low Tom" bank="24" program="45">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.77" frequency="110" duration="0.3">
-  <waveform src="sine" ratio="1.2"/>
-  <waveform src="sine" processing="add" ratio="0.3" pitch="0.8"/>
-  <waveform src="white-noise" processing="add" ratio="0.11" pitch="0.25"/>
+ <sound gain="1.59" frequency="110" duration="0.3">
+  <layer n="0">
+   <waveform src="sine" ratio="1.2"/>
+   <waveform src="sine" processing="add" ratio="0.3" pitch="0.8"/>
+   <waveform src="white-noise" processing="add" ratio="0.11" pitch="0.25"/>
+  </layer>
  </sound>
 
  <emitter looping="true" pan="0.1">
@@ -37,7 +39,7 @@
   </filter>
   <filter type="timed-gain" src="envelope" release-time="0.1">
    <slot n="0">
-    <param n="0">2.06</param>
+    <param n="0">1.0</param>
     <param n="1">0.65</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

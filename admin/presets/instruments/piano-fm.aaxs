@@ -20,9 +20,11 @@
   <note polyphony="88" min="21" max="108" step="12"/>
  </info>
 
- <sound gain="2.01" frequency="1760" duration="0.5">
-  <waveform src="sine"/>
-  <waveform src="sine" processing="modulate" pitch="3.0"/>
+ <sound gain="1.57" frequency="1760" duration="0.5">
+  <layer n="0">
+   <waveform src="sine"/>
+   <waveform src="sine" processing="modulate" pitch="3.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">

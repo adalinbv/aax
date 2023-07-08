@@ -20,31 +20,25 @@
   <note polyphony="2" min="48" max="94" step="12"/>
  </info>
 
- <sound gain="1.61" frequency="880" duration="0.5">
-  <waveform src="impulse" ratio="0.2" pitch="2.0"/>
-  <waveform src="sawtooth" processing="add"/>
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0" pitch="4.0">3520.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">4.5</param>
-   </slot>
-  </filter>
+ <sound gain="1.00" frequency="880" duration="0.5" ratio="1.75">
+  <layer n="0" ratio="1.75">
+   <waveform src="cycloid" pitch="2.0"/>
+   <waveform src="sawtooth" processing="add"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.06">
    <slot n="0">
-    <param n="0">0.105</param>
-    <param n="1">0.05</param>
-    <param n="2">1.0</param>
-    <param n="3">0.15</param>
+    <param n="0">0.0668</param>
+    <param n="1">0.03</param>
+    <param n="2">0.656</param>
+    <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.691</param>
+    <param n="0">0.999</param>
     <param n="1">7.5</param>
-    <param n="2">0.916</param>
+    <param n="2">0.755</param>
     <param n="3">3.2</param>
    </slot>
   </filter>
@@ -65,6 +59,14 @@
  </emitter>
 
  <audioframe pan="-0.3">
+  <filter type="frequency" optional="true">
+   <slot n="0">
+    <param n="0">1800.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">550.0</param>
@@ -72,13 +74,15 @@
     <param n="2">1.0</param>
     <param n="3">1.0</param>
    </slot>
-   <slot n="1">
-    <param n="0">1800.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.5</param>
-   </slot>
   </filter>
+  <effect type="distortion" src="envelope|exponential">
+   <slot n="0">
+    <param n="0">0.1</param>
+    <param n="1">0.5</param>
+    <param n="2">0.2</param>
+    <param n="3">0.5</param>
+   </slot>
+  </effect>
  </audioframe>
 
 </aeonwave>

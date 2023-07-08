@@ -20,12 +20,14 @@
   <note polyphony="2" min="52" max="96" step="12"/>
  </info>
 
- <sound gain="3.26" frequency="880" duration="0.3">
-  <waveform src="sawtooth" pitch="0.993"/>
-  <waveform src="sawtooth" processing="modulate" pitch="7.0"/>
-  <waveform src="white-noise" processing="add" ratio="0.1"/>
-  <waveform src="square" processing="mix" ratio="0.7"/>
-  <waveform src="sawtooth" processing="modulate" pitch="3.0"/>
+ <sound gain="6.39" frequency="880" duration="0.3">
+  <layer n="0">
+   <waveform src="sawtooth" pitch="0.993"/>
+   <waveform src="sawtooth" processing="modulate" pitch="7.0"/>
+   <waveform src="white-noise" processing="add" ratio="0.1"/>
+   <waveform src="square" processing="mix" ratio="0.7"/>
+   <waveform src="sawtooth" processing="modulate" pitch="3.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
@@ -60,14 +62,16 @@
  </emitter>
 
  <audioframe pan="0.3">
-  <filter type="equalizer" optional="true">
+  <filter type="frequency" optional="true">
    <slot n="0">
     <param n="0">450.0</param>
     <param n="1">1.0</param>
     <param n="2">0.7</param>
     <param n="3">4.0</param>
    </slot>
-   <slot n="1">
+  </filter>
+  <filter type="equalizer" optional="true">
+   <slot n="0">
     <param n="0">2200.0</param>
     <param n="1">0.7</param>
     <param n="2">0.0</param>

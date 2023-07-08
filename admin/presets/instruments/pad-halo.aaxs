@@ -20,19 +20,21 @@
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.95" frequency="220" duration="3.0">
-  <waveform src="triangle" pitch="0.51"/>
-  <waveform src="square" processing="modulate" ratio="0.8" pitch="7.9987"/>
-  <waveform src="triangle" processing="add" ratio="0.3" pitch="0.9399"/>
-  <waveform src="pink-noise" processing="add" ratio="0.08" pitch="0.02"/>
+ <sound gain="1.14" frequency="220" duration="3.0">
+  <layer n="0">
+   <waveform src="triangle" pitch="0.51"/>
+   <waveform src="square" processing="modulate" ratio="0.8" pitch="7.9987"/>
+   <waveform src="triangle" processing="add" ratio="0.3" pitch="0.9399"/>
+   <waveform src="pink-noise" processing="add" ratio="0.08" pitch="0.02"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.3">
    <slot n="0">
-    <param n="0">0.452</param>
+    <param n="0">0.148</param>
     <param n="1">0.5</param>
-    <param n="2">0.963</param>
+    <param n="2">0.942</param>
     <param n="3">1.05</param>
    </slot>
    <slot n="1">
@@ -57,14 +59,6 @@
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.03</param>
-   </slot>
-  </filter>
-  <filter type="equalizer">
-   <slot n="0">
-    <param n="0">1650.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.1</param>
-    <param n="3">2.0</param>
    </slot>
   </filter>
  </audioframe>

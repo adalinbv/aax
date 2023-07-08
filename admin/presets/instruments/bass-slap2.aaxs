@@ -21,35 +21,20 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound mode="1" gain="1.27" frequency="55" duration="0.1">
-  <layer>
+ <sound mode="1" gain="1.32" frequency="55" duration="0.1">
+  <layer n="0">
    <waveform src="sawtooth" ratio="0.9"/>
    <waveform src="square" processing="add" ratio="0.6" pitch="9.0"/>
    <waveform src="triangle" processing="modulate" ratio="1.5" pitch="5.0"/>
   </layer>
-  <layer>
-   <waveform src="square" ratio="1.5" pitch="0.9997"/>
-   <waveform src="triangle" processing="add" ratio="0.15" pitch="1.997"/>
-   <waveform src="triangle" processing="add" ratio="0.5" pitch="5.997"/>
-   <waveform src="triangle" processing="modulate" pitch="1.998"/>
-   <waveform src="triangle" processing="add" ratio="0.7" pitch="5.999"/>
-  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="timed|exponential">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">10.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.02</param>
-    <param n="2">1.0</param>
+    <param n="0">0.999</param>
+    <param n="1">0.01</param>
+    <param n="2">0.999</param>
     <param n="3">0.443</param>
    </slot>
   </filter>
@@ -61,15 +46,23 @@
     <param n="3">0.01</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
+    <param n="0">0.95</param>
+    <param n="1">0.01</param>
+    <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
  <audioframe pan="0.1">
+  <filter type="frequency" src="24db" optional="true">
+   <slot n="0">
+    <param n="0">2000.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">100.0</param>
@@ -77,8 +70,8 @@
     <param n="2">1.0</param>
     <param n="3">1.5</param>
    </slot>
-   <slot n="1" src="24db">
-    <param n="0">2000.0</param>
+   <slot n="1">
+    <param n="0">3000.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.5</param>

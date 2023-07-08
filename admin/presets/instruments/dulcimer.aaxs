@@ -20,11 +20,13 @@
   <note polyphony="10" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="2.65" frequency="220" duration="0.1">
-  <waveform src="square"/>
-  <waveform src="sawtooth" processing="add" ratio="0.7" pitch="8.0"/>
-  <waveform src="impulse" processing="add" ratio="0.4" pitch="2.987"/>
-  <waveform src="square" processing="modulate" pitch="5.0"/>
+ <sound gain="2.25" frequency="220" duration="0.1">
+  <layer n="0">
+   <waveform src="square"/>
+   <waveform src="sawtooth" processing="add" ratio="0.7" pitch="8.0"/>
+   <waveform src="impulse" processing="add" ratio="0.4" pitch="2.987"/>
+   <waveform src="square" processing="modulate" pitch="5.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">

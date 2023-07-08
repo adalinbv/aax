@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="Crash Cymbal" bank="25" program="49">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="3.03" frequency="493.883" duration="0.3">
+  <layer n="0">
+   <waveform src="square" ratio="0.7" pitch="0.9"/>
+   <waveform src="white-noise" processing="add" pitch="0.12"/>
+   <waveform src="sawtooth" processing="add" ratio="0.33" pitch="0.707"/>
+   <waveform src="pure-sine" processing="modulate" pitch="6.9"/>
+  </layer>
+ </sound>
+
+ <emitter looping="true" pan="0.31">
+  <filter type="frequency" src="envelope|logarithmic">
+   <slot n="0">
+    <param n="0">2350.0</param>
+    <param n="1">0.1</param>
+    <param n="2">1.2</param>
+    <param n="3">5.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">3100.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">5.0</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain" src="envelope" release-time="0.6">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">0.03</param>
+    <param n="2">0.756</param>
+    <param n="3">1.9</param>
+   </slot>
+  </filter>
+ </emitter>
+
+</aeonwave>

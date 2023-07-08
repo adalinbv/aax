@@ -21,19 +21,13 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="3.36" frequency="41.2034" duration="0.1">
-  <waveform src="square"/>
-  <waveform src="sawtooth" processing="mix"/>
-  <waveform src="triangle" processing="add" ratio="0.2" pitch="4.0"/>
-  <waveform src="sine" processing="modulate" pitch="2.0"/>
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0" pitch="1.0">41.2</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
+ <sound gain="2.55" frequency="110" duration="0.1">
+  <layer n="0">
+   <waveform src="square"/>
+   <waveform src="sawtooth" processing="mix"/>
+   <waveform src="triangle" processing="add" ratio="0.2" pitch="4.0"/>
+   <waveform src="sine" processing="modulate" pitch="2.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
@@ -45,7 +39,7 @@
     <param n="3">0.2</param>
    </slot>
    <slot n="1">
-    <param n="0">0.625</param>
+    <param n="0">0.75</param>
     <param n="1">7.4</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

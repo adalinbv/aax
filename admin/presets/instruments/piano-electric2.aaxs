@@ -12,7 +12,7 @@
 
 <aeonwave>
 
- <info name=" Wurlitzer Ep112 Electric Piano" bank="0" program="5">
+ <info name="Wurly Electric Piano" bank="0" program="5">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2023" by="Adalin B.V."/>
   <copyright from="2017" until="2023" by="Erik Hofman"/>
@@ -20,10 +20,12 @@
   <note polyphony="8" min="28" max="103" step="12"/>
  </info>
 
- <sound gain="1.79" frequency="110" duration="0.1">
-  <waveform src="sawtooth"/>
-  <waveform src="triangle" processing="add" ratio="0.3" pitch="2.0"/>
-  <waveform src="triangle" processing="add" ratio="0.1" pitch="3.0"/>
+ <sound gain="3.05" frequency="110" duration="0.1">
+  <layer n="0">
+   <waveform src="cycloid"/>
+   <waveform src="sawtooth" processing="add" ratio="0.3" pitch="2.0"/>
+   <waveform src="sawtooth" processing="add" ratio="0.1" pitch="3.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
@@ -36,7 +38,7 @@
    </slot>
    <slot n="1">
     <param n="0">0.892</param>
-    <param n="1">1.86</param>
+    <param n="1">8.6</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -58,20 +60,42 @@
  </emitter>
 
  <audioframe pan="0.6">
-  <filter type="equalizer" optional="true">
+  <filter type="frequency">
    <slot n="0">
-    <param n="0">100.0</param>
-    <param n="1">0.1</param>
+    <param n="0">330.0</param>
+    <param n="1">0.0</param>
     <param n="2">1.0</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">3700.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
+    <param n="3">2.0</param>
    </slot>
   </filter>
+  <filter type="equalizer" optional="true">
+   <slot n="0">
+    <param n="0">600.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.75</param>
+    <param n="3">2.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">800.0</param>
+    <param n="1">0.75</param>
+    <param n="2">1.0</param>
+    <param n="3">3.0</param>
+   </slot>
+   <slot n="2">
+    <param n="0">2000.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.2</param>
+    <param n="3">1.1</param>
+   </slot>
+  </filter>
+  <effect type="distortion" src="envelope">
+   <slot n="0">
+    <param n="0">0.15</param>
+    <param n="1">0.0</param>
+    <param n="2">0.15</param>
+    <param n="3">1.0</param>
+   </slot>
+  </effect>
  </audioframe>
 
 </aeonwave>

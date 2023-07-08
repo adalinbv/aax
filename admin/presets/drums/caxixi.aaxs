@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,30 +14,32 @@
 
  <info name="Caxixi" bank="0" program="69">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.22" frequency="440" duration="0.3">
-  <waveform src="pink-noise" ratio="19.0" pitch="0.23" staticity="0.2"/>
-  <filter type="frequency" src="48db">
-   <slot n="0">
-    <param n="0">3300.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.5</param>
-    <param n="3">1.5</param>
-   </slot>
-  </filter>
+ <sound gain="2.74" frequency="440" duration="0.3">
+  <layer n="0">
+   <waveform src="pink-noise" ratio="19.0" pitch="0.23" staticity="0.2"/>
+   <filter type="frequency" src="48db">
+    <slot n="0">
+     <param n="0">3300.0</param>
+     <param n="1">0.0</param>
+     <param n="2">0.5</param>
+     <param n="3">1.5</param>
+    </slot>
+   </filter>
+  </layer>
  </sound>
 
  <emitter looping="true" pan="-0.55">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.69</param>
+    <param n="0">1.0</param>
     <param n="1">0.03</param>
-    <param n="2">0.561</param>
+    <param n="2">0.332</param>
     <param n="3">0.33</param>
    </slot>
   </filter>

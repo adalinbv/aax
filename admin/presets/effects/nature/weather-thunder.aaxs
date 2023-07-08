@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,29 +14,29 @@
 
  <info name="Thunder">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" pitch-fraction="0.5"/>
  </info>
 
- <sound fixed-gain="1.34" frequency="80" duration="3.33">
-  <layer>
+ <sound fixed-gain="1.34" frequency="77.7817" duration="3.33">
+  <layer n="0">
    <waveform src="white-noise" ratio="15.0" pitch="0.01"/>
    <filter type="frequency" src="24db">
     <slot n="0">
-     <param n="0" pitch="6.25">500.0</param>
+     <param n="0" pitch="6.25">486.1</param>
      <param n="1">1.0</param>
      <param n="2">0.0</param>
      <param n="3">1.25</param>
     </slot>
    </filter>
   </layer>
-  <layer>
+  <layer n="1">
    <waveform src="white-noise" ratio="15.0" pitch="0.012"/>
    <filter type="frequency" src="24db">
     <slot n="0">
-     <param n="0" pitch="3.25">260.0</param>
+     <param n="0" pitch="3.25">252.8</param>
      <param n="1">1.0</param>
      <param n="2">0.0</param>
      <param n="3">1.25</param>

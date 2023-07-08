@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,24 +14,26 @@
 
  <info name="Low Agogo" bank="0" program="68">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.47" frequency="440" duration="0.1">
-  <waveform src="triangle" pitch="2.0"/>
-  <waveform src="square" processing="modulate" ratio="0.7" pitch="3.5987"/>
+ <sound mode="1" gain="1.13" frequency="440" duration="0.1">
+  <layer n="0">
+   <waveform src="triangle" pitch="2.0"/>
+   <waveform src="square" processing="modulate" ratio="0.7" pitch="3.5987"/>
+  </layer>
  </sound>
 
  <emitter looping="true" pan="-0.55">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">3.47</param>
+    <param n="0">1.0</param>
     <param n="1">0.05</param>
-    <param n="2">2.3</param>
-    <param n="3">0.116</param>
+    <param n="2">0.668</param>
+    <param n="3">0.216</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

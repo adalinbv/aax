@@ -21,16 +21,17 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="2.89" frequency="220">
-  <waveform src="sawtooth"/>
-  <waveform src="triangle" processing="modulate" pitch="4.0"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.2" pitch="0.991"/>
+ <sound gain="0.98" frequency="220">
+  <layer n="0">
+   <waveform src="impulse" ratio="0.1"/>
+   <waveform src="sawtooth" processing="add"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
-    <param n="0">0.623</param>
+    <param n="0">0.79</param>
     <param n="1">0.05</param>
     <param n="2">1.0</param>
     <param n="3">0.464</param>
@@ -38,7 +39,7 @@
   </filter>
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">3.66</param>
+    <param n="0">21.7</param>
     <param n="1">0.01</param>
     <param n="2">1.0</param>
     <param n="3">1.5</param>
@@ -53,18 +54,12 @@
  </emitter>
 
  <audioframe pan="-0.7">
-  <filter type="equalizer" optional="true">
+  <filter type="frequency" optional="true">
    <slot n="0">
-    <param n="0">200.0</param>
-    <param n="1">1.1</param>
-    <param n="2">1.0</param>
-    <param n="3">3.1</param>
-   </slot>
-   <slot n="1">
-    <param n="0">500.0</param>
+    <param n="0">440.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">2.0</param>
+    <param n="2">0.6</param>
+    <param n="3">4.0</param>
    </slot>
   </filter>
  </audioframe>

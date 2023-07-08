@@ -20,23 +20,25 @@
   <note polyphony="6" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="2.94" frequency="880" duration="0.1">
-  <waveform src="impulse" pitch="0.5"/>
-  <waveform src="impulse" processing="add" ratio="0.4"/>
+ <sound gain="2.46" frequency="880" duration="0.1">
+  <layer n="0">
+   <waveform src="impulse" pitch="0.5"/>
+   <waveform src="impulse" processing="add" ratio="0.4"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.48">
    <slot n="0">
-    <param n="0">0.479</param>
+    <param n="0">0.392</param>
     <param n="1">0.02</param>
-    <param n="2">0.893</param>
+    <param n="2">0.881</param>
     <param n="3">0.12</param>
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
     <param n="1">0.02</param>
-    <param n="2">0.886</param>
+    <param n="2">0.95</param>
     <param n="3">2.38</param>
    </slot>
   </filter>
@@ -57,14 +59,16 @@
  </emitter>
 
  <audioframe pan="0.8">
-  <filter type="equalizer" optional="true">
+  <filter type="frequency">
    <slot n="0">
     <param n="0">660.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
    </slot>
-   <slot n="1" src="24db">
+  </filter>
+  <filter type="equalizer" optional="true">
+   <slot n="0" src="24db">
     <param n="0">2500.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>

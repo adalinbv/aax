@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,14 +14,16 @@
 
  <info name="Breathing">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" min="55" max="65"/>
  </info>
 
  <sound gain="1.62" frequency="220" duration="3.33">
-  <waveform src="brownian-noise" ratio="5.0" pitch="0.15"/>
+  <layer n="0">
+   <waveform src="brownian-noise" ratio="5.0" pitch="0.15"/>
+  </layer>
  </sound>
 
  <emitter looping="true">

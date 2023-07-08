@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,38 +14,70 @@
 
  <info name="Splash Cymbal" bank="0" program="55">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.74" frequency="550" duration="0.3">
-  <waveform src="square" pitch="0.985"/>
-  <waveform src="sawtooth" processing="mix" pitch="2.9"/>
-  <waveform src="white-noise" processing="add" ratio="1.2" pitch="0.4"/>
-  <waveform src="sine" processing="modulate" pitch="8.3"/>
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0">2000.0</param>
-    <param n="1">0.1</param>
-    <param n="2">1.2</param>
-    <param n="3">2.0</param>
-   </slot>
-  </filter>
+ <sound gain="2.50" frequency="554.365" duration="0.3">
+  <layer n="0">
+   <waveform src="square" pitch="0.985"/>
+   <waveform src="sawtooth" processing="mix" pitch="2.9"/>
+   <waveform src="white-noise" processing="add" ratio="1.2" pitch="0.4"/>
+   <waveform src="sine" processing="modulate" pitch="8.3"/>
+   <filter type="frequency">
+    <slot n="0">
+     <param n="0">2000.0</param>
+     <param n="1">0.1</param>
+     <param n="2">1.2</param>
+     <param n="3">2.0</param>
+    </slot>
+   </filter>
+  </layer>
+  <layer n="1">
+   <waveform src="square" ratio="0.7" pitch="0.9"/>
+   <waveform src="white-noise" processing="add" pitch="0.12"/>
+   <waveform src="sawtooth" processing="add" ratio="0.33" pitch="0.707"/>
+   <waveform src="sine" processing="modulate" pitch="6.9"/>
+   <filter type="equalizer">
+    <slot n="0">
+     <param n="0">3500.0</param>
+     <param n="1">0.5</param>
+     <param n="2">1.0</param>
+     <param n="3">3.0</param>
+    </slot>
+   </filter>
+  </layer>
  </sound>
 
  <emitter looping="true" pan="-0.16">
-  <filter type="timed-gain">
+  <filter type="dynamic-layer" src="randomness">
    <slot n="0">
-    <param n="0">2.81</param>
-    <param n="1">0.02</param>
-    <param n="2">2.92</param>
-    <param n="3">0.05</param>
+    <param n="0">0.0</param>
+    <param n="1">8.0</param>
+    <param n="2">1.0</param>
+    <param n="3">0.4</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="envelope">
+   <slot n="0">
+    <param n="0">1000.0</param>
+    <param n="1">1.5</param>
+    <param n="2">0.8</param>
+    <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">2.62</param>
-    <param n="1">1.0</param>
+    <param n="0">5450.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">5.5</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain" src="envelope" release-time="0.8">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">2.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -61,6 +93,20 @@
     <param n="0">1.0</param>
     <param n="1">0.9</param>
     <param n="2">0.97</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+  <effect type="timed-pitch" src="envelope">
+   <slot n="0">
+    <param n="0">1.85</param>
+    <param n="1">0.02</param>
+    <param n="2">0.8</param>
+    <param n="3">0.01</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">2.0</param>
+    <param n="2">0.985</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

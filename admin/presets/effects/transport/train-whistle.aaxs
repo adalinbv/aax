@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,31 +14,33 @@
 
  <info name="Train Whistle" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
  <sound gain="0.31" frequency="220" duration="3.3">
-  <waveform src="impulse"/>
-  <waveform src="white-noise" processing="add"/>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0" pitch="5.0">1100.0</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">12.0</param>
-   </slot>
-  </filter>
-  <effect type="distortion">
-   <slot n="0">
-    <param n="0">0.4</param>
-    <param n="1">0.2</param>
-    <param n="2">0.5</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
+  <layer n="0">
+   <waveform src="impulse"/>
+   <waveform src="white-noise" processing="add"/>
+   <filter type="frequency" src="24db">
+    <slot n="0">
+     <param n="0" pitch="5.0">1100.0</param>
+     <param n="1">0.0</param>
+     <param n="2">1.0</param>
+     <param n="3">12.0</param>
+    </slot>
+   </filter>
+   <effect type="distortion">
+    <slot n="0">
+     <param n="0">0.4</param>
+     <param n="1">0.2</param>
+     <param n="2">0.5</param>
+     <param n="3">0.0</param>
+    </slot>
+   </effect>
+  </layer>
  </sound>
 
  <emitter looping="true">

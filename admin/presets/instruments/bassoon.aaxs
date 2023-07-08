@@ -20,9 +20,11 @@
   <note polyphony="10" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="3.07" frequency="880" duration="0.3">
-  <waveform src="square"/>
-  <waveform src="sawtooth" processing="modulate" pitch="3.0"/>
+ <sound gain="2.04" frequency="880" duration="0.3">
+  <layer n="0">
+   <waveform src="square"/>
+   <waveform src="sawtooth" processing="modulate" pitch="3.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
@@ -70,7 +72,9 @@
     <param n="2">0.0</param>
     <param n="3">1.2</param>
    </slot>
-   <slot n="2">
+  </filter>
+  <filter type="frequency" optional="true">
+   <slot n="0">
     <param n="0">1100.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>

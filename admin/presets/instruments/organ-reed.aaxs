@@ -20,27 +20,29 @@
   <note polyphony="10" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.48" frequency="65.4064">
-  <waveform src="white-noise" ratio="0.1"/>
-  <waveform src="sine" processing="add" ratio="0.151391"/>
-  <waveform src="sine" processing="add" ratio="0.302065" pitch="2.0"/>
-  <waveform src="sine" processing="add" ratio="0.602699" pitch="3.0"/>
-  <waveform src="sine" processing="add" ratio="0.426678" pitch="4.0"/>
-  <waveform src="sine" processing="add" ratio="0.213846" pitch="5.0"/>
-  <waveform src="sine" processing="add" ratio="0.151391" pitch="6.0"/>
-  <waveform src="sine" processing="add" ratio="0.0758753" pitch="8.0"/>
+ <sound gain="1.54" frequency="65.4064">
+  <layer n="0">
+   <waveform src="white-noise" ratio="0.1"/>
+   <waveform src="sine" processing="add" ratio="0.151391"/>
+   <waveform src="sine" processing="add" ratio="0.302065" pitch="2.0"/>
+   <waveform src="sine" processing="add" ratio="0.602699" pitch="3.0"/>
+   <waveform src="sine" processing="add" ratio="0.426678" pitch="4.0"/>
+   <waveform src="sine" processing="add" ratio="0.213846" pitch="5.0"/>
+   <waveform src="sine" processing="add" ratio="0.151391" pitch="6.0"/>
+   <waveform src="sine" processing="add" ratio="0.0758753" pitch="8.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.209</param>
+    <param n="0">0.135</param>
     <param n="1">0.08</param>
     <param n="2">1.0</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
+    <param n="0">0.648</param>
     <param n="1">0.2</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

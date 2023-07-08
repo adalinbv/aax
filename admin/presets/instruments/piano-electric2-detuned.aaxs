@@ -20,10 +20,12 @@
   <note polyphony="8" min="28" max="103" step="12"/>
  </info>
 
- <sound gain="1.96" frequency="110" duration="0.1">
-  <waveform src="sawtooth"/>
-  <waveform src="triangle" processing="add" ratio="0.3" pitch="2.0"/>
-  <waveform src="triangle" processing="add" ratio="0.1" pitch="3.0"/>
+ <sound gain="1.98" frequency="110" duration="0.1">
+  <layer n="0">
+   <waveform src="sawtooth"/>
+   <waveform src="sawtooth" processing="add" ratio="0.3" pitch="2.0"/>
+   <waveform src="sawtooth" processing="add" ratio="0.1" pitch="3.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
@@ -31,12 +33,12 @@
    <slot n="0">
     <param n="0">1.0</param>
     <param n="1">0.03</param>
-    <param n="2">0.9</param>
+    <param n="2">0.898</param>
     <param n="3">0.12</param>
    </slot>
    <slot n="1">
-    <param n="0">0.9</param>
-    <param n="1">1.49</param>
+    <param n="0">0.898</param>
+    <param n="1">8.6</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

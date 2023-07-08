@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,17 +14,34 @@
 
  <info name="Acoustic Snare" bank="48" program="38">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.66" frequency="230" duration="0.5">
-  <waveform src="white-noise" ratio="0.1" pitch="0.3"/>
-  <waveform src="sine" processing="add" ratio="0.55"/>
-  <waveform src="sine" processing="add" ratio="0.6" pitch="0.6"/>
-  <filter type="bitcrusher">
+ <sound gain="3.61" frequency="277.183" duration="0.5">
+  <layer n="0" pitch="0.98">
+   <waveform src="sine" ratio="0.55" phase="0.107"/>
+   <waveform src="white-noise" processing="add" ratio="0.05" pitch="0.3"/>
+  </layer>
+  <layer n="1">
+   <waveform src="sine" ratio="0.55" phase="0.107"/>
+   <waveform src="sine" processing="add" ratio="0.6" pitch="0.66" phase="0.107"/>
+   <waveform src="white-noise" processing="add" ratio="0.1" pitch="0.1"/>
+  </layer>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="dynamic-layer" src="envelope">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">3.0</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <filter type="bitcrusher" src="inverse-envelope">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.0</param>
@@ -32,20 +49,17 @@
     <param n="3">0.15</param>
    </slot>
   </filter>
- </sound>
-
- <emitter looping="true">
-  <filter type="timed-gain" release-time="0.04">
+  <filter type="timed-gain" src="envelope" release-time="0.03">
    <slot n="0">
-    <param n="0">3.88</param>
+    <param n="0">1.0</param>
     <param n="1">0.2</param>
-    <param n="2">2.33</param>
-    <param n="3">0.27</param>
+    <param n="2">0.601</param>
+    <param n="3">0.2</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.1</param>
+    <param n="0">1.15</param>
     <param n="1">0.01</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>

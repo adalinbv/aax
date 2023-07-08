@@ -17,17 +17,16 @@
   <copyright from="2017" until="2023" by="Adalin B.V."/>
   <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" min="39" max="96" step="12"/>
+  <note polyphony="1" min="39" max="96" step="12" pitch-fraction="0.1"/>
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.60" frequency="110" duration="0.1">
-  <waveform src="sine"/>
-  <waveform src="sine" processing="add" pitch="1.5"/>
-  <waveform src="sine" processing="add" pitch="2.0"/>
-  <waveform src="sine" processing="add" pitch="4.0"/>
-  <waveform src="sine" processing="add" ratio="0.25" pitch="10.0"/>
-  <waveform src="sine" processing="add" ratio="0.25" pitch="12.0"/>
+ <sound gain="1.78" frequency="880" duration="0.1">
+  <layer n="0">
+   <waveform src="sawtooth" ratio="0.9"/>
+   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
+   <waveform src="triangle" processing="modulate" ratio="0.15" pitch="5.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">

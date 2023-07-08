@@ -20,10 +20,11 @@
   <note polyphony="1" min="39" max="65" step="12"/>
  </info>
 
- <sound gain="0.61" frequency="110" duration="0.3">
-  <waveform src="white-noise" pitch="0.6"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.96" pitch="0.25" phase="0.05"/>
-  <waveform src="sawtooth" processing="add" pitch="0.5"/>
+ <sound gain="0.66" frequency="110" duration="0.3">
+  <layer n="0">
+   <waveform src="cycloid" ratio="0.96" phase="0.05"/>
+   <waveform src="cycloid" processing="add" pitch="0.5"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
@@ -47,19 +48,19 @@
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
-   <slot n="0">
-    <param n="0">0.3</param>
-    <param n="1">2.0</param>
-    <param n="2">0.4</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
-  <effect type="dynamic-pitch" src="sawtooth">
+  <filter type="dynamic-gain" src="inverse-sawtooth">
    <slot n="0">
     <param n="0">0.66</param>
     <param n="1">0.22</param>
-    <param n="2">0.33</param>
+    <param n="2">0.1</param>
+    <param n="3">0.9</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">0.375</param>
+    <param n="1">2.0</param>
+    <param n="2">0.6</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

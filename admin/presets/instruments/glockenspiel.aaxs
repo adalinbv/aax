@@ -20,10 +20,12 @@
   <note polyphony="8" min="60" max="84" step="12"/>
  </info>
 
- <sound gain="1.26" frequency="880" duration="0.1">
-  <waveform src="square" pitch="9.1"/>
-  <waveform src="sine" processing="modulate" pitch="4.298"/>
-  <waveform src="sine" processing="mix" ratio="0.6"/>
+ <sound gain="1.12" frequency="880" duration="0.1">
+  <layer n="0">
+   <waveform src="square" pitch="9.1"/>
+   <waveform src="sine" processing="modulate" pitch="4.298"/>
+   <waveform src="sine" processing="mix" ratio="0.6"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
