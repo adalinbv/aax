@@ -22,7 +22,7 @@
 
  <sound mode="1" gain="1.51" frequency="220" duration="0.5">
   <layer n="0">
-   <waveform src="impulse" pitch="2.0"/>
+   <waveform src="impulse" ratio="0.2" pitch="2.0"/>
    <waveform src="sawtooth" processing="add"/>
   </layer>
  </sound>

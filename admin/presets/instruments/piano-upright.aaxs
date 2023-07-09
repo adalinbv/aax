@@ -26,14 +26,6 @@
    <waveform src="triangle" processing="add" ratio="0.125" pitch="2.0"/>
    <waveform src="triangle" processing="add" ratio="0.05" pitch="4.0"/>
    <waveform src="triangle" processing="modulate" ratio="2.0" pitch="5.0"/>
-   <filter type="frequency">
-    <slot n="0">
-     <param n="0" pitch="3.0">660.0</param>
-     <param n="1">1.0</param>
-     <param n="2">1.5</param>
-     <param n="3">1.0</param>
-    </slot>
-   </filter>
   </layer>
  </sound>
 
@@ -73,7 +65,7 @@
    <slot n="0">
     <param n="0">6300.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.2</param>
+    <param n="2">0.02</param>
     <param n="3">1.0</param>
    </slot>
   </filter>

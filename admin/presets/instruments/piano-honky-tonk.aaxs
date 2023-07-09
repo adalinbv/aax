@@ -20,20 +20,12 @@
   <note polyphony="88" min="21" max="127" step="6"/>
  </info>
 
- <sound gain="2.12" frequency="220" duration="0.1">
+ <sound gain="3.02" frequency="220" duration="0.1">
   <layer n="0">
    <waveform src="sawtooth" ratio="0.2"/>
    <waveform src="triangle" processing="add" ratio="0.125" pitch="2.0"/>
    <waveform src="triangle" processing="add" ratio="0.05" pitch="4.0"/>
    <waveform src="triangle" processing="modulate" ratio="2.0" pitch="5.0"/>
-   <filter type="frequency">
-    <slot n="0">
-     <param n="0" pitch="3.0">660.0</param>
-     <param n="1">1.0</param>
-     <param n="2">1.5</param>
-     <param n="3">1.0</param>
-    </slot>
-   </filter>
   </layer>
  </sound>
 
@@ -69,20 +61,18 @@
  </emitter>
 
  <audioframe pan="-0.6">
-  <filter type="frequency" src="24db" optional="true">
-   <slot n="0">
-    <param n="0">6300.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.2</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
   <filter type="equalizer">
    <slot n="0">
     <param n="0">110.0</param>
     <param n="1">1.1</param>
     <param n="2">1.0</param>
     <param n="3">1.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">6300.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.02</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
  </audioframe>

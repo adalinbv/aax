@@ -20,7 +20,7 @@
   <note polyphony="43" min="20" max="96" step="6"/>
  </info>
 
- <sound gain="1.20" frequency="58.2705">
+ <sound gain="2.20" frequency="22.0">
   <layer n="0">
    <waveform src="triangle"/>
    <waveform src="sine" processing="add" ratio="0.1" pitch="3.0"/>
@@ -36,14 +36,6 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="bitcrusher" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.01</param>
-    <param n="2">0.28</param>
-    <param n="3">0.03</param>
-   </slot>
-  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.162</param>
@@ -60,15 +52,6 @@
   </filter>
  </emitter>
 
- <audioframe>
-  <effect type="distortion" src="envelope|exponential">
-   <slot n="0">
-    <param n="0">0.3</param>
-    <param n="1">0.3</param>
-    <param n="2">0.3</param>
-    <param n="3">0.3</param>
-   </slot>
-  </effect>
- </audioframe>
+ <audioframe/>
 
 </aeonwave>
