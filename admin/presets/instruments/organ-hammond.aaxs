@@ -46,6 +46,22 @@
     <param n="3">0.0</param>
    </slot>
   </filter>
+  <filter type="dynamic-gain" src="inverse-sine" optional="true">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">1.54</param>
+    <param n="2">0.1</param>
+    <param n="3">0.9</param>
+   </slot>
+  </filter>
+  <effect type="dynamic-pitch" src="sine" optional="true">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">1.54</param>
+    <param n="2">0.01</param>
+    <param n="3">0.98</param>
+   </slot>
+  </effect>
  </emitter>
 
  <audioframe>
@@ -63,14 +79,6 @@
     <param n="3">1.0</param>
    </slot>
   </filter>
-  <effect type="distortion" src="envelope|exponential" optional="true">
-   <slot n="0">
-    <param n="0">0.1</param>
-    <param n="1">0.0</param>
-    <param n="2">0.15</param>
-    <param n="3">1.0</param>
-   </slot>
-  </effect>
  </audioframe>
 
 </aeonwave>
