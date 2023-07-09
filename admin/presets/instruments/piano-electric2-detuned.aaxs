@@ -12,7 +12,7 @@
 
 <aeonwave>
 
- <info name="Wurly Electric Piano" bank="0" program="5">
+ <info name="Electric Piano 2 (Detuned)" bank="0" program="5">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2023" by="Adalin B.V."/>
   <copyright from="2017" until="2023" by="Erik Hofman"/>
@@ -32,7 +32,7 @@
    <slot n="0">
     <param n="0">1.0</param>
     <param n="1">0.03</param>
-    <param n="2">0.892</param>
+    <param n="2">1.0</param>
     <param n="3">0.12</param>
    </slot>
    <slot n="1">
@@ -75,7 +75,7 @@
    <slot n="2">
     <param n="0">2000.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.01</param>
+    <param n="2">0.06</param>
     <param n="3">1.1</param>
    </slot>
   </filter>
