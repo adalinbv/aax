@@ -21,7 +21,7 @@
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
  </info>
 
- <audioframe>
+ <audioframe mode="append">
   <filter type="frequency">
    <slot n="0">
     <param n="0">5000.0</param>
@@ -40,7 +40,7 @@
   </effect>
  </audioframe>
 
- <mixer>
+ <mixer mode="append">
   <filter type="frequency">
    <slot n="0">
     <param n="0">5000.0</param>

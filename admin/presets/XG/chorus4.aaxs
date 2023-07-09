@@ -21,35 +21,35 @@
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
  </info>
 
- <audioframe>
-  <effect type="phasing" src="sine" stereo="true">
+ <audioframe mode="append">
+  <effect type="chorus" src="sine" stereo="true">
    <slot n="0">
     <param n="0">0.508</param>
     <param n="1">0.420</param>
-    <param n="2">0.252</param>
-    <param n="3">0.0</param>
+    <param n="2" type="msec">7.559</param>
+    <param n="3" type="msec">14.400</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>
     <param n="1">0.0</param>
-    <param n="2">0.548</param>
+    <param n="2">0.078</param>
     <param n="3">1.0</param>
    </slot>
   </effect>
  </audioframe>
 
- <mixer>
-  <effect type="phasing" src="sine" stereo="true">
+ <mixer mode="append">
+  <effect type="chorus" src="sine" stereo="true">
    <slot n="0">
     <param n="0">0.508</param>
     <param n="1">0.420</param>
-    <param n="2">0.252</param>
-    <param n="3">0.0</param>
+    <param n="2" type="msec">7.559</param>
+    <param n="3" type="msec">14.400</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>
     <param n="1">0.0</param>
-    <param n="2">0.548</param>
+    <param n="2">0.078</param>
     <param n="3">1.0</param>
    </slot>
   </effect>

@@ -21,7 +21,7 @@
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
  </info>
 
- <audioframe>
+ <audioframe mode="append">
   <effect type="reverb">
    <slot n="0">
     <param n="0">1280.0</param>
@@ -38,7 +38,7 @@
   </effect>
  </audioframe>
 
- <mixer>
+ <mixer mode="append">
   <effect type="reverb">
    <slot n="0">
     <param n="0">1280.0</param>

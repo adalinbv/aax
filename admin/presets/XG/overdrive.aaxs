@@ -21,7 +21,7 @@
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
  </info>
 
- <audioframe>
+ <audioframe mode="append">
   <effect type="distortion" src="envelope">
    <slot n="0">
     <param n="0">0.209</param>
@@ -32,7 +32,7 @@
   </effect>
  </audioframe>
 
- <mixer>
+ <mixer mode="append">
   <effect type="distortion" src="envelope">
    <slot n="0">
     <param n="0">0.209</param>

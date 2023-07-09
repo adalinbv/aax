@@ -21,13 +21,13 @@
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
  </info>
 
- <audioframe>
-  <effect type="phasing" src="sine">
+ <audioframe mode="append">
+  <effect type="chorus" src="sine">
    <slot n="0">
     <param n="0">1.008</param>
     <param n="1">4.540</param>
-    <param n="2">0.276</param>
-    <param n="3">0.0</param>
+    <param n="2" type="msec">8.268</param>
+    <param n="3" type="msec">0.000</param>
    </slot>
   </effect>
   <filter type="equalizer">
@@ -52,13 +52,13 @@
   </filter>
  </audioframe>
 
- <mixer>
-  <effect type="phasing" src="sine">
+ <mixer mode="append">
+  <effect type="chorus" src="sine">
    <slot n="0">
     <param n="0">1.008</param>
     <param n="1">4.540</param>
-    <param n="2">0.276</param>
-    <param n="3">0.0</param>
+    <param n="2" type="msec">8.268</param>
+    <param n="3" type="msec">0.000</param>
    </slot>
   </effect>
   <filter type="equalizer">
