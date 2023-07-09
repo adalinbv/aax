@@ -24,7 +24,7 @@
  <sound mode="1" gain="2.41" frequency="55" duration="0.1" ratio="0.8">
   <layer n="0" ratio="0.8">
    <waveform src="impulse"/>
-   <waveform src="cycloid" processing="add" ratio="0.3" pitch="2.0"/>
+   <waveform src="cycloid" processing="add" ratio="0.7" pitch="2.0"/>
    <waveform src="triangle" processing="modulate" pitch="5.0"/>
   </layer>
  </sound>
