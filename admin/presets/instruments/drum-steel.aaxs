@@ -68,9 +68,9 @@
     <param n="3">2.5</param>
    </slot>
    <slot n="1">
-    <param n="0">1200.0</param>
+    <param n="0">3500.0</param>
     <param n="1">1.0</param>
-    <param n="2">2.0</param>
+    <param n="2">0.06</param>
     <param n="3">5.1</param>
    </slot>
   </filter>
