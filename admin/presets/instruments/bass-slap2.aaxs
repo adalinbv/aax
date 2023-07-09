@@ -52,7 +52,7 @@
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">100.0</param>
-    <param n="1">0.0</param>
+    <param n="1">2.0</param>
     <param n="2">1.0</param>
     <param n="3">1.5</param>
    </slot>
