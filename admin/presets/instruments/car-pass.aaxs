@@ -64,6 +64,14 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <effect type="dynamic-pitch" src="pure-sawtooth">
+   <slot n="0">
+    <param n="0">0.66</param>
+    <param n="1">0.15</param>
+    <param n="2">0.33</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
  </emitter>
 
  <audioframe>
