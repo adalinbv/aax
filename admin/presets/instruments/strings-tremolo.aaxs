@@ -20,11 +20,11 @@
   <note polyphony="16" min="28" max="96" step="12"/>
  </info>
 
- <sound gain="1.79" frequency="220" duration="0.4">
+ <sound gain="3.27" frequency="220" duration="0.4" voices="3" spread="0.8">
   <layer n="0">
    <waveform src="sawtooth"/>
    <waveform src="triangle" processing="modulate" pitch="4.0"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.3" pitch="0.991"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.2" pitch="0.991"/>
   </layer>
  </sound>
 

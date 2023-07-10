@@ -20,13 +20,19 @@
   <note polyphony="2" min="52" max="96" step="12"/>
  </info>
 
- <sound gain="6.39" frequency="880" duration="0.3">
+ <sound gain="2.39" frequency="880" duration="0.3">
   <layer n="0">
-   <waveform src="sawtooth" pitch="0.993"/>
-   <waveform src="sawtooth" processing="modulate" pitch="7.0"/>
-   <waveform src="white-noise" processing="add" ratio="0.1"/>
-   <waveform src="square" processing="mix" ratio="0.7"/>
+   <waveform src="sawtooth" pitch="0.993" ratio="0.3"/>
    <waveform src="sawtooth" processing="modulate" pitch="3.0"/>
+   <waveform src="sawtooth" processing="add"/>
+   <filter type="frequency">
+    <slot n="0">
+     <param n="0" pitch="2.0">1760.0</param>
+     <param n="1">1.0</param>
+     <param n="2">0.0</param>
+     <param n="3">1.0</param>
+    </slot>
+   </filter>
   </layer>
  </sound>
 
@@ -69,13 +75,11 @@
     <param n="2">0.7</param>
     <param n="3">4.0</param>
    </slot>
-  </filter>
-  <filter type="equalizer" optional="true">
-   <slot n="0">
+   <slot n="1">
     <param n="0">2200.0</param>
     <param n="1">0.7</param>
-    <param n="2">0.0</param>
-    <param n="3">1.2</param>
+    <param n="2">0.01</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
  </audioframe>

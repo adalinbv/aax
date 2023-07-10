@@ -23,7 +23,7 @@
 
  <sound gain="2.02" frequency="220" duration="0.5">
   <layer n="0">
-   <waveform src="sine"/>
+   <waveform src="pure-sine"/>
    <waveform src="sine" processing="add" ratio="0.8" pitch="3.0"/>
    <waveform src="triangle" processing="modulate"/>
   </layer>
@@ -54,27 +54,6 @@
   </effect>
  </emitter>
 
- <audioframe>
-  <filter type="equalizer" optional="true">
-   <slot n="0">
-    <param n="0">360.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.85</param>
-    <param n="3">2.5</param>
-   </slot>
-   <slot n="1">
-    <param n="0">640.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.85</param>
-    <param n="3">2.5</param>
-   </slot>
-   <slot n="2">
-    <param n="0">2200.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.5</param>
-   </slot>
-  </filter>
- </audioframe>
+ <audioframe/>
 
 </aeonwave>

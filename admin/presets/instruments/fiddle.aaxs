@@ -63,7 +63,7 @@
    <slot n="1">
     <param n="0">440.0</param>
     <param n="1">1.0</param>
-    <param n="2">1.1</param>
+    <param n="2">1.0</param>
     <param n="3">3.0</param>
    </slot>
   </filter>

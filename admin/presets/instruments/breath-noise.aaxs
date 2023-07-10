@@ -20,13 +20,13 @@
   <note polyphony="2" min="60" max="96" step="12" pitch-fraction="0.2"/>
  </info>
 
- <sound mode="1" gain="0.75" frequency="783.991" duration="0.3">
+ <sound mode="1" gain="1.75" frequency="783.991" duration="0.3">
   <layer n="0">
    <waveform src="pink-noise" staticity="0.02"/>
    <filter type="frequency" src="24db">
     <slot n="0">
      <param n="0">2400.0</param>
-     <param n="1">0.35</param>
+     <param n="1">1.0</param>
      <param n="2">0.0</param>
      <param n="3">1.0</param>
     </slot>

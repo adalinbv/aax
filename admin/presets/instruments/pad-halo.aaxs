@@ -23,9 +23,8 @@
  <sound gain="1.14" frequency="220" duration="3.0">
   <layer n="0">
    <waveform src="triangle" pitch="0.51"/>
-   <waveform src="square" processing="modulate" ratio="0.8" pitch="7.9987"/>
+   <waveform src="square" processing="modulate" ratio="0.1" pitch="4.9987"/>
    <waveform src="triangle" processing="add" ratio="0.3" pitch="0.9399"/>
-   <waveform src="pink-noise" processing="add" ratio="0.08" pitch="0.02"/>
   </layer>
  </sound>
 

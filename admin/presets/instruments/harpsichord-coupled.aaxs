@@ -20,9 +20,10 @@
   <note polyphony="72" min="41" max="89" step="12"/>
  </info>
 
- <sound gain="1.74" frequency="220" duration="0.1">
+ <sound gain="2.74" frequency="220" duration="0.1">
   <layer n="0">
    <waveform src="square" ratio="0.5"/>
+   <waveform src="square" ratio="0.5" pitch="0.5"/>
    <waveform src="sawtooth" processing="add" ratio="0.4" pitch="4.0"/>
    <waveform src="triangle" processing="add" ratio="-0.4" pitch="3.0"/>
    <waveform src="sine" processing="modulate" pitch="3.0"/>

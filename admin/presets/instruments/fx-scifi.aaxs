@@ -20,7 +20,7 @@
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="4.20" frequency="220">
+ <sound gain="1.20" frequency="220">
   <layer n="0">
    <waveform src="triangle" pitch="17.0"/>
    <waveform src="square" processing="mix" pitch="4.9897"/>
@@ -52,14 +52,6 @@
     <param n="3">0.8</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
-   <slot n="0">
-    <param n="0">0.33</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
  </emitter>
 
  <audioframe>

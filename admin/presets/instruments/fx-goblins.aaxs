@@ -20,10 +20,11 @@
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.12" frequency="220">
+ <sound gain="1.00" frequency="220">
   <layer n="0">
-   <waveform src="sawtooth"/>
-   <waveform src="sine" processing="add" ratio="0.9"/>
+   <waveform src="triangle"/>
+   <waveform src="sine" processing="processing" pitch="1.0"/>
+   <waveform src="sine" processing="add" ratio="0.1" pitch="5.0"/>
   </layer>
  </sound>
 
@@ -56,6 +57,25 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <effect type="dynamic-pitch" src="pure-cycloid" optional="true">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">2.0</param>
+    <param n="2">0.4</param>
+    <param n="3">0.95</param>
+   </slot>
+  </effect>
  </emitter>
+
+ <audioframe>
+  <effect type="chorus" src="cycloid" optional="true">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">2.0</param>
+    <param n="2">0.2</param>
+    <param n="3">0.175</param>
+   </slot>
+  </effect>
+ </audioframe>
 
 </aeonwave>

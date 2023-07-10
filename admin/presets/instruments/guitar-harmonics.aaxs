@@ -21,11 +21,12 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.13" frequency="110" duration="0.2">
+ <sound gain="1.63" frequency="110" duration="0.2">
   <layer n="0">
    <waveform src="square"/>
    <waveform src="sine" processing="add" ratio="0.4" pitch="7.0"/>
    <waveform src="sine" processing="modulate" pitch="5.0"/>
+   <waveform src="sine" processing="add" ratio="0.4" pitch="7.0"/>
   </layer>
  </sound>
 

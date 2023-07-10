@@ -26,7 +26,7 @@
    <waveform src="square"/>
    <waveform src="sawtooth" processing="mix" ratio="0.75" pitch="1.999"/>
    <waveform src="triangle" processing="modulate" pitch="2.999"/>
-   <waveform src="sawtooth" processing="add" ratio="0.0175" pitch="5.5"/>
+   <waveform src="sine" processing="add" ratio="0.175" pitch="5.5"/>
   </layer>
  </sound>
 

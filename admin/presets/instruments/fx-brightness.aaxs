@@ -22,7 +22,7 @@
 
  <sound gain="2.75" frequency="440" ratio="0.4">
   <layer n="0" ratio="0.4">
-   <waveform src="square" ratio="0.5" pitch="2.0"/>
+   <waveform src="pure-square" ratio="0.5" pitch="2.0"/>
   </layer>
  </sound>
 
