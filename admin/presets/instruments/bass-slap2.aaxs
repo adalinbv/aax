@@ -21,10 +21,10 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound mode="1" gain="2.61" frequency="880" duration="0.1" ratio="0.8">
+ <sound mode="1" gain="2.01" frequency="880" duration="0.1" ratio="0.8">
   <layer n="0" ratio="0.8">
-   <waveform src="impulse"/>
-   <waveform src="sine" processing="add" ratio="0.4" pitch="2.0"/>
+   <waveform src="cycloid"/>
+   <waveform src="sawtooth" processing="add" ratio="0.25" pitch="2.0"/>
    <waveform src="triangle" processing="modulate" pitch="5.0"/>
   </layer>
  </sound>
