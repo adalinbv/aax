@@ -123,7 +123,7 @@
 
   <bank n="25">
    <drum n="36" name="Bass Drum 1" file="drums/tr-808/drum-kick"/>
-   <drum n="37" name="Rim Shot" file="drums/tr-808/drums/tr-808/rim-shot"/>
+   <drum n="37" name="Rim Shot" file="drums/tr-808/rim-shot"/>
    <drum n="38" name="Acoustic Snare" file="drums/tr-808/drum-snare-acoustic"/>
    <drum n="40" name="Electric Snare" file="drums/tr-808/drum-snare-electric"/>
    <drum n="41" name="Low Floor Tom" file="drums/tr-808/tom-floor-low"/>
