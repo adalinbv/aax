@@ -324,7 +324,7 @@ static void
 _grapheq_destroy(void *ptr)
 {
    _aaxRingBufferEqualizerData *eq = (_aaxRingBufferEqualizerData*)ptr;
-   if (eq)
+   if (eq && eq->band[0].freqfilter)
    {
       _aax_aligned_free(eq->band[0].freqfilter);
       _aax_aligned_free(eq);
