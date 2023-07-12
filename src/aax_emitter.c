@@ -1567,7 +1567,11 @@ _emitterSetPitch(const _aaxEmitter *src, _aax2dProps *p2d)
    }
 
    pitch = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
-   pitch = fraction*(pitch - 1.0f) + 1.0f;
+   if (pitch > 1.0f) {
+      pitch = 1.0f/(fraction*(1.0f/pitch - 1.0f) + 1.0f);
+   } else if ( pitch < 1.0f) {
+      pitch = fraction*(pitch - 1.0f) + 1.0f;
+   }
    _EFFECT_SET(p2d, PITCH_EFFECT, AAX_PITCH, pitch);
 
    pitch = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH_START);
