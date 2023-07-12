@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -12,58 +12,37 @@
 
 <aeonwave>
 
- <info name="Electric Bass (Slapped 1)" bank="0" program="33">
+ <info name="Electric Bass (Slapped 2)" bank="0" program="33">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="28" max="95" step="12"/>
   <aftertouch mode="2"/>
  </info>
 
- <sound mode="1" gain="1.26" frequency="55" duration="0.1">
-  <layer>
-   <waveform src="sawtooth" ratio="0.9"/>
-   <waveform src="square" processing="add" ratio="0.6" pitch="9.0"/>
-   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="5.0"/>
-  </layer>
-  <layer>
-   <waveform src="square" ratio="1.5" pitch="0.9997"/>
-   <waveform src="triangle" processing="add" ratio="0.15" pitch="1.997"/>
-   <waveform src="triangle" processing="add" ratio="0.5" pitch="5.997"/>
-   <waveform src="triangle" processing="modulate" pitch="1.998"/>
-   <waveform src="triangle" processing="add" ratio="0.7" pitch="5.999"/>
+ <sound mode="1" gain="2.01" frequency="880" duration="0.1" ratio="0.8">
+  <layer n="0" ratio="0.8">
+   <waveform src="cycloid"/>
+   <waveform src="sawtooth" processing="add" ratio="0.25" pitch="2.0"/>
+   <waveform src="triangle" processing="modulate" pitch="5.0"/>
   </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="timed|logarithmic">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">10.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
-    <param n="0">1.01</param>
-    <param n="1">0.02</param>
-    <param n="2">1.01</param>
-    <param n="3">0.443</param>
+    <param n="0">0.999</param>
+    <param n="1">0.543</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">2.77</param>
     <param n="1">0.01</param>
-    <param n="2">1.83</param>
-    <param n="3">0.01</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
+    <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
@@ -73,14 +52,14 @@
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">100.0</param>
-    <param n="1">0.0</param>
+    <param n="1">2.0</param>
     <param n="2">1.0</param>
     <param n="3">1.5</param>
    </slot>
-   <slot n="1" src="24db">
+   <slot n="1">
     <param n="0">2000.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
+    <param n="2">0.03</param>
     <param n="3">1.5</param>
    </slot>
   </filter>

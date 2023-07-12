@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,15 +14,17 @@
 
  <info name="Electric Current">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.18" frequency="550">
-  <waveform src="pink-noise" pitch="0.25"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.7"/>
+ <sound gain="1.18" frequency="554.365" voices="3" spread="0.97" phasing="true">
+  <layer n="0">
+   <waveform src="pink-noise" pitch="0.25"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.7"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
@@ -34,6 +36,25 @@
     <param n="3">0.0</param>
    </slot>
   </filter>
+  <effect type="dynamic-pitch" src="randomness">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.4</param>
+    <param n="3">0.8</param>
+   </slot>
+  </effect>
  </emitter>
+
+ <audioframe>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0">3400.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">3.0</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

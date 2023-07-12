@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,33 +14,35 @@
 
  <info name="Church Organ (Diapason)" bank="0" program="18">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="12" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.35" frequency="65.4064">
-  <waveform src="white-noise" ratio="0.1"/>
-  <waveform src="sine" processing="add" ratio="0.616324"/>
-  <waveform src="sine" processing="add" ratio="0.436324" pitch="2.0"/>
-  <waveform src="sine" processing="add" ratio="0.308894" pitch="3.0"/>
-  <waveform src="sine" processing="add" ratio="0.21868" pitch="4.0"/>
-  <waveform src="sine" processing="add" ratio="0.308894" pitch="5.0"/>
-  <waveform src="sine" processing="add" ratio="0.1096" pitch="6.0"/>
-  <waveform src="sine" processing="add" ratio="0.0775906" pitch="8.0"/>
+ <sound gain="4.45" frequency="65.4064">
+  <layer n="0">
+   <waveform src="white-noise" ratio="0.1"/>
+   <waveform src="sine" processing="add" ratio="0.616324"/>
+   <waveform src="sine" processing="add" ratio="0.436324" pitch="2.0"/>
+   <waveform src="sine" processing="add" ratio="0.308894" pitch="3.0"/>
+   <waveform src="sine" processing="add" ratio="0.21868" pitch="4.0"/>
+   <waveform src="sine" processing="add" ratio="0.308894" pitch="5.0"/>
+   <waveform src="sine" processing="add" ratio="0.1096" pitch="6.0"/>
+   <waveform src="sine" processing="add" ratio="0.0775906" pitch="8.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.699</param>
+    <param n="0">0.209</param>
     <param n="1">0.08</param>
-    <param n="2">1.08</param>
+    <param n="2">0.311</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">1.08</param>
+    <param n="0">1.0</param>
     <param n="1">0.7</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

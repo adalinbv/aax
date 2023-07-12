@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,21 +14,23 @@
 
  <info name="Xylophone" bank="0" program="13">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="65" max="96" step="12"/>
  </info>
 
- <sound gain="1.54" frequency="349.228" duration="0.1">
-  <waveform src="sine" processing="add"/>
-  <waveform src="sine" processing="add" ratio="0.2" pitch="0.5"/>
+ <sound gain="1.88" frequency="349.228" duration="0.1">
+  <layer n="0">
+   <waveform src="sine" processing="add"/>
+   <waveform src="sine" processing="add" ratio="0.2" pitch="0.5"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="1.0">
    <slot n="0">
-    <param n="0">1.02</param>
+    <param n="0">1.0</param>
     <param n="1">1.75</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

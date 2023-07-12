@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,56 +14,43 @@
 
  <info name="Big Gong" bank="0" program="100">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.80" frequency="44" duration="0.3">
-  <layer ratio="2.0">
-   <waveform src="square" pitch="1.493"/>
-   <waveform src="white-noise" processing="add" ratio="0.4" pitch="0.15"/>
-   <waveform src="triangle" processing="add" ratio="0.3" pitch="0.75"/>
-   <waveform src="sine" processing="add"/>
-   <waveform src="triangle" processing="modulate" pitch="3.5"/>
-  </layer>
-  <layer pitch="1.5">
-   <waveform src="sine" pitch="1.393"/>
-   <waveform src="white-noise" processing="add" ratio="0.1" pitch="0.2"/>
-   <waveform src="triangle" processing="add" ratio="0.25" pitch="2.151"/>
-   <waveform src="sine" processing="modulate" pitch="4.2587"/>
+ <sound mode="1" gain="2.79" frequency="21.8268" duration="0.3">
+  <layer n="0">
+   <waveform src="square" ratio="0.7" pitch="0.9"/>
+   <waveform src="pink-noise" processing="add" pitch="0.12"/>
+   <waveform src="sawtooth" processing="add" ratio="0.33" pitch="0.707"/>
+   <waveform src="sine" processing="modulate" pitch="6.9"/>
+   <filter type="equalizer">
+    <slot n="0">
+     <param n="0">3136.0</param>
+     <param n="1">0.5</param>
+     <param n="2">1.0</param>
+     <param n="3">3.0</param>
+    </slot>
+   </filter>
   </layer>
  </sound>
 
- <emitter looping="true">
-  <filter type="dynamic-layer" src="envelope|exponential">
+ <emitter looping="true" pan="-0.16">
+  <filter type="timed-gain" src="envelope" release-time="0.8">
    <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">50.0</param>
-    <param n="2">1.0</param>
+    <param n="0">1.0</param>
+    <param n="1">7.5</param>
+    <param n="2">0.0</param>
     <param n="3">0.0</param>
-   </slot>
-  </filter>
-  <filter type="timed-gain" src="envelope" release-time="3.0">
-   <slot n="0">
-    <param n="0">2.0</param>
-    <param n="1">0.05</param>
-    <param n="2">1.85</param>
-    <param n="3">5.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">2.15</param>
+    <param n="0">1.19</param>
     <param n="1">0.02</param>
-    <param n="2">1.05</param>
-    <param n="3">0.18</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.985</param>
-    <param n="1">2.5</param>
-    <param n="2">0.95</param>
+    <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

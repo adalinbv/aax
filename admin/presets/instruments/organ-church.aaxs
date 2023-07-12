@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,31 +14,33 @@
 
  <info name="Church Organ" bank="0" program="18">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="12" min="16" max="96" step="12"/>
  </info>
 
- <sound gain="0.94" frequency="65.4064">
-  <waveform src="white-noise" ratio="0.1"/>
-  <waveform src="sine" ratio="0.576801"/>
-  <waveform src="sine" processing="add" ratio="0.576801" pitch="2.0"/>
-  <waveform src="sine" processing="add" ratio="0.576801" pitch="4.0"/>
-  <waveform src="sine" processing="add" ratio="0.0726149" pitch="6.0"/>
-  <waveform src="sine" processing="add" ratio="0.576801" pitch="8.0"/>
+ <sound gain="2.48" frequency="65.4064">
+  <layer n="0">
+   <waveform src="white-noise" ratio="0.1"/>
+   <waveform src="sine" ratio="0.576801"/>
+   <waveform src="sine" processing="add" ratio="0.576801" pitch="2.0"/>
+   <waveform src="sine" processing="add" ratio="0.576801" pitch="4.0"/>
+   <waveform src="sine" processing="add" ratio="0.0726149" pitch="6.0"/>
+   <waveform src="sine" processing="add" ratio="0.576801" pitch="8.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.589</param>
+    <param n="0">0.21</param>
     <param n="1">0.08</param>
-    <param n="2">1.02</param>
+    <param n="2">0.37</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">1.02</param>
+    <param n="0">1.0</param>
     <param n="1">0.7</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

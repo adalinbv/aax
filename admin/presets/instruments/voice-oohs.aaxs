@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,29 +14,32 @@
 
  <info name="Voice Oohs" bank="0" program="53">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="48" max="79" step="12"/>
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.15" frequency="220" duration="0.33">
-  <waveform src="sine" ratio="0.6" pitch="3.0"/>
-  <waveform src="sine" processing="add"/>
-  <waveform src="sine" processing="modulate" ratio="2.0"/>
+ <sound gain="1.87" frequency="220" duration="0.33">
+  <layer n="0">
+   <waveform src="sine" pitch="3.0"/>
+   <waveform src="white-noise" processing="add" ratio="0.1" pitch="0.33"/>
+   <waveform src="sine" processing="add"/>
+   <waveform src="sine" processing="modulate"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.12">
    <slot n="0">
-    <param n="0">1.4</param>
-    <param n="1">0.2</param>
-    <param n="2">2.07</param>
+    <param n="0">0.453</param>
+    <param n="1">0.1</param>
+    <param n="2">1.0</param>
     <param n="3">6.8</param>
    </slot>
    <slot n="1">
-    <param n="0">0.929</param>
+    <param n="0">0.497</param>
     <param n="1">2.55</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -62,21 +65,21 @@
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">360.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.85</param>
+    <param n="1">2.5</param>
+    <param n="2">0.0</param>
     <param n="3">2.5</param>
    </slot>
    <slot n="1">
-    <param n="0">640.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.85</param>
-    <param n="3">1.5</param>
+    <param n="0">790.0</param>
+    <param n="1">0.0</param>
+    <param n="2">2.5</param>
+    <param n="3">2.0</param>
    </slot>
    <slot n="2">
-    <param n="0">2200.0</param>
+    <param n="0">3000.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.8</param>
-    <param n="3">2.5</param>
+    <param n="2">0.03</param>
+    <param n="3">3.5</param>
    </slot>
   </filter>
  </audioframe>

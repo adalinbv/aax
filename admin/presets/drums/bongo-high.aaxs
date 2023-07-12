@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,28 +14,30 @@
 
  <info name="High Bongo" bank="0" program="60">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.67" frequency="1400" duration="0.3">
-  <waveform src="pink-noise" pitch="0.25"/>
-  <waveform src="sine" processing="add" ratio="0.4"/>
-  <waveform src="sine" processing="add" ratio="0.4" pitch="0.6"/>
+ <sound mode="1" gain="1.45" frequency="1396.91" duration="0.3">
+  <layer n="0">
+   <waveform src="pink-noise" pitch="0.25"/>
+   <waveform src="triangle" processing="add" ratio="0.4"/>
+   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.6"/>
+  </layer>
  </sound>
 
  <emitter looping="true" pan="0.55">
-  <filter type="timed-gain" src="envelope">
+  <filter type="timed-gain">
    <slot n="0">
-    <param n="0">2.74</param>
+    <param n="0">1.0</param>
     <param n="1">0.08</param>
-    <param n="2">2.22</param>
-    <param n="3">0.5</param>
+    <param n="2">0.2</param>
+    <param n="3">0.2</param>
    </slot>
   </filter>
-  <effect type="timed-pitch" src="envelope">
+  <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.4</param>
     <param n="1">0.01</param>

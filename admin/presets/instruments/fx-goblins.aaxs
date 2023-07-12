@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,27 +14,30 @@
 
  <info name="Effects (Goblin)" bank="0" program="101">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.42" frequency="220">
-  <waveform src="sawtooth"/>
-  <waveform src="sine" processing="add" ratio="0.5"/>
+ <sound gain="1.00" frequency="220">
+  <layer n="0">
+   <waveform src="triangle"/>
+   <waveform src="sine" processing="processing" pitch="1.0"/>
+   <waveform src="sine" processing="add" ratio="0.1" pitch="5.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.7">
    <slot n="0">
-    <param n="0">0.198</param>
+    <param n="0">0.309</param>
     <param n="1">0.05</param>
     <param n="2">0.69</param>
     <param n="3">0.5</param>
    </slot>
    <slot n="1">
-    <param n="0">0.887</param>
+    <param n="0">1.0</param>
     <param n="1">8.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -54,6 +57,25 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <effect type="dynamic-pitch" src="pure-cycloid" optional="true">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">2.0</param>
+    <param n="2">0.4</param>
+    <param n="3">0.95</param>
+   </slot>
+  </effect>
  </emitter>
+
+ <audioframe>
+  <effect type="chorus" src="cycloid" optional="true">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">2.0</param>
+    <param n="2">0.2</param>
+    <param n="3">0.175</param>
+   </slot>
+  </effect>
+ </audioframe>
 
 </aeonwave>

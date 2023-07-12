@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,43 +14,45 @@
 
  <info name="Pad 2 (Warm)" bank="0" program="88">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.19" frequency="220">
-  <waveform src="sine" pitch="0.5"/>
-  <waveform src="sine" processing="add" ratio="0.15"/>
+ <sound gain="2.59" frequency="220">
+  <layer n="0" voices="3" spread="0.93">
+   <waveform src="pure-sine" ratio="0.5"/>
+   <waveform src="triangle" processing="add" ratio="0.15" pitch="2.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.0927</param>
+    <param n="0">0.0536</param>
     <param n="1">0.54</param>
-    <param n="2">1.43</param>
+    <param n="2">1.0</param>
     <param n="3">1.95</param>
    </slot>
    <slot n="1">
-    <param n="0">1.07</param>
+    <param n="0">0.734</param>
     <param n="1">inf</param>
-    <param n="2">1.07</param>
+    <param n="2">0.734</param>
     <param n="3">0.8</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">2.28</param>
+    <param n="0">1.14</param>
     <param n="1">0.08</param>
-    <param n="2">1.8</param>
+    <param n="2">0.9</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">2.04</param>
+    <param n="0">1.02</param>
     <param n="1">5.5</param>
-    <param n="2">1.99</param>
+    <param n="2">0.99</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
@@ -60,9 +62,9 @@
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">220.0</param>
-    <param n="1">2.0</param>
+    <param n="1">1.5</param>
     <param n="2">1.0</param>
-    <param n="3">2.0</param>
+    <param n="3">1.0</param>
    </slot>
    <slot n="1">
     <param n="0">550.0</param>

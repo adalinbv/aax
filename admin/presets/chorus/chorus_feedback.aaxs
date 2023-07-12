@@ -26,7 +26,7 @@
 
  <emitter/>
 
- <audioframe>
+ <audioframe mode="append">
   <effect type="phasing" src="sine">
    <slot n="0">
     <param n="0">0.3</param>
@@ -43,7 +43,7 @@
   </effect>
  </audioframe>
 
- <mixer>
+ <mixer mode="append">
   <effect type="phasing" src="sine">
    <slot n="0">
     <param n="0">0.3</param>

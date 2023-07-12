@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,51 +14,39 @@
 
  <info name="Steel Drums" bank="0" program="114">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="52" max="76" step="6"/>
  </info>
 
- <sound gain="1.86" frequency="164.814" duration="0.75">
-  <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="add" ratio="0.75" pitch="6.987"/>
-  <waveform src="sawtooth" processing="modulate" pitch="5.0"/>
+ <sound mode="1" gain="1.50" frequency="164.814" duration="0.75">
+  <layer n="0">
+   <waveform src="sawtooth"/>
+   <waveform src="cycloid" processing="add" ratio="0.75" pitch="6.987"/>
+   <waveform src="cycloid" processing="modulate" ratio="1.2" pitch="5.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="envelope|24db|logarithmic">
-   <slot n="0">
-    <param n="0" pitch="0.5">82.4</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">9900.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.25</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" release-time="0.5">
    <slot n="0">
-    <param n="0">0.07</param>
-    <param n="1">0.02</param>
-    <param n="2">1.07</param>
-    <param n="3">0.04</param>
+    <param n="0">0.533</param>
+    <param n="1">0.01</param>
+    <param n="2">1.0</param>
+    <param n="3">0.02</param>
    </slot>
    <slot n="1">
-    <param n="0">0.53</param>
+    <param n="0">0.963</param>
     <param n="1">0.795</param>
-    <param n="2">0.127</param>
-    <param n="3">0.0</param>
+    <param n="2">0.586</param>
+    <param n="3">1.5</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.13</param>
-    <param n="1">0.015</param>
+    <param n="1">0.005</param>
     <param n="2">0.98</param>
     <param n="3">0.01</param>
    </slot>
@@ -80,9 +68,9 @@
     <param n="3">2.5</param>
    </slot>
    <slot n="1">
-    <param n="0">1200.0</param>
+    <param n="0">3500.0</param>
     <param n="1">1.0</param>
-    <param n="2">2.0</param>
+    <param n="2">0.06</param>
     <param n="3">5.1</param>
    </slot>
   </filter>

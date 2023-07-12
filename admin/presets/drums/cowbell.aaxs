@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,22 +14,24 @@
 
  <info name="Cowbel" bank="0" program="56">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.49" frequency="220" duration="0.1">
-  <waveform src="triangle" pitch="1.616"/>
-  <waveform src="square" processing="modulate" ratio="0.8" pitch="3.4987"/>
+ <sound gain="1.73" frequency="220" duration="0.1">
+  <layer n="0">
+   <waveform src="triangle" pitch="1.616"/>
+   <waveform src="square" processing="modulate" ratio="0.8" pitch="3.4987"/>
+  </layer>
  </sound>
 
  <emitter looping="true" pan="0.31">
   <filter type="timed-gain" src="envelope" release-time="0.1">
    <slot n="0">
-    <param n="0">2.94</param>
-    <param n="1">0.55</param>
+    <param n="0">1.0</param>
+    <param n="1">0.25</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -37,7 +39,7 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.15</param>
-    <param n="1">0.02</param>
+    <param n="1">0.01</param>
     <param n="2">1.02</param>
     <param n="3">0.0</param>
    </slot>

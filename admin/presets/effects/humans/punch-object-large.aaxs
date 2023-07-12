@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,32 +14,34 @@
 
  <info name="Punch Large Object" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="1.20" frequency="33">
-  <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.1" pitch="3.9897"/>
-  <waveform src="triangle" processing="modulate" ratio="1.5" pitch="9.4991"/>
-  <filter type="frequency" src="48db">
-   <slot n="0">
-    <param n="0" pitch="5.5">181.5</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">2.5</param>
-   </slot>
-  </filter>
-  <filter type="frequency" src="48db">
-   <slot n="0">
-    <param n="0" pitch="10.0">330.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.2</param>
-   </slot>
-  </filter>
+ <sound fixed-gain="1.20" frequency="32.7032">
+  <layer n="0">
+   <waveform src="sawtooth"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.1" pitch="3.9897"/>
+   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="9.4991"/>
+   <filter type="frequency" src="48db">
+    <slot n="0">
+     <param n="0" pitch="5.5">179.9</param>
+     <param n="1">0.0</param>
+     <param n="2">1.0</param>
+     <param n="3">2.5</param>
+    </slot>
+   </filter>
+   <filter type="frequency" src="48db">
+    <slot n="0">
+     <param n="0" pitch="10.0">327.0</param>
+     <param n="1">1.0</param>
+     <param n="2">0.0</param>
+     <param n="3">1.2</param>
+    </slot>
+   </filter>
+  </layer>
  </sound>
 
  <emitter looping="true">

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,21 +14,23 @@
 
  <info name="Synth Strings 2" bank="0" program="49">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="16" min="28" max="96" step="12"/>
  </info>
 
- <sound gain="1.49" frequency="880">
-  <waveform src="sawtooth" ratio="0.5"/>
-  <waveform src="triangle" processing="add" ratio="0.2" pitch="1.499"/>
+ <sound gain="1.01" frequency="880">
+  <layer n="0">
+   <waveform src="sawtooth" ratio="0.5"/>
+   <waveform src="triangle" processing="add" ratio="0.2" pitch="1.499"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.157</param>
+    <param n="0">0.284</param>
     <param n="1">0.1</param>
     <param n="2">1.0</param>
     <param n="3">inf</param>
@@ -43,7 +45,7 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.94</param>
-    <param n="1">0.25</param>
+    <param n="1">0.05</param>
     <param n="2">0.98</param>
     <param n="3">0.1</param>
    </slot>

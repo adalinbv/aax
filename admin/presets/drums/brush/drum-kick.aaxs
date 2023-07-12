@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,36 +14,38 @@
 
  <info name="Kick Base Drum" bank="40" program="36">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound mode="2" gain="0.77" frequency="55" duration="0.1">
-  <waveform src="triangle" ratio="0.4"/>
-  <waveform src="sine" processing="add" ratio="0.6" pitch="1.1"/>
-  <filter type="bitcrusher">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.25</param>
-   </slot>
-  </filter>
+ <sound mode="2" gain="2.72" frequency="69.2957" duration="0.1">
+  <layer n="0">
+   <waveform src="triangle" ratio="0.4"/>
+   <waveform src="sine" processing="add" ratio="0.6" pitch="1.1"/>
+   <filter type="bitcrusher">
+    <slot n="0">
+     <param n="0">0.0</param>
+     <param n="1">0.0</param>
+     <param n="2">0.0</param>
+     <param n="3">0.25</param>
+    </slot>
+   </filter>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.08">
    <slot n="0">
-    <param n="0">1.97</param>
+    <param n="0">1.0</param>
     <param n="1">0.05</param>
-    <param n="2">1.71</param>
-    <param n="3">0.3</param>
+    <param n="2">0.868</param>
+    <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">0.123</param>
-    <param n="1">0.2</param>
+    <param n="0">0.0624</param>
+    <param n="1">0.1</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

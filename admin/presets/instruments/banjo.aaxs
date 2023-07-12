@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,33 +14,35 @@
 
  <info name="Banjo" bank="0" program="105">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="48" max="127" step="12"/>
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.41" frequency="440" duration="0.1">
-  <waveform src="square"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.95" pitch="5.999"/>
-  <waveform src="sine" processing="modulate" ratio="0.8" pitch="1.999"/>
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0" pitch="8.0">3520.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.2</param>
-   </slot>
-  </filter>
+ <sound gain="1.56" frequency="440" duration="0.1">
+  <layer n="0">
+   <waveform src="square"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.95" pitch="5.999"/>
+   <waveform src="sine" processing="modulate" ratio="0.8" pitch="1.999"/>
+   <filter type="frequency">
+    <slot n="0">
+     <param n="0" pitch="8.0">3520.0</param>
+     <param n="1">1.0</param>
+     <param n="2">0.0</param>
+     <param n="3">1.2</param>
+    </slot>
+   </filter>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.56</param>
+    <param n="0">0.996</param>
     <param n="1">0.1</param>
-    <param n="2">1.56</param>
+    <param n="2">0.996</param>
     <param n="3">1.0</param>
    </slot>
   </filter>

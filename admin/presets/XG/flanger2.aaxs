@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
 
+
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -12,54 +13,62 @@
 
 <aeonwave>
 
- <info bank="0" program="0">
+
+ <info>
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
  </info>
 
- <sound gain="0.00">
- </sound>
-
- <emitter/>
-
- <audioframe>
+ <audioframe mode="append">
+  <effect type="chorus" src="sine">
+   <slot n="0">
+    <param n="0">0.762</param>
+    <param n="1">1.340</param>
+    <param n="2" type="msec">4.016</param>
+    <param n="3" type="msec">0.200</param>
+   </slot>
+  </effect>
   <filter type="equalizer">
    <slot n="0">
+    <param n="0">2000.0</param>
+    <param n="1">1.000</param>
+    <param n="2">1.000</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="2">
     <param n="0">4000.0</param>
-    <param n="1">1.0</param>
+    <param n="1">1.000</param>
     <param n="2">0.631</param>
     <param n="3">1.0</param>
    </slot>
   </filter>
-  <effect type="chorus" src="sine">
-   <slot n="0">
-    <param n="0">0.748</param>
-    <param n="1">1.34</param>
-    <param n="2">0.067</param>
-    <param n="3">200.0</param>
-   </slot>
-  </effect>
  </audioframe>
 
- <mixer>
+ <mixer mode="append">
+  <effect type="chorus" src="sine">
+   <slot n="0">
+    <param n="0">0.762</param>
+    <param n="1">1.340</param>
+    <param n="2" type="msec">4.016</param>
+    <param n="3" type="msec">0.200</param>
+   </slot>
+  </effect>
   <filter type="equalizer">
    <slot n="0">
+    <param n="0">2000.0</param>
+    <param n="1">1.000</param>
+    <param n="2">1.000</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="2">
     <param n="0">4000.0</param>
-    <param n="1">1.0</param>
+    <param n="1">1.000</param>
     <param n="2">0.631</param>
     <param n="3">1.0</param>
    </slot>
   </filter>
-  <effect type="chorus" src="sine">
-   <slot n="0">
-    <param n="0">0.748</param>
-    <param n="1">1.34</param>
-    <param n="2">0.067</param>
-    <param n="3">200.0</param>
-   </slot>
-  </effect>
  </mixer>
 
 </aeonwave>

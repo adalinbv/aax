@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,28 +14,27 @@
 
  <info name="Guitar Cut Noise" bank="1" program="120">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" min="39" max="96" step="12"/>
+  <note polyphony="1" min="39" max="96" step="12" pitch-fraction="0.1"/>
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="0.90" frequency="110" duration="0.1">
-  <waveform src="sine"/>
-  <waveform src="sine" processing="add" pitch="1.5"/>
-  <waveform src="sine" processing="add" pitch="2.0"/>
-  <waveform src="sine" processing="add" pitch="4.0"/>
-  <waveform src="sine" processing="add" ratio="0.25" pitch="10.0"/>
-  <waveform src="sine" processing="add" ratio="0.25" pitch="12.0"/>
+ <sound gain="1.78" frequency="880" duration="0.1">
+  <layer n="0">
+   <waveform src="sawtooth" ratio="0.9"/>
+   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
+   <waveform src="triangle" processing="modulate" ratio="0.15" pitch="5.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.78</param>
+    <param n="0">1.0</param>
     <param n="1">0.01</param>
-    <param n="2">0.886</param>
+    <param n="2">0.498</param>
     <param n="3">0.15</param>
    </slot>
   </filter>

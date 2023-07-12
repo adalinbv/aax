@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,53 +14,40 @@
 
  <info name="Effects (Star Theme)" bank="0" program="103">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="0.97" frequency="220">
-  <layer ratio="0.5">
+ <sound gain="1.20" frequency="220">
+  <layer n="0">
    <waveform src="triangle" pitch="17.0"/>
    <waveform src="square" processing="mix" pitch="4.9897"/>
-   <waveform src="triangle" processing="modulate" pitch="3.4991"/>
+   <waveform src="cycloid" processing="modulate" pitch="3.4991"/>
    <waveform src="square" processing="add" ratio="0.3"/>
-  </layer>
-  <layer ratio="2.0">
-   <waveform src="triangle"/>
-   <waveform src="sine" processing="add" ratio="0.4" pitch="5.0"/>
-   <waveform src="sine" processing="modulate" pitch="4.0"/>
   </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="envelope|logarithmic">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.5</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
-    <param n="0">2.65</param>
-    <param n="1">0.04</param>
-    <param n="2">2.38</param>
-    <param n="3">0.2</param>
+    <param n="0">0.0</param>
+    <param n="1">0.01</param>
+    <param n="2">1.0</param>
+    <param n="3">0.04</param>
    </slot>
    <slot n="1">
-    <param n="0">2.18</param>
-    <param n="1">8.5</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="0">1.07</param>
+    <param n="1">0.2</param>
+    <param n="2">1.07</param>
+    <param n="3">8.5</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="sawtooth">
+  <filter type="dynamic-gain" src="cycloid">
    <slot n="0">
-    <param n="0">5.0</param>
-    <param n="1">2.5</param>
+    <param n="0">1.0</param>
+    <param n="1">3.0</param>
     <param n="2">0.4</param>
     <param n="3">0.8</param>
    </slot>
@@ -71,15 +58,15 @@
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">600.0</param>
-    <param n="1">0.2</param>
+    <param n="1">2.2</param>
     <param n="2">1.0</param>
     <param n="3">4.5</param>
    </slot>
    <slot n="1">
-    <param n="0">3300.0</param>
+    <param n="0">2000.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.2</param>
-    <param n="3">1.15</param>
+    <param n="2">0.3</param>
+    <param n="3">4.5</param>
    </slot>
   </filter>
  </audioframe>

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,38 +14,48 @@
 
  <info name="Kick Base Drum" bank="0" program="36">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.78" frequency="55" duration="0.1">
-  <waveform src="triangle" ratio="0.4"/>
-  <waveform src="sine" processing="add" ratio="0.6" pitch="1.1"/>
-  <filter type="bitcrusher">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.25</param>
-   </slot>
-  </filter>
+ <sound gain="2.21" frequency="69.2957" duration="0.3">
+  <layer n="0">
+   <waveform src="pink-noise" ratio="0.1" pitch="0.175"/>
+   <waveform src="triangle" processing="add" ratio="0.6"/>
+   <filter type="bitcrusher">
+    <slot n="0">
+     <param n="0">0.0</param>
+     <param n="1">0.0</param>
+     <param n="2">0.0</param>
+     <param n="3">0.25</param>
+    </slot>
+   </filter>
+   <filter type="equalizer">
+    <slot n="0">
+     <param n="0">67.0</param>
+     <param n="1">1.0</param>
+     <param n="2">1.0</param>
+     <param n="3">2.0</param>
+    </slot>
+    <slot n="1">
+     <param n="0">2950.0</param>
+     <param n="1">1.0</param>
+     <param n="2">1.0</param>
+     <param n="3">5.0</param>
+    </slot>
+   </filter>
+  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" release-time="0.08">
+  <filter type="timed-gain" src="envelope" release-time="0.08">
    <slot n="0">
-    <param n="0">2.35</param>
+    <param n="0">1.0</param>
     <param n="1">0.05</param>
-    <param n="2">2.05</param>
+    <param n="2">0.872</param>
     <param n="3">0.3</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.145</param>
-    <param n="1">0.2</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

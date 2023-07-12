@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,28 +14,30 @@
 
  <info name="Shanai Oboe" bank="0" program="111">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="10" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.25" frequency="220" duration="0.5">
-  <waveform src="square"/>
-  <waveform src="square" processing="modulate" pitch="4.0"/>
-  <waveform src="sawtooth" processing="add" ratio="0.35" pitch="2.0"/>
+ <sound gain="0.87" frequency="220" duration="0.5">
+  <layer n="0">
+   <waveform src="square"/>
+   <waveform src="square" processing="modulate" pitch="4.0"/>
+   <waveform src="sawtooth" processing="add" ratio="0.35" pitch="2.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.08">
    <slot n="0">
-    <param n="0">0.511</param>
+    <param n="0">0.487</param>
     <param n="1">0.08</param>
-    <param n="2">1.05</param>
+    <param n="2">1.0</param>
     <param n="3">4.5</param>
    </slot>
    <slot n="1">
-    <param n="0">0.847</param>
+    <param n="0">0.807</param>
     <param n="1">3.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

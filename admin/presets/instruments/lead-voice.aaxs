@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,23 +14,25 @@
 
  <info name="Lead 6 (Voice)" bank="0" program="85">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="48" max="84" step="12"/>
  </info>
 
- <sound gain="2.31" frequency="220" duration="3.0">
-  <waveform src="sine" pitch="2.98"/>
-  <waveform src="triangle" processing="mix" ratio="0.5"/>
-  <waveform src="sine" processing="modulate" pitch="2.0"/>
-  <waveform src="triangle" processing="mix" ratio="0.3"/>
-  <waveform src="sine" processing="modulate" pitch="2.0"/>
-  <waveform src="triangle" processing="mix" ratio="0.1"/>
+ <sound gain="4.25" frequency="220" duration="3.0">
+  <layer n="0">
+   <waveform src="sine" pitch="2.98"/>
+   <waveform src="triangle" processing="mix" ratio="0.5"/>
+   <waveform src="sine" processing="modulate" pitch="2.0"/>
+   <waveform src="triangle" processing="mix" ratio="0.3"/>
+   <waveform src="sine" processing="modulate" pitch="2.0"/>
+   <waveform src="triangle" processing="mix" ratio="0.1"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="bitcrusher" src="envelope|logarithmic">
+  <filter type="bitcrusher" src="envelope|exponential">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.0</param>
@@ -40,15 +42,15 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.233</param>
+    <param n="0">0.127</param>
     <param n="1">0.08</param>
-    <param n="2">1.84</param>
+    <param n="2">1.0</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.41</param>
+    <param n="0">0.766</param>
     <param n="1">inf</param>
-    <param n="2">1.41</param>
+    <param n="2">0.766</param>
     <param n="3">0.1</param>
    </slot>
   </filter>

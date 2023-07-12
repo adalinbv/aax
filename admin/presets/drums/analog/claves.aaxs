@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,21 +14,23 @@
 
  <info name="Claves" bank="25" program="75">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.41" frequency="2470" duration="0.1">
-  <waveform src="triangle"/>
+ <sound gain="1.05" frequency="2489.02" duration="0.1">
+  <layer n="0">
+   <waveform src="triangle"/>
+  </layer>
  </sound>
 
  <emitter looping="true" pan="0.31">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">3.78</param>
-    <param n="1">0.035</param>
+    <param n="0">1.0</param>
+    <param n="1">0.05</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

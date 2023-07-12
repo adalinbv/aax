@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="Rim Shot" bank="25" program="37">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="1"/>
+ </info>
+
+ <sound mode="1" gain="0.60" frequency="195.998" duration="0.3" pitch="1.03">
+  <layer n="0" pitch="1.03">
+   <waveform src="white-noise" ratio="0.5"/>
+   <waveform src="cycloid" processing="add" ratio="0.025" pitch="0.8"/>
+   <filter type="equalizer">
+    <slot n="0" src="24db">
+     <param n="0">1368.0</param>
+     <param n="1">0.0</param>
+     <param n="2">1.0</param>
+     <param n="3">5.5</param>
+    </slot>
+    <slot n="1">
+     <param n="0">1700.0</param>
+     <param n="1">1.0</param>
+     <param n="2">0.0</param>
+     <param n="3">40.0</param>
+    </slot>
+   </filter>
+  </layer>
+ </sound>
+
+ <emitter looping="true" pan="-0.47">
+  <filter type="timed-gain" src="envelope">
+   <slot n="0">
+    <param n="0">0.89</param>
+    <param n="1">0.02</param>
+    <param n="2">1.0</param>
+    <param n="3">0.4</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch" src="envelope">
+   <slot n="0">
+    <param n="0">2.9</param>
+    <param n="1">0.005</param>
+    <param n="2">2.9</param>
+    <param n="3">0.01</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.745</param>
+    <param n="1">0.1</param>
+    <param n="2">0.75</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>

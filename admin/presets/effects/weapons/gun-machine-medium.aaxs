@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,14 +14,16 @@
 
  <info name="Medium Machine Gun" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" pitch-fraction="0.2"/>
  </info>
 
  <sound gain="0.94" frequency="220" duration="0.3">
-  <waveform src="white-noise" ratio="10.0" pitch="0.25"/>
+  <layer n="0">
+   <waveform src="white-noise" ratio="10.0" pitch="0.25"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
@@ -42,5 +44,16 @@
    </slot>
   </effect>
  </emitter>
+
+ <audioframe>
+  <filter type="equalizer">
+   <slot n="0">
+    <param n="0">220.0</param>
+    <param n="1">1.5</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

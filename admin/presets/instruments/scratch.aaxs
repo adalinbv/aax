@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,44 +14,46 @@
 
  <info name="Scratch" bank="4" program="124">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" min="39" max="45" step="12"/>
  </info>
 
- <sound gain="3.45" frequency="77.7817" duration="0.3">
-  <waveform src="white-noise" ratio="2.0" pitch="0.25" staticity="0.15"/>
-  <filter type="bitcrusher">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.095</param>
-   </slot>
-  </filter>
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0">550.0</param>
-    <param n="1">0.1</param>
-    <param n="2">1.0</param>
-    <param n="3">20.0</param>
-   </slot>
-  </filter>
+ <sound gain="2.39" frequency="77.7817" duration="0.3">
+  <layer n="0">
+   <waveform src="white-noise" ratio="2.0" pitch="0.2" staticity="0.03"/>
+   <filter type="bitcrusher">
+    <slot n="0">
+     <param n="0">0.0</param>
+     <param n="1">0.0</param>
+     <param n="2">0.0</param>
+     <param n="3">0.095</param>
+    </slot>
+   </filter>
+   <filter type="frequency">
+    <slot n="0">
+     <param n="0">550.0</param>
+     <param n="1">0.1</param>
+     <param n="2">1.0</param>
+     <param n="3">20.0</param>
+    </slot>
+   </filter>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.106</param>
+    <param n="0">0.102</param>
     <param n="1">0.08</param>
-    <param n="2">0.444</param>
+    <param n="2">1.0</param>
     <param n="3">0.08</param>
    </slot>
    <slot n="1">
-    <param n="0">0.0106</param>
+    <param n="0">0.0102</param>
     <param n="1">0.05</param>
-    <param n="2">0.319</param>
+    <param n="2">0.884</param>
     <param n="3">0.2</param>
    </slot>
   </filter>

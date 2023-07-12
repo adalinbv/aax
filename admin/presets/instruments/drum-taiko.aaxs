@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,33 +14,41 @@
 
  <info name="Taiko Drum" bank="0" program="117">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="60" max="77" step="1"/>
  </info>
 
- <sound gain="1.54" frequency="261.626">
-  <waveform src="sine" ratio="0.2" pitch="0.5"/>
-  <waveform src="sine" processing="add" ratio="0.2" pitch="0.64"/>
-  <waveform src="white-noise" processing="add" pitch="0.0152"/>
+ <sound gain="1.98" frequency="261.626" duration="2.0">
+  <layer n="0">
+   <waveform src="sine" ratio="0.2" pitch="0.5"/>
+   <waveform src="sine" processing="add" ratio="0.2" pitch="0.64"/>
+   <waveform src="white-noise" processing="add" pitch="0.0152"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" src="envelope" release-time="1.0">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.07</param>
-    <param n="1">0.05</param>
-    <param n="2">1.07</param>
-    <param n="3">1.49</param>
+    <param n="0">0.996</param>
+    <param n="1">1.66</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.53</param>
-    <param n="1">0.03</param>
-    <param n="2">1.39</param>
-    <param n="3">0.02</param>
+    <param n="0">1.29</param>
+    <param n="1">0.06</param>
+    <param n="2">1.0</param>
+    <param n="3">2.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.98</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
@@ -48,7 +56,7 @@
  <audioframe>
   <filter type="frequency">
    <slot n="0">
-    <param n="0">1231.4</param>
+    <param n="0">1234.5</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.5</param>

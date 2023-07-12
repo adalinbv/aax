@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -12,39 +12,40 @@
 
 <aeonwave>
 
- <info name="Rhodes Electric Piano (Bright)" bank="0" program="4">
+ <info name="Electric Piano 1" bank="0" program="4">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="28" max="103" step="12"/>
  </info>
 
- <sound gain="2.70" frequency="110" duration="0.1">
-  <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="add" ratio="0.21694" pitch="2.0"/>
-  <waveform src="sawtooth" processing="add" ratio="0.0769732" pitch="3.0"/>
-  <waveform src="sine" processing="add" ratio="0.0544928" pitch="7.25"/>
+ <sound gain="1.80" frequency="110" duration="0.3">
+  <layer n="0">
+   <waveform src="cycloid"/>
+   <waveform src="triangle" processing="add" ratio="0.3" pitch="2.0"/>
+   <waveform src="sine" processing="add" ratio="0.1" pitch="3.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.3">
    <slot n="0">
-    <param n="0">1.08</param>
+    <param n="0">1.0</param>
     <param n="1">0.02</param>
-    <param n="2">0.903</param>
+    <param n="2">1.0</param>
     <param n="3">0.12</param>
    </slot>
    <slot n="1">
-    <param n="0">0.603</param>
-    <param n="1">1.99</param>
+    <param n="0">0.958</param>
+    <param n="1" auto="1.48">6.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">1.98</param>
+    <param n="0">1.08</param>
     <param n="1">0.01</param>
     <param n="2">1.0</param>
     <param n="3">4.5</param>
@@ -62,31 +63,23 @@
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">150.0</param>
-    <param n="1">0.5</param>
-    <param n="2">1.0</param>
+    <param n="1">1.0</param>
+    <param n="2">2.0</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
     <param n="0">300.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.5</param>
+    <param n="1">2.0</param>
+    <param n="2">1.0</param>
     <param n="3">1.2</param>
    </slot>
    <slot n="2">
     <param n="0">2500.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
+    <param n="2">0.01</param>
     <param n="3">2.0</param>
    </slot>
   </filter>
-  <effect type="distortion" src="envelope|logarithmic" optional="true">
-   <slot n="0">
-    <param n="0">0.1</param>
-    <param n="1">0.0</param>
-    <param n="2">0.15</param>
-    <param n="3">1.0</param>
-   </slot>
-  </effect>
  </audioframe>
 
 </aeonwave>

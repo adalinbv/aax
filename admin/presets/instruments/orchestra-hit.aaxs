@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,24 +14,26 @@
 
  <info name="Orchestra Hit" bank="0" program="55">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="16" min="48" max="127" step="6"/>
  </info>
 
- <sound gain="2.54" frequency="220">
-  <waveform src="impulse" processing="add" pitch="0.3"/>
-  <waveform src="sawtooth" processing="add" ratio="0.6" pitch="0.5"/>
-  <waveform src="sawtooth" processing="add" ratio="0.5" pitch="0.991"/>
+ <sound gain="1.69" frequency="220" ratio="2.0">
+  <layer n="0" ratio="2.0">
+   <waveform src="impulse" processing="add" pitch="0.3"/>
+   <waveform src="cycloid" processing="add" ratio="0.6" pitch="0.5"/>
+   <waveform src="sawtooth" processing="add" ratio="0.3" pitch="0.991"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.6">
    <slot n="0">
-    <param n="0">0.617</param>
+    <param n="0">0.871</param>
     <param n="1">0.25</param>
-    <param n="2">0.708</param>
+    <param n="2">1.1</param>
     <param n="3">1.01</param>
    </slot>
   </filter>

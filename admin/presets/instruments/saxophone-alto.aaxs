@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,30 +14,32 @@
 
  <info name="Alto Saxophone" bank="0" program="65">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="49" max="80" step="12"/>
  </info>
 
- <sound mode="1" gain="1.50" frequency="138.591" duration="0.5">
-  <waveform src="triangle"/>
-  <waveform src="triangle" processing="modulate" pitch="4.0"/>
-  <waveform src="sawtooth" processing="mix"/>
+ <sound mode="1" gain="1.32" frequency="138.591" duration="0.5">
+  <layer n="0">
+   <waveform src="triangle"/>
+   <waveform src="triangle" processing="modulate" pitch="4.0"/>
+   <waveform src="sawtooth" processing="add" ratio="0.33"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" release-time="0.02">
+  <filter type="timed-gain" src="envelope" release-time="0.02">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.08</param>
-    <param n="2">1.01</param>
+    <param n="2">0.924</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.08</param>
+    <param n="0">1.0</param>
     <param n="1">7.5</param>
-    <param n="2">0.896</param>
+    <param n="2">0.792</param>
     <param n="3">3.2</param>
    </slot>
   </filter>
@@ -60,18 +62,34 @@
  <audioframe pan="0.3">
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">550.0</param>
+    <param n="0">770.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
-    <param n="3">1.0</param>
+    <param n="3">2.0</param>
    </slot>
    <slot n="1">
     <param n="0">2500.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.1</param>
-    <param n="3">4.0</param>
+    <param n="2">0.01</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
+  <effect type="chorus" src="envelope" optional="true">
+   <slot n="0">
+    <param n="0">0.6</param>
+    <param n="1">0.25</param>
+    <param n="2">0.05</param>
+    <param n="3">0.05</param>
+   </slot>
+  </effect>
+  <effect type="distortion" src="envelope|exponential">
+   <slot n="0">
+    <param n="0">0.5</param>
+    <param n="1">0.0</param>
+    <param n="2">0.1</param>
+    <param n="3">0.7</param>
+   </slot>
+  </effect>
  </audioframe>
 
 </aeonwave>

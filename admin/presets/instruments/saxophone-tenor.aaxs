@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,30 +14,32 @@
 
  <info name="Tenor Saxophone" bank="0" program="65">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="42" max="75" step="12"/>
  </info>
 
- <sound mode="1" gain="1.56" frequency="92.4986" duration="0.5">
-  <waveform src="triangle"/>
-  <waveform src="triangle" processing="modulate" pitch="4.0"/>
-  <waveform src="sawtooth" processing="mix"/>
+ <sound mode="1" gain="1.29" frequency="92.4986" duration="0.5">
+  <layer n="0">
+   <waveform src="triangle"/>
+   <waveform src="triangle" processing="modulate" pitch="4.0"/>
+   <waveform src="sawtooth" processing="add" ratio="0.33"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" release-time="0.02">
+  <filter type="timed-gain" src="envelope" release-time="0.02">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.08</param>
-    <param n="2">0.946</param>
+    <param n="2">0.939</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.03</param>
+    <param n="0">0.998</param>
     <param n="1">7.5</param>
-    <param n="2">0.814</param>
+    <param n="2">0.847</param>
     <param n="3">3.2</param>
    </slot>
   </filter>
@@ -62,16 +64,30 @@
    <slot n="0">
     <param n="0">550.0</param>
     <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">1.0</param>
+    <param n="2">2.0</param>
+    <param n="3">2.0</param>
    </slot>
    <slot n="1">
-    <param n="0">2500.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.3</param>
-    <param n="3">4.0</param>
+    <param n="0">660.0</param>
+    <param n="1">0.5</param>
+    <param n="2">2.0</param>
+    <param n="3">2.0</param>
+   </slot>
+   <slot n="2">
+    <param n="0">4400.0</param>
+    <param n="1">2.0</param>
+    <param n="2">0.01</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
+  <effect type="chorus" src="envelope" optional="true">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.15</param>
+    <param n="2">0.03</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
  </audioframe>
 
 </aeonwave>

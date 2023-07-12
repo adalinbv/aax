@@ -1,39 +1,74 @@
 <?xml version="1.0"?>
 
+
+<!--
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
 <aeonwave>
 
- <audioframe>
+
+ <info>
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+ </info>
+
+ <audioframe mode="append">
   <effect type="chorus" src="sine">
    <slot n="0">
-    <param n="0">0.496</param>
+    <param n="0">0.508</param>
     <param n="1">0.160</param>
-    <param n="2">0.346</param>
-    <param n="3" type="usec">23300.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">500.0</param>
-    <param n="1">4000.0</param>
-    <param n="2">0.000</param>
-    <param n="3">1.0</param>
+    <param n="2" type="msec">10.394</param>
+    <param n="3" type="msec">23.300</param>
    </slot>
   </effect>
+  <filter type="equalizer">
+   <slot n="0">
+    <param n="0">4000.0</param>
+    <param n="1">1.000</param>
+    <param n="2">1.000</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="2">
+    <param n="0">4000.0</param>
+    <param n="1">1.000</param>
+    <param n="2">1.259</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
  </audioframe>
 
- <mixer>
+ <mixer mode="append">
   <effect type="chorus" src="sine">
    <slot n="0">
-    <param n="0">0.496</param>
+    <param n="0">0.508</param>
     <param n="1">0.160</param>
-    <param n="2">0.346</param>
-    <param n="3" type="usec">23300.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">500.0</param>
-    <param n="1">4000.0</param>
-    <param n="2">0.000</param>
-    <param n="3">1.0</param>
+    <param n="2" type="msec">10.394</param>
+    <param n="3" type="msec">23.300</param>
    </slot>
   </effect>
+  <filter type="equalizer">
+   <slot n="0">
+    <param n="0">4000.0</param>
+    <param n="1">1.000</param>
+    <param n="2">1.000</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="2">
+    <param n="0">4000.0</param>
+    <param n="1">1.000</param>
+    <param n="2">1.259</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
  </mixer>
 
 </aeonwave>

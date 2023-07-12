@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,30 +14,32 @@
 
  <info name="Lead 2 (Saw Wave)" bank="1" program="81">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="21" max="108" step="12"/>
  </info>
 
- <sound gain="0.75" frequency="220" duration="0.1">
-  <waveform src="sawtooth"/>
-  <waveform src="sin" processing="add" ratio="0.3" pitch="0.997"/>
+ <sound gain="1.06" frequency="220" duration="0.1">
+  <layer n="0">
+   <waveform src="sawtooth"/>
+   <waveform src="sin" processing="add" ratio="0.3" pitch="0.997"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.473</param>
+    <param n="0">0.378</param>
     <param n="1">0.01</param>
-    <param n="2">1.35</param>
+    <param n="2">1.0</param>
     <param n="3">0.5</param>
    </slot>
    <slot n="1">
-    <param n="0">1.14</param>
+    <param n="0">0.749</param>
     <param n="1">inf</param>
-    <param n="2">1.14</param>
-    <param n="3">0.1</param>
+    <param n="2">0.749</param>
+    <param n="3">0.01</param>
    </slot>
   </filter>
  </emitter>

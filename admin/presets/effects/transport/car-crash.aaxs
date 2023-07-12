@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -12,74 +12,67 @@
 
 <aeonwave>
 
- <info name="Car Crash">
+ <info name="Car Crash" bank="64" program="83">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" pitch-fraction="0.2"/>
  </info>
 
- <sound gain="0.73" frequency="220" duration="0.3">
-  <layer ratio="0.3">
-   <waveform src="white-noise" pitch="0.2"/>
+ <sound gain="2.70" frequency="155.563">
+  <layer n="0">
+   <waveform src="white-noise" ratio="20.0" pitch="0.055" staticity="0.012"/>
    <filter type="frequency" src="24db">
     <slot n="0">
-     <param n="0" pitch="8.0">1760.0</param>
+     <param n="0" pitch="15.0">2333.5</param>
      <param n="1">1.0</param>
      <param n="2">0.0</param>
-     <param n="3">30.0</param>
-    </slot>
-   </filter>
-  </layer>
-  <layer ratio="3.0">
-   <waveform src="white-noise" ratio="20.0" pitch="0.055" staticity="0.04"/>
-   <filter type="frequency" src="24db">
-    <slot n="0">
-     <param n="0" pitch="8.0">1760.0</param>
-     <param n="1">3.0</param>
-     <param n="2">0.0</param>
-     <param n="3">1.1</param>
+     <param n="3">1.4</param>
     </slot>
    </filter>
   </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="envelope|logarithmic">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">5.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.75</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.865</param>
-    <param n="1">0.14</param>
-    <param n="2">1.84</param>
-    <param n="3">0.54</param>
+    <param n="0">0.236</param>
+    <param n="1">0.02</param>
+    <param n="2">0.5</param>
+    <param n="3">0.6</param>
    </slot>
    <slot n="1">
-    <param n="0">0.84</param>
-    <param n="1">0.16</param>
+    <param n="0">0.236</param>
+    <param n="1">0.03</param>
+    <param n="2">0.295</param>
+    <param n="3">0.5</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.236</param>
+    <param n="1">0.2</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="timed-pitch" src="envelope">
+  <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.98</param>
-    <param n="1">0.03</param>
-    <param n="2">1.54</param>
-    <param n="3">0.06</param>
+    <param n="0">1.0</param>
+    <param n="1">0.45</param>
+    <param n="2">0.95</param>
+    <param n="3">0.45</param>
    </slot>
    <slot n="1">
-    <param n="0">0.924</param>
-    <param n="1">0.06</param>
-    <param n="2">1.1</param>
-    <param n="3">0.3</param>
+    <param n="0">1.1</param>
+    <param n="1">0.03</param>
+    <param n="2">1.3</param>
+    <param n="3">0.03</param>
+   </slot>
+   <slot n="2">
+    <param n="0">1.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

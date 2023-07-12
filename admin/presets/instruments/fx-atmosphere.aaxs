@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,44 +14,30 @@
 
  <info name="Effects (Atmosphere)" bank="0" program="99">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="2.55" frequency="220">
-  <layer ratio="0.5" voices="3">
-   <waveform src="triangle" phase="0.31"/>
-   <waveform src="triangle" processing="modulate" pitch="0.4987"/>
-   <waveform src="triangle" processing="add"/>
-  </layer>
-  <layer>
-   <waveform src="sawtooth"/>
-   <waveform src="triangle" processing="add" ratio="0.5" pitch="2.0"/>
-   <waveform src="square" processing="add" ratio="0.25" pitch="5.0"/>
-   <waveform src="triangle" processing="modulate" pitch="4.0"/>
+ <sound gain="2.38" frequency="220" duration="1.3">
+  <layer n="0">
+   <waveform src="pure-sine" processing="add" pitch="1.4917"/>
+   <waveform src="triangle" processing="add" ratio="0.055" pitch="3.4938"/>
+   <waveform src="sine" processing="modulate" ratio="3.5" pitch="0.5"/>
   </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="inverse-envelope|logarithmic">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">1.5</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" release-time="0.5">
    <slot n="0">
-    <param n="0">0.169</param>
+    <param n="0">0.287</param>
     <param n="1">0.01</param>
-    <param n="2">0.99</param>
+    <param n="2">1.0</param>
     <param n="3">0.01</param>
    </slot>
    <slot n="1">
-    <param n="0">0.85</param>
+    <param n="0">0.934</param>
     <param n="1">4.83</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -77,15 +63,15 @@
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">280.0</param>
-    <param n="1">0.9</param>
-    <param n="2">1.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.5</param>
     <param n="3">4.5</param>
    </slot>
    <slot n="1">
-    <param n="0">2000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">2.2</param>
-    <param n="3">2.15</param>
+    <param n="0">850.0</param>
+    <param n="1">0.5</param>
+    <param n="2">1.0</param>
+    <param n="3">1.5</param>
    </slot>
   </filter>
  </audioframe>

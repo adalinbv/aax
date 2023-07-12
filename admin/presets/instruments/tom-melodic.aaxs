@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,29 +14,37 @@
 
  <info name="Melodic Tom" bank="0" program="117">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="36" max="96" step="6"/>
  </info>
 
- <sound gain="1.39" frequency="110" duration="1.3">
-  <waveform src="sine" processing="add" ratio="0.37"/>
-  <waveform src="white-noise" processing="add" ratio="0.174" pitch="0.2"/>
-  <waveform src="triangle" processing="add" pitch="0.586"/>
+ <sound gain="2.01" frequency="195.998" duration="1.3" pitch="1.3">
+  <layer n="0" pitch="1.3">
+   <waveform src="sine" processing="add" ratio="0.37"/>
+   <waveform src="sine" processing="add" pitch="0.588"/>
+   <waveform src="white-noise" processing="add" ratio="0.174" pitch="0.574"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
-    <param n="0">1.75</param>
+    <param n="0">1.0</param>
     <param n="1">0.05</param>
-    <param n="2">1.63</param>
+    <param n="2">0.631</param>
     <param n="3">1.13</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
+    <param n="0">1.5</param>
+    <param n="1">0.01</param>
+    <param n="2">1.5</param>
+    <param n="3">0.03</param>
+   </slot>
+   <slot n="1">
     <param n="0">1.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
@@ -45,6 +53,21 @@
   </effect>
  </emitter>
 
- <audioframe pan="-0.2"/>
+ <audioframe pan="-0.2">
+  <filter type="equalizer">
+   <slot n="0">
+    <param n="0">150.0</param>
+    <param n="1">1.5</param>
+    <param n="2">1.0</param>
+    <param n="3">5.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1650.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

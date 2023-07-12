@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,18 +14,18 @@
 
  <info name="Creaking Door">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" pitch-fraction="0.1"/>
  </info>
 
- <sound gain="1.96" frequency="310">
-  <layer ratio="2.0">
+ <sound gain="1.96" frequency="311.127" ratio="2.0">
+  <layer n="0" ratio="2.0">
    <waveform src="white-noise" pitch="0.02" staticity="0.95"/>
    <filter type="frequency" src="24db">
     <slot n="0">
-     <param n="0" pitch="1.0">310.0</param>
+     <param n="0" pitch="1.0">311.1</param>
      <param n="1">0.054</param>
      <param n="2">3.3</param>
      <param n="3">2.5</param>
@@ -33,35 +33,16 @@
    </filter>
    <filter type="frequency">
     <slot n="0">
-     <param n="0" pitch="2.75">852.5</param>
+     <param n="0" pitch="2.75">855.6</param>
      <param n="1">0.0</param>
      <param n="2">2.0</param>
      <param n="3">5.0</param>
     </slot>
    </filter>
   </layer>
-  <layer>
-   <waveform src="sawtooth" processing="add" ratio="0.02" pitch="2.0"/>
-   <filter type="frequency" src="48db">
-    <slot n="0">
-     <param n="0" pitch="20.0">6200.0</param>
-     <param n="1">0.8</param>
-     <param n="2">0.03</param>
-     <param n="3">5.5</param>
-    </slot>
-   </filter>
-  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">5.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>

@@ -24,7 +24,7 @@
 
  <emitter/>
 
- <audioframe>
+ <audioframe mode="append">
   <effect type="reverb">
    <slot n="0">
     <param n="0">5002.9</param>
@@ -47,7 +47,7 @@
   </effect>
  </audioframe>
 
- <mixer>
+ <mixer mode="append">
   <effect type="reverb">
    <slot n="0">
     <param n="0">5002.9</param>

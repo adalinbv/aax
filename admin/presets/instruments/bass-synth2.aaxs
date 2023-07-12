@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,15 +14,17 @@
 
  <info name="Synth Bass 3" bank="0" program="39">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="28" max="88" step="12"/>
  </info>
 
- <sound gain="0.52" frequency="110" duration="0.25">
-  <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="add" ratio="0.4" pitch="1.957"/>
+ <sound gain="0.65" frequency="110" duration="0.25">
+  <layer n="0">
+   <waveform src="sawtooth"/>
+   <waveform src="sawtooth" processing="add" ratio="0.4" pitch="1.957"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
@@ -30,13 +32,13 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.012</param>
-    <param n="2">1.86</param>
+    <param n="2">1.0</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.58</param>
+    <param n="0">0.849</param>
     <param n="1">inf</param>
-    <param n="2">1.58</param>
+    <param n="2">0.849</param>
     <param n="3">0.2</param>
    </slot>
   </filter>

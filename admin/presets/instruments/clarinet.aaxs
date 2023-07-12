@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,30 +14,32 @@
 
  <info name="Clarinet" bank="0" program="71">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="50" max="91" step="12"/>
  </info>
 
- <sound mode="1" gain="1.29" frequency="440" duration="0.3">
-  <waveform src="square"/>
-  <waveform src="pink-noise" processing="add" ratio="0.1" pitch="0.3"/>
-  <waveform src="square" processing="modulate" pitch="3.0"/>
+ <sound mode="1" gain="2.33" frequency="440" duration="0.3">
+  <layer n="0">
+   <waveform src="square"/>
+   <waveform src="pink-noise" processing="add" ratio="0.1" pitch="0.3"/>
+   <waveform src="square" processing="modulate" pitch="3.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.08">
    <slot n="0">
-    <param n="0">0.219</param>
+    <param n="0">0.311</param>
     <param n="1">0.05</param>
-    <param n="2">1.31</param>
+    <param n="2">1.0</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">0.76</param>
+    <param n="0">0.762</param>
     <param n="1">6.6</param>
-    <param n="2">0.42</param>
+    <param n="2">0.615</param>
     <param n="3">4.2</param>
    </slot>
   </filter>
@@ -65,11 +67,19 @@
     <param n="2">0.8</param>
     <param n="3">4.0</param>
    </slot>
-   <slot n="1" src="24db">
+   <slot n="1">
     <param n="0">2000.0</param>
     <param n="1">0.8</param>
     <param n="2">0.0</param>
     <param n="3">3.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" optional="true">
+   <slot n="0">
+    <param n="0">2000.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.1</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
  </audioframe>

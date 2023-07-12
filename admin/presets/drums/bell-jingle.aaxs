@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,24 +14,27 @@
 
  <info name="Jingle Bell" bank="0" program="83">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.61" frequency="1500" duration="0.3">
-  <waveform src="square" pitch="4.1025"/>
-  <waveform src="white-noise" processing="add" ratio="0.4" pitch="0.15"/>
-  <waveform src="square" processing="modulate" pitch="2.075"/>
+ <sound gain="2.43" frequency="1479.98" duration="0.3">
+  <layer n="0">
+   <waveform src="square" pitch="4.1025"/>
+   <waveform src="white-noise" processing="add" ratio="0.4" pitch="0.15"/>
+   <waveform src="square" processing="add" ratio="0.3" pitch="6.1025"/>
+   <waveform src="square" processing="modulate" pitch="2.075"/>
+  </layer>
  </sound>
 
  <emitter looping="true" pan="0.55">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.12</param>
+    <param n="0">0.336</param>
     <param n="1">0.015</param>
-    <param n="2">3.33</param>
+    <param n="2">1.0</param>
     <param n="3">0.45</param>
    </slot>
   </filter>

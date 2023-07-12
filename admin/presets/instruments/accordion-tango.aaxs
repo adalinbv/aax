@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2022 by Erik Hofman.
- * Copyright (C) 2017-2022 by Adalin B.V.
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,17 +14,19 @@
 
  <info name="French Accordion" bank="0" program="21">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2022" by="Adalin B.V."/>
-  <copyright from="2017" until="2022" by="Erik Hofman"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="53" max="89" step="12"/>
  </info>
 
- <sound gain="1.20" frequency="174.614" duration="0.75">
-  <waveform src="sawtooth" ratio="0.8"/>
-  <waveform src="sawtooth" processing="add" ratio="0.15" pitch="3.0"/>
-  <waveform src="triangle" processing="mix" ratio="0.3" pitch="3.9889"/>
-  <waveform src="triangle" processing="mix" ratio="0.2" pitch="2.0"/>
+ <sound gain="1.56" frequency="174.614" duration="0.75">
+  <layer n="0">
+   <waveform src="sawtooth" ratio="0.8"/>
+   <waveform src="sawtooth" processing="add" ratio="0.15" pitch="3.0"/>
+   <waveform src="triangle" processing="mix" ratio="0.3" pitch="3.9889"/>
+   <waveform src="triangle" processing="mix" ratio="0.2" pitch="2.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
@@ -32,13 +34,13 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.1</param>
-    <param n="2">1.36</param>
+    <param n="2">1.0</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.24</param>
+    <param n="0">0.912</param>
     <param n="1">inf</param>
-    <param n="2">1.24</param>
+    <param n="2">0.912</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
