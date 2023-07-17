@@ -526,8 +526,12 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 
       assert(max);
 
-      if (lfo->state & AAX_PURE_WAVEFORM) {
+      if (lfo->state & AAX_PURE_WAVEFORM)
+      {
          rv = _aaxLFOCalculate(lfo, lfo->value[track], track);
+
+         // backwards compatibility
+         lfo->value[track] += 0.5f*step;
       }
       else
       {  
@@ -537,9 +541,10 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
          lfo->compression[track] = 1.0f-rv;
 
          rv = lfo->convert(_analog_sawtooth(rv), lfo);
+
+         lfo->value[track] += step;
       }
 
-      lfo->value[track] += step;
       if (lfo->value[track] <= lfo->min) {
          lfo->value[track] += max;
       } else if (lfo->value[track] >= lfo->max) {
