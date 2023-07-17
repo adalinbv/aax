@@ -22,7 +22,7 @@
 
  <sound gain="0.31" frequency="220" duration="3.3">
   <layer n="0">
-   <waveform src="impulse"/>
+   <waveform src="square"/>
    <waveform src="white-noise" processing="add"/>
    <filter type="frequency" src="24db">
     <slot n="0">

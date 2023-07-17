@@ -22,8 +22,8 @@
 
  <sound fixed-gain="2.65" frequency="220" duration="0.1">
   <layer n="0">
-   <waveform src="sawtooth"/>
-   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="6.99"/>
+   <waveform src="pure-sawtooth"/>
+   <waveform src="pure-triangle" processing="modulate" ratio="1.5" pitch="6.99"/>
    <waveform src="impulse" processing="modulate" pitch="0.0425"/>
   </layer>
  </sound>
@@ -45,21 +45,21 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.1</param>
+    <param n="0">1.2</param>
     <param n="1">1.0</param>
-    <param n="2">1.0</param>
+    <param n="2">1.1</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">1.4</param>
+    <param n="0">1.5</param>
     <param n="1">inf</param>
-    <param n="2">1.4</param>
+    <param n="2">1.5</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="2">
-    <param n="0">1.1</param>
+    <param n="0">1.2</param>
     <param n="1">1.0</param>
-    <param n="2">1.0</param>
+    <param n="2">1.1</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

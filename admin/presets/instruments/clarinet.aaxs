@@ -62,20 +62,6 @@
  <audioframe pan="-0.2">
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">1050.0</param>
-    <param n="1">0.3</param>
-    <param n="2">0.8</param>
-    <param n="3">4.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">2000.0</param>
-    <param n="1">0.8</param>
-    <param n="2">0.0</param>
-    <param n="3">3.0</param>
-   </slot>
-  </filter>
-  <filter type="frequency" optional="true">
-   <slot n="0">
     <param n="0">2000.0</param>
     <param n="1">1.0</param>
     <param n="2">0.1</param>

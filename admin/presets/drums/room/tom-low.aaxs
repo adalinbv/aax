@@ -25,9 +25,22 @@
    <waveform src="sine" ratio="0.5" pitch="0.5"/>
    <waveform src="pink-noise" processing="add" ratio="0.2"/>
   </layer>
+  <layer n="1">
+   <waveform src="pink-noise" ratio="1.5" pitch="0.18"/>
+   <waveform src="sine" processing="add" ratio="0.3" pitch="0.96"/>
+   <waveform src="triangle" processing="add"/>
+  </layer>
  </sound>
 
  <emitter looping="true" pan="0.1">
+  <filter type="dynamic-layer" src="envelope|exponential">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">8.0</param>
+    <param n="2">1.0</param>
+    <param n="3">0.5</param>
+   </slot>
+  </filter>
   <filter type="bitcrusher" src="inverse-envelope">
    <slot n="0">
     <param n="0">0.0</param>

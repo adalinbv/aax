@@ -27,7 +27,7 @@
    <waveform src="sine" processing="add" ratio="0.1" pitch="3.0"/>
    <filter type="bitcrusher">
     <slot n="0">
-     <param n="0">0.03</param>
+     <param n="0">0.0</param>
      <param n="1">0.0</param>
      <param n="2">0.0</param>
      <param n="3">0.35</param>
@@ -37,17 +37,17 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="bitcrusher">
+  <filter type="bitcrusher" src="timed">
    <slot n="0">
-    <param n="0">0.03</param>
-    <param n="1">0.3</param>
-    <param n="2">0.03</param>
+    <param n="0">0.2</param>
+    <param n="1">1.5</param>
+    <param n="2">0.13</param>
     <param n="3">0.03</param>
    </slot>
   </filter>
   <filter type="timed-gain" release-time="0.35">
    <slot n="0">
-    <param n="0">0.195</param>
+    <param n="0">0.595</param>
     <param n="1">0.282</param>
     <param n="2">0.889</param>
     <param n="3">0.15</param>

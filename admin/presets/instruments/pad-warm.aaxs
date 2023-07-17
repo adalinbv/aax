@@ -20,8 +20,8 @@
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="2.59" frequency="220">
-  <layer n="0" voices="3" spread="0.93">
+ <sound gain="2.59" frequency="220" voices="3" spread="0.93">
+  <layer n="0">
    <waveform src="pure-sine" ratio="0.5"/>
    <waveform src="triangle" processing="add" ratio="0.15" pitch="2.0"/>
   </layer>
@@ -73,6 +73,14 @@
     <param n="3">1.0</param>
    </slot>
   </filter>
+  <effect type="chorus" src="sine">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.15</param>
+    <param n="2">0.3</param>
+    <param n="3">0.2</param>
+   </slot>
+  </effect>
  </audioframe>
 
 </aeonwave>

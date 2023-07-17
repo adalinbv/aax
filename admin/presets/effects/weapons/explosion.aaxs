@@ -22,7 +22,7 @@
 
  <sound gain="1.00" frequency="65.4064" duration="3.3">
   <layer n="0">
-   <waveform src="white-noise" ratio="40.0" pitch="0.055"/>
+   <waveform src="white-noise" ratio="20.0" pitch="0.075"/>
    <filter type="frequency" src="24db">
     <slot n="0">
      <param n="0" pitch="25.0">1635.2</param>
@@ -49,7 +49,7 @@
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">0.225</param>
     <param n="1">0.04</param>
@@ -64,5 +64,22 @@
    </slot>
   </effect>
  </emitter>
+
+ <audioframe>
+  <filter type="equalizer">
+   <slot n="0">
+    <param n="0">220.0</param>
+    <param n="1">1.5</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">2200.0</param>
+    <param n="1">1.0</param>
+    <param n="2">2.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

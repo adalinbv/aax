@@ -12,48 +12,55 @@
 
 <aeonwave>
 
- <info name="Pan Flute" bank="0" program="75">
+ <info name="Recorder" bank="0" program="74">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2023" by="Adalin B.V."/>
   <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="60" max="96" step="12"/>
-  <aftertouch mode="2"/>
  </info>
 
- <sound gain="4.00" frequency="1760" duration="0.3">
+ <sound gain="1.29" frequency="261.626" duration="0.3">
   <layer n="0">
-   <waveform src="sine" ratio="0.15"/>
-   <waveform src="pink-noise" processing="add" ratio="0.1" pitch="0.14"/>
+   <waveform src="pure-sine"/>
+   <waveform src="pink-noise" processing="add" ratio="0.2" pitch="0.14"/>
   </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" src="envelope" release-time="0.12">
+  <filter type="bitcrusher" src="timed">
    <slot n="0">
-    <param n="0">0.0</param>
+    <param n="0">0.15</param>
+    <param n="1">1.5</param>
+    <param n="2">0.13</param>
+    <param n="3">0.15</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.6</param>
     <param n="1">0.22</param>
     <param n="2">1.0</param>
     <param n="3">0.25</param>
    </slot>
    <slot n="1">
     <param n="0">0.899</param>
-    <param n="1">7.5</param>
-    <param n="2">0.523</param>
+    <param n="1">inf</param>
+    <param n="2">0.899</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
-  <effect type="timed-pitch" src="envelope">
+  <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.45</param>
-    <param n="1">0.01</param>
+    <param n="0">0.97</param>
+    <param n="1">0.25</param>
     <param n="2">1.0</param>
-    <param n="3">7.0</param>
+    <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">0.99</param>
-    <param n="1">0.5</param>
-    <param n="2">0.98</param>
+    <param n="0">1.0</param>
+    <param n="1">4.5</param>
+    <param n="2">0.998</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

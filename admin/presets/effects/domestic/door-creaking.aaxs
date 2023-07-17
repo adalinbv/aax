@@ -20,7 +20,7 @@
   <note polyphony="1" pitch-fraction="0.1"/>
  </info>
 
- <sound gain="1.96" frequency="311.127">
+ <sound gain="1.96" frequency="311.127" ratio="2.0">
   <layer n="0" ratio="2.0">
    <waveform src="white-noise" pitch="0.02" staticity="0.95"/>
    <filter type="frequency" src="24db">
@@ -40,28 +40,9 @@
     </slot>
    </filter>
   </layer>
-  <layer n="1">
-   <waveform src="sawtooth" processing="add" ratio="0.02" pitch="2.0"/>
-   <filter type="frequency" src="48db">
-    <slot n="0">
-     <param n="0" pitch="20.0">6222.5</param>
-     <param n="1">0.8</param>
-     <param n="2">0.03</param>
-     <param n="3">5.5</param>
-    </slot>
-   </filter>
-  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">5.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>

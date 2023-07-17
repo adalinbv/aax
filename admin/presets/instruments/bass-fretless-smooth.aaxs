@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="Fretless Bass (Smooth)" bank="0" program="35">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="6" min="28" max="95" step="12"/>
+  <aftertouch mode="2"/>
+ </info>
+
+ <sound gain="6.08" frequency="110" duration="0.1">
+  <layer n="0">
+   <waveform src="square"/>
+   <waveform src="sawtooth" processing="mix"/>
+   <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>
+   <waveform src="sine" processing="modulate" pitch="2.0"/>
+  </layer>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain" release-time="0.2">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.01</param>
+    <param n="2">1.0</param>
+    <param n="3">0.2</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.75</param>
+    <param n="1">7.4</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+ </emitter>
+
+ <audioframe pan="0.1">
+  <filter type="equalizer" optional="true">
+   <slot n="0">
+    <param n="0">100.0</param>
+    <param n="1">0.8</param>
+    <param n="2">1.0</param>
+    <param n="3">1.3</param>
+   </slot>
+   <slot n="1">
+    <param n="0">600.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.3</param>
+    <param n="3">1.5</param>
+   </slot>
+   <slot n="2">
+    <param n="0">1000.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+ </audioframe>
+
+</aeonwave>

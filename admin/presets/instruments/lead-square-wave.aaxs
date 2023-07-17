@@ -22,7 +22,7 @@
 
  <sound gain="1.02" frequency="220" duration="0.1">
   <layer n="0">
-   <waveform src="square"/>
+   <waveform src="pure-square"/>
   </layer>
  </sound>
 
@@ -42,16 +42,5 @@
    </slot>
   </filter>
  </emitter>
-
- <audioframe>
-  <effect type="distortion" src="envelope">
-   <slot n="0">
-    <param n="0">0.5</param>
-    <param n="1">0.0</param>
-    <param n="2">0.1</param>
-    <param n="3">1.0</param>
-   </slot>
-  </effect>
- </audioframe>
 
 </aeonwave>

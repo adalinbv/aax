@@ -20,44 +20,50 @@
   <note polyphony="88" min="21" max="127" step="6"/>
  </info>
 
- <sound gain="3.05" frequency="55" duration="0.2">
+ <sound gain="2.55" frequency="55" duration="0.2">
   <layer n="0">
-   <waveform src="sawtooth" ratio="0.4"/>
-   <waveform src="triangle" processing="add" ratio="0.025" pitch="2.0"/>
-   <waveform src="triangle" processing="add" ratio="0.05" pitch="4.0"/>
-   <waveform src="triangle" processing="modulate" ratio="2.0" pitch="5.0"/>
-   <filter type="frequency">
-    <slot n="0">
-     <param n="0" pitch="4.0">220.0</param>
-     <param n="1">1.0</param>
-     <param n="2">1.5</param>
-     <param n="3">2.0</param>
-    </slot>
-   </filter>
+   <waveform src="sawtooth"/>
+   <waveform src="triangle" processing="add" ratio="0.625" pitch="2.0"/>
+   <waveform src="triangle" processing="add" ratio="0.25" pitch="4.0"/>
+   <waveform src="triangle" processing="modulate" pitch="5.0"/>
   </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" src="envelope" release-time="0.4">
+  <filter type="frequency" src="envelope">
    <slot n="0">
-    <param n="0">0.279</param>
-    <param n="1">0.01</param>
-    <param n="2" auto="-0.6" min="0.943" max="1.11">0.0851</param>
-    <param n="3">0.12</param>
+    <param n="0" pitch="5.0">55.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0" auto="-0.6" min="0.943" max="1.11">0.0751</param>
-    <param n="1" auto="7.0">25.0</param>
+    <param n="0">2200.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">3.0</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain" src="envelope" release-time="0.4">
+   <slot n="0">
+    <param n="0">0.2</param>
+    <param n="1">0.01</param>
+    <param n="2">1.1</param>
+    <param n="3">0.03</param>
+   </slot>
+   <slot n="1">
+    <param n="0" auto="0.136" min="1.05" max="0.693">1.25</param>
+    <param n="1" auto="7.0">24.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">1.13</param>
+    <param n="0">1.5</param>
     <param n="1">0.01</param>
-    <param n="2">1.28</param>
-    <param n="3">0.01</param>
+    <param n="2">1.85</param>
+    <param n="3">0.02</param>
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
@@ -71,21 +77,9 @@
  <audioframe pan="-0.6">
   <filter type="equalizer">
    <slot n="0">
-    <param n="0">110.0</param>
-    <param n="1">0.7</param>
-    <param n="2">1.0</param>
-    <param n="3">3.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">2000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">2.0</param>
-   </slot>
-   <slot n="2">
     <param n="0">3000.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.3</param>
+    <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>
   </filter>

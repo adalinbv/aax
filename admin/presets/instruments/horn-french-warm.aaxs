@@ -12,38 +12,39 @@
 
 <aeonwave>
 
- <info name="Door Slamming" bank="3" program="125">
+ <info name="French Horn (Warm)" bank="0" program="60">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2023" by="Adalin B.V."/>
   <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="2" min="41" max="77" step="12"/>
  </info>
 
- <sound gain="1.15" frequency="220" duration="0.3">
+ <sound mode="1" gain="1.40" frequency="110" duration="0.1">
   <layer n="0">
-   <waveform src="white-noise" ratio="2.0" pitch="0.05"/>
-   <filter type="frequency" src="24db">
-    <slot n="0">
-     <param n="0" pitch="2.0">440.0</param>
-     <param n="1">0.7</param>
-     <param n="2">0.0</param>
-     <param n="3">2.2</param>
-    </slot>
-   </filter>
+   <waveform src="impulse" ratio="0.4" pitch="2.0"/>
+   <waveform src="sawtooth" processing="add" ratio="0.7"/>
   </layer>
  </sound>
 
  <emitter looping="true">
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0" pitch="3.0">330.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.01</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.222</param>
-    <param n="1">0.25</param>
-    <param n="2">0.335</param>
-    <param n="3">0.02</param>
+    <param n="0">0.484</param>
+    <param n="1">0.153</param>
+    <param n="2">1.0</param>
+    <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">1.67</param>
+    <param n="0">1.0</param>
     <param n="1">0.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -51,18 +52,20 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.2</param>
-    <param n="1">0.25</param>
-    <param n="2">0.3</param>
-    <param n="3">0.02</param>
+    <param n="0">0.55</param>
+    <param n="1">0.02</param>
+    <param n="2">0.475</param>
+    <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">1.2</param>
-    <param n="1">0.02</param>
-    <param n="2">0.75</param>
+    <param n="0">0.5</param>
+    <param n="1">4.5</param>
+    <param n="2">0.495</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
+
+ <audioframe pan="0.5"/>
 
 </aeonwave>

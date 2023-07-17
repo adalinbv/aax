@@ -20,7 +20,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.18" frequency="554.365">
+ <sound gain="1.18" frequency="554.365" voices="3" spread="0.97" phasing="true">
   <layer n="0">
    <waveform src="pink-noise" pitch="0.25"/>
    <waveform src="sawtooth" processing="mix" ratio="0.7"/>
@@ -36,6 +36,25 @@
     <param n="3">0.0</param>
    </slot>
   </filter>
+  <effect type="dynamic-pitch" src="randomness">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.4</param>
+    <param n="3">0.8</param>
+   </slot>
+  </effect>
  </emitter>
+
+ <audioframe>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0">3400.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">3.0</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

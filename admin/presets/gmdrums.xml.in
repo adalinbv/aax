@@ -167,7 +167,7 @@
    <drum n="35" name="Concert Bass Drum 2" file="drums/orchestra/drum-bass-acoustic"/>
    <drum n="36" name="Concert Bass Drum 1" file="drums/orchestra/drum-kick"/>
    <drum n="38" name="Concert Snare" file="drums/orchestra/drum-snare-acoustic"/>
-   <drum n="39" name="Castanets" file="effects/humans/castanets"/>
+   <drum n="39" name="Castanets" file="drums/castanets"/>
    <drum n="40" name="Concert Snare 2" file="drums/orchestra/drum-snare-electric"/>
    <drum n="41" name="Timpani F1" file="drums/orchestra/timpani-f1"/>
    <drum n="42" name="Timpani F1#" file="drums/orchestra/timpani-f1sharp"/>

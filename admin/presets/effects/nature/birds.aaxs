@@ -20,15 +20,29 @@
   <note polyphony="1" min="28" max="96" step="12" pitch-fraction="0.3"/>
  </info>
 
- <sound gain="3.23" frequency="220" duration="2.9">
+ <sound gain="1.23" frequency="220" duration="2.9">
   <layer n="0">
    <waveform src="sawtooth" pitch="0.15"/>
-   <waveform src="sawtooth" processing="modulate" pitch="0.009"/>
-   <waveform src="impulse" processing="modulate" ratio="2.0" pitch="0.0329"/>
+   <waveform src="sawtooth" processing="modulate" ratio="2.5" pitch="0.009"/>
+   <waveform src="impulse" processing="modulate" ratio="2.5" pitch="0.0329"/>
   </layer>
  </sound>
 
  <emitter looping="true">
+  <filter type="frequency" src="inverse-cycloid|24db|logarithmic">
+   <slot n="0">
+    <param n="0">1200.0</param>
+    <param n="1">0.0</param>
+    <param n="2">3.5</param>
+    <param n="3">45.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">3000.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.07</param>
+   </slot>
+  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.0</param>
@@ -43,14 +57,33 @@
     <param n="3">0.1</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="sine">
+  <filter type="dynamic-gain" src="inverse-cycloid">
    <slot n="0">
-    <param n="0">0.2</param>
-    <param n="1">4.0</param>
-    <param n="2">0.8</param>
-    <param n="3">0.2</param>
+    <param n="0">0.1</param>
+    <param n="1">4.7</param>
+    <param n="2">0.6</param>
+    <param n="3">0.4</param>
    </slot>
   </filter>
  </emitter>
+
+ <audioframe>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0">1200.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+  <filter type="dynamic-gain" src="cycloid">
+   <slot n="0">
+    <param n="0">0.3</param>
+    <param n="1">1.9</param>
+    <param n="2">0.6</param>
+    <param n="3">0.4</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

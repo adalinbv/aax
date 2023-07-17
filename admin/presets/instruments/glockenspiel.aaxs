@@ -23,7 +23,7 @@
  <sound gain="1.12" frequency="880" duration="0.1">
   <layer n="0">
    <waveform src="square" pitch="9.1"/>
-   <waveform src="sine" processing="modulate" pitch="4.298"/>
+   <waveform src="pure-sine" processing="modulate" pitch="4.298"/>
    <waveform src="sine" processing="mix" ratio="0.6"/>
   </layer>
  </sound>

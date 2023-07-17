@@ -20,7 +20,7 @@
   <note polyphony="2" min="58" max="91" step="12"/>
  </info>
 
- <sound gain="3.71" frequency="233.082" duration="0.3">
+ <sound gain="4.71" frequency="233.082" duration="0.3">
   <layer n="0">
    <waveform src="square"/>
    <waveform src="white-noise" processing="add" ratio="0.06" pitch="0.3"/>
@@ -62,23 +62,9 @@
  <audioframe pan="0.2">
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">800.0</param>
-    <param n="1">0.5</param>
-    <param n="2">0.8</param>
-    <param n="3">4.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1750.0</param>
-    <param n="1">0.8</param>
-    <param n="2">0.0</param>
-    <param n="3">1.2</param>
-   </slot>
-  </filter>
-  <filter type="frequency" optional="true">
-   <slot n="0">
     <param n="0">2000.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.1</param>
+    <param n="2">0.01</param>
     <param n="3">5.0</param>
    </slot>
   </filter>

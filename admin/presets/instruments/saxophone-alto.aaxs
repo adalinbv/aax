@@ -20,7 +20,7 @@
   <note polyphony="2" min="49" max="80" step="12"/>
  </info>
 
- <sound mode="1" gain="1.32" frequency="138.591" duration="0.5">
+ <sound mode="1" gain="3.32" frequency="138.591" duration="0.5">
   <layer n="0">
    <waveform src="triangle"/>
    <waveform src="triangle" processing="modulate" pitch="4.0"/>
@@ -62,34 +62,12 @@
  <audioframe pan="0.3">
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">770.0</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">2.0</param>
-   </slot>
-   <slot n="1">
     <param n="0">2500.0</param>
     <param n="1">1.0</param>
     <param n="2">0.01</param>
     <param n="3">1.0</param>
    </slot>
   </filter>
-  <effect type="chorus" src="envelope" optional="true">
-   <slot n="0">
-    <param n="0">0.6</param>
-    <param n="1">0.25</param>
-    <param n="2">0.05</param>
-    <param n="3">0.05</param>
-   </slot>
-  </effect>
-  <effect type="distortion" src="envelope|exponential">
-   <slot n="0">
-    <param n="0">0.5</param>
-    <param n="1">0.0</param>
-    <param n="2">0.1</param>
-    <param n="3">0.7</param>
-   </slot>
-  </effect>
  </audioframe>
 
 </aeonwave>

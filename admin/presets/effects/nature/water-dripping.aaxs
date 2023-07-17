@@ -58,6 +58,21 @@
   </layer>
  </sound>
 
- <emitter looping="true"/>
+ <emitter looping="true">
+  <filter type="frequency" src="inverse-envelope">
+   <slot n="0">
+    <param n="0">330.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.3</param>
+    <param n="3">80.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">8800.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">2.0</param>
+   </slot>
+  </filter>
+ </emitter>
 
 </aeonwave>

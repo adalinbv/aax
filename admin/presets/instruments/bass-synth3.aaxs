@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="Synth Bass 1" bank="0" program="38">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="6" min="28" max="88" step="12"/>
+ </info>
+
+ <sound gain="1.92" frequency="55">
+  <layer n="0">
+   <waveform src="sawtooth" pitch="2.0"/>
+   <waveform src="sawtooth" processing="modulate"/>
+   <waveform src="pure-sawtooth" processing="add"/>
+   <filter type="frequency">
+    <slot n="0">
+     <param n="0" pitch="4.0">220.0</param>
+     <param n="1">1.0</param>
+     <param n="2">0.7</param>
+     <param n="3">1.0</param>
+    </slot>
+   </filter>
+  </layer>
+  <layer n="1">
+   <waveform src="sawtooth" pitch="2.0"/>
+   <waveform src="sawtooth" processing="modulate"/>
+   <waveform src="pure-sawtooth" processing="add"/>
+   <filter type="frequency">
+    <slot n="0">
+     <param n="0" pitch="20.0">1100.0</param>
+     <param n="1">1.0</param>
+     <param n="2">0.7</param>
+     <param n="3">1.0</param>
+    </slot>
+   </filter>
+  </layer>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="dynamic-layer" src="inverse-timed">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.1</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain" src="envelope">
+   <slot n="0">
+    <param n="0">0.2</param>
+    <param n="1">0.01</param>
+    <param n="2">1.1</param>
+    <param n="3">0.15</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.601</param>
+    <param n="1">inf</param>
+    <param n="2">0.601</param>
+    <param n="3">0.2</param>
+   </slot>
+  </filter>
+ </emitter>
+
+</aeonwave>

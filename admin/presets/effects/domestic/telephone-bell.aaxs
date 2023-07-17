@@ -22,11 +22,11 @@
 
  <sound gain="1.29" frequency="1174.66">
   <layer n="0">
-   <waveform src="sine" pitch="1.21"/>
+   <waveform src="cycloid" pitch="1.21"/>
    <waveform src="triangle" processing="add" ratio="0.15" pitch="2.0"/>
-   <waveform src="sine" processing="add" ratio="0.1" pitch="2.59987"/>
-   <waveform src="sine" processing="add" ratio="0.05" pitch="8.5"/>
-   <waveform src="sine" processing="modulate" pitch="4.36"/>
+   <waveform src="sine" processing="add" ratio="0.1" pitch="3.39987"/>
+   <waveform src="sine" processing="add" ratio="0.05" pitch="3.7"/>
+   <waveform src="sine" processing="modulate" pitch="3.36"/>
    <waveform src="sine" processing="add" ratio="0.1" pitch="8.0"/>
   </layer>
  </sound>
@@ -46,12 +46,12 @@
     <param n="3">1.8</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="inverse-cycloid">
+  <filter type="dynamic-gain" src="cycloid">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">16.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.4</param>
+    <param n="1">17.0</param>
+    <param n="2">1.6</param>
+    <param n="3">0.8</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

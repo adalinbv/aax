@@ -27,6 +27,20 @@
  </sound>
 
  <emitter looping="true">
+  <filter type="frequency" src="inverse-envelope|logarithmic">
+   <slot n="0">
+    <param n="0" pitch="6.0">1320.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">4.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0" pitch="12.0">2640.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.014</param>
+   </slot>
+  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.128</param>
@@ -50,5 +64,16 @@
    </slot>
   </filter>
  </emitter>
+
+ <audioframe>
+  <filter type="dynamic-gain" src="inverse-sawtooth">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.014</param>
+    <param n="2">0.9</param>
+    <param n="3">0.2</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

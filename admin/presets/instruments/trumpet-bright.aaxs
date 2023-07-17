@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="Bright Trumpet" bank="0" program="56">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="2" min="48" max="94" step="12"/>
+ </info>
+
+ <sound gain="0.94" frequency="880" duration="0.5" ratio="1.75">
+  <layer n="0" ratio="1.75">
+   <waveform src="cycloid" pitch="2.0"/>
+   <waveform src="sawtooth" processing="add"/>
+  </layer>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain" src="envelope" release-time="0.1">
+   <slot n="0">
+    <param n="0">0.07</param>
+    <param n="1">0.03</param>
+    <param n="2">0.7</param>
+    <param n="3">0.05</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">inf</param>
+    <param n="2">1.0</param>
+    <param n="3">0.2</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">1.1</param>
+    <param n="1">0.02</param>
+    <param n="2">0.95</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">7.5</param>
+    <param n="2">0.98</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe pan="-0.3">
+  <filter type="equalizer" optional="true">
+   <slot n="0">
+    <param n="0">2800.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+ </audioframe>
+
+</aeonwave>

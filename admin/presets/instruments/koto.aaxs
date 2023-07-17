@@ -24,7 +24,7 @@
  <sound gain="1.69" frequency="220">
   <layer n="0">
    <waveform src="square"/>
-   <waveform src="sine" processing="modulate" pitch="3.0"/>
+   <waveform src="pure-sine" processing="modulate" pitch="3.0"/>
   </layer>
  </sound>
 

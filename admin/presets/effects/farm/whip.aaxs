@@ -20,16 +20,16 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.73" frequency="220" duration="0.3">
+ <sound gain="1.23" frequency="220" duration="0.3">
   <layer n="0">
    <waveform src="white-noise" pitch="0.05"/>
-   <waveform src="sine" processing="modulate" ratio="0.8" pitch="10.7587"/>
+   <waveform src="pure-sine" processing="modulate" ratio="0.8" pitch="10.7587"/>
    <filter type="frequency" src="24db">
     <slot n="0">
      <param n="0">4200.0</param>
      <param n="1">1.0</param>
-     <param n="2">0.575</param>
-     <param n="3">10.0</param>
+     <param n="2">0.06</param>
+     <param n="3">5.0</param>
     </slot>
    </filter>
    <filter type="frequency">

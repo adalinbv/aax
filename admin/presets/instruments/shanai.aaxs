@@ -20,7 +20,7 @@
   <note polyphony="10" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="0.87" frequency="220" duration="0.5">
+ <sound gain="1.07" frequency="220" duration="0.5">
   <layer n="0">
    <waveform src="square"/>
    <waveform src="square" processing="modulate" pitch="4.0"/>
@@ -44,22 +44,5 @@
    </slot>
   </filter>
  </emitter>
-
- <audioframe>
-  <filter type="equalizer" optional="true">
-   <slot n="0">
-    <param n="0">1050.0</param>
-    <param n="1">1.0</param>
-    <param n="2">1.2</param>
-    <param n="3">2.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">3000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">2.2</param>
-   </slot>
-  </filter>
- </audioframe>
 
 </aeonwave>

@@ -23,7 +23,12 @@
  <sound gain="2.74" frequency="220" duration="0.1">
   <layer n="0">
    <waveform src="square" ratio="0.5"/>
-   <waveform src="square" ratio="0.5" pitch="0.5"/>
+   <waveform src="sawtooth" processing="add" ratio="0.4" pitch="4.0"/>
+   <waveform src="triangle" processing="add" ratio="-0.4" pitch="3.0"/>
+   <waveform src="sine" processing="modulate" pitch="3.0"/>
+  </layer>
+  <layer n="1" pitch="2.0">
+   <waveform src="square" ratio="0.5"/>
    <waveform src="sawtooth" processing="add" ratio="0.4" pitch="4.0"/>
    <waveform src="triangle" processing="add" ratio="-0.4" pitch="3.0"/>
    <waveform src="sine" processing="modulate" pitch="3.0"/>
@@ -31,6 +36,14 @@
  </sound>
 
  <emitter looping="true">
+  <filter type="dynamic-layer">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.5</param>
+   </slot>
+  </filter>
   <filter type="timed-gain" src="envelope" release-time="0.4">
    <slot n="0">
     <param n="0">0.0828</param>

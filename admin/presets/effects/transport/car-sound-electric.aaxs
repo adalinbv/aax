@@ -54,4 +54,29 @@
   </effect>
  </emitter>
 
+ <audioframe>
+  <filter type="equalizer" optional="true">
+   <slot n="0">
+    <param n="0">125.0</param>
+    <param n="1">1.2</param>
+    <param n="2">0.7</param>
+    <param n="3">5.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">750.0</param>
+    <param n="1">0.7</param>
+    <param n="2">0.0</param>
+    <param n="3">3.0</param>
+   </slot>
+  </filter>
+  <effect type="distortion" src="envelope|exponential">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.0</param>
+    <param n="2">0.1</param>
+    <param n="3">0.7</param>
+   </slot>
+  </effect>
+ </audioframe>
+
 </aeonwave>

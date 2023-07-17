@@ -62,18 +62,6 @@
  <audioframe pan="-0.7">
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">500.0</param>
-    <param n="1">0.5</param>
-    <param n="2">1.5</param>
-    <param n="3">1.1</param>
-   </slot>
-   <slot n="1">
-    <param n="0">3000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.5</param>
-    <param n="3">2.0</param>
-   </slot>
-   <slot n="2">
     <param n="0">5500.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>

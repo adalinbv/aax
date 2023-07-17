@@ -65,4 +65,21 @@
   </effect>
  </emitter>
 
+ <audioframe>
+  <filter type="equalizer">
+   <slot n="0">
+    <param n="0">220.0</param>
+    <param n="1">1.5</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">2200.0</param>
+    <param n="1">1.0</param>
+    <param n="2">2.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </audioframe>
+
 </aeonwave>

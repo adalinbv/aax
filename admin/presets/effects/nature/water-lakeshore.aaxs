@@ -36,7 +36,15 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-gain" src="triangle">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.4</param>
+    <param n="2">1.0</param>
+    <param n="3">inf</param>
+   </slot>
+  </filter>
+  <filter type="dynamic-gain" src="cycloid">
    <slot n="0">
     <param n="0">0.8</param>
     <param n="1">0.4</param>

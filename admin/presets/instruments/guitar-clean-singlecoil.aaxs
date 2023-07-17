@@ -12,48 +12,47 @@
 
 <aeonwave>
 
- <info name="Rotor Blades">
+ <info name="Electric Guitar (Tc Single Coil)" bank="0" program="27">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2023" by="Adalin B.V."/>
   <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="6" min="40" max="86" step="12"/>
+  <aftertouch mode="2"/>
  </info>
 
- <sound gain="4.41" frequency="55" duration="3.3">
+ <sound mode="1" gain="4.11" frequency="110" duration="0.1">
   <layer n="0">
-   <waveform src="white-noise" ratio="80.0" pitch="0.75"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.96" pitch="2.0"/>
-   <waveform src="impulse" processing="modulate"/>
-   <filter type="frequency" src="48db">
-    <slot n="0">
-     <param n="0" pitch="46.0">2530.0</param>
-     <param n="1">1.0</param>
-     <param n="2">0.4</param>
-     <param n="3">1.4</param>
-    </slot>
-   </filter>
+   <waveform src="triangle"/>
+   <waveform src="square" processing="add" ratio="0.4" pitch="2.0"/>
+   <waveform src="triangle" processing="modulate" pitch="5.0"/>
   </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" release-time="0.2">
    <slot n="0">
-    <param n="0">0.121</param>
-    <param n="1">0.5</param>
-    <param n="2">0.6</param>
-    <param n="3">inf</param>
+    <param n="0">0.314</param>
+    <param n="1">0.01</param>
+    <param n="2">0.995</param>
+    <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.6</param>
-    <param n="1">0.5</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="0">0.697</param>
+    <param n="1">0.1</param>
+    <param n="2">0.517</param>
+    <param n="3">3.83</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.0555</param>
+    <param n="0">1.29</param>
+    <param n="1">0.02</param>
+    <param n="2">1.0</param>
+    <param n="3">4.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.985</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -61,12 +60,12 @@
   </effect>
  </emitter>
 
- <audioframe>
-  <filter type="frequency" src="24db">
+ <audioframe pan="-0.3">
+  <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">1250.0</param>
+    <param n="0">2000.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
+    <param n="2">0.5</param>
     <param n="3">1.5</param>
    </slot>
   </filter>

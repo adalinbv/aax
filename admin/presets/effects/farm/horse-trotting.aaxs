@@ -36,7 +36,7 @@
  </sound>
 
  <emitter looping="true" pan="0.55">
-  <filter type="timed-gain" repeat="max">
+  <filter type="timed-gain" src="envelope" repeat="max">
    <slot n="0">
     <param n="0">0.994</param>
     <param n="1">0.05</param>
@@ -56,7 +56,7 @@
     <param n="3">0.05</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">1.4</param>
     <param n="1">0.01</param>

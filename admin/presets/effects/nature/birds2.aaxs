@@ -20,7 +20,7 @@
   <note polyphony="4" min="36" max="96" step="12" pitch-fraction="0.5"/>
  </info>
 
- <sound gain="1.20" frequency="880" duration="0.1">
+ <sound gain="0.80" frequency="880" duration="0.1">
   <layer n="0">
    <waveform src="sine"/>
   </layer>
@@ -35,14 +35,33 @@
     <param n="3">0.1</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="cycloid">
+  <filter type="dynamic-gain" src="inverse-square">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">10.0</param>
+    <param n="1">0.5</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>
+
+ <audioframe>
+  <filter type="frequency" optional="true">
+   <slot n="0">
+    <param n="0" pitch="1.0">880.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">8.2</param>
+   </slot>
+  </filter>
+  <filter type="dynamic-gain" src="square">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">8.0</param>
+    <param n="2">2.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

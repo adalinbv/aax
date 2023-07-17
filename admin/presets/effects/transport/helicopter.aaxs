@@ -22,7 +22,7 @@
 
  <sound gain="2.20" frequency="55" duration="6.7">
   <layer n="0">
-   <waveform src="white-noise" ratio="100.0" pitch="0.5"/>
+   <waveform src="white-noise" ratio="7.0" pitch="0.5"/>
    <waveform src="sawtooth" processing="mix" ratio="0.98"/>
    <waveform src="sawtooth" processing="modulate" pitch="0.25"/>
   </layer>

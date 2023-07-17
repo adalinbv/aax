@@ -20,7 +20,7 @@
   <note polyphony="2" min="60" max="96" step="12" pitch-fraction="0.2"/>
  </info>
 
- <sound mode="1" gain="1.5" frequency="783.991" duration="0.3">
+ <sound mode="1" gain="1.50" frequency="783.991" duration="0.3">
   <layer n="0">
    <waveform src="pink-noise" staticity="0.02"/>
    <filter type="frequency" src="24db">

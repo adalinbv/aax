@@ -32,28 +32,9 @@
     </slot>
    </filter>
   </layer>
-  <layer n="1">
-   <waveform src="white-noise" ratio="15.0" pitch="0.012"/>
-   <filter type="frequency" src="24db">
-    <slot n="0">
-     <param n="0" pitch="3.25">252.8</param>
-     <param n="1">1.0</param>
-     <param n="2">0.0</param>
-     <param n="3">1.25</param>
-    </slot>
-   </filter>
-  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">3.0</param>
-    <param n="2">0.634</param>
-    <param n="3">0.366</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" release-time="2.0">
    <slot n="0">
     <param n="0">0.128</param>

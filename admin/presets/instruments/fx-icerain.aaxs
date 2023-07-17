@@ -22,8 +22,8 @@
 
  <sound gain="2.56" frequency="880" duration="0.1">
   <layer n="0">
-   <waveform src="square"/>
-   <waveform src="impulse" processing="add" ratio="-0.5" pitch="15.0"/>
+   <waveform src="pure-sine"/>
+   <waveform src="cycloid" processing="add" ratio="-0.5" pitch="15.0"/>
   </layer>
  </sound>
 
@@ -36,15 +36,15 @@
     <param n="3">6.0</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="sawtooth|exponential">
+  <filter type="dynamic-gain" src="pure-cycloid|exponential">
    <slot n="0">
-    <param n="0">3.0</param>
-    <param n="1">12.0</param>
-    <param n="2">0.50</param>
-    <param n="3">0.50</param>
+    <param n="0">0.3</param>
+    <param n="1">13.0</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">1.15</param>
     <param n="1">0.02</param>
@@ -52,7 +52,7 @@
     <param n="3">4.0</param>
    </slot>
    <slot n="1">
-    <param n="0">0.98</param>
+    <param n="0">0.9</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

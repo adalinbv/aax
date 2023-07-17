@@ -21,11 +21,11 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound mode="1" gain="1.89" frequency="55" duration="0.5">
+ <sound mode="1" gain="2.50" frequency="55" duration="0.5">
   <layer n="0">
    <waveform src="triangle" pitch="0.999"/>
-   <waveform src="sawtooth" processing="modulate" pitch="1.979"/>
-   <waveform src="sawtooth" processing="add" ratio="0.2" pitch="0.999"/>
+   <waveform src="pure-sawtooth" processing="modulate" pitch="1.979"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.1" pitch="0.999"/>
   </layer>
  </sound>
 

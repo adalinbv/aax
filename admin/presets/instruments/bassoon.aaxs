@@ -20,7 +20,7 @@
   <note polyphony="10" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="2.04" frequency="880" duration="0.3">
+ <sound mode="1" gain="2.04" frequency="880" duration="0.3">
   <layer n="0">
    <waveform src="square"/>
    <waveform src="sawtooth" processing="modulate" pitch="3.0"/>
@@ -28,7 +28,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" release-time="0.2">
+  <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.04</param>
@@ -60,20 +60,6 @@
 
  <audioframe pan="0.2">
   <filter type="equalizer" optional="true">
-   <slot n="0">
-    <param n="0">450.0</param>
-    <param n="1">0.3</param>
-    <param n="2">0.8</param>
-    <param n="3">2.5</param>
-   </slot>
-   <slot n="1">
-    <param n="0">900.0</param>
-    <param n="1">0.8</param>
-    <param n="2">0.0</param>
-    <param n="3">1.2</param>
-   </slot>
-  </filter>
-  <filter type="frequency" optional="true">
    <slot n="0">
     <param n="0">1100.0</param>
     <param n="1">1.0</param>

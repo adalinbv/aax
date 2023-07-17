@@ -12,36 +12,42 @@
 
 <aeonwave>
 
- <info name="Spring Clock" bank="0" program="14">
+ <info name="Helicopter">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2023" by="Adalin B.V."/>
   <copyright from="2017" until="2023" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="4" min="60" max="108" step="12"/>
+  <note polyphony="1" pitch-fraction="0.3"/>
  </info>
 
- <sound gain="0.81" frequency="440" duration="0.1">
+ <sound gain="2.20" frequency="55" duration="6.7">
   <layer n="0">
-   <waveform src="sine" pitch="1.21"/>
-   <waveform src="sine" processing="add" ratio="0.25" pitch="2.1"/>
-   <waveform src="sine" processing="modulate" pitch="4.2587"/>
+   <waveform src="white-noise" ratio="7.0" pitch="0.5"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.98"/>
+   <waveform src="sawtooth" processing="modulate" pitch="0.25"/>
   </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" src="envelope">
+  <filter type="timed-gain" src="envelope" release-time="2.0">
    <slot n="0">
-    <param n="0">1.81</param>
+    <param n="0">0.2</param>
+    <param n="1">0.75</param>
+    <param n="2">1.0</param>
+    <param n="3">1000.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
     <param n="1">2.0</param>
-    <param n="2">0.226</param>
-    <param n="3">2.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.326</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
+    <param n="0">0.75</param>
+    <param n="1">2.0</param>
+    <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

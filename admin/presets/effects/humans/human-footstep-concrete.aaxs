@@ -33,20 +33,9 @@
     </slot>
    </filter>
   </layer>
-  <layer n="1">
-   <waveform src="brownian-noise" ratio="0.4" pitch="0.35"/>
-  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">3.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">1.49</param>

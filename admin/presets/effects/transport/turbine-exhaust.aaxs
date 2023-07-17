@@ -28,4 +28,15 @@
 
  <emitter looping="true"/>
 
+ <audioframe>
+  <effect type="distortion" src="envelope|exponential">
+   <slot n="0">
+    <param n="0">3.0</param>
+    <param n="1">0.75</param>
+    <param n="2">0.2</param>
+    <param n="3">0.25</param>
+   </slot>
+  </effect>
+ </audioframe>
+
 </aeonwave>

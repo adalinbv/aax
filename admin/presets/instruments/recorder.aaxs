@@ -20,7 +20,7 @@
   <note polyphony="2" min="60" max="96" step="12"/>
  </info>
 
- <sound gain="1.29" frequency="261.626" duration="0.1">
+ <sound gain="3.29" frequency="261.626" duration="0.1">
   <layer n="0">
    <waveform src="sine"/>
    <waveform src="sine" processing="add" ratio="0.125" pitch="3.0"/>
@@ -30,7 +30,7 @@
  <emitter looping="true">
   <filter type="bitcrusher" src="envelope">
    <slot n="0">
-    <param n="0">0.1</param>
+    <param n="0">0.03</param>
     <param n="1">0.3</param>
     <param n="2">0.03</param>
     <param n="3">0.03</param>

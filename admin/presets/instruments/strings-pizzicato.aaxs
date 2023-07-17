@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="Pizzicato Solo" bank="0" program="45">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="16" min="28" max="96" step="12"/>
+  <aftertouch mode="2"/>
+ </info>
+
+ <sound gain="1.98" frequency="220">
+  <layer n="0">
+   <waveform src="pure-impulse" ratio="0.1"/>
+   <waveform src="cycloid" processing="add"/>
+  </layer>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain" src="envelope" release-time="0.2">
+   <slot n="0">
+    <param n="0">0.79</param>
+    <param n="1">0.05</param>
+    <param n="2">1.0</param>
+    <param n="3">0.464</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch" src="envelope">
+   <slot n="0">
+    <param n="0">21.7</param>
+    <param n="1">0.01</param>
+    <param n="2">1.0</param>
+    <param n="3">1.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.987</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe pan="-0.7">
+  <filter type="frequency" optional="true">
+   <slot n="0">
+    <param n="0">440.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.6</param>
+    <param n="3">4.0</param>
+   </slot>
+  </filter>
+ </audioframe>
+
+</aeonwave>

@@ -20,12 +20,12 @@
   <note polyphony="1"/>
  </info>
 
- <sound mode="1" fixed-gain="0.40" frequency="659.255" duration="3.3">
+ <sound mode="1" gain="1.65" frequency="659.255" duration="3.3">
   <layer n="0">
    <waveform src="white-noise"/>
    <filter type="frequency">
     <slot n="0">
-     <param n="0" pitch="2.5">1648.1</param>
+     <param n="0" pitch="2.3">1516.3</param>
      <param n="1">0.0</param>
      <param n="2">1.0</param>
      <param n="3">25.0</param>
@@ -37,20 +37,39 @@
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.285</param>
-    <param n="1">6.0</param>
-    <param n="2">0.247</param>
+    <param n="0">0.55</param>
+    <param n="1">4.0</param>
+    <param n="2">0.5</param>
     <param n="3">0.38</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">0.81</param>
-    <param n="1">4.0</param>
-    <param n="2">0.7</param>
+    <param n="0">1.81</param>
+    <param n="1">3.0</param>
+    <param n="2">1.6</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
+
+ <audioframe>
+  <filter type="frequency" optional="true">
+   <slot n="0">
+    <param n="0">5500.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.03</param>
+    <param n="3">7.5</param>
+   </slot>
+  </filter>
+  <effect type="distortion" src="envelope">
+   <slot n="0">
+    <param n="0">0.2</param>
+    <param n="1">0.3</param>
+    <param n="2">0.5</param>
+    <param n="3">0.7</param>
+   </slot>
+  </effect>
+ </audioframe>
 
 </aeonwave>

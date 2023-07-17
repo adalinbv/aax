@@ -20,12 +20,12 @@
   <note polyphony="1"/>
  </info>
 
- <sound mode="1" fixed-gain="2.00" frequency="329.628" duration="3.3">
+ <sound mode="1" gain="3.00" frequency="329.628" duration="3.3">
   <layer n="0">
    <waveform src="white-noise"/>
    <filter type="frequency">
     <slot n="0">
-     <param n="0" pitch="2.5">824.1</param>
+     <param n="0" pitch="2.3">758.1</param>
      <param n="1">0.0</param>
      <param n="2">1.0</param>
      <param n="3">25.0</param>
@@ -52,5 +52,24 @@
    </slot>
   </effect>
  </emitter>
+
+ <audioframe>
+  <filter type="frequency" optional="true">
+   <slot n="0">
+    <param n="0">3300.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.03</param>
+    <param n="3">3.5</param>
+   </slot>
+  </filter>
+  <effect type="distortion" src="envelope">
+   <slot n="0">
+    <param n="0">0.1</param>
+    <param n="1">0.7</param>
+    <param n="2">0.3</param>
+    <param n="3">0.3</param>
+   </slot>
+  </effect>
+ </audioframe>
 
 </aeonwave>

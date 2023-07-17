@@ -20,14 +20,28 @@
   <note polyphony="2" min="35" max="96" step="12"/>
  </info>
 
- <sound gain="1.57" frequency="880">
+ <sound gain="1.27" frequency="880">
   <layer n="0">
-   <waveform src="sawtooth" pitch="0.983"/>
-   <waveform src="impulse" processing="add" ratio="0.2"/>
+   <waveform src="sawtooth" pitch="0.983" voices="3"/>
+   <waveform src="impulse" processing="add" ratio="0.5"/>
   </layer>
  </sound>
 
  <emitter looping="true">
+  <filter type="frequency" src="inverse-timed|logarithmic" optional="true">
+   <slot n="0">
+    <param n="0" pitch="2.0">1760.0</param>
+    <param n="1">2.0</param>
+    <param n="2">0.0</param>
+    <param n="3">2.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0" pitch="10.0">8800.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.5</param>
+   </slot>
+  </filter>
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.571</param>
@@ -38,7 +52,7 @@
    <slot n="1">
     <param n="0">1.1</param>
     <param n="1">inf</param>
-    <param n="2">0.836</param>
+    <param n="2">1.1</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
@@ -51,7 +65,5 @@
    </slot>
   </effect>
  </emitter>
-
- <audioframe/>
 
 </aeonwave>

@@ -46,4 +46,15 @@
   </filter>
  </emitter>
 
+ <audioframe>
+  <effect type="distortion">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.8</param>
+    <param n="2">0.8</param>
+    <param n="3">0.3</param>
+   </slot>
+  </effect>
+ </audioframe>
+
 </aeonwave>

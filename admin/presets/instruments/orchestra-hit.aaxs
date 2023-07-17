@@ -20,11 +20,11 @@
   <note polyphony="16" min="48" max="127" step="6"/>
  </info>
 
- <sound gain="1.69" frequency="220" ratio="2.0">
-  <layer n="0" ratio="2.0">
-   <waveform src="impulse" processing="add" pitch="0.3"/>
-   <waveform src="cycloid" processing="add" ratio="0.6" pitch="0.5"/>
-   <waveform src="sawtooth" processing="add" ratio="0.3" pitch="0.991"/>
+ <sound gain="3.09" frequency="220">
+  <layer n="0">
+   <waveform src="impulse" pitch="0.6"/>
+   <waveform src="cycloid" processing="add" ratio="0.9" pitch="0.5" voices="5"/>
+   <waveform src="sawtooth" processing="add" ratio="0.2" pitch="0.991"/>
   </layer>
  </sound>
 

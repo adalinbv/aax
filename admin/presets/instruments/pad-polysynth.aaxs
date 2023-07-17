@@ -20,8 +20,8 @@
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.51" frequency="1760" duration="1.0">
-  <layer n="0" voices="3" spread="0.13" phasing="true">
+ <sound gain="1.51" frequency="1760" voices="3" spread="0.13" phasing="true">
+  <layer n="0">
    <waveform src="square" pitch="0.5"/>
    <waveform src="cycloid" processing="mix" ratio="0.5" pitch="1.5"/>
    <waveform src="sawtooth" processing="mix" ratio="0.7"/>

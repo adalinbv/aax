@@ -63,6 +63,14 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <effect type="dynamic-pitch" src="sine">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.25</param>
+    <param n="2">0.6</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
  </emitter>
 
 </aeonwave>

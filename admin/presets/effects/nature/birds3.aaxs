@@ -23,6 +23,7 @@
  <sound gain="1.00" frequency="880" duration="0.1">
   <layer n="0">
    <waveform src="square"/>
+   <waveform src="impulse" processing="add" ratio="-0.5"/>
   </layer>
  </sound>
 
@@ -35,14 +36,33 @@
     <param n="3">0.1</param>
    </slot>
   </filter>
-  <effect type="dynamic-pitch" src="inverse-impulse">
+  <filter type="dynamic-gain" src="inverse-impulse">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">12.0</param>
-    <param n="2">0.2</param>
-    <param n="3">0.6</param>
+    <param n="1">0.5</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
    </slot>
-  </effect>
+  </filter>
  </emitter>
+
+ <audioframe>
+  <filter type="dynamic-gain" src="square">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">8.5</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0">1900.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">2.0</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

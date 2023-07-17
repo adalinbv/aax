@@ -38,7 +38,7 @@
     <param n="3">0.01</param>
    </slot>
   </filter>
-  <filter type="dnamic-gain" src="inverse-randomness">
+  <filter type="dnamic-gain" src="cycloid">
    <slot n="0">
     <param n="0">1.0</param>
     <param n="1">0.3</param>
@@ -52,6 +52,14 @@
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
+   </slot>
+  </effect>
+  <effect type="dynamic-pitch" src="pure-sawtooth">
+   <slot n="0">
+    <param n="0">0.3</param>
+    <param n="1">1.71</param>
+    <param n="2">0.25</param>
+    <param n="3">0.75</param>
    </slot>
   </effect>
  </emitter>
