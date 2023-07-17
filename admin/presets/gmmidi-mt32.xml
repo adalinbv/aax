@@ -65,7 +65,7 @@
    <instrument n="48" name="Str Sect 1" file="instruments/strings-velocity"/>
    <instrument n="49" name="Str Sect 2" file="instruments/strings-synth1"/>
    <instrument n="50" name="Str Sect 2" file="instruments/string-ensemble1"/>
-   <instrument n="51" name="Pizzicato" file="instruments/string-pizzicato"/>
+   <instrument n="51" name="Pizzicato" file="instruments/strings-pizzicato"/>
    <instrument n="52" name="Violin 1" file="instruments/fiddle"/>
    <instrument n="53" name="Violin 2" file="instruments/violin"/>
    <instrument n="54" name="Cello 1" file="instruments/violin"/>
@@ -76,7 +76,7 @@
    <instrument n="59" name="Guitar 1" file="instruments/guitar-nylon"/>
    <instrument n="60" name="Guitar 2" file="instruments/guitar-steel"/>
    <instrument n="61" name="Elec Gtr 1" file="instruments/guitar-clean"/>
-   <instrument n="62" name="Elec Gtr 2" file="instruments/guitar-clean-jazz"/>
+   <instrument n="62" name="Elec Gtr 2" file="instruments/guitar-jazz"/>
    <instrument n="63" name="Sitar" file="instruments/sitar"/>
    <instrument n="64" name="Acou Bass 1" file="instruments/bass-acoustic"/>
    <instrument n="65" name="Acou Bass 2" file="instruments/bass-acoustic-wild"/>
