@@ -1111,6 +1111,7 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
             info->no_bytes = stream->param(id, DRIVER_NO_BYTES);
             info->blocksize = stream->param(id, DRIVER_BLOCK_SIZE);
             info->no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
+            info->rate = stream->param(id, DRIVER_FREQUENCY);
             no_bytes = (info->no_samples)*bits/8;
 
             if (info->blocksize) {
@@ -1190,6 +1191,7 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
                }
 
                // get the actual number of samples
+               info->rate = stream->param(id, DRIVER_FREQUENCY);
                info->no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
                info->loop_count = stream->param(id, DRIVER_LOOP_COUNT);
                info->loop_start = stream->param(id, DRIVER_LOOP_START);
