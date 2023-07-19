@@ -39,6 +39,7 @@ typedef struct
    int capturing;
    int mode;
 
+   int rate;
    int bitrate;
    int bits_sample;
    int patch_level;
@@ -50,11 +51,12 @@ typedef struct
    char copy_to_buffer;
 
    // We only support one instrument with one layer and one patch waveform
-   // per file. So we take the first of all of them.
+   // per file. So we take the first insrument unless the requested patch
+   // number is addedd to the device name using "?patch=<n>"
    _patch_header_t header;
    _instrument_data_t instrument;
    _layer_data_t layer;
-   _patch_data patch;
+   _patch_data_t patch; //current
    char trackno[8];
 
 } _driver_t;
@@ -86,6 +88,7 @@ _pat_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->capturing = (mode > 0) ? 0 : 1;
          handle->bits_sample = bits_sample;
          handle->bitrate = bitrate;
+         handle->rate = freq;
          handle->max_samples = 0;
          handle->info.rate = freq;
          handle->info.no_tracks = 1;
@@ -135,10 +138,13 @@ _pat_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
       {
          if (*bufsize >= WAVE_HEADER_SIZE)
          {
-            int res;
-
-            res = _aaxFormatDriverReadHeader(handle, buf, bufsize);
-            if (res > 0)
+            int res = _aaxFormatDriverReadHeader(handle, buf, bufsize);
+            if (res <= 0)
+            {
+               if (res == __F_EOF) *bufsize = 0;
+               rv = buf;
+            }
+            else
             {
                if (!handle->fmt)
                {
@@ -173,11 +179,6 @@ _pat_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                   ssize_t size = 0;
                   handle->fmt->open(handle->fmt, handle->mode, buf, &size, fsize);
                }
-            }
-            else
-            {
-               if (res == __F_EOF) *bufsize = 0;
-               rv = buf;
             }
          }
          else
@@ -406,6 +407,19 @@ _pat_set(_ext_t *ext, int type, off_t value)
 
 /* -------------------------------------------------------------------------- */
 
+static char*
+note2name(int n)
+{
+   static const char *notes[] = {
+      "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"
+   };
+   static char rv[16];
+
+   snprintf(rv, 16, "%s%i", notes[(n+3) % 12], n/12-2);
+
+   return rv;
+}
+
 static float
 env_rate_to_time(unsigned char rate, float prev, float next)
 {
@@ -437,20 +451,27 @@ static int
 _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *processed)
 {
    unsigned char *buffer = header;
+   ssize_t bufsize = *processed;
+   int loop_start, loop_end;
    float cents;
    int i, pos;
 
-#if 0
-   if (handle->skip > WAVE_HEADER_SIZE)
+   if (handle->skip > bufsize)
    {
-      handle->skip -= WAVE_HEADER_SIZE;
-//    *processed = WAVE_HEADER_SIZE;
+      handle->skip -= bufsize;
+      *processed = bufsize;
       return __F_NEED_MORE;
    }
-#endif
+   else if (handle->skip >= COMMENT_SIZE)
+   {
+      handle->skip -= COMMENT_SIZE;
+      *processed = COMMENT_SIZE;
+      return __F_NEED_MORE;
+   }
 
    *processed = handle->skip;
    header += handle->skip;
+   handle->skip = 0;
 
    if (!handle->header.instruments)
    {
@@ -481,6 +502,17 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
          handle->header.data_size += *header++ << 16;
          handle->header.data_size += *header++ << 24;
          header += PATCH_RESERVED_SIZE;
+#if 0
+ printf("= Header:\t\t%s\n", handle->header.header);
+ printf("Gravis id:\t\t%s\n", handle->header.gravis_id);
+ printf("Description:\t\t%s\n", handle->header.description);
+ printf("Instruments:\t\t%i\n", handle->header.instruments);
+ printf("Voices:\t\t\t%i\n", handle->header.voices);
+ printf("Channels:\t\t%i\n", handle->header.channels);
+ printf("Waveforms:\t\t%i\n", handle->header.waveforms);
+ printf("MasterVolume:\t\t%i\n\n", handle->header.master_volume);
+ printf("DataSize:\t\t%i\n", handle->header.data_size);
+#endif
 
          // Instrument Header
          handle->instrument.instrument = *header++;
@@ -496,6 +528,12 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
 
          handle->instrument.layers = *header++;
          header += INSTRUMENT_RESERVED_SIZE;
+#if 0
+ printf("== Instrument name:\t%s\n", handle->instrument.name);
+ printf("Instrument number:\t%i\n", handle->instrument.instrument);
+ printf("Instrument size:\t%i\n", handle->instrument.size);
+ printf("Instrument layers:\t%i\n\n", handle->instrument.layers);
+#endif
 
          // Layer Header
          handle->layer.layer_duplicate = *header++;
@@ -507,29 +545,14 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
          handle->layer.size += *header++ << 16;
          handle->layer.size += *header++ << 24;
 
-         handle->layer.samples = *header++;
+         handle->layer.waves = *header++;
          header += LAYER_RESERVED_SIZE;
 #if 0
- printf("Header:\t\t\t%s\n", handle->header.header);
- printf("Gravis id:\t\t%s\n", handle->header.gravis_id);
- printf("Description:\t\t%s\n", handle->header.description);
- printf("Instruments:\t\t%i\n", handle->header.instruments);
- printf("Voices:\t\t\t%i\n", handle->header.voices);
- printf("Channels:\t\t%i\n", handle->header.channels);
- printf("Waveforms:\t\t%i\n", handle->header.waveforms);
- printf("MasterVolume:\t\t%i\n\n", handle->header.master_volume);
- printf("DataSize:\t\t%i\n", handle->header.data_size);
-
- printf("Instrument name:\t%s\n", handle->instrument.name);
- printf("Instrument number:\t%i\n", handle->instrument.instrument);
- printf("Instrument size:\t%i\n", handle->instrument.size);
- printf("Instrument layers:\t%i\n\n", handle->instrument.layers);
-
- printf("Layer dupplicate:\t%i\n", handle->layer.layer_duplicate);
+ printf("=== Layer dupplicate:\t%i\n", handle->layer.layer_duplicate);
  printf("Layer number:\t\t%i\n", handle->layer.layer);
  printf("Layer size:\t\t%i\n", handle->layer.size);
- printf("Samples:\t\t%i\n", handle->layer.samples);
- printf("Sample requested:\t%i\n\n", handle->patch_level);
+ printf("Waves:\t\t%i\n", handle->layer.waves);
+ printf("Wave requested:\t%i\n\n", handle->patch_level+1);
 #endif
       }
       else {
@@ -606,14 +629,6 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    header += WAVE_RESERVED_SIZE;
 
    *processed += header-buffer;
-   if (handle->sample_num != handle->patch_level &&
-       handle->sample_num < handle->layer.samples)
-   {
-      handle->sample_num++;
-      *processed = -handle->patch.wave_size - (header-buffer);
-
-      return __F_NEED_MORE;
-   }
 
    switch (handle->patch.modes & MODE_FORMAT)
    {
@@ -641,10 +656,13 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    handle->info.blocksize = handle->info.no_tracks*handle->bits_sample/8;
    handle->info.no_samples = SIZE2SAMPLES(handle, handle->patch.wave_size);
 
-   handle->info.loop_start = SIZE2SAMPLES(handle, handle->patch.start_loop);
-   handle->info.loop_start += (float)(handle->patch.fractions >> 16)/16.0f;
+   loop_start = handle->patch.start_loop;
+   handle->info.loop_start = SIZE2SAMPLES(handle, loop_start);
+   handle->info.loop_start += (float)(handle->patch.fractions >> 4)/16.0f;
+   handle->info.loop_start += (float)(handle->patch.fractions >> 4)/16.0f;
 
-   handle->info.loop_end = SIZE2SAMPLES(handle, handle->patch.end_loop);
+   loop_end = handle->patch.end_loop;
+   handle->info.loop_end = SIZE2SAMPLES(handle, loop_end);
    handle->info.loop_end += (float)(handle->patch.fractions & 0xF)/16.0f;
 
    handle->info.base_frequency = 0.001f*handle->patch.root_frequency;
@@ -696,16 +714,18 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
       }
    }
 
-#if 0
- printf("Wave name:\t\t%s\n", handle->patch.wave_name);
- printf("Loop start:\t\t%g (%gs)\n", handle->info.loop_start,SAMPLES2TIME(handle,handle->info.loop_start));
- printf("Loop end:\t\t%g (%gs)\n", handle->info.loop_end,SAMPLES2TIME(handle,handle->info.loop_end));
- printf("Sample size:\t\t%i (%gs)\n",SIZE2SAMPLES(handle,handle->patch.wave_size),SAMPLES2TIME(handle,handle->info.no_samples));
+#if 1
+ printf("==== Wave name:\t\t%s\n", handle->patch.wave_name);
+ printf("Wave number:\t\t%i of %i\n", handle->sample_num+1, handle->layer.waves);
+ printf("Sample size:\t\t%i bytes, %i samples, %g sec\n",handle->patch.wave_size, SIZE2SAMPLES(handle,handle->patch.wave_size), SAMPLES2TIME(handle,handle->info.no_samples));
+ printf("Loop start:\t\t%i bytes, %g samples, %g sec\n", loop_start, handle->info.loop_start, SAMPLES2TIME(handle,handle->info.loop_start));
+ printf("Loop end:\t\t%i bytes, %g samples, %g sec\n", loop_end, handle->info.loop_end, SAMPLES2TIME(handle,handle->info.loop_end));
  printf("Sample rate:\t\t%i Hz\n", handle->patch.sample_rate);
- printf("Low Frequency:\t\t%g Hz\n", 0.001f*handle->patch.low_frequency);
- printf("High Frequency:\t\t%g Hz\n", 0.001f*handle->patch.high_frequency);
- printf("Root Frequency:\t\t%g Hz\n", 0.001f*handle->patch.root_frequency);
- printf("Panning:\t\t%.1f\n", (float)(handle->patch.balance - 7)/16.0f);
+ printf("Low Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->patch.low_frequency, FREQ2NOTE(0.001f*handle->patch.low_frequency), note2name(FREQ2NOTE(0.001f*handle->patch.low_frequency)));
+ printf("High Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->patch.high_frequency, FREQ2NOTE(0.001f*handle->patch.high_frequency), note2name(FREQ2NOTE(0.001f*handle->patch.high_frequency)));
+ printf("Root Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->patch.root_frequency, FREQ2NOTE(0.001f*handle->patch.root_frequency), note2name(FREQ2NOTE(0.001f*handle->patch.root_frequency)));
+ printf("Tune:\t\t\t%i\n", handle->patch.tune);
+ printf("Panning:\t\t%i (%s: %.1f)\n", handle->patch.balance, (handle->patch.balance < 7) ? "Left" : (handle->patch.balance == 7) ? "Center" : "Right", (float)(handle->patch.balance - 7)/16.0f);
 
  printf("Envelope Levels:\t");
  for (i=0; i<6; ++i) {
@@ -755,7 +775,19 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
             (handle->patch.modes & MODE_FAST_RELEASE) ? "yes" : "no");
  printf("Scale Frequency:\t%i\n", handle->patch.scale_frequency);
  printf("Scale Factor:\t\t%i (%gx)\n\n", handle->patch.scale_factor, handle->info.pitch_fraction);
+#else
+   (void)note2name(0);
 #endif
+
+   if (handle->sample_num != handle->patch_level &&
+       handle->sample_num < handle->layer.waves)
+   {
+      handle->sample_num++;
+      handle->skip = handle->patch.wave_size;
+      *processed += handle->skip;
+
+      return __F_NEED_MORE;
+   }
 
    return AAX_TRUE;
 }

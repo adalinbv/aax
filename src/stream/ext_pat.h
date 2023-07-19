@@ -29,6 +29,8 @@
 #define SIZE2SAMPLES(h,a)		(8*(a)/(h)->bits_sample)
 #define SAMPLES2TIME(h,a)		((float)(a)/(h)->patch.sample_rate)
 #define SIZE2TIME(h,a)			SAMPLES2TIME(SIZE2SAMPLES((h),(a)),(a))
+#define NOTE2FREQ(n)			(440.0f*powf(2.0f, (float(n)-69.0f)/12.0f))
+#define FREQ2NOTE(f)			rintf(12*(logf(f/220.0f)/log(2))+57)
 
 #define CVTSWEEP(a)			((a)/45.0f)
 #define CVTRATE(a)			(0.05f + (a)/42.843f)
@@ -77,40 +79,6 @@ enum
 
 typedef struct
 {
-   char header[GF1_HEADER_SIZE];
-   char gravis_id[PATCH_ID_SIZE];
-   char description[PATCH_DESC_SIZE];
-   unsigned char instruments;
-   char voices;
-   char channels;
-   unsigned short waveforms;
-   unsigned short master_volume;
-   unsigned int data_size;
-
-} _patch_header_t;
-
-typedef struct
-{
-   unsigned short instrument;
-   char name[INSTRUMENT_NAME_SIZE];
-   int size;
-   char layers;
-// char reserved[RESERVED_SIZE];
-
-} _instrument_data_t;
-
-typedef struct
-{
-   char layer_duplicate;
-   char layer;
-   int size;
-   char samples;
-// char reserved[LAYER_RESERVED_SIZE];
-
-} _layer_data_t;
-
-typedef struct
-{
    char wave_name[WAVE_NAME_SIZE];
 
    unsigned char fractions;
@@ -154,7 +122,41 @@ typedef struct
 
 // char reserved[PATCH_HEADER_RESERVED_SIZE];
 
-} _patch_data;
+} _patch_data_t;
+
+typedef struct
+{
+   char layer_duplicate;
+   char layer;
+   int size;
+   char waves;
+// char reserved[LAYER_RESERVED_SIZE];
+
+} _layer_data_t;
+
+typedef struct
+{
+   unsigned short instrument;
+   char name[INSTRUMENT_NAME_SIZE];
+   int size;
+   char layers;
+// char reserved[RESERVED_SIZE];
+
+} _instrument_data_t;
+
+typedef struct
+{
+   char header[GF1_HEADER_SIZE];
+   char gravis_id[PATCH_ID_SIZE];
+   char description[PATCH_DESC_SIZE];
+   unsigned char instruments;
+   char voices;
+   char channels;
+   unsigned short waveforms;
+   unsigned short master_volume;
+   unsigned int data_size;
+
+} _patch_header_t;
 
 #endif /* _EXT_PATCH */
 
