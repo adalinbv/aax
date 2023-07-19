@@ -56,7 +56,7 @@ typedef struct
    _patch_header_t header;
    _instrument_data_t instrument;
    _layer_data_t layer;
-   _patch_data_t patch; //current
+   _patch_data_t wave; //current
    char trackno[8];
 
 } _driver_t;
@@ -271,7 +271,7 @@ _pat_name(_ext_t *ext, enum _aaxStreamParam param)
       case __F_COPYRIGHT:
          rv = handle->header.header;
       case __F_COMMENT:
-         rv =  handle->patch.wave_name;
+         rv =  handle->wave.wave_name;
          break;
       case __F_TRACKNO:
          rv = handle->trackno;
@@ -324,11 +324,17 @@ _pat_get(_ext_t *ext, int type)
       switch (type)
       {
       case __F_LOOP_COUNT:
-         rv = (handle->patch.modes & MODE_LOOPING) ? OFF_T_MAX : 0;
+         rv = (handle->wave.modes & MODE_LOOPING) ? OFF_T_MAX : 0;
          break;
+      case __F_FREQUENCY:
+          rv = handle->info.rate;
+          break;
       case __F_NO_SAMPLES:
          rv = handle->info.no_samples;
          break;
+      case __F_NO_BYTES:
+          rv = handle->wave.wave_size;
+          break;
       case __F_LOOP_START:
          rv = handle->info.loop_start*16.0f;
          break;
@@ -336,10 +342,10 @@ _pat_get(_ext_t *ext, int type)
          rv = handle->info.loop_end*16.0f;
          break;
       case __F_ENVELOPE_SUSTAIN:
-         rv = (handle->patch.modes & MODE_ENVELOPE_SUSTAIN);
+         rv = (handle->wave.modes & MODE_ENVELOPE_SUSTAIN);
          break;
       case __F_SAMPLED_RELEASE:
-         rv = (handle->patch.modes & MODE_ENVELOPE_RELEASE) ? 0 : 1;
+         rv = (handle->wave.modes & MODE_ENVELOPE_RELEASE) ? 0 : 1;
          break;
       case __F_BASE_FREQUENCY:
          rv = handle->info.base_frequency*(1 << 16);
@@ -562,75 +568,75 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    }
 
    // Wave Header
-   memcpy(handle->patch.wave_name, header, WAVE_NAME_SIZE);
+   memcpy(handle->wave.wave_name, header, WAVE_NAME_SIZE);
    header += WAVE_NAME_SIZE;
 
-   handle->patch.fractions = *header++;
+   handle->wave.fractions = *header++;
 
-   handle->patch.wave_size = *header++;
-   handle->patch.wave_size += *header++ << 8;
-   handle->patch.wave_size += *header++ << 16;
-   handle->patch.wave_size += *header++ << 24;
+   handle->wave.wave_size = *header++;
+   handle->wave.wave_size += *header++ << 8;
+   handle->wave.wave_size += *header++ << 16;
+   handle->wave.wave_size += *header++ << 24;
 
-   handle->patch.start_loop = *header++;
-   handle->patch.start_loop += *header++ << 8;
-   handle->patch.start_loop += *header++ << 16;
-   handle->patch.start_loop += *header++ << 24;
+   handle->wave.start_loop = *header++;
+   handle->wave.start_loop += *header++ << 8;
+   handle->wave.start_loop += *header++ << 16;
+   handle->wave.start_loop += *header++ << 24;
 
-   handle->patch.end_loop = *header++;
-   handle->patch.end_loop += *header++ << 8;
-   handle->patch.end_loop += *header++ << 16;
-   handle->patch.end_loop += *header++ << 24;
+   handle->wave.end_loop = *header++;
+   handle->wave.end_loop += *header++ << 8;
+   handle->wave.end_loop += *header++ << 16;
+   handle->wave.end_loop += *header++ << 24;
 
-   handle->patch.sample_rate = *header++;
-   handle->patch.sample_rate += *header++ << 8;
+   handle->wave.sample_rate = *header++;
+   handle->wave.sample_rate += *header++ << 8;
 
-   handle->patch.low_frequency = *header++;
-   handle->patch.low_frequency += *header++ << 8;
-   handle->patch.low_frequency += *header++ << 16;
-   handle->patch.low_frequency += *header++ << 24;
+   handle->wave.low_frequency = *header++;
+   handle->wave.low_frequency += *header++ << 8;
+   handle->wave.low_frequency += *header++ << 16;
+   handle->wave.low_frequency += *header++ << 24;
 
-   handle->patch.high_frequency = *header++;
-   handle->patch.high_frequency += *header++ << 8;
-   handle->patch.high_frequency += *header++ << 16;
-   handle->patch.high_frequency += *header++ << 24;
+   handle->wave.high_frequency = *header++;
+   handle->wave.high_frequency += *header++ << 8;
+   handle->wave.high_frequency += *header++ << 16;
+   handle->wave.high_frequency += *header++ << 24;
 
-   handle->patch.root_frequency = *header++;
-   handle->patch.root_frequency += *header++ << 8;
-   handle->patch.root_frequency += *header++ << 16;
-   handle->patch.root_frequency += *header++ << 24;
+   handle->wave.root_frequency = *header++;
+   handle->wave.root_frequency += *header++ << 8;
+   handle->wave.root_frequency += *header++ << 16;
+   handle->wave.root_frequency += *header++ << 24;
 
-   handle->patch.tune = *header++;
-   handle->patch.tune += *header++ << 8;
+   handle->wave.tune = *header++;
+   handle->wave.tune += *header++ << 8;
 
-   handle->patch.balance = *header++;
+   handle->wave.balance = *header++;
 
-   memcpy(handle->patch.envelope_rate, header, ENVELOPES);
+   memcpy(handle->wave.envelope_rate, header, ENVELOPES);
    header += ENVELOPES;
 
-   memcpy(handle->patch.envelope_level, header, ENVELOPES);
+   memcpy(handle->wave.envelope_level, header, ENVELOPES);
    header += ENVELOPES;
 
-   handle->patch.tremolo_sweep = *header++;
-   handle->patch.tremolo_rate = *header++;
-   handle->patch.tremolo_depth = *header++;
+   handle->wave.tremolo_sweep = *header++;
+   handle->wave.tremolo_rate = *header++;
+   handle->wave.tremolo_depth = *header++;
 
-   handle->patch.vibrato_sweep= *header++;
-   handle->patch.vibrato_rate = *header++;
-   handle->patch.vibrato_depth = *header++;
+   handle->wave.vibrato_sweep= *header++;
+   handle->wave.vibrato_rate = *header++;
+   handle->wave.vibrato_depth = *header++;
 
-   handle->patch.modes = *header++;
+   handle->wave.modes = *header++;
 
-   handle->patch.scale_frequency = *header++;
-   handle->patch.scale_frequency += *header++ << 8;
+   handle->wave.scale_frequency = *header++;
+   handle->wave.scale_frequency += *header++ << 8;
 
-   handle->patch.scale_factor = *header++;
-   handle->patch.scale_factor += *header++ << 8;
+   handle->wave.scale_factor = *header++;
+   handle->wave.scale_factor += *header++ << 8;
    header += WAVE_RESERVED_SIZE;
 
    *processed += header-buffer;
 
-   switch (handle->patch.modes & MODE_FORMAT)
+   switch (handle->wave.modes & MODE_FORMAT)
    {
    case 0:
       handle->info.fmt = AAX_PCM8S;
@@ -652,32 +658,32 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
       break;
    }
 
-   handle->info.rate = handle->patch.sample_rate;
+   handle->info.rate = handle->wave.sample_rate;
    handle->info.blocksize = handle->info.no_tracks*handle->bits_sample/8;
-   handle->info.no_samples = SIZE2SAMPLES(handle, handle->patch.wave_size);
+   handle->info.no_samples = SIZE2SAMPLES(handle, handle->wave.wave_size);
 
-   loop_start = handle->patch.start_loop;
+   loop_start = handle->wave.start_loop;
    handle->info.loop_start = SIZE2SAMPLES(handle, loop_start);
-   handle->info.loop_start += (float)(handle->patch.fractions >> 4)/16.0f;
+   handle->info.loop_start += (float)(handle->wave.fractions >> 4)/16.0f;
 
-   loop_end = handle->patch.end_loop;
+   loop_end = handle->wave.end_loop;
    handle->info.loop_end = SIZE2SAMPLES(handle, loop_end);
-   handle->info.loop_end += (float)(handle->patch.fractions & 0xF)/16.0f;
+   handle->info.loop_end += (float)(handle->wave.fractions & 0xF)/16.0f;
 
-   handle->info.base_frequency = 0.001f*handle->patch.root_frequency;
-   handle->info.low_frequency = 0.001f*handle->patch.low_frequency;
-   handle->info.high_frequency = 0.001f*handle->patch.high_frequency;
+   handle->info.base_frequency = 0.001f*handle->wave.root_frequency;
+   handle->info.low_frequency = 0.001f*handle->wave.low_frequency;
+   handle->info.high_frequency = 0.001f*handle->wave.high_frequency;
 
-   cents = 100.0f*(handle->patch.scale_factor-1024.0f)/1024.0f;
+   cents = 100.0f*(handle->wave.scale_factor-1024.0f)/1024.0f;
    handle->info.pitch_fraction = cents2pitch(cents, 1.0f);
 
-   handle->info.tremolo_rate = CVTRATE(handle->patch.tremolo_rate);
-   handle->info.tremolo_depth = CVTDEPTH(handle->patch.tremolo_depth);
-   handle->info.tremolo_sweep = CVTSWEEP(handle->patch.tremolo_sweep);
+   handle->info.tremolo_rate = CVTRATE(handle->wave.tremolo_rate);
+   handle->info.tremolo_depth = CVTDEPTH(handle->wave.tremolo_depth);
+   handle->info.tremolo_sweep = CVTSWEEP(handle->wave.tremolo_sweep);
 
-   handle->info.vibrato_rate = CVTRATE(handle->patch.vibrato_rate);
-   handle->info.vibrato_depth = CVTDEPTH(handle->patch.vibrato_depth);
-   handle->info.vibrato_sweep = CVTSWEEP(handle->patch.vibrato_sweep);
+   handle->info.vibrato_rate = CVTRATE(handle->wave.vibrato_rate);
+   handle->info.vibrato_depth = CVTDEPTH(handle->wave.vibrato_depth);
+   handle->info.vibrato_sweep = CVTSWEEP(handle->wave.vibrato_sweep);
 
    /*
     * An array of 6 rates and levels to implement a 6-point envelope.
@@ -693,7 +699,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    {
       float level, rate;
 
-      if (i == 2 && (handle->patch.modes & MODE_ENVELOPE_SUSTAIN))
+      if (i == 2 && (handle->wave.modes & MODE_ENVELOPE_SUSTAIN))
       {
          level = handle->info.volume_envelope[2*(pos-1)];
          rate = AAX_FPINFINITE;
@@ -701,8 +707,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
       else
       {
          float prev = pos ? handle->info.volume_envelope[2*(pos-1)] : 0.0f;
-         level = env_level_to_level(handle->patch.envelope_level[i]);
-         rate = env_rate_to_time(handle->patch.envelope_rate[i], prev, level);
+         level = env_level_to_level(handle->wave.envelope_level[i]);
+         rate = env_rate_to_time(handle->wave.envelope_rate[i], prev, level);
       }
 
       if (rate)
@@ -714,17 +720,17 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    }
 
 #if 1
- printf("==== Wave name:\t\t%s\n", handle->patch.wave_name);
+ printf("==== Wave name:\t\t%s\n", handle->wave.wave_name);
  printf("Wave number:\t\t%i of %i\n", handle->sample_num+1, handle->layer.waves);
- printf("Sample size:\t\t%i bytes, %i samples, %.3g sec\n",handle->patch.wave_size, SIZE2SAMPLES(handle,handle->patch.wave_size), SAMPLES2TIME(handle,handle->info.no_samples));
+ printf("Sample size:\t\t%i bytes, %i samples, %.3g sec\n",handle->wave.wave_size, SIZE2SAMPLES(handle,handle->wave.wave_size), SAMPLES2TIME(handle,handle->info.no_samples));
  printf("Loop start:\t\t%i bytes, %.20g samples, %.3g sec\n", loop_start, handle->info.loop_start, SAMPLES2TIME(handle,handle->info.loop_start));
  printf("Loop end:\t\t%i bytes, %.20g samples, %.3g sec\n", loop_end, handle->info.loop_end, SAMPLES2TIME(handle,handle->info.loop_end));
- printf("Sample rate:\t\t%i Hz\n", handle->patch.sample_rate);
- printf("Low Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->patch.low_frequency, FREQ2NOTE(0.001f*handle->patch.low_frequency), note2name(FREQ2NOTE(0.001f*handle->patch.low_frequency)));
- printf("High Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->patch.high_frequency, FREQ2NOTE(0.001f*handle->patch.high_frequency), note2name(FREQ2NOTE(0.001f*handle->patch.high_frequency)));
- printf("Root Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->patch.root_frequency, FREQ2NOTE(0.001f*handle->patch.root_frequency), note2name(FREQ2NOTE(0.001f*handle->patch.root_frequency)));
- printf("Tune:\t\t\t%i\n", handle->patch.tune);
- printf("Panning:\t\t%i (%s: %.1f)\n", handle->patch.balance, (handle->patch.balance < 7) ? "Left" : (handle->patch.balance == 7) ? "Center" : "Right", (float)(handle->patch.balance - 7)/16.0f);
+ printf("Sample rate:\t\t%i Hz\n", handle->wave.sample_rate);
+ printf("Low Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->wave.low_frequency, FREQ2NOTE(0.001f*handle->wave.low_frequency), note2name(FREQ2NOTE(0.001f*handle->wave.low_frequency)));
+ printf("High Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->wave.high_frequency, FREQ2NOTE(0.001f*handle->wave.high_frequency), note2name(FREQ2NOTE(0.001f*handle->wave.high_frequency)));
+ printf("Root Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->wave.root_frequency, FREQ2NOTE(0.001f*handle->wave.root_frequency), note2name(FREQ2NOTE(0.001f*handle->wave.root_frequency)));
+ printf("Tune:\t\t\t%i\n", handle->wave.tune);
+ printf("Panning:\t\t%i (%s: %.1f)\n", handle->wave.balance, (handle->wave.balance < 7) ? "Left" : (handle->wave.balance == 7) ? "Center" : "Right", (float)(handle->wave.balance - 7)/16.0f);
 
  printf("Envelope Levels:\t");
  for (i=0; i<6; ++i) {
@@ -741,39 +747,39 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
   else printf("%4.2fs\t", v);
  }
  printf("\n");
- printf("Sampled release:\t%s\n", (handle->patch.envelope_level[ENVELOPES-1] > 8) ? "yes" : "no");
+ printf("Sampled release:\t%s\n", (handle->wave.envelope_level[ENVELOPES-1] > 8) ? "yes" : "no");
 
- printf("Tremolo Sweep:\t\t%3i (%.3g Hz)\n", handle->patch.tremolo_sweep,
+ printf("Tremolo Sweep:\t\t%3i (%.3g Hz)\n", handle->wave.tremolo_sweep,
                                              handle->info.tremolo_sweep);
- printf("Tremolo Rate:\t\t%3i (%.3g Hz)\n", handle->patch.tremolo_rate,
+ printf("Tremolo Rate:\t\t%3i (%.3g Hz)\n", handle->wave.tremolo_rate,
                                             handle->info.tremolo_rate);
- printf("Tremolo Depth:\t\t%3i (%.2g, %.3gdB)\n", handle->patch.tremolo_depth,
+ printf("Tremolo Depth:\t\t%3i (%.2g, %.3gdB)\n", handle->wave.tremolo_depth,
                                                   handle->info.tremolo_depth,
-                                       CVTDEPT2DB(handle->patch.tremolo_depth));
+                                       CVTDEPT2DB(handle->wave.tremolo_depth));
 
- printf("Vibrato Sweep:\t\t%3i (%.3g Hz)\n", handle->patch.vibrato_sweep,
+ printf("Vibrato Sweep:\t\t%3i (%.3g Hz)\n", handle->wave.vibrato_sweep,
                                              handle->info.vibrato_sweep);
- printf("Vibrato Rate:\t\t%3i (%.3g Hz)\n", handle->patch.vibrato_rate,
+ printf("Vibrato Rate:\t\t%3i (%.3g Hz)\n", handle->wave.vibrato_rate,
                                             handle->info.vibrato_rate);
  printf("Vibrato Depth:\t\t%3i (%.3g octave, %g cents)\n",
-                                                  handle->patch.vibrato_depth,
+                                                  handle->wave.vibrato_depth,
                                                   handle->info.vibrato_depth,
-                                    CVTDEPT2CENTS(handle->patch.vibrato_depth));
+                                    CVTDEPT2CENTS(handle->wave.vibrato_depth));
 
- printf("Modes:\t\t\t0x%x\n", handle->patch.modes);
+ printf("Modes:\t\t\t0x%x\n", handle->wave.modes);
  printf(" - Sample Format:\t%i-bit %s\n",
-            (handle->patch.modes & MODE_16BIT) ? 16 : 8,
-            (handle->patch.modes & MODE_UNSIGNED) ? "unsigned" : "signed");
+            (handle->wave.modes & MODE_16BIT) ? 16 : 8,
+            (handle->wave.modes & MODE_UNSIGNED) ? "unsigned" : "signed");
  printf(" - Looping:\t\t%s (%s-directional %s)\n",
-            (handle->patch.modes & MODE_LOOPING) ? "yes" : "no",
-            (handle->patch.modes & MODE_BIDIRECTIONAL) ? "bi" : "uni",
-            (handle->patch.modes & MODE_REVERSE) ? "backwards" : "forward");
+            (handle->wave.modes & MODE_LOOPING) ? "yes" : "no",
+            (handle->wave.modes & MODE_BIDIRECTIONAL) ? "bi" : "uni",
+            (handle->wave.modes & MODE_REVERSE) ? "backwards" : "forward");
  printf(" - Envelope:\t\tsustain: %s, release: %s, fast-release: %s\n",
-            (handle->patch.modes & MODE_ENVELOPE_SUSTAIN) ? "yes" : "no",
-            (handle->patch.modes & MODE_ENVELOPE_RELEASE) ? "envelope" : "note-off",
-            (handle->patch.modes & MODE_FAST_RELEASE) ? "yes" : "no");
- printf("Scale Frequency:\t%i\n", handle->patch.scale_frequency);
- printf("Scale Factor:\t\t%i (%.20gx)\n\n", handle->patch.scale_factor, handle->info.pitch_fraction);
+            (handle->wave.modes & MODE_ENVELOPE_SUSTAIN) ? "yes" : "no",
+            (handle->wave.modes & MODE_ENVELOPE_RELEASE) ? "envelope" : "note-off",
+            (handle->wave.modes & MODE_FAST_RELEASE) ? "yes" : "no");
+ printf("Scale Frequency:\t%i\n", handle->wave.scale_frequency);
+ printf("Scale Factor:\t\t%i (%.20gx)\n\n", handle->wave.scale_factor, handle->info.pitch_fraction);
 #else
    (void)note2name(0);
 #endif
@@ -782,7 +788,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
        handle->sample_num < handle->layer.waves)
    {
       handle->sample_num++;
-      handle->skip = handle->patch.wave_size;
+      handle->skip = handle->wave.wave_size;
       *processed += handle->skip;
 
       return __F_NEED_MORE;

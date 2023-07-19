@@ -27,7 +27,7 @@
 #endif
 
 #define SIZE2SAMPLES(h,a)		(8*(a)/(h)->bits_sample)
-#define SAMPLES2TIME(h,a)		((float)(a)/(h)->patch.sample_rate)
+#define SAMPLES2TIME(h,a)		((float)(a)/(h)->wave.sample_rate)
 #define SIZE2TIME(h,a)			SAMPLES2TIME(SIZE2SAMPLES((h),(a)),(a))
 #define NOTE2FREQ(n)			(440.0f*powf(2.0f, (float(n)-69.0f)/12.0f))
 #define FREQ2NOTE(f)			rintf(12*(logf(f/220.0f)/log(2))+57)
