@@ -659,7 +659,6 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    loop_start = handle->patch.start_loop;
    handle->info.loop_start = SIZE2SAMPLES(handle, loop_start);
    handle->info.loop_start += (float)(handle->patch.fractions >> 4)/16.0f;
-   handle->info.loop_start += (float)(handle->patch.fractions >> 4)/16.0f;
 
    loop_end = handle->patch.end_loop;
    handle->info.loop_end = SIZE2SAMPLES(handle, loop_end);
@@ -717,9 +716,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
 #if 1
  printf("==== Wave name:\t\t%s\n", handle->patch.wave_name);
  printf("Wave number:\t\t%i of %i\n", handle->sample_num+1, handle->layer.waves);
- printf("Sample size:\t\t%i bytes, %i samples, %g sec\n",handle->patch.wave_size, SIZE2SAMPLES(handle,handle->patch.wave_size), SAMPLES2TIME(handle,handle->info.no_samples));
- printf("Loop start:\t\t%i bytes, %g samples, %g sec\n", loop_start, handle->info.loop_start, SAMPLES2TIME(handle,handle->info.loop_start));
- printf("Loop end:\t\t%i bytes, %g samples, %g sec\n", loop_end, handle->info.loop_end, SAMPLES2TIME(handle,handle->info.loop_end));
+ printf("Sample size:\t\t%i bytes, %i samples, %.3g sec\n",handle->patch.wave_size, SIZE2SAMPLES(handle,handle->patch.wave_size), SAMPLES2TIME(handle,handle->info.no_samples));
+ printf("Loop start:\t\t%i bytes, %.20g samples, %.3g sec\n", loop_start, handle->info.loop_start, SAMPLES2TIME(handle,handle->info.loop_start));
+ printf("Loop end:\t\t%i bytes, %.20g samples, %.3g sec\n", loop_end, handle->info.loop_end, SAMPLES2TIME(handle,handle->info.loop_end));
  printf("Sample rate:\t\t%i Hz\n", handle->patch.sample_rate);
  printf("Low Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->patch.low_frequency, FREQ2NOTE(0.001f*handle->patch.low_frequency), note2name(FREQ2NOTE(0.001f*handle->patch.low_frequency)));
  printf("High Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->patch.high_frequency, FREQ2NOTE(0.001f*handle->patch.high_frequency), note2name(FREQ2NOTE(0.001f*handle->patch.high_frequency)));
@@ -774,7 +773,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
             (handle->patch.modes & MODE_ENVELOPE_RELEASE) ? "envelope" : "note-off",
             (handle->patch.modes & MODE_FAST_RELEASE) ? "yes" : "no");
  printf("Scale Frequency:\t%i\n", handle->patch.scale_frequency);
- printf("Scale Factor:\t\t%i (%gx)\n\n", handle->patch.scale_factor, handle->info.pitch_fraction);
+ printf("Scale Factor:\t\t%i (%.20gx)\n\n", handle->patch.scale_factor, handle->info.pitch_fraction);
 #else
    (void)note2name(0);
 #endif
