@@ -435,9 +435,7 @@ env_rate_to_time(unsigned char rate, float prev, float next)
    float FUR = 1.0f/(1.6f*14.0f); // 14 voices
    float VUR = FUR/(float)(1 << 3*(rate >> 6)); // Volume Update Rate
    float mantissa = (float)(rate & 0x3f);	// Volume Increase
-   float rv = fabsf(next-prev)/(244.0f*VUR)/mantissa;
-
-   return rv;
+   return fabsf(next-prev)/(244.0f*VUR)/mantissa;
 }
 
 static float
@@ -459,7 +457,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    unsigned char *buffer = header;
    ssize_t bufsize = *processed;
    int loop_start, loop_end;
-   float cents;
+   float cents, prev;
    int i, pos;
 
    if (handle->skip > bufsize)
@@ -679,11 +677,11 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
 
    handle->info.tremolo_rate = CVTRATE(handle->wave.tremolo_rate);
    handle->info.tremolo_depth = CVTDEPTH(handle->wave.tremolo_depth);
-   handle->info.tremolo_sweep = CVTSWEEP(handle->wave.tremolo_sweep);
+   handle->info.tremolo_sweep = CVTRATE(handle->wave.tremolo_sweep);
 
    handle->info.vibrato_rate = CVTRATE(handle->wave.vibrato_rate);
-   handle->info.vibrato_depth = CVTDEPTH(handle->wave.vibrato_depth);
-   handle->info.vibrato_sweep = CVTSWEEP(handle->wave.vibrato_sweep);
+   handle->info.vibrato_depth = CVTDEPTH2PITCH(handle->wave.vibrato_depth);
+   handle->info.vibrato_sweep = CVTRATE(handle->wave.vibrato_sweep);
 
    /*
     * An array of 6 rates and levels to implement a 6-point envelope.
@@ -695,27 +693,32 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
     * laste envelope point.
     */
    pos  = 1;
+   prev = 0.0f;
    for (i=0; i<6; ++i)
    {
       float level, rate;
 
       if (i == 2 && (handle->wave.modes & MODE_ENVELOPE_SUSTAIN))
       {
-         level = handle->info.volume_envelope[2*(pos-1)];
-         rate = AAX_FPINFINITE;
+//       level = handle->info.volume_envelope[2*(pos-1)];
+         level = prev;
+         rate = level ? AAX_FPINFINITE: 0.0f;
       }
       else
       {
-         float prev = pos ? handle->info.volume_envelope[2*(pos-1)] : 0.0f;
          level = env_level_to_level(handle->wave.envelope_level[i]);
          rate = env_rate_to_time(handle->wave.envelope_rate[i], prev, level);
       }
+      prev = level;
 
       if (rate)
       {
          handle->info.volume_envelope[2*pos] = level;
          handle->info.volume_envelope[2*pos-1] = rate;
          pos++;
+      }
+      if (i == 5 && level > 0.00005f) {
+         handle->wave.modes &= ~MODE_ENVELOPE_RELEASE;
       }
    }
 
@@ -730,15 +733,26 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
  printf("High Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->wave.high_frequency, FREQ2NOTE(0.001f*handle->wave.high_frequency), note2name(FREQ2NOTE(0.001f*handle->wave.high_frequency)));
  printf("Root Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->wave.root_frequency, FREQ2NOTE(0.001f*handle->wave.root_frequency), note2name(FREQ2NOTE(0.001f*handle->wave.root_frequency)));
  printf("Tune:\t\t\t%i\n", handle->wave.tune);
- printf("Panning:\t\t%i (%s: %.1f)\n", handle->wave.balance, (handle->wave.balance < 7) ? "Left" : (handle->wave.balance == 7) ? "Center" : "Right", (float)(handle->wave.balance - 7)/16.0f);
+ printf("Panning:\t\t%i (%s: %.1f)\n", handle->wave.balance, (handle->wave.balance < 5) ? "Left" : (handle->wave.balance > 9) ? "Right" : "Center", (float)(handle->wave.balance - 7)/16.0f);
 
+ printf("Envelope Levels (Raw):\t");
+ for (i=0; i<6; ++i) {
+  printf("%i\t", handle->wave.envelope_level[i]);
+ }
+ printf("\n");
+ printf("Envelope Rates (Raw):\t");
+ for (i=0; i<6; ++i) {
+  printf("0x%0x\t", handle->wave.envelope_rate[i]);
+ }
+ printf("\n");
+ printf("                      \t");
+ printf("----------------------------------------------\n");
  printf("Envelope Levels:\t");
  for (i=0; i<6; ++i) {
   float v = handle->info.volume_envelope[2*i];
   printf("%4.2f\t", v ? _MAX(v, 0.01f) : 0.0f);
  }
  printf("\n");
-
  printf("Envelope Rates:\t\t");
  for (i=0; i<6; ++i) {
   float v = handle->info.volume_envelope[2*i+1];
@@ -747,6 +761,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
   else printf("%4.2fs\t", v);
  }
  printf("\n");
+
  printf("Sampled release:\t%s\n", (handle->wave.envelope_level[ENVELOPES-1] > 8) ? "yes" : "no");
 
  printf("Tremolo Sweep:\t\t%3i (%.3g Hz)\n", handle->wave.tremolo_sweep,
@@ -779,7 +794,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
             (handle->wave.modes & MODE_ENVELOPE_RELEASE) ? "envelope" : "note-off",
             (handle->wave.modes & MODE_FAST_RELEASE) ? "yes" : "no");
  printf("Scale Frequency:\t%i\n", handle->wave.scale_frequency);
- printf("Scale Factor:\t\t%i (%.20gx)\n\n", handle->wave.scale_factor, handle->info.pitch_fraction);
+ printf("Scale Factor:\t\t%i (%.gx)\n\n", handle->wave.scale_factor, handle->info.pitch_fraction);
 #else
    (void)note2name(0);
 #endif
