@@ -1084,6 +1084,8 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
       xmlId *xid = xmlInitBuffer(xcfg, strlen(xcfg));
 
       // xid makes the stream return sound data in file format when capturing
+      // At least the PAT extension supports adding "?patch=<n>" to the URL
+      // to define which patch number, of possible many, to process.
       id = stream->connect(NULL, id, xid, url, AAX_MODE_READ);
       xmlClose(xid);
 
