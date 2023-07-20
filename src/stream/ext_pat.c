@@ -61,7 +61,7 @@ typedef struct
 
 } _driver_t;
 
-static float env_rate_to_time(unsigned char, float, float);
+static float env_rate_to_time(_driver_t*, unsigned char, float, float);
 static float env_level_to_level(unsigned char);
 static int _aaxFormatDriverReadHeader(_driver_t *, unsigned char*, ssize_t*);
 
@@ -269,7 +269,8 @@ _pat_name(_ext_t *ext, enum _aaxStreamParam param)
          rv = handle->instrument.name;
          break;
       case __F_COPYRIGHT:
-         rv = handle->header.header;
+         rv = handle->header.description;
+         break;
       case __F_COMMENT:
          rv =  handle->wave.wave_name;
          break;
@@ -427,12 +428,12 @@ note2name(int n)
 }
 
 static float
-env_rate_to_time(unsigned char rate, float prev, float next)
+env_rate_to_time(_driver_t *handle, unsigned char rate, float prev, float next)
 {
    // rate is defined as RRMMMMMM
    // where RR is the rate and MMMMMM the mantissa
 
-   float FUR = 1.0f/(1.6f*14.0f); // 14 voices
+   float FUR = 1.0f/(1.6f*handle->header.voices); // 14 voices
    float VUR = FUR/(float)(1 << 3*(rate >> 6)); // Volume Update Rate
    float mantissa = (float)(rate & 0x3f);	// Volume Increase
    return fabsf(next-prev)/(244.0f*VUR)/mantissa;
@@ -707,7 +708,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
       else
       {
          level = env_level_to_level(handle->wave.envelope_level[i]);
-         rate = env_rate_to_time(handle->wave.envelope_rate[i], prev, level);
+         rate = env_rate_to_time(handle, handle->wave.envelope_rate[i], prev, level);
       }
       prev = level;
 
@@ -722,7 +723,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
       }
    }
 
-#if 1
+#if 0
  printf("==== Wave name:\t\t%s\n", handle->wave.wave_name);
  printf("Wave number:\t\t%i of %i\n", handle->sample_num+1, handle->layer.waves);
  printf("Sample size:\t\t%i bytes, %i samples, %.3g sec\n",handle->wave.wave_size, SIZE2SAMPLES(handle,handle->wave.wave_size), SAMPLES2TIME(handle,handle->info.no_samples));
