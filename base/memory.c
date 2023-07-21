@@ -603,7 +603,7 @@ stradd(char *src, char *dest)
       rv = realloc(src, strlen(src)+strlen(dest)+3);
       if (rv)
       {
-         strcat(rv, ", ");
+         if (*rv) strcat(rv, ", ");
          strcat(rv, dest);
      }
      else {
