@@ -2,7 +2,6 @@
 set(SRC_HEADERS
   api.h
   arch.h
-  copyright.h
   objects.h
   ringbuffer.h
 )
@@ -14,11 +13,9 @@ set(SRC_SOURCES
   aax_effects.c
   aax_emitter.c
   aax_filters.c
-  aax_matrix.c
   aax_mixer.c
   aax_scenery.c
   aax_sensor.c
-  aax_support.c
   api.c
   objects.c
 )

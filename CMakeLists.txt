@@ -493,6 +493,7 @@ configure_file(
 
 aax_subdirectory(3rdparty)
 aax_subdirectory(base)
+aax_subdirectory(support)
 aax_subdirectory(src)
 
 # Build a static library
@@ -519,7 +520,7 @@ target_link_libraries(${LIBAEONWAVE}
 )
 
 # Create the copyright file
-execute_process(COMMAND "xxd" -include COPYING.v3 src/copyright.h
+execute_process(COMMAND "xxd" -include COPYING.v3 support/copyright.h
                 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} RESULT_VARIABLE varRes
 )
 
