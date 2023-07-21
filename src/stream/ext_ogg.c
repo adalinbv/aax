@@ -631,47 +631,47 @@ _ogg_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
       switch(param)
       {
       case __F_ARTIST:
-         handle->meta.artist = (char*)desc;
+         handle->meta.artist = strreplace(handle->meta.artist, desc);
          rv = AAX_TRUE;
          break;
       case __F_TITLE:
-         handle->meta.title = (char*)desc;
+         handle->meta.title = strreplace(handle->meta.title, desc);
          rv = AAX_TRUE;
          break;
       case __F_GENRE:
-         handle->meta.genre = (char*)desc;
+         handle->meta.genre = strreplace(handle->meta.genre, desc);
          rv = AAX_TRUE;
          break;
       case __F_TRACKNO:
-         handle->meta.trackno = (char*)desc;
+         handle->meta.trackno = strreplace(handle->meta.trackno, desc);
          rv = AAX_TRUE;
          break;
       case __F_ALBUM:
-         handle->meta.album = (char*)desc;
+         handle->meta.album = strreplace(handle->meta.album, desc);
          rv = AAX_TRUE;
          break;
       case __F_DATE:
-         handle->meta.date = (char*)desc;
-         rv = AAX_TRUE;
-         break;
-      case __F_COMPOSER:
-         handle->meta.composer = (char*)desc;
+         handle->meta.date = strreplace(handle->meta.date, desc);
          rv = AAX_TRUE;
          break;
       case __F_COMMENT:
-         handle->meta.comments = (char*)desc;
+         handle->meta.comments = strreplace(handle->meta.comments, desc);
          rv = AAX_TRUE;
          break;
       case __F_COPYRIGHT:
-         handle->meta.copyright = (char*)desc;
+         handle->meta.copyright = strreplace(handle->meta.copyright, desc);
+         rv = AAX_TRUE;
+         break;
+      case __F_COMPOSER:
+         handle->meta.composer = strreplace(handle->meta.composer, desc);
          rv = AAX_TRUE;
          break;
       case __F_ORIGINAL:
-         handle->meta.original = (char*)desc;
+         handle->meta.original = strreplace(handle->meta.original, desc);
          rv = AAX_TRUE;
          break;
       case __F_WEBSITE:
-         handle->meta.website = (char*)desc;
+         handle->meta.website = strreplace(handle->meta.website, desc);
          rv = AAX_TRUE;
          break;
       default:

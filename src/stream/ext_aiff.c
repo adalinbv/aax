@@ -586,48 +586,49 @@ _aiff_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
       switch(param)
       {
       case __F_ARTIST:
-         handle->meta.artist = (char*)desc;
+         handle->meta.artist = strreplace(handle->meta.artist, desc);
          rv = AAX_TRUE;
          break;
       case __F_TITLE:
-         handle->meta.title = (char*)desc;
+         handle->meta.title = strreplace(handle->meta.title, desc);
          rv = AAX_TRUE;
          break;
       case __F_GENRE:
-         handle->meta.genre = (char*)desc;
+         handle->meta.genre = strreplace(handle->meta.genre, desc);
          rv = AAX_TRUE;
          break;
       case __F_TRACKNO:
-         handle->meta.trackno = (char*)desc;
+         handle->meta.trackno = strreplace(handle->meta.trackno, desc);
          rv = AAX_TRUE;
          break;
       case __F_ALBUM:
-         handle->meta.album = (char*)desc;
+         handle->meta.album = strreplace(handle->meta.album, desc);
          rv = AAX_TRUE;
          break;
       case __F_DATE:
-         handle->meta.date = (char*)desc;
-         rv = AAX_TRUE;
-         break;
-      case __F_COMPOSER:
-         handle->meta.composer = (char*)desc;
+         handle->meta.date = strreplace(handle->meta.date, desc);
          rv = AAX_TRUE;
          break;
       case __F_COMMENT:
-         handle->meta.comments = (char*)desc;
+         handle->meta.comments = strreplace(handle->meta.comments, desc);
          rv = AAX_TRUE;
          break;
       case __F_COPYRIGHT:
-         handle->meta.copyright = (char*)desc;
+         handle->meta.copyright = strreplace(handle->meta.copyright, desc);
+         rv = AAX_TRUE;
+         break;
+      case __F_COMPOSER:
+         handle->meta.composer = strreplace(handle->meta.composer, desc);
          rv = AAX_TRUE;
          break;
       case __F_ORIGINAL:
-         handle->meta.original = (char*)desc;
+         handle->meta.original = strreplace(handle->meta.original, desc);
          rv = AAX_TRUE;
          break;
       case __F_WEBSITE:
-         handle->meta.website = (char*)desc;
+         handle->meta.website = strreplace(handle->meta.website, desc);
          rv = AAX_TRUE;
+         break;
       default:
          break;
       }
@@ -965,7 +966,7 @@ if (curr == 0x464f524d) // FORM
       break;
    case 0x4e414d45: // NAME
    case 0x41555448: // AUTH
-   case 0x28632920: // (c) 
+   case 0x28632920: // (c)
    case 0x414e4e4f: // ANNO
    {
       uint32_t type = curr;
@@ -985,7 +986,7 @@ if (curr == 0x464f524d) // FORM
       case 0x41555448: // AUTH
          handle->meta.artist = stradd(handle->meta.artist, field);
          break;
-      case 0x28632920: // (c) 
+      case 0x28632920: // (c)
          handle->meta.copyright = stradd(handle->meta.copyright, field);
          break;
       case 0x414e4e4f: // ANNO
@@ -1062,7 +1063,7 @@ if (curr == 0x464f524d) // FORM
    printf("Pitch Fraction: %f\n", handle->info.pitch_fraction);
 #endif
       break;
-   case 0x49443320: // ID3 
+   case 0x49443320: // ID3
    {
       pdmp3_handle id;
 
@@ -1075,7 +1076,7 @@ if (curr == 0x464f524d) // FORM
       memcpy(id.in, ch, bufsize);
       if (_aaxFormatDriverReadID3Header(&id, &handle->meta) == __F_NEED_MORE)
       {
-         handle->io.read.last_tag = 0x49443320; // ID3 
+         handle->io.read.last_tag = 0x49443320; // ID3
          rv = __F_NEED_MORE;
       }
       break;
