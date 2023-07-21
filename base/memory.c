@@ -595,37 +595,58 @@ strncasestr(const char *s, const char *find, size_t slen)
 }
 
 char*
-stradd(char *src, char *dest)
+strreplace(char *dst, char *src)
 {
    char *rv;
-   if (src)
+   if (dst)
    {
-      rv = realloc(src, strlen(src)+strlen(dest)+3);
+      size_t slen = strlen(src);
+
+      if (slen > strlen(dst)) rv = realloc(dst, slen+1);
+      else rv = dst;
+
+      if (rv) {
+         memcpy(rv, src, slen);
+      }
+   }
+   else {
+      rv = strdup(src);
+   }
+   return rv;
+}
+
+char*
+stradd(char *dst, char *src)
+{
+   char *rv;
+   if (dst)
+   {
+      rv = realloc(dst, strlen(src)+strlen(dst)+3);
       if (rv)
       {
          if (*rv) strcat(rv, ", ");
-         strcat(rv, dest);
+         strcat(rv, src);
      }
      else {
-        rv = src;
+        rv = dst;
      }
    }
    else {
-      rv = strdup(dest);
+      rv = strdup(src);
    }
    return rv;
 }
 
 #ifndef HAVE_STRLCPY
 size_t
-strlcpy(char *dest, const char *src, size_t n)
+strlcpy(char *dst, const char *src, size_t n)
 {
    size_t rv = 0;
    if (n > 0)
    {
-      memcpy(dest, src, _MIN(strlen(src)+1, n-1));
-      dest[n-1] = '\0';
-      rv = strlen(dest);
+      memcpy(dst, src, _MIN(strlen(src)+1, n-1));
+      dst[n-1] = '\0';
+      rv = strlen(dst);
    }
    return rv;
 }

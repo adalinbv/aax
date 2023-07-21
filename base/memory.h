@@ -71,6 +71,8 @@ double readfp80be(uint8_t**, size_t*);
 
 char *strnstr(const char*, const char*, size_t);
 char *strncasestr(const char*, const char*, size_t);
+
+char* strreplace(char*, char*);
 char* stradd(char*, char*);
 
 #ifndef HAVE_STRLCPY
