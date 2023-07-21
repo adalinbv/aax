@@ -81,12 +81,31 @@ enum
 
 } _modes;
 
+/*
+ * Patch file layout:
+ *
+ * patch header (# instruments)
+ *   instrument 1 header (# layers)
+ *     layer 1 header (# waves)
+ *       wave 1 header
+ *       wave 1 data
+ *       ...
+ *       wave n header
+ *       wave n data
+ *     layer 2 header
+ *       wave 1 header
+ *       wave 1 data
+ *       ...
+ *       wave n header
+ *       wave n data
+ */
+
 typedef struct
 {
-   char wave_name[WAVE_NAME_SIZE];
+   char name[WAVE_NAME_SIZE];
 
    unsigned char fractions;
-   int wave_size;
+   int size;
    int start_loop;
    int end_loop;
 
@@ -126,7 +145,7 @@ typedef struct
 
 // char reserved[PATCH_HEADER_RESERVED_SIZE];
 
-} _patch_data_t;
+} _wave_t;
 
 typedef struct
 {
@@ -136,7 +155,7 @@ typedef struct
    char waves;
 // char reserved[LAYER_RESERVED_SIZE];
 
-} _layer_data_t;
+} _layer_t;
 
 typedef struct
 {
@@ -146,7 +165,7 @@ typedef struct
    char layers;
 // char reserved[RESERVED_SIZE];
 
-} _instrument_data_t;
+} _instrument_t;
 
 typedef struct
 {
