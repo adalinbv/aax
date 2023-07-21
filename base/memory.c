@@ -595,7 +595,7 @@ strncasestr(const char *s, const char *find, size_t slen)
 }
 
 char*
-strreplace(char *dst, char *src)
+strreplace(char *dst, const char *src)
 {
    char *rv;
    if (dst)
@@ -616,7 +616,7 @@ strreplace(char *dst, char *src)
 }
 
 char*
-stradd(char *dst, char *src)
+stradd(char *dst, const char *src)
 {
    char *rv;
    if (dst)
