@@ -4,24 +4,6 @@ Short term projects:
 ================================================================================
 * Implement a MacOS CoreAudio backend (partly done using SDL)
 * Implement the OpenSL backend (partly done using SDL)
-* Fix and re-enable the PulseAudio backend (partly done using SDL)
 * Replace pdmp3 with minimp3
 * Fix and re-enable Opus support
 * Finish FLAC support using dr_flac
-
-================================================================================
-Long term projects:
-================================================================================
-
-* Voice synthesises:
-  http://www.bosleymusic.com/Papers/Bosley_Vocal_Synthesis.pdf
-  - Enable Waveform/Envelope following Filters/Effects
-
-* Finish MIDI support
-* Finish the Event manager
-
-* Instument maker software with automatic timbre reconstruction
-* Implement an audio analyzer which can create an AAXS sound buffer file from 
-  digital audio data:
-  - Wave shape detection using pffft
-  - Volume and Pitch envelope shape detection
