@@ -565,6 +565,7 @@ strnstr(const char *s, const char *find, size_t slen)
    return ((char *)s);
 }
 
+/* a case insensitive strnstr function */
 char *
 strncasestr(const char *s, const char *find, size_t slen)
 {
@@ -594,6 +595,7 @@ strncasestr(const char *s, const char *find, size_t slen)
    return ((char *)s);
 }
 
+/* replace dst with src and reallocate a larger buffer for dst if nequired */
 char*
 strreplace(char *dst, const char *src)
 {
@@ -615,6 +617,7 @@ strreplace(char *dst, const char *src)
    return rv;
 }
 
+/* add the contents of src to dst, possibly separated with a comma */
 char*
 stradd(char *dst, const char *src)
 {
@@ -635,6 +638,23 @@ stradd(char *dst, const char *src)
       rv = strdup(src);
    }
    return rv;
+}
+
+/* append src to dst which is a pre-allocated buffer of dlen size. */
+int
+strappend(char *dst, const char *src, ssize_t dlen)
+{
+   int rv = -1;
+   if (dst && dlen)
+   {
+      ssize_t slen = strlen(src);
+      if (dlen > slen)
+      {
+         char *ptr = dst+strlen(dst);
+         memcpy(ptr, src, slen+1);
+         rv = slen;
+      }
+   }
 }
 
 #ifndef HAVE_STRLCPY

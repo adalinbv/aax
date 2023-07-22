@@ -72,6 +72,7 @@ double readfp80be(uint8_t**, size_t*);
 char *strnstr(const char*, const char*, size_t);
 char *strncasestr(const char*, const char*, size_t);
 
+int strappend(char*, const char*c, ssize_t);
 char* strreplace(char*, const char*);
 char* stradd(char*, const char*);
 
