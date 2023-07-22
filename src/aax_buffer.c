@@ -115,7 +115,6 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
       buf->root = handle;
       buf->mixer_info = VALID_HANDLE(handle) ? &handle->info : &_info;
 
-      buf->ringbuffer[0] = _bufGetRingBuffer(buf, handle, 0);
       buf->midi_mode = AAX_RENDER_NORMAL;
       buf->to_mixer = AAX_FALSE;
       buf->mipmap = AAX_FALSE;
@@ -129,6 +128,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
       buf->info.no_tracks = tracks;
       buf->info.no_samples = samples;
       buf->info.blocksize = blocksize;
+      buf->ringbuffer[0] = _bufGetRingBuffer(buf, handle, 0);
 
       /* explicit request not to convert */
       env = getenv("AAX_USE_MIXER_FMT");
@@ -1029,6 +1029,7 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle, unsigned char pos)
       if (rb)
       {
          _buffer_info_t *info = &buf->info;
+
          /* initialize the ringbuffer in native format only */
          rb->set_paramf(rb, RB_FREQUENCY, info->rate);
          rb->set_format(rb, info->fmt & AAX_FORMAT_NATIVE, AAX_FALSE);
