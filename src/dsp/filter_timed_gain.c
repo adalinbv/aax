@@ -247,21 +247,48 @@ _aaxNewTimedGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
 }
 
 static float
-_aaxTimedGainFilterSet(float val, int ptype, UNUSED(unsigned char param))
+_aaxTimedGainFilterSet(float val, int ptype, unsigned char param)
 {
    float rv = val;
-   if (ptype == AAX_DECIBEL) {
-      rv = _lin2db(val);
+
+   if ((param % 2) == 0)
+   {
+      if (ptype == AAX_DECIBEL) {
+         rv = _lin2db(val);
+      }
+   }
+   else
+   {
+      if (ptype == AAX_SECONDS) {
+         rv = val;
+      } else if (ptype == AAX_MILLISECONDS) {
+         rv = val*1e3f;
+      } else if (ptype == AAX_MICROSECONDS) {
+         rv = val*1e6f;
+      }
    }
    return rv;
 }
 
 static float
-_aaxTimedGainFilterGet(float val, int ptype, UNUSED(unsigned char param))
+_aaxTimedGainFilterGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
-   if (ptype == AAX_DECIBEL) {
-      rv = _db2lin(val);
+   if ((param % 2) == 0)
+   {
+      if (ptype == AAX_DECIBEL) {
+         rv = _db2lin(val);
+      }
+   }
+   else
+   {
+      if (ptype == AAX_SECONDS) {
+         rv = val;
+      } else if (ptype == AAX_MILLISECONDS) {
+         rv = val*1e-3f;
+      } else if (ptype == AAX_MICROSECONDS) {
+         rv = val*1e-6f;
+      }
    }
    return rv;
 }
