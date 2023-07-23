@@ -655,6 +655,7 @@ strappend(char *dst, const char *src, ssize_t dlen)
          rv = slen;
       }
    }
+   return rv;
 }
 
 #ifndef HAVE_STRLCPY
