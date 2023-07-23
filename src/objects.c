@@ -56,7 +56,7 @@ _aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
    }
    info = *inf;
 
-   size = 2*sizeof(vec4f_t); 
+   size = 2*sizeof(vec4f_t);
    _aax_memcpy(&info->hrtf, &_aaxDefaultHead, size);
 
    size = _AAX_MAX_SPEAKERS * sizeof(vec4f_t);
@@ -274,7 +274,7 @@ _aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
  * up:    0.00ms, 0.100 ms, 0.015 ms
  * down:  0.00ms, 0.325 ms, 0.015 ms
  */
-float _aaxDefaultHead[2][4] = 
+float _aaxDefaultHead[2][4] =
 {
 //     RIGHT     UP        BACK
    { 0.000120f, 0.000125f, 0.000640f, 0.0f },   /* head delay factors */
@@ -307,7 +307,7 @@ float _aaxDefaultHRTFDelay[_AAX_MAX_SPEAKERS][4] =
    { 0.00f,-1.00f, 0.00f, 0.0f },        /* up-down              */
    { 0.00f, 0.00f, 1.00f, 0.0f },        /* back-front           */
    /* unused                                                     */
-   { 0.00f, 0.00f, 0.00f, 0.0f },        
+   { 0.00f, 0.00f, 0.00f, 0.0f },
    { 0.00f, 0.00f, 0.000, 0.0f }
 };
 
@@ -420,7 +420,7 @@ _aaxSetSlotFromAAXS(const xmlId *xid, int (*setStateFn)(void*, int, int), int (*
             slen = xmlAttributeCopyString(xsid, "type", src, 64);
             if (slen)
             {
-               src[slen] = 0; 
+               src[slen] = 0;
                type = aaxGetByName(src, AAX_TYPE_NAME);
             }
 
@@ -428,7 +428,7 @@ _aaxSetSlotFromAAXS(const xmlId *xid, int (*setStateFn)(void*, int, int), int (*
             if (xpid)
             {
                for (p=0; p<pnum; p++)
-               {  
+               {
                   if (xmlNodeGetPos(xsid, xpid, "param", p) != 0)
                   {
                      int slotnum[_MAX_FE_SLOTS] = { 0x00, 0x10, 0x20, 0x30 };
@@ -452,7 +452,7 @@ _aaxSetSlotFromAAXS(const xmlId *xid, int (*setStateFn)(void*, int, int), int (*
                         if (random != 0.0f) {
                            value += random*2.0f*(_aax_random()-0.5f);
                         }
- 
+
                         adjust = xmlAttributeGetDouble(xpid, "auto");
                         if (adjust != 0.0f)
                         {
@@ -465,7 +465,10 @@ _aaxSetSlotFromAAXS(const xmlId *xid, int (*setStateFn)(void*, int, int), int (*
                      }
 
                      slen = xmlAttributeCopyString(xpid, "type", src, 64);
-                     if (slen)
+                     if (slen == 0) {
+                        type = AAX_LINEAR;
+                     }
+                     else
                      {
                         src[slen] = 0;
                         type = aaxGetByName(src, AAX_TYPE_NAME);
