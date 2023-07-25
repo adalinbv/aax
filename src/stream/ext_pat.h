@@ -42,6 +42,8 @@
 #define CVTCENTS2PITCH(a)		(powf(2.0f, 2.0f*(a)/1200.0f)-1.0f)
 #define CVTDEPTH2PITCH(a)		(CVTCENTS2PITCH(CVTDEPT2CENTS(a)))
 
+/* As per Ultrasound Software Development Kit (SDK) */
+/* http://dk.toastednet.org/GUS/docs/UltraSound%20Lowlevel%20ToolKit%20v2.22%20(21%20December%201994).pdf */
 #define GF1_HEADER_SIZE			12
 #define GF1_HEADER_TEXT			"GF1PATCH110"
 #define PATCH_ID_SIZE			10
