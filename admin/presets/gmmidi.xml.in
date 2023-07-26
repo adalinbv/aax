@@ -39,7 +39,7 @@
 
 <aeonwave>
 
- <midi name="Advanced Grooves" version="@ULTRASYNTH_VERSION@">
+ <midi name="UltraSynth default" version="@ULTRASYNTH_VERSION@">
   <!-- GM -->
   <bank n="0">
    <instrument n="0" name="Acoustic Grand Piano" file="instruments/piano-concert"/>
