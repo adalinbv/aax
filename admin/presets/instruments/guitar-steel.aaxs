@@ -28,7 +28,7 @@
    <waveform src="square" processing="modulate" pitch="2.999"/>
    <filter type="frequency">
     <slot n="0">
-     <param n="0" pitch="5.0">660.0</param>
+     <param n="0" pitch="5.0">550.0</param>
      <param n="1">1.0</param>
      <param n="2">0.8</param>
      <param n="3">1.0</param>

@@ -20,9 +20,9 @@
   <note polyphony="4" min="36" max="72" step="12"/>
  </info>
 
- <sound mode="1" gain="2.00" frequency="65.4064" duration="0.5" ratio="3.0">
+ <sound mode="1" gain="2.00" frequency="65.4064" duration="0.5">
   <layer n="0">
-   <waveform src="pure-cycloid" ratio="0.7"/>
+   <waveform src="pure-cycloid"/>
    <waveform src="sawtooth" processing="add"/>
   </layer>
  </sound>
@@ -55,6 +55,12 @@
  <audioframe pan="-0.3">
   <filter type="equalizer" optional="true">
    <slot n="0">
+    <param n="0">64.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.5</param>
+    <param n="3">3.0</param>
+   </slot>
+   <slot n="1">
     <param n="0">110.0</param>
     <param n="1">1.0</param>
     <param n="2">0.9</param>

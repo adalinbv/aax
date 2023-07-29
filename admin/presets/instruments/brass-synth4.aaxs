@@ -24,7 +24,7 @@
   <layer n="0">
    <waveform src="sawtooth" ratio="0.75" pitch="0.993"/>
    <waveform src="impulse" processing="add" pitch="3.0"/>
-   <filter type="frequency">
+   <filter type="equalizer">
     <slot n="0">
      <param n="0" pitch="1.0">880.0</param>
      <param n="1">1.0</param>
@@ -36,9 +36,9 @@
   <layer n="1">
    <waveform src="sawtooth" ratio="0.75" pitch="0.993"/>
    <waveform src="impulse" processing="add" pitch="3.0"/>
-   <filter type="frequency">
+   <filter type="equalizer">
     <slot n="0">
-     <param n="0" pitch="8.0">4400.0</param>
+     <param n="0" pitch="3.0">2640.0</param>
      <param n="1">1.0</param>
      <param n="2">0.25</param>
      <param n="3">2.0</param>
@@ -48,7 +48,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="timed|logarithmic">
+  <filter type="dynamic-layer" src="timed|exponential">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">1.9</param>

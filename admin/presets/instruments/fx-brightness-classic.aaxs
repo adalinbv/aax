@@ -51,7 +51,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="inverse-timed|logarithmic">
+  <filter type="dynamic-layer" src="inverse-timed|exponential">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">2.5</param>

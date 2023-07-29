@@ -114,7 +114,7 @@
    <instrument n="69" name="English Horn" file="instruments/horn-english"/>
    <instrument n="70" name="Bassoon" file="instruments/bassoon"/>
    <instrument n="71" name="Clarinet" file="instruments/clarinet"/>
-   <instrument n="72" name="Piccolo" file="instruments/flute"/>
+   <instrument n="72" name="Piccolo" file="instruments/recorder"/>
    <instrument n="73" name="Flute" file="instruments/flute"/>
    <instrument n="74" name="Recorder" file="instruments/recorder"/>
    <instrument n="75" name="Pan Flute" file="instruments/flute-pan"/>

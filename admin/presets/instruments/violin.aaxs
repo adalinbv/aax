@@ -22,9 +22,8 @@
 
  <sound mode="1" gain="1.51" frequency="220" duration="0.5">
   <layer n="0">
-   <waveform src="sawtooth"/>
-   <waveform src="sawtooth" processing="modulate" pitch="3.0"/>
-   <waveform src="sawtooth" processing="add" ratio="0.5" pitch="0.997"/>
+   <waveform src="cycloid"/>
+   <waveform src="sawtooth" processing="add"/>
   </layer>
  </sound>
 

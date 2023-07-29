@@ -20,7 +20,7 @@
   <note polyphony="2" min="60" max="96" step="12"/>
  </info>
 
- <sound gain="2.20" frequency="880" duration="0.1">
+ <sound gain="2.20" frequency="880" duration="0.3">
   <layer n="0">
    <waveform src="square"/>
    <waveform src="sine" processing="mix" pitch="0.5"/>
@@ -34,7 +34,7 @@
    <slot n="0">
     <param n="0">0.25</param>
     <param n="1">2.0</param>
-    <param n="2">0.00</param>
+    <param n="2">0.1</param>
     <param n="3">0.0</param>
    </slot>
   </filter>

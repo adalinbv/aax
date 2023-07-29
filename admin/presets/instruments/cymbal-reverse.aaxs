@@ -41,9 +41,9 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">1.9</param>
+    <param n="1" auto="1.0">5.0</param>
     <param n="2">1.0</param>
-    <param n="3">0.0</param>
+    <param n="3">0.01</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="sawtooth">
@@ -57,7 +57,7 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">1.9</param>
+    <param n="1" auto="1.0">5.0</param>
     <param n="2">1.0</param>
     <param n="3">0.02</param>
    </slot>
