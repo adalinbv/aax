@@ -31,15 +31,15 @@
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">0.05</param>
+    <param n="1">0.025</param>
     <param n="2">0.857</param>
-    <param n="3">0.15</param>
+    <param n="3">0.075</param>
    </slot>
    <slot n="1">
     <param n="0">0.836</param>
     <param n="1">inf</param>
     <param n="2">0.836</param>
-    <param n="3">0.1</param>
+    <param n="3">0.05</param>
    </slot>
   </filter>
  </emitter>

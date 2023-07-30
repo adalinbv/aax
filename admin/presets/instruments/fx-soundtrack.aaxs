@@ -33,15 +33,15 @@
   <filter type="timed-gain" release-time="0.7">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.5</param>
+    <param n="1">0.25</param>
     <param n="2">1.0</param>
-    <param n="3">0.04</param>
+    <param n="3">0.02</param>
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
-    <param n="1">0.45</param>
+    <param n="1">0.225</param>
     <param n="2">0.903</param>
-    <param n="3">8.0</param>
+    <param n="3">4.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

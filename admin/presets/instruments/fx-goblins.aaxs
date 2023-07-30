@@ -32,13 +32,13 @@
   <filter type="timed-gain" release-time="0.7">
    <slot n="0">
     <param n="0">0.309</param>
-    <param n="1">0.05</param>
+    <param n="1">0.025</param>
     <param n="2">0.69</param>
-    <param n="3">0.5</param>
+    <param n="3">0.25</param>
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
-    <param n="1">8.0</param>
+    <param n="1">4.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

@@ -32,9 +32,9 @@
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
     <param n="0">0.79</param>
-    <param n="1">0.05</param>
+    <param n="1">0.025</param>
     <param n="2">1.0</param>
-    <param n="3">0.464</param>
+    <param n="3">0.232</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">

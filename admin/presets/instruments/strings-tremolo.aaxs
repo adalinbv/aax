@@ -32,15 +32,15 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.192</param>
-    <param n="1">0.0629</param>
+    <param n="1">0.0314</param>
     <param n="2">1.0</param>
-    <param n="3">0.1</param>
+    <param n="3">0.05</param>
    </slot>
    <slot n="1">
     <param n="0">0.895</param>
     <param n="1">inf</param>
     <param n="2">0.314</param>
-    <param n="3">0.5</param>
+    <param n="3">0.25</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="sine">
