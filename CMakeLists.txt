@@ -186,19 +186,19 @@ if(MSVC)
                PROPERTY COMPILE_FLAGS  "/arch:SSE /fp:fast -D__SSE__"
   )
   set_property(SOURCE src/software/cpu/arch3d_sse.c APPEND
-               PROPERTY COMPILE_FLAGS  "/arch:SSE /fp:fast -D__SSE__"
+               PROPERTY COMPILE_FLAGS  "/arch:SSE -D__SSE__"
   )
   set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE2__"
   )
   set_property(SOURCE src/software/cpu/arch3d_sse2.c APPEND
-               PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE2__"
+               PROPERTY COMPILE_FLAGS  "/arch:SSE2 -D__SSE2__"
   )
   set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
   )
   set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-               PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
+               PROPERTY COMPILE_FLAGS  "/arch:SSE2 -D__SSE3__"
   )
   set_property(SOURCE src/software/cpu/arch2d_sse4.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE4__"
@@ -207,19 +207,19 @@ if(MSVC)
                PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
   )
   set_property(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
-               PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
+               PROPERTY COMPILE_FLAGS  "/arch:AVX -D__AVX__"
   )
   set_property(SOURCE src/software/cpu/arch2d_avx.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
   )
   set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
-               PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
+               PROPERTY COMPILE_FLAGS  "/arch:AVX -D__AVX__"
   )
   set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:AVX2 /fp:fast -D__FMA__"
   )
   set_property(SOURCE src/software/cpu/arch3d_fma3.c APPEND
-               PROPERTY COMPILE_FLAGS  "/arch:AVX2 /fp:fast -D__FMA__"
+               PROPERTY COMPILE_FLAGS  "/arch:AVX2 -D__FMA__"
   )
 
   # don't use a /O[012x] flag if you want custom optimizations
