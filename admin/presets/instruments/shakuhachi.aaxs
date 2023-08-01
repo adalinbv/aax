@@ -20,7 +20,7 @@
   <note polyphony="2" min="55" max="84" step="12"/>
  </info>
 
- <sound gain="1.81" frequency="880" duration="0.5">
+ <sound mode="1" gain="1.51" frequency="880" duration="0.5">
   <layer n="0">
    <waveform src="triangle" ratio="0.8"/>
    <waveform src="pink-noise" processing="add" ratio="0.1" pitch="0.33"/>

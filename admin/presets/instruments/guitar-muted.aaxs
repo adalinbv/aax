@@ -21,7 +21,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.59" frequency="110" duration="0.1">
+ <sound mode="1" gain="1.69" frequency="110" duration="0.1">
   <layer n="0">
    <waveform src="cycloid"/>
    <waveform src="square" processing="add" ratio="0.3" pitch="2.0"/>
@@ -40,9 +40,9 @@
   </filter>
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">1.7</param>
+    <param n="0">0.9</param>
     <param n="1">0.01</param>
-    <param n="2">1.7</param>
+    <param n="2">1.1</param>
     <param n="3">0.01</param>
    </slot>
    <slot n="1">

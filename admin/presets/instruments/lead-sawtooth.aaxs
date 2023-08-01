@@ -20,7 +20,7 @@
   <note polyphony="8" min="21" max="108" step="12"/>
  </info>
 
- <sound gain="1.84" frequency="220" duration="0.3">
+ <sound gain="1.24" frequency="220" duration="0.3">
   <layer n="0">
    <waveform src="cycloid"/>
    <waveform src="cycloid" processing="mix" ratio="0.1" pitch="4.9897"/>

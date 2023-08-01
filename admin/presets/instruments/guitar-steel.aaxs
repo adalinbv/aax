@@ -21,19 +21,11 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.21" frequency="110" duration="0.1">
+ <sound gain="1.01" frequency="110" duration="0.1">
   <layer n="0">
-   <waveform src="pure-sine"/>
-   <waveform src="square" processing="mix" ratio="0.8" pitch="1.999"/>
+   <waveform src="pure-sine" ratio="0.8"/>
+   <waveform src="square" processing="add" pitch="2.0"/>
    <waveform src="square" processing="modulate" pitch="2.999"/>
-   <filter type="frequency">
-    <slot n="0">
-     <param n="0" pitch="5.0">550.0</param>
-     <param n="1">1.0</param>
-     <param n="2">0.8</param>
-     <param n="3">1.0</param>
-    </slot>
-   </filter>
   </layer>
  </sound>
 

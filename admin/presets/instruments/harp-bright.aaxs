@@ -21,7 +21,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.63" frequency="220" duration="0.1">
+ <sound mode="1" gain="1.23" frequency="220" duration="0.1">
   <layer n="0">
    <waveform src="pure-impulse" ratio="0.1"/>
    <waveform src="cycloid" processing="add" pitch="2.0"/>

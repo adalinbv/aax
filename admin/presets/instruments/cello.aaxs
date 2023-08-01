@@ -20,10 +20,10 @@
   <note polyphony="4" min="36" max="72" step="12"/>
  </info>
 
- <sound mode="1" gain="2.00" frequency="65.4064" duration="0.5">
+ <sound mode="1" gain="1.10" frequency="65.4064" duration="0.5">
   <layer n="0">
-   <waveform src="pure-cycloid"/>
-   <waveform src="sawtooth" processing="add"/>
+   <waveform src="sawtooth"/>
+   <waveform src="pure-cycloid" processing="add"/>
   </layer>
  </sound>
 

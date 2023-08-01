@@ -22,7 +22,7 @@
 
  <sound gain="3.52" frequency="220" duration="0.1" voices="3" spread="0.71">
   <layer n="0">
-   <waveform src="sine" ratio="0.1" pitch="3.0"/>
+   <waveform src="sine" ratio="0.1" pitch="2.0"/>
    <waveform src="triangle" processing="mix"/>
   </layer>
  </sound>

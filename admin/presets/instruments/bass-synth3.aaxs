@@ -20,7 +20,7 @@
   <note polyphony="6" min="28" max="88" step="12"/>
  </info>
 
- <sound gain="1.92" frequency="55">
+ <sound gain="1.62" frequency="55">
   <layer n="0">
    <waveform src="sawtooth" pitch="2.0"/>
    <waveform src="sawtooth" processing="modulate"/>

@@ -20,7 +20,7 @@
   <note polyphony="6" min="36" max="77" step="12"/>
  </info>
 
- <sound mode="1" gain="1.09" frequency="65.4064" duration="0.75">
+ <sound mode="1" gain="0.85" frequency="65.4064" duration="0.75">
   <layer n="0">
    <waveform src="impulse"/>
    <waveform src="cycloid" processing="add" ratio="0.3" pitch="1.987"/>

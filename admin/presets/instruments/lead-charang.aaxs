@@ -20,7 +20,7 @@
   <note polyphony="8" min="48" max="96" step="12"/>
  </info>
 
- <sound gain="2.20" frequency="130.813" duration="0.1">
+ <sound mode="1" gain="1.50" frequency="130.813" duration="0.1">
   <layer n="0">
    <waveform src="sawtooth" ratio="0.9"/>
    <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
@@ -46,7 +46,7 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.09</param>
-    <param n="1">0.11</param>
+    <param n="1">0.09</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>

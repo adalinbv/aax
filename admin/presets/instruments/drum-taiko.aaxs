@@ -20,7 +20,7 @@
   <note polyphony="4" min="60" max="77" step="1"/>
  </info>
 
- <sound gain="1.98" frequency="261.626" duration="2.0">
+ <sound gain="2.18" frequency="261.626" duration="2.0">
   <layer n="0">
    <waveform src="sine" ratio="0.2" pitch="0.5"/>
    <waveform src="sine" processing="add" ratio="0.2" pitch="0.64"/>

@@ -20,7 +20,7 @@
   <note polyphony="8" min="21" max="108" step="12"/>
  </info>
 
- <sound gain="2.52" frequency="440">
+ <sound mode="1" gain="1.52" frequency="440">
   <layer n="0">
    <waveform src="pure-square" pitch="0.9"/>
    <waveform src="square" processing="mix" ratio="0.5" pitch="1.987" voices="3" spread="0.007" phasing="true"/>
@@ -46,7 +46,7 @@
   </filter>
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">1.93</param>
+    <param n="0">1.95</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

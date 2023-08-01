@@ -23,13 +23,13 @@
  <sound gain="4.45" frequency="65.4064">
   <layer n="0">
    <waveform src="white-noise" ratio="0.1"/>
-   <waveform src="sine" processing="add" ratio="0.616324"/>
-   <waveform src="sine" processing="add" ratio="0.436324" pitch="2.0"/>
-   <waveform src="sine" processing="add" ratio="0.308894" pitch="3.0"/>
-   <waveform src="sine" processing="add" ratio="0.21868" pitch="4.0"/>
-   <waveform src="sine" processing="add" ratio="0.308894" pitch="5.0"/>
-   <waveform src="sine" processing="add" ratio="0.1096" pitch="6.0"/>
-   <waveform src="sine" processing="add" ratio="0.0775906" pitch="8.0"/>
+   <waveform src="sine" processing="add" ratio="1.3"/>
+   <waveform src="sine" processing="add" ratio="0.88" pitch="2.0"/>
+   <waveform src="sine" processing="add" ratio="0.6" pitch="3.0"/>
+   <waveform src="sine" processing="add" ratio="0.4" pitch="4.0"/>
+   <waveform src="sine" processing="add" ratio="0.6" pitch="5.0"/>
+   <waveform src="sine" processing="add" ratio="0.2" pitch="6.0"/>
+   <waveform src="sine" processing="add" ratio="0.14" pitch="8.0"/>
   </layer>
  </sound>
 

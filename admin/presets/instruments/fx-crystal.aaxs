@@ -23,7 +23,7 @@
  <sound gain="2.07" frequency="440" duration="0.35">
   <layer n="0">
    <waveform src="sine" pitch="1.696"/>
-   <waveform src="sine" processing="add" ratio="0.4" pitch="5.0"/>
+   <waveform src="cycloid" processing="add" ratio="0.2" pitch="5.0"/>
    <waveform src="pure-sine" processing="modulate" pitch="4.0587"/>
   </layer>
  </sound>
@@ -37,7 +37,7 @@
     <param n="3">0.025</param>
    </slot>
    <slot n="1">
-    <param n="0">0.852</param>
+    <param n="0">0.652</param>
     <param n="1">0.35</param>
     <param n="2">0.546</param>
     <param n="3">3.75</param>

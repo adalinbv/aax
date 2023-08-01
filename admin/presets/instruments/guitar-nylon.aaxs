@@ -21,7 +21,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="3.03" frequency="110" duration="0.1">
+ <sound gain="2.23" frequency="110" duration="0.1">
   <layer n="0">
    <waveform src="square"/>
    <waveform src="triangle" processing="modulate" pitch="2.999"/>
@@ -46,9 +46,9 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.934</param>
+    <param n="0">0.493</param>
     <param n="1">0.01</param>
-    <param n="2">1.0</param>
+    <param n="2">0.5</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

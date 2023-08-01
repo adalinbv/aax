@@ -20,7 +20,7 @@
   <note polyphony="88" min="21" max="108" step="12"/>
  </info>
 
- <sound gain="2.27" frequency="1760" duration="0.1">
+ <sound mode="1" gain="2.27" frequency="1760" duration="0.1">
   <layer n="0">
    <waveform src="triangle"/>
    <waveform src="triangle" processing="modulate" pitch="2.0"/>
@@ -33,10 +33,10 @@
     <param n="0">0.669</param>
     <param n="1">0.005</param>
     <param n="2">1.0</param>
-    <param n="3">0.375</param>
+    <param n="3">0.275</param>
    </slot>
    <slot n="1">
-    <param n="0">0.25</param>
+    <param n="0">0.4</param>
     <param n="1">2.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

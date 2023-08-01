@@ -40,7 +40,7 @@
     <param n="0">0.0134</param>
     <param n="1">0.025</param>
     <param n="2">1.0</param>
-    <param n="3">0.4</param>
+    <param n="3">0.5</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

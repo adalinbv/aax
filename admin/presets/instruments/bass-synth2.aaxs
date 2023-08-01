@@ -33,11 +33,11 @@
    <slot n="0">
     <param n="0">1.1</param>
     <param n="1">0.075</param>
-    <param n="2">0.601</param>
+    <param n="2">0.501</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">0.601</param>
+    <param n="0">0.501</param>
     <param n="1">0.1</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

@@ -21,7 +21,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="3.63" frequency="220" duration="0.1">
+ <sound gain="2.63" frequency="220" duration="0.1">
   <layer n="0">
    <waveform src="triangle"/>
    <waveform src="sawtooth" processing="add" ratio="0.1" pitch="3.0"/>

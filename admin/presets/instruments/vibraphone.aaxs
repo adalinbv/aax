@@ -34,10 +34,10 @@
     <param n="0">0.669</param>
     <param n="1">0.005</param>
     <param n="2">1.0</param>
-    <param n="3">0.375</param>
+    <param n="3">0.275</param>
    </slot>
    <slot n="1">
-    <param n="0">0.25</param>
+    <param n="0">0.5</param>
     <param n="1">2.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

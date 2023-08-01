@@ -21,18 +21,18 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound mode="1" gain="2.15" frequency="55" duration="0.5">
+ <sound mode="1" gain="1.80" frequency="55" duration="0.5">
   <layer n="0">
    <waveform src="triangle" pitch="1.999"/>
    <waveform src="pure-sawtooth" processing="modulate" pitch="1.979"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.35" pitch="0.999"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.3" pitch="0.999"/>
   </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
-    <param n="0">0.884</param>
+    <param n="0">0.981</param>
     <param n="1">0.025</param>
     <param n="2">1.0</param>
     <param n="3">0.895</param>
@@ -67,6 +67,12 @@
     <param n="1">1.5</param>
     <param n="2">1.0</param>
     <param n="3">1.5</param>
+   </slot>
+   <slot n="2">
+    <param n="0">3000.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.08</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
  </audioframe>

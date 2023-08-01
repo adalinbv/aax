@@ -20,9 +20,9 @@
   <note polyphony="2" min="49" max="80" step="12"/>
  </info>
 
- <sound mode="1" gain="3.32" frequency="138.591" duration="0.5">
+ <sound mode="1" gain="1.52" frequency="138.591" duration="0.5">
   <layer n="0">
-   <waveform src="triangle"/>
+   <waveform src="cycloid"/>
    <waveform src="triangle" processing="modulate" pitch="4.0"/>
    <waveform src="sawtooth" processing="add" ratio="0.33"/>
   </layer>
@@ -46,9 +46,9 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.995</param>
-    <param n="1">0.03</param>
+    <param n="1">0.02</param>
     <param n="2">1.1</param>
-    <param n="3">0.05</param>
+    <param n="3">0.03</param>
    </slot>
    <slot n="1">
     <param n="0">1.0</param>

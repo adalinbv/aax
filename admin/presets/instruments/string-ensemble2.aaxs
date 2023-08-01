@@ -20,7 +20,7 @@
   <note polyphony="16" min="28" max="127" step="12"/>
  </info>
 
- <sound gain="1.70" frequency="220" duration="2.1" voices="3" spread="0.23" phasing="true">
+ <sound gain="1.30" frequency="220" duration="2.1" voices="3" spread="0.23" phasing="true">
   <layer n="0">
    <waveform src="impulse" ratio="0.5"/>
    <waveform src="triangle" processing="modulate" pitch="4.0"/>
