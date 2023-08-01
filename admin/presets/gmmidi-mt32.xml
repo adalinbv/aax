@@ -46,7 +46,7 @@
    <instrument n="29" name="Syn Bass 2" file="instruments/bass-synth2"/>
    <instrument n="30" name="Syn Bass 3" file="instruments/bass-synth3"/>
    <instrument n="31" name="Syn Bass 4" file="instruments/bass-synth4"/>
-   <instrument n="32" name="Fantasy" file="instruments/fx-crystal"/>
+   <instrument n="32" name="Fantasy" file="instruments/fantasy"/>
    <instrument n="33" name="Harmo Pan" file="instruments/pad-warm"/>
    <instrument n="34" name="Chorale" file="instruments/pad-choir"/>
    <instrument n="35" name="Glasses" file="instruments/fx-brightness-classic"/>
