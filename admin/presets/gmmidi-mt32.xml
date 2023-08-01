@@ -12,7 +12,7 @@
  
 <aeonwave rate="45" polyphony="32">
 
- <midi>
+ <midi name="UltraSynth MT-32">
   <bank n="0">
    <instrument n="0" name="Acou Piano 1" file="instruments/piano-bright"/>
    <instrument n="1" name="Acou Piano 2" file="instruments/piano-concert"/>
