@@ -54,15 +54,14 @@
    <slot n="0">
     <param n="0">1.05</param>
     <param n="1">0.02</param>
-    <param n="2">0.876</param>
+    <param n="2">0.986</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">0.959</param>
+    <param n="0">1.0</param>
     <param n="1">4.5</param>
-    <param n="2">0.95</param>
+    <param n="2">0.985</param>
     <param n="3">0.0</param>
-   </slot>
   </effect>
  </emitter>
 
