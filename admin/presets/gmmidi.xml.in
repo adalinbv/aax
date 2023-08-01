@@ -676,7 +676,7 @@
   </bank>
 
   <bank n="0" l="64">
-   <instrument n="88" name="Fantasy" file="default/fantasy"/>
+   <instrument n="88" name="Fantasy" file="instruments/fantasy"/>
   </bank>
 
   <!-- MT32 -->
