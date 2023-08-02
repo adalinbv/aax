@@ -196,6 +196,9 @@ float _kpa2bar(float v);
 float _psi2kpa(float v);
 float _kpa2psi(float v);
 
+float _note2freq(int n);
+int _freq2note(float v);
+
 typedef float (*cvtfn_t)(float);
 
 FLOAT _lorentz(FLOAT v, FLOAT c);

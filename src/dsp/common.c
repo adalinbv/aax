@@ -85,4 +85,7 @@ inline float _kpa2bar(float v) { return v*100.0f; }
 inline float _psi2kpa(float v) { return v*0.1450377377f; }
 inline float _kpa2psi(float v) { return v*6.8947572932f; }
 
+inline int _freq2note(float v) { return rintf(12*(logf(v/220.0f)/log(2))+57); }
+inline float _note2freq(int n) { return 440.0f*powf(2.0f, ((float)n-69.0f)/12.0f); }
+
 inline FLOAT _lorentz(FLOAT v2, FLOAT c2) { return sqrt(1.0 - (v2/c2)) - 1.0f; }
