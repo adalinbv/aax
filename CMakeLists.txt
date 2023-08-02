@@ -116,7 +116,7 @@ else(WIN32)
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), debconf")
   set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "alsa-base | oss4-base")
   set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libmpg123-0, libopus0")
-  set(CPACK_DEBIAN_PACKAGE_REPLACES "libaax3-bin, libaax3-dev, libaax3-data, libaax4-bin, libaax4-dev, libaax4-data")
+  set(CPACK_DEBIAN_PACKAGE_REPLACES "libaax4-bin, libaax4-dev, libaax4-data")
   set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${AeonWave_SOURCE_DIR}/admin/deb/postinst;${AeonWave_SOURCE_DIR}/admin/deb/postrm;")
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
