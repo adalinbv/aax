@@ -473,19 +473,6 @@ _pat_set(_ext_t *ext, int type, off_t value)
 
 /* -------------------------------------------------------------------------- */
 
-static char*
-note2name(int n)
-{
-   static const char *notes[] = {
-      "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"
-   };
-   static char rv[16];
-
-   snprintf(rv, 16, "%s%i", notes[(n+3) % 12], n/12-2);
-
-   return rv;
-}
-
 static float
 env_rate_to_time(_driver_t *handle, unsigned char rate, float prev, float next)
 {
@@ -799,9 +786,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
  printf("Loop start:\t\t%i bytes, %.20g samples, %.3g sec\n", loop_start, handle->info.loop_start, SAMPLES2TIME(handle,handle->info.loop_start));
  printf("Loop end:\t\t%i bytes, %.20g samples, %.3g sec\n", loop_end, handle->info.loop_end, SAMPLES2TIME(handle,handle->info.loop_end));
  printf("Sample rate:\t\t%i Hz\n", handle->wave.sample_rate);
- printf("Low Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->wave.low_frequency, _freq2note(0.001f*handle->wave.low_frequency), note2name(_freq2note(0.001f*handle->wave.low_frequency)));
- printf("High Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->wave.high_frequency, _freq2note(0.001f*handle->wave.high_frequency), note2name(_freq2note(0.001f*handle->wave.high_frequency)));
- printf("Root Frequency:\t\t%g Hz, note %g (%s)\n", 0.001f*handle->wave.root_frequency, _freq2note(0.001f*handle->wave.root_frequency), note2name(_freq2note(0.001f*handle->wave.root_frequency)));
+ printf("Low Frequency:\t\t%g Hz, note %i (%s)\n", 0.001f*handle->wave.low_frequency, _freq2note(0.001f*handle->wave.low_frequency), _note2name(_freq2note(0.001f*handle->wave.low_frequency)));
+ printf("High Frequency:\t\t%g Hz, note %i (%s)\n", 0.001f*handle->wave.high_frequency, _freq2note(0.001f*handle->wave.high_frequency), _note2name(_freq2note(0.001f*handle->wave.high_frequency)));
+ printf("Root Frequency:\t\t%g Hz, note %i (%s)\n", 0.001f*handle->wave.root_frequency, _freq2note(0.001f*handle->wave.root_frequency), _note2name(_freq2note(0.001f*handle->wave.root_frequency)));
  printf("Tune:\t\t\t%i\n", handle->wave.tune);
  printf("Panning:\t\t%i (%s: %.1f)\n", handle->wave.balance, (handle->wave.balance < 5) ? "Left" : (handle->wave.balance > 9) ? "Right" : "Center", (float)(handle->wave.balance - 7)/16.0f);
 
@@ -865,8 +852,6 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
             (handle->wave.modes & MODE_FAST_RELEASE) ? "yes" : "no");
  printf("Scale Frequency:\t%i\n", handle->wave.scale_frequency);
  printf("Scale Factor:\t\t%i (%.gx)\n\n", handle->wave.scale_factor, handle->info.pitch_fraction);
-#else
-   (void)note2name(0);
 #endif
 
    if (handle->sample_num != handle->patch_level &&
