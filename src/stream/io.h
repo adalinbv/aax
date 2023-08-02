@@ -108,8 +108,8 @@ int _file_close(_io_t*);
 ssize_t _file_read(_io_t*, _data_t*, size_t);
 ssize_t _file_write(_io_t*, _data_t*);
 ssize_t _file_update_header(_io_t*, void*, size_t);
-int _file_set(_io_t*, int, ssize_t);
-ssize_t _file_get(_io_t*, int);
+int _file_set(_io_t*, enum _aaxStreamParam, ssize_t);
+ssize_t _file_get(_io_t*, enum _aaxStreamParam);
 char* _file_name(_io_t*, enum _aaxStreamParam);
 void _file_wait(_io_t*, float);
 
@@ -118,8 +118,8 @@ int _socket_open(_io_t*, _data_t*, const char*, const char*);
 int _socket_close(_io_t*);
 ssize_t _socket_read(_io_t*, _data_t*, size_t);
 ssize_t _socket_write(_io_t*, _data_t*);
-int _socket_set(_io_t*, int, ssize_t);
-ssize_t _socket_get(_io_t*, int);
+int _socket_set(_io_t*, enum _aaxStreamParam, ssize_t);
+ssize_t _socket_get(_io_t*, enum _aaxStreamParam);
 char* _socket_name(_io_t*, enum _aaxStreamParam);
 void _socket_wait(_io_t*, float);
 
