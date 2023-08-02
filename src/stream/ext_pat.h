@@ -26,17 +26,15 @@
 #include "config.h"
 #endif
 
+#include <dsp/common.h>
+
 #define SIZE2SAMPLES(h,a)		(8*(a)/(h)->bits_sample)
 #define SAMPLES2TIME(h,a)		((float)(a)/(h)->wave.sample_rate)
 #define SIZE2TIME(h,a)			SAMPLES2TIME(SIZE2SAMPLES((h),(a)),(a))
-#define NOTE2FREQ(n)			(440.0f*powf(2.0f, (float(n)-69.0f)/12.0f))
-#define FREQ2NOTE(f)			(rintf(12*(logf(f/220.0f)/log(2))+57))
-#define DB2LIN(v)			(powf(10.0f,v/20.0f))
-#define LIN2DB(v)			(20.0f*log10f(v))
 
 #define CVTSWEEP(a)			((a)/45.0f)
 #define CVTRATE(a)			(0.05f + (a)/42.843f)
-#define CVTDEPTH(a)			(DB2LIN(CVTDEPT2DB(a))-1.0f)
+#define CVTDEPTH(a)			(_db2lin(CVTDEPT2DB(a))-1.0f)
 #define CVTDEPT2DB(a)			((a) ? 0.047f + (a)*12.0f/256.0f : 0.0f)
 #define CVTDEPT2CENTS(a)		((a) ? 100.0f*CVTDEPT2DB(a) : 0.0f)
 #define CVTCENTS2PITCH(a)		(powf(2.0f, 2.0f*(a)/1200.0f)-1.0f)
