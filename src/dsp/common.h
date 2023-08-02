@@ -198,6 +198,7 @@ float _kpa2psi(float v);
 
 float _note2freq(int n);
 int _freq2note(float v);
+char *_note2name(int n);
 
 typedef float (*cvtfn_t)(float);
 

@@ -88,4 +88,13 @@ inline float _kpa2psi(float v) { return v*6.8947572932f; }
 inline int _freq2note(float v) { return rintf(12*(logf(v/220.0f)/log(2))+57); }
 inline float _note2freq(int n) { return 440.0f*powf(2.0f, ((float)n-69.0f)/12.0f); }
 
+char* _note2name(int n)
+{
+   static const char *notes[] =
+    { "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#" };
+   static char rv[16];
+   snprintf(rv, 16, "%s%i", notes[(n+3) % 12], n/12-2);
+   return rv;
+}
+
 inline FLOAT _lorentz(FLOAT v2, FLOAT c2) { return sqrt(1.0 - (v2/c2)) - 1.0f; }
