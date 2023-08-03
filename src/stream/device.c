@@ -469,7 +469,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 {
    _driver_t *handle = (_driver_t *)id;
    char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
-   char *s, *protname, *server, *path, *extension, *patch;
+   char *s, *protname, *server, *path, *extension, *mip_level;
    int res, port, rate, size, safe_path;
    int level = 0, rv = AAX_FALSE;
    _protocol_t protocol;
@@ -492,8 +492,8 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    s = strdup(handle->name);
 
-   patch = _url_get_param(s, "patch", NULL);
-   if (patch) level = atoi(patch);
+   mip_level = _url_get_param(s, "level", NULL);
+   if (mip_level) level = atoi(mip_level);
 
    protocol = _url_split(s, &protname, &server, &path, &extension, &port);
    if (!protocol) {
@@ -512,7 +512,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
  printf("timeout period: %4.1f ms\n", period_ms);
  printf("refresh rate: %f\n", *refresh_rate);
  printf("buffer size: %i bytes\n", size);
- printf("patch level: %u\n", level);
+ printf("mip level: %u\n", level);
  printf("stream mode: %s\n", m ? "write" : "read");
  printf("safe dir: %s\n\n", safe_path ? "yes" : "no");
 #endif
@@ -628,7 +628,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                                *tracks, file_format, period_frames, *bitrate);
       handle->ext->set_param(handle->ext,__F_COPY_DATA, handle->copy_to_buffer);
       handle->ext->set_param(handle->ext, __F_NO_BYTES, handle->no_bytes);
-      handle->ext->set_param(handle->ext, __F_PATCH_LEVEL, level);
+      handle->ext->set_param(handle->ext, __F_MIP_LEVEL, level);
       if (handle->io->protocol == PROTOCOL_HTTP ||
           handle->io->protocol == PROTOCOL_HTTPS)
       {

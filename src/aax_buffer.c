@@ -1085,7 +1085,7 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
       xmlId *xid = xmlInitBuffer(xcfg, strlen(xcfg));
 
       // xid makes the stream return sound data in file format when capturing
-      // At least the PAT extension supports adding "?patch=<n>" to the URL
+      // At least the PAT extension supports adding "?level=<n>" to the URL
       // to define which patch number, of possible many, to process.
       id = stream->connect(NULL, id, xid, url, AAX_MODE_READ);
       xmlClose(xid);
@@ -1599,6 +1599,7 @@ static inline float note2freq(uint8_t d) {
    return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
 }
 
+#if 0
 static int
 _bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fsize)
 {
@@ -1686,6 +1687,7 @@ _bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fs
 
    return rv;
 }
+#endif
 
 static int
 _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid)
@@ -2169,11 +2171,12 @@ _bufAAXSThread(void *d)
          fname = userCacheFile(hstr);
          if (fname)
          {
+#if 0
             size_t fsize = getFileSize(fname);
             if (fsize) {
                rv = _bufAAXSThreadReadFromCache(aax_buf, fname, fsize);
             }
-
+#endif
             if (!rv)
             {
                rv = _bufAAXSThreadCreateWaveform(aax_buf, xid);

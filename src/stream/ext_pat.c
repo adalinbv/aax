@@ -46,7 +46,7 @@ typedef struct
    int rate;
    int bitrate;
    int bits_sample;
-   int patch_level;
+   int mip_level;
    int sample_num;
    unsigned int max_samples;
    unsigned int offs, skip;
@@ -459,8 +459,8 @@ _pat_set(_ext_t *ext, int type, off_t value)
    case __F_COPY_DATA:
       handle->copy_to_buffer = value;
       break;
-   case __F_PATCH_LEVEL:
-      handle->patch_level = value;
+   case __F_MIP_LEVEL:
+      handle->mip_level = value;
       break;
    default:
       if (handle->fmt) {
@@ -603,7 +603,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
  printf("Layer number:\t\t%i\n", handle->layer.layer);
  printf("Layer size:\t\t%i\n", handle->layer.size);
  printf("Waves:\t\t%i\n", handle->layer.waves);
- printf("Wave requested:\t%i\n\n", handle->patch_level+1);
+ printf("Wave requested:\t%i\n\n", handle->mip_level+1);
 #endif
 
          snprintf(field, 8, "%u", handle->layer.layer);
@@ -860,7 +860,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
  printf("Scale Factor:\t\t%i (%.gx)\n\n", handle->wave.scale_factor, handle->info.pitch_fraction);
 #endif
 
-   if (handle->sample_num != handle->patch_level &&
+   if (handle->sample_num != handle->mip_level &&
        handle->sample_num < handle->layer.waves)
    {
       handle->offs = 0;
