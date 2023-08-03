@@ -104,6 +104,7 @@ enum _aaxDriverParam {
    DRIVER_LOOP_COUNT,
    DRIVER_LOOP_START,
    DRIVER_LOOP_END,
+   DRIVER_NO_PATCHES,
 
    /* boolean */
    DRIVER_SHARED_MODE = 0x200,

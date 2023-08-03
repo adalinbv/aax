@@ -1376,6 +1376,9 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_FAST_RELEASE:
          rv = (float)handle->ext->get_param(handle->ext, __F_FAST_RELEASE);
          break;
+      case DRIVER_NO_PATCHES:
+         rv = (float)handle->ext->get_param(handle->ext, __F_NO_PATCHES);
+         break;
       case DRIVER_BASE_FREQUENCY:
          rv = (float)handle->ext->get_param(handle->ext, __F_BASE_FREQUENCY)/(1 << 16);
          break;

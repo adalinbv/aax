@@ -267,6 +267,8 @@ typedef struct
    char sampled_release;
    char fast_release;
 
+   char no_patches;
+
    int polyphony;
 
 } _buffer_info_t;

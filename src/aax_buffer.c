@@ -392,7 +392,10 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          rv = handle->pos;
          break;
       case AAX_SAMPLED_RELEASE:
-         rv= handle->info.sampled_release;
+         rv = handle->info.sampled_release;
+         break;
+      case AAX_MAX_PATCHES:
+         rv = handle->info.no_patches;
          break;
       case AAX_COMPRESSION_VALUE:
          rv = handle->gain*10000;
@@ -1238,6 +1241,7 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
                info->envelope_sustain = stream->param(id, DRIVER_ENVELOPE_SUSTAIN);
                info->sampled_release = stream->param(id, DRIVER_SAMPLED_RELEASE);
                info->fast_release = stream->param(id, DRIVER_FAST_RELEASE);
+               info->no_patches = stream->param(id, DRIVER_NO_PATCHES);
 
 #if 0
  printf("no. samples:\t\t%lu\n", info->no_samples);

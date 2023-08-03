@@ -66,7 +66,7 @@ enum _aaxStreamParam
    __F_CHANNEL_MASK,
 
    __F_MIP_LEVEL,
-   __F_NO_MIP_LEVELS,
+   __F_NO_PATCHES,
    __F_LOOP_COUNT,
    __F_LOOP_START,
    __F_LOOP_END,

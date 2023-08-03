@@ -39,20 +39,21 @@ typedef struct
    _fmt_t *fmt;
 
    struct _meta_t meta;
-
-   int capturing;
-   int mode;
-
-   int rate;
-   int bitrate;
-   int bits_sample;
-   int mip_level;
-   int sample_num;
-   unsigned int max_samples;
-   unsigned int offs, skip;
    _buffer_info_t info;
 
    char copy_to_buffer;
+
+   char mip_level;
+   char bits_sample;
+
+   int rate;
+   int bitrate;
+   int sample_num;
+   unsigned int max_samples;
+   unsigned int offs, skip;
+
+   int capturing;
+   int mode;
 
    // We only support one instrument with one layer and one waveform
    // per file. So we take the first insrument unless the requested patch
@@ -401,6 +402,9 @@ _pat_get(_ext_t *ext, int type)
          break;
       case __F_LOOP_END:
          rv = handle->info.loop_end*16.0f;
+         break;
+      case __F_NO_PATCHES:
+         rv = handle->layer.waves;
          break;
       case __F_ENVELOPE_SUSTAIN:
          rv = (handle->wave.modes & MODE_ENVELOPE_SUSTAIN);
