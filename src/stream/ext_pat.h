@@ -102,7 +102,7 @@ enum
 
 typedef struct
 {
-   char name[WAVE_NAME_SIZE];
+   char name[WAVE_NAME_SIZE+1];
 
    unsigned char fractions;
    int size;
@@ -160,7 +160,7 @@ typedef struct
 typedef struct
 {
    unsigned short instrument;
-   char name[INSTRUMENT_NAME_SIZE];
+   char name[INSTRUMENT_NAME_SIZE+1];
    int size;
    char layers;
 // char reserved[RESERVED_SIZE];
@@ -169,9 +169,9 @@ typedef struct
 
 typedef struct
 {
-   char header[GF1_HEADER_SIZE];
-   char gravis_id[PATCH_ID_SIZE];
-   char description[PATCH_DESC_SIZE];
+   char header[GF1_HEADER_SIZE+1];
+   char gravis_id[PATCH_ID_SIZE+1];
+   char description[PATCH_DESC_SIZE+1];
    unsigned char instruments;
    char voices;
    char channels;

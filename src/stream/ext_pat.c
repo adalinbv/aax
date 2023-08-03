@@ -48,8 +48,8 @@ typedef struct
    int bits_sample;
    int patch_level;
    int sample_num;
-   size_t max_samples;
-   size_t skip;
+   unsigned int max_samples;
+   unsigned int offs, skip;
    _buffer_info_t info;
 
    char copy_to_buffer;
@@ -507,24 +507,19 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    float cents, prev;
    int i, pos;
 
-   if (handle->skip > bufsize)
+   if (handle->skip >= bufsize)
    {
+      handle->offs += bufsize;
       handle->skip -= bufsize;
       *processed = bufsize;
       return __F_NEED_MORE;
    }
-   else if (handle->skip >= COMMENT_SIZE)
-   {
-      handle->skip -= COMMENT_SIZE;
-      *processed = COMMENT_SIZE;
-      return __F_NEED_MORE;
-   }
 
-   *processed = handle->skip;
+   *processed = 0;
    header += handle->skip;
    handle->skip = 0;
 
-   if (!handle->header.instruments)
+   if (!handle->header.instruments) // First time here
    {
       if (!memcmp(header, GF1_HEADER_TEXT, GF1_HEADER_SIZE))
       {
@@ -532,12 +527,15 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
 
          // Patch Header
          memcpy(handle->header.header, header, GF1_HEADER_SIZE);
+         handle->header.header[GF1_HEADER_SIZE] = 0;
          header += GF1_HEADER_SIZE;
 
          memcpy(handle->header.gravis_id, header, PATCH_ID_SIZE);
+         handle->header.gravis_id[PATCH_ID_SIZE] = 0;
          header += PATCH_ID_SIZE;
 
          memcpy(handle->header.description, header, PATCH_DESC_SIZE);
+         handle->header.description[PATCH_DESC_SIZE] = 0;
          header += PATCH_DESC_SIZE;
 
          handle->header.instruments = *header++;
@@ -572,6 +570,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
          handle->instrument.instrument += *header++ << 8;
 
          memcpy(handle->instrument.name, header, INSTRUMENT_NAME_SIZE);
+         handle->instrument.name[INSTRUMENT_NAME_SIZE] = 0;
          header += INSTRUMENT_NAME_SIZE;
 
          handle->instrument.size = *header++;
@@ -613,17 +612,19 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
                                          handle->instrument.name);
          handle->meta.copyright = strreplace(handle->meta.copyright,
                                             handle->header.description);
-         handle->meta.comments = strreplace(handle->meta.comments,
-                                           handle->wave.name);
+         handle->offs += header-buffer;
       }
-      else {
+      else // Wrong format
+      {
          *processed += header-buffer;
          return __F_EOF;
       }
    }
 
+
    // Wave Header
    memcpy(handle->wave.name, header, WAVE_NAME_SIZE);
+   handle->wave.name[WAVE_NAME_SIZE] = 0;
    header += WAVE_NAME_SIZE;
 
    handle->wave.fractions = *header++;
@@ -690,6 +691,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    header += WAVE_RESERVED_SIZE;
 
    *processed += header-buffer;
+   handle->offs += header-buffer;
 
    switch (handle->wave.modes & MODE_FORMAT)
    {
@@ -712,6 +714,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    default:
       break;
    }
+
+   handle->meta.comments = strreplace(handle->meta.comments, handle->wave.name);
 
    handle->info.rate = handle->wave.sample_rate;
    handle->info.blocksize = handle->info.no_tracks*handle->bits_sample/8;
@@ -781,6 +785,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
 
 #if 0
  printf("==== Wave name:\t\t%s\n", handle->wave.name);
+ printf("Offset: %08x\n", handle->offs);
+ printf("Fractions:\t\tstart: %i, end: %i\n", handle->wave.fractions >> 4, handle->wave.fractions & 0xF);
  printf("Wave number:\t\t%i of %i\n", handle->sample_num+1, handle->layer.waves);
  printf("Sample size:\t\t%i bytes, %i samples, %.3g sec\n",handle->wave.size, SIZE2SAMPLES(handle,handle->wave.size), SAMPLES2TIME(handle,handle->info.no_samples));
  printf("Loop start:\t\t%i bytes, %.20g samples, %.3g sec\n", loop_start, handle->info.loop_start, SAMPLES2TIME(handle,handle->info.loop_start));
@@ -857,10 +863,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    if (handle->sample_num != handle->patch_level &&
        handle->sample_num < handle->layer.waves)
    {
+      handle->offs = 0;
       handle->sample_num++;
       handle->skip = handle->wave.size;
-      *processed += handle->skip;
-
       return __F_NEED_MORE;
    }
 
