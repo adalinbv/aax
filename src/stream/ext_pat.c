@@ -51,7 +51,8 @@ typedef struct
    int bitrate;
    int sample_num;
    unsigned int max_samples;
-   unsigned int offs, skip;
+   unsigned int skip;
+unsigned int offs;
 
    int capturing;
    int mode;
@@ -260,11 +261,11 @@ _pat_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
 {
    _driver_t *handle = ext->id;
    int rv = handle->fmt->set_name(handle->fmt, param, desc);
-   
-   if (!rv)    
-   {   
+
+   if (!rv)
+   {
       switch(param)
-      {        
+      {
       case __F_ARTIST:
          handle->meta.artist = strreplace(handle->meta.artist, desc);
          rv = AAX_TRUE;
@@ -272,11 +273,11 @@ _pat_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
       case __F_TITLE:
          handle->meta.title = strreplace(handle->meta.title, desc);
          rv = AAX_TRUE;
-         break;   
+         break;
       case __F_GENRE:
          handle->meta.genre = strreplace(handle->meta.genre, desc);
          rv = AAX_TRUE;
-         break;   
+         break;
       case __F_TRACKNO:
          handle->meta.trackno = strreplace(handle->meta.trackno, desc);
          rv = AAX_TRUE;
@@ -284,11 +285,11 @@ _pat_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
       case __F_ALBUM:
          handle->meta.album = strreplace(handle->meta.album, desc);
          rv = AAX_TRUE;
-         break;   
+         break;
       case __F_DATE:
          handle->meta.date = strreplace(handle->meta.date, desc);
          rv = AAX_TRUE;
-         break;   
+         break;
       case __F_COMMENT:
          handle->meta.comments = strreplace(handle->meta.comments, desc);
          rv = AAX_TRUE;
@@ -411,7 +412,8 @@ _pat_get(_ext_t *ext, int type)
          rv = (handle->wave.modes & MODE_ENVELOPE_SUSTAIN);
          break;
       case __F_SAMPLED_RELEASE:
-         rv = handle->sampled_release;
+//       rv = handle->sampled_release;
+         rv = (handle->wave.modes & MODE_ENVELOPE_RELEASE) ? 0 : 1;
          break;
       case __F_BASE_FREQUENCY:
          rv = handle->info.base_frequency*(1 << 16);
@@ -548,10 +550,10 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
          handle->header.channels= *header++;
 
          handle->header.waveforms = *header++;
-         handle->header.waveforms += (int16_t)(*header++) << 8;
+         handle->header.waveforms += (uint16_t)(*header++) << 8;
 
          handle->header.master_volume = *header++;
-         handle->header.master_volume += (int16_t)(*header++) << 8;
+         handle->header.master_volume += (uint16_t)(*header++) << 8;
 
          handle->header.data_size = *header++;
          handle->header.data_size += (uint32_t)(*header++) << 8;
@@ -572,7 +574,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
 
          // Instrument Header
          handle->instrument.instrument = *header++;
-         handle->instrument.instrument += (int16_t)(*header++) << 8;
+         handle->instrument.instrument += (uint16_t)(*header++) << 8;
 
          memcpy(handle->instrument.name, header, INSTRUMENT_NAME_SIZE);
          handle->instrument.name[INSTRUMENT_NAME_SIZE] = 0;
@@ -595,7 +597,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
          // Layer Header
          handle->layer.layer_duplicate = *header++;
          handle->layer.layer = *header++;
- 
+
          handle->layer.size = *header++;
          handle->layer.size += (int32_t)(*header++) << 8;
          handle->layer.size += (int32_t)(*header++) << 16;
@@ -620,13 +622,13 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
       }
       else // Wrong format
       {
-         *processed += header-buffer;
+         *processed += (header-buffer);
          return __F_EOF;
       }
    }
+handle->offs += (header-buffer);
 
    // Wave Header
-   handle->offs += (header-buffer);
    memcpy(handle->wave.name, header, WAVE_NAME_SIZE);
    handle->wave.name[WAVE_NAME_SIZE] = 0;
    header += WAVE_NAME_SIZE;
@@ -649,7 +651,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    handle->wave.end_loop += (int32_t)(*header++) << 24;
 
    handle->wave.sample_rate = *header++;
-   handle->wave.sample_rate += (int16_t)(*header++) << 8;
+   handle->wave.sample_rate += (uint16_t)(*header++ << 8);
 
    handle->wave.low_frequency = *header++;
    handle->wave.low_frequency += (int32_t)(*header++) << 8;
@@ -694,7 +696,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    handle->wave.scale_factor += (int16_t)(*header++) << 8;
    header += WAVE_RESERVED_SIZE;
 
-   *processed += header-buffer;
+   *processed += (header-buffer);
 
    switch (handle->wave.modes & MODE_FORMAT)
    {
@@ -787,9 +789,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
 
 #if 0
  printf("==== Wave name:\t\t%s\n", handle->wave.name);
- printf("File Offset: %08x\n", handle->offs);
+ printf("     File Offset: %08x\n", handle->offs);
+ printf("     Wave number: %i of %i\n", handle->sample_num+1, handle->layer.waves);
  printf("Fractions:\t\tstart: %i, end: %i\n", handle->wave.fractions >> 4, handle->wave.fractions & 0xF);
- printf("Wave number:\t\t%i of %i\n", handle->sample_num+1, handle->layer.waves);
  printf("Sample size:\t\t%i bytes, %i samples, %.3g sec\n",handle->wave.size, SIZE2SAMPLES(handle,handle->wave.size), SAMPLES2TIME(handle,handle->info.no_samples));
  printf("Loop start:\t\t%i bytes, %.20g samples, %.3g sec\n", loop_start, handle->info.loop_start, SAMPLES2TIME(handle,handle->info.loop_start));
  printf("Loop end:\t\t%i bytes, %.20g samples, %.3g sec\n", loop_end, handle->info.loop_end, SAMPLES2TIME(handle,handle->info.loop_end));
