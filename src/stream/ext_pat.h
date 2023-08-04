@@ -26,6 +26,8 @@
 #include "config.h"
 #endif
 
+#include <stdint.h>
+
 #include <dsp/common.h>
 
 #define SIZE2SAMPLES(h,a)		(8*(a)/(h)->bits_sample)
@@ -104,29 +106,29 @@ typedef struct
 {
    char name[WAVE_NAME_SIZE+1];
 
-   unsigned char fractions;
-   int size;
-   int start_loop;
-   int end_loop;
+   uint8_t fractions;
+   int32_t size;
+   int32_t start_loop;
+   int32_t end_loop;
 
-   unsigned short sample_rate;
-   int low_frequency;
-   int high_frequency;
-   int root_frequency;
-   short tune;
+   uint16_t sample_rate;
+   int32_t low_frequency;
+   int32_t high_frequency;
+   int32_t root_frequency;
+   int16_t tune;
 
-   unsigned char balance;
+   uint8_t balance;
 
-   unsigned char envelope_rate[ENVELOPES];
-   unsigned char envelope_level[ENVELOPES];
+   uint8_t envelope_rate[ENVELOPES];
+   uint8_t envelope_level[ENVELOPES];
 
-   unsigned char tremolo_sweep;
-   unsigned char tremolo_rate;
-   unsigned char tremolo_depth;
+   uint8_t tremolo_sweep;
+   uint8_t tremolo_rate;
+   uint8_t tremolo_depth;
 
-   unsigned char vibrato_sweep;
-   unsigned char vibrato_rate;
-   unsigned char vibrato_depth;
+   uint8_t vibrato_sweep;
+   uint8_t vibrato_rate;
+   uint8_t vibrato_depth;
 
    /* bit 0 : 0 = 8-bit, 1 = 16-bit wave data			*/
    /* bit 1 : 0 = signed, 1 = unsigned data			*/
@@ -134,14 +136,14 @@ typedef struct
    /* bit 3 : 0 = uni-directional, 1 = bi-directional looping	*/
    /* bit 4 : 0 = play forwards, 1 = play backwards		*/
    /* bit 5 : 1 = turn sustaining on (envelope points 3)	*/
-   /*             eneveloping stops at point 3 until note-off   */
+   /*             eneveloping stops at point32_t 3 until note-off   */
    /* bit 6 : 0 = sample release after not-off message          */
-   /*         1 = sample release after last envelope point      */
+   /*         1 = sample release after last envelope point32_t      */
    /* bit 7 : 1 = the last three envelope points are ignored    */
-   char modes;
+   int8_t modes;
 
-   short scale_frequency;
-   unsigned short scale_factor;
+   int16_t scale_frequency;
+   uint16_t scale_factor;
 
 // char reserved[PATCH_HEADER_RESERVED_SIZE];
 
@@ -149,20 +151,20 @@ typedef struct
 
 typedef struct
 {
-   char layer_duplicate;
-   char layer;
-   int size;
-   char waves;
+   int8_t layer_duplicate;
+   int8_t layer;
+   int32_t size;
+   int8_t waves;
 // char reserved[LAYER_RESERVED_SIZE];
 
 } _layer_t;
 
 typedef struct
 {
-   unsigned short instrument;
+   uint16_t instrument;
    char name[INSTRUMENT_NAME_SIZE+1];
-   int size;
-   char layers;
+   int32_t size;
+   int8_t layers;
 // char reserved[RESERVED_SIZE];
 
 } _instrument_t;
@@ -172,12 +174,12 @@ typedef struct
    char header[GF1_HEADER_SIZE+1];
    char gravis_id[PATCH_ID_SIZE+1];
    char description[PATCH_DESC_SIZE+1];
-   unsigned char instruments;
-   char voices;
-   char channels;
-   unsigned short waveforms;
-   unsigned short master_volume;
-   unsigned int data_size;
+   uint8_t instruments;
+   int8_t voices;
+   int8_t channels;
+   uint16_t waveforms;
+   uint16_t master_volume;
+   uint32_t data_size;
 
 } _patch_header_t;
 
