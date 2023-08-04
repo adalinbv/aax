@@ -44,8 +44,9 @@ typedef struct
    char copy_to_buffer;
 
    char mip_level;
-   char bits_sample;
+   char sampled_release;
 
+   char bits_sample;
    int rate;
    int bitrate;
    int sample_num;
@@ -410,7 +411,7 @@ _pat_get(_ext_t *ext, int type)
          rv = (handle->wave.modes & MODE_ENVELOPE_SUSTAIN);
          break;
       case __F_SAMPLED_RELEASE:
-         rv = (handle->wave.modes & MODE_ENVELOPE_RELEASE) ? 0 : 1;
+         rv = handle->sampled_release;
          break;
       case __F_BASE_FREQUENCY:
          rv = handle->info.base_frequency*(1 << 16);
@@ -547,15 +548,15 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
          handle->header.channels= *header++;
 
          handle->header.waveforms = *header++;
-         handle->header.waveforms += *header++ << 8;
+         handle->header.waveforms += (int16_t)(*header++) << 8;
 
          handle->header.master_volume = *header++;
-         handle->header.master_volume += *header++ << 8;
+         handle->header.master_volume += (int16_t)(*header++) << 8;
 
          handle->header.data_size = *header++;
-         handle->header.data_size += *header++ << 8;
-         handle->header.data_size += *header++ << 16;
-         handle->header.data_size += *header++ << 24;
+         handle->header.data_size += (uint32_t)(*header++) << 8;
+         handle->header.data_size += (uint32_t)(*header++) << 16;
+         handle->header.data_size += (uint32_t)(*header++) << 24;
          header += PATCH_RESERVED_SIZE;
 #if 0
  printf("= Header:\t\t%s\n", handle->header.header);
@@ -571,16 +572,16 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
 
          // Instrument Header
          handle->instrument.instrument = *header++;
-         handle->instrument.instrument += *header++ << 8;
+         handle->instrument.instrument += (int16_t)(*header++) << 8;
 
          memcpy(handle->instrument.name, header, INSTRUMENT_NAME_SIZE);
          handle->instrument.name[INSTRUMENT_NAME_SIZE] = 0;
          header += INSTRUMENT_NAME_SIZE;
 
          handle->instrument.size = *header++;
-         handle->instrument.size += *header++ << 8;
-         handle->instrument.size += *header++ << 16;
-         handle->instrument.size += *header++ << 24;
+         handle->instrument.size += (int32_t)(*header++) << 8;
+         handle->instrument.size += (int32_t)(*header++) << 16;
+         handle->instrument.size += (int32_t)(*header++) << 24;
 
          handle->instrument.layers = *header++;
          header += INSTRUMENT_RESERVED_SIZE;
@@ -596,9 +597,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
          handle->layer.layer = *header++;
  
          handle->layer.size = *header++;
-         handle->layer.size += *header++ << 8;
-         handle->layer.size += *header++ << 16;
-         handle->layer.size += *header++ << 24;
+         handle->layer.size += (int32_t)(*header++) << 8;
+         handle->layer.size += (int32_t)(*header++) << 16;
+         handle->layer.size += (int32_t)(*header++) << 24;
 
          handle->layer.waves = *header++;
          header += LAYER_RESERVED_SIZE;
@@ -616,7 +617,6 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
                                          handle->instrument.name);
          handle->meta.copyright = strreplace(handle->meta.copyright,
                                             handle->header.description);
-         handle->offs += header-buffer;
       }
       else // Wrong format
       {
@@ -625,8 +625,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
       }
    }
 
-
    // Wave Header
+   handle->offs += (header-buffer);
    memcpy(handle->wave.name, header, WAVE_NAME_SIZE);
    handle->wave.name[WAVE_NAME_SIZE] = 0;
    header += WAVE_NAME_SIZE;
@@ -634,40 +634,40 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    handle->wave.fractions = *header++;
 
    handle->wave.size = *header++;
-   handle->wave.size += *header++ << 8;
-   handle->wave.size += *header++ << 16;
-   handle->wave.size += *header++ << 24;
+   handle->wave.size += (int32_t)(*header++) << 8;
+   handle->wave.size += (int32_t)(*header++) << 16;
+   handle->wave.size += (int32_t)(*header++) << 24;
 
    handle->wave.start_loop = *header++;
-   handle->wave.start_loop += *header++ << 8;
-   handle->wave.start_loop += *header++ << 16;
-   handle->wave.start_loop += *header++ << 24;
+   handle->wave.start_loop += (int32_t)(*header++) << 8;
+   handle->wave.start_loop += (int32_t)(*header++) << 16;
+   handle->wave.start_loop += (int32_t)(*header++) << 24;
 
    handle->wave.end_loop = *header++;
-   handle->wave.end_loop += *header++ << 8;
-   handle->wave.end_loop += *header++ << 16;
-   handle->wave.end_loop += *header++ << 24;
+   handle->wave.end_loop += (int32_t)(*header++) << 8;
+   handle->wave.end_loop += (int32_t)(*header++) << 16;
+   handle->wave.end_loop += (int32_t)(*header++) << 24;
 
    handle->wave.sample_rate = *header++;
-   handle->wave.sample_rate += *header++ << 8;
+   handle->wave.sample_rate += (int16_t)(*header++) << 8;
 
    handle->wave.low_frequency = *header++;
-   handle->wave.low_frequency += *header++ << 8;
-   handle->wave.low_frequency += *header++ << 16;
-   handle->wave.low_frequency += *header++ << 24;
+   handle->wave.low_frequency += (int32_t)(*header++) << 8;
+   handle->wave.low_frequency += (int32_t)(*header++) << 16;
+   handle->wave.low_frequency += (int32_t)(*header++) << 24;
 
    handle->wave.high_frequency = *header++;
-   handle->wave.high_frequency += *header++ << 8;
-   handle->wave.high_frequency += *header++ << 16;
-   handle->wave.high_frequency += *header++ << 24;
+   handle->wave.high_frequency += (int32_t)(*header++) << 8;
+   handle->wave.high_frequency += (int32_t)(*header++) << 16;
+   handle->wave.high_frequency += (int32_t)(*header++) << 24;
 
    handle->wave.root_frequency = *header++;
-   handle->wave.root_frequency += *header++ << 8;
-   handle->wave.root_frequency += *header++ << 16;
-   handle->wave.root_frequency += *header++ << 24;
+   handle->wave.root_frequency += (int32_t)(*header++) << 8;
+   handle->wave.root_frequency += (int32_t)(*header++) << 16;
+   handle->wave.root_frequency += (int32_t)(*header++) << 24;
 
    handle->wave.tune = *header++;
-   handle->wave.tune += *header++ << 8;
+   handle->wave.tune += (int16_t)(*header++) << 8;
 
    handle->wave.balance = *header++;
 
@@ -688,14 +688,13 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    handle->wave.modes = *header++;
 
    handle->wave.scale_frequency = *header++;
-   handle->wave.scale_frequency += *header++ << 8;
+   handle->wave.scale_frequency += (int16_t)(*header++) << 8;
 
    handle->wave.scale_factor = *header++;
-   handle->wave.scale_factor += *header++ << 8;
+   handle->wave.scale_factor += (int16_t)(*header++) << 8;
    header += WAVE_RESERVED_SIZE;
 
    *processed += header-buffer;
-   handle->offs += header-buffer;
 
    switch (handle->wave.modes & MODE_FORMAT)
    {
@@ -782,14 +781,13 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
          handle->info.volume_envelope[2*pos-1] = rate;
          pos++;
       }
-      if (i == 5 && level > 0.00005f) {
-         handle->wave.modes &= ~MODE_ENVELOPE_RELEASE;
-      }
    }
+
+   handle->sampled_release = (handle->wave.envelope_level[5] == 0) ? 0 : 1;
 
 #if 0
  printf("==== Wave name:\t\t%s\n", handle->wave.name);
- printf("Offset: %08x\n", handle->offs);
+ printf("File Offset: %08x\n", handle->offs);
  printf("Fractions:\t\tstart: %i, end: %i\n", handle->wave.fractions >> 4, handle->wave.fractions & 0xF);
  printf("Wave number:\t\t%i of %i\n", handle->sample_num+1, handle->layer.waves);
  printf("Sample size:\t\t%i bytes, %i samples, %.3g sec\n",handle->wave.size, SIZE2SAMPLES(handle,handle->wave.size), SAMPLES2TIME(handle,handle->info.no_samples));
@@ -867,7 +865,6 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    if (handle->sample_num != handle->mip_level &&
        handle->sample_num < handle->layer.waves)
    {
-      handle->offs = 0;
       handle->sample_num++;
       handle->skip = handle->wave.size;
       return __F_NEED_MORE;
