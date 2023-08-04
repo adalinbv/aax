@@ -412,8 +412,7 @@ _pat_get(_ext_t *ext, int type)
          rv = (handle->wave.modes & MODE_ENVELOPE_SUSTAIN);
          break;
       case __F_SAMPLED_RELEASE:
-//       rv = handle->sampled_release;
-         rv = (handle->wave.modes & MODE_ENVELOPE_RELEASE) ? 0 : 1;
+         rv = handle->sampled_release;
          break;
       case __F_BASE_FREQUENCY:
          rv = handle->info.base_frequency*(1 << 16);
@@ -550,15 +549,15 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
          handle->header.channels= *header++;
 
          handle->header.waveforms = *header++;
-         handle->header.waveforms += (uint16_t)(*header++) << 8;
+         handle->header.waveforms |= (uint16_t)(*header++) << 8;
 
          handle->header.master_volume = *header++;
-         handle->header.master_volume += (uint16_t)(*header++) << 8;
+         handle->header.master_volume |= (uint16_t)(*header++) << 8;
 
          handle->header.data_size = *header++;
-         handle->header.data_size += (uint32_t)(*header++) << 8;
-         handle->header.data_size += (uint32_t)(*header++) << 16;
-         handle->header.data_size += (uint32_t)(*header++) << 24;
+         handle->header.data_size |= (uint32_t)(*header++) << 8;
+         handle->header.data_size |= (uint32_t)(*header++) << 16;
+         handle->header.data_size |= (uint32_t)(*header++) << 24;
          header += PATCH_RESERVED_SIZE;
 #if 0
  printf("= Header:\t\t%s\n", handle->header.header);
@@ -574,16 +573,16 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
 
          // Instrument Header
          handle->instrument.instrument = *header++;
-         handle->instrument.instrument += (uint16_t)(*header++) << 8;
+         handle->instrument.instrument |= (uint16_t)(*header++) << 8;
 
          memcpy(handle->instrument.name, header, INSTRUMENT_NAME_SIZE);
          handle->instrument.name[INSTRUMENT_NAME_SIZE] = 0;
          header += INSTRUMENT_NAME_SIZE;
 
          handle->instrument.size = *header++;
-         handle->instrument.size += (int32_t)(*header++) << 8;
-         handle->instrument.size += (int32_t)(*header++) << 16;
-         handle->instrument.size += (int32_t)(*header++) << 24;
+         handle->instrument.size |= (int32_t)(*header++) << 8;
+         handle->instrument.size |= (int32_t)(*header++) << 16;
+         handle->instrument.size |= (int32_t)(*header++) << 24;
 
          handle->instrument.layers = *header++;
          header += INSTRUMENT_RESERVED_SIZE;
@@ -599,9 +598,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
          handle->layer.layer = *header++;
 
          handle->layer.size = *header++;
-         handle->layer.size += (int32_t)(*header++) << 8;
-         handle->layer.size += (int32_t)(*header++) << 16;
-         handle->layer.size += (int32_t)(*header++) << 24;
+         handle->layer.size |= (int32_t)(*header++) << 8;
+         handle->layer.size |= (int32_t)(*header++) << 16;
+         handle->layer.size |= (int32_t)(*header++) << 24;
 
          handle->layer.waves = *header++;
          header += LAYER_RESERVED_SIZE;
@@ -636,40 +635,40 @@ handle->offs += (header-buffer);
    handle->wave.fractions = *header++;
 
    handle->wave.size = *header++;
-   handle->wave.size += (int32_t)(*header++) << 8;
-   handle->wave.size += (int32_t)(*header++) << 16;
-   handle->wave.size += (int32_t)(*header++) << 24;
+   handle->wave.size |= (int32_t)(*header++) << 8;
+   handle->wave.size |= (int32_t)(*header++) << 16;
+   handle->wave.size |= (int32_t)(*header++) << 24;
 
    handle->wave.start_loop = *header++;
-   handle->wave.start_loop += (int32_t)(*header++) << 8;
-   handle->wave.start_loop += (int32_t)(*header++) << 16;
-   handle->wave.start_loop += (int32_t)(*header++) << 24;
+   handle->wave.start_loop |= (int32_t)(*header++) << 8;
+   handle->wave.start_loop |= (int32_t)(*header++) << 16;
+   handle->wave.start_loop |= (int32_t)(*header++) << 24;
 
    handle->wave.end_loop = *header++;
-   handle->wave.end_loop += (int32_t)(*header++) << 8;
-   handle->wave.end_loop += (int32_t)(*header++) << 16;
-   handle->wave.end_loop += (int32_t)(*header++) << 24;
+   handle->wave.end_loop |= (int32_t)(*header++) << 8;
+   handle->wave.end_loop |= (int32_t)(*header++) << 16;
+   handle->wave.end_loop |= (int32_t)(*header++) << 24;
 
    handle->wave.sample_rate = *header++;
-   handle->wave.sample_rate += (uint16_t)(*header++ << 8);
+   handle->wave.sample_rate |= (uint16_t)(*header++) << 8;
 
    handle->wave.low_frequency = *header++;
-   handle->wave.low_frequency += (int32_t)(*header++) << 8;
-   handle->wave.low_frequency += (int32_t)(*header++) << 16;
-   handle->wave.low_frequency += (int32_t)(*header++) << 24;
+   handle->wave.low_frequency |= (int32_t)(*header++) << 8;
+   handle->wave.low_frequency |= (int32_t)(*header++) << 16;
+   handle->wave.low_frequency |= (int32_t)(*header++) << 24;
 
    handle->wave.high_frequency = *header++;
-   handle->wave.high_frequency += (int32_t)(*header++) << 8;
-   handle->wave.high_frequency += (int32_t)(*header++) << 16;
-   handle->wave.high_frequency += (int32_t)(*header++) << 24;
+   handle->wave.high_frequency |= (int32_t)(*header++) << 8;
+   handle->wave.high_frequency |= (int32_t)(*header++) << 16;
+   handle->wave.high_frequency |= (int32_t)(*header++) << 24;
 
    handle->wave.root_frequency = *header++;
-   handle->wave.root_frequency += (int32_t)(*header++) << 8;
-   handle->wave.root_frequency += (int32_t)(*header++) << 16;
-   handle->wave.root_frequency += (int32_t)(*header++) << 24;
+   handle->wave.root_frequency |= (int32_t)(*header++) << 8;
+   handle->wave.root_frequency |= (int32_t)(*header++) << 16;
+   handle->wave.root_frequency |= (int32_t)(*header++) << 24;
 
    handle->wave.tune = *header++;
-   handle->wave.tune += (int16_t)(*header++) << 8;
+   handle->wave.tune |= (int16_t)(*header++) << 8;
 
    handle->wave.balance = *header++;
 
@@ -690,10 +689,10 @@ handle->offs += (header-buffer);
    handle->wave.modes = *header++;
 
    handle->wave.scale_frequency = *header++;
-   handle->wave.scale_frequency += (int16_t)(*header++) << 8;
+   handle->wave.scale_frequency |= (int16_t)(*header++) << 8;
 
    handle->wave.scale_factor = *header++;
-   handle->wave.scale_factor += (int16_t)(*header++) << 8;
+   handle->wave.scale_factor |= (int16_t)(*header++) << 8;
    header += WAVE_RESERVED_SIZE;
 
    *processed += (header-buffer);
@@ -785,7 +784,7 @@ handle->offs += (header-buffer);
       }
    }
 
-   handle->sampled_release = (handle->wave.envelope_level[5] == 0) ? 0 : 1;
+   handle->sampled_release = (handle->wave.envelope_level[5] > 8) ? 1 : 0;
 
 #if 0
  printf("==== Wave name:\t\t%s\n", handle->wave.name);
