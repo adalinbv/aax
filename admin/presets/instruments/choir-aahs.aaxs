@@ -12,7 +12,7 @@
 
 <aeonwave>
 
- <info name="Choir Aahs" bank="0" program="52">
+ <info name="Choir Aahs (Vintage)" bank="0" program="52">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2023" by="Adalin B.V."/>
   <copyright from="2017" until="2023" by="Erik Hofman"/>
@@ -21,29 +21,28 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.96" frequency="220" duration="1.3" ratio="1.5">
-  <layer n="0" ratio="1.5">
-   <waveform src="sine" pitch="4.4978"/>
-   <waveform src="sine" processing="add" pitch="1.4917"/>
-   <waveform src="pink-noise" processing="add" ratio="0.075" pitch="0.16"/>
-   <waveform src="sine" processing="add" ratio="0.061" pitch="3.4938"/>
-   <waveform src="sine" processing="modulate" pitch="0.5001"/>
+ <sound gain="2.05" frequency="220" voices="7" spread="0.91">
+  <layer n="0" ratio="3.0">
+   <waveform src="sine" pitch="1.4987"/>
+   <waveform src="pink-noise" processing="add" ratio="0.3"/>
+   <waveform src="sine" processing="add" ratio="0.055" pitch="3.5"/>
+   <waveform src="triangle" processing="modulate" ratio="3.0" pitch="0.5"/>
   </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-time="1.6">
    <slot n="0">
-    <param n="0">0.537</param>
-    <param n="1">0.05</param>
-    <param n="2">0.747</param>
-    <param n="3">0.025</param>
+    <param n="0">0.469</param>
+    <param n="1">0.1</param>
+    <param n="2" auto="-0.231" min="0.658" max="0.838">0.169</param>
+    <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
+    <param n="0" auto="0.287" min="1.06" max="0.839">1.67</param>
     <param n="1">inf</param>
-    <param n="2">0.561</param>
-    <param n="3">0.2</param>
+    <param n="2">0.497</param>
+    <param n="3">0.4</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -57,26 +56,15 @@
  </emitter>
 
  <audioframe pan="-0.4">
-  <filter type="equalizer" optional="true">
+  <effect type="chorus" optional="true">
    <slot n="0">
-    <param n="0">850.0</param>
-    <param n="1">1.2</param>
-    <param n="2">0.85</param>
-    <param n="3">1.5</param>
+    <param n="0">0.8</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3" auto="0.34">1.5</param>
    </slot>
-   <slot n="1">
-    <param n="0">1610.0</param>
-    <param n="1">1.0</param>
-    <param n="2">1.0</param>
-    <param n="3">1.5</param>
-   </slot>
-   <slot n="2">
-    <param n="0">3300.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.03</param>
-    <param n="3">3.5</param>
-   </slot>
-  </filter>
+  </effect>
  </audioframe>
+
 
 </aeonwave>

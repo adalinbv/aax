@@ -30,7 +30,7 @@
  <emitter looping="true">
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="18.0">880.0</param>
+    <param n="0" pitch="18.0">1980.0</param>
     <param n="1">1.0</param>
     <param n="2">0.01</param>
     <param n="3">1.0</param>

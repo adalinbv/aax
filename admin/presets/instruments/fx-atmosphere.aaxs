@@ -20,7 +20,7 @@
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="2.38" frequency="220" duration="1.3">
+ <sound gain="2.38" frequency="220" voices="3" spread="0.11" phasing="true">
   <layer n="0">
    <waveform src="pure-sine" processing="add" pitch="1.4917"/>
    <waveform src="triangle" processing="add" ratio="0.055" pitch="3.4938"/>
