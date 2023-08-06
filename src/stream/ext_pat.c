@@ -52,7 +52,6 @@ typedef struct
    int sample_num;
    unsigned int max_samples;
    unsigned int skip;
-unsigned int offs;
 
    int capturing;
    int mode;
@@ -515,7 +514,6 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
 
    if (handle->skip >= bufsize)
    {
-      handle->offs += bufsize;
       handle->skip -= bufsize;
       *processed = bufsize;
       return __F_NEED_MORE;
@@ -621,11 +619,10 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
       }
       else // Wrong format
       {
-         *processed += (header-buffer);
+         *processed = bufsize;
          return __F_EOF;
       }
    }
-handle->offs += (header-buffer);
 
    // Wave Header
    memcpy(handle->wave.name, header, WAVE_NAME_SIZE);
@@ -788,7 +785,6 @@ handle->offs += (header-buffer);
 
 #if 0
  printf("==== Wave name:\t\t%s\n", handle->wave.name);
- printf("     File Offset: %08x\n", handle->offs);
  printf("     Wave number: %i of %i\n", handle->sample_num+1, handle->layer.waves);
  printf("Fractions:\t\tstart: %i, end: %i\n", handle->wave.fractions >> 4, handle->wave.fractions & 0xF);
  printf("Sample size:\t\t%i bytes, %i samples, %.3g sec\n",handle->wave.size, SIZE2SAMPLES(handle,handle->wave.size), SAMPLES2TIME(handle,handle->info.no_samples));
