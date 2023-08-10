@@ -112,7 +112,9 @@ _aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *rendere
    maxgain = be->param(data->be_handle, DRIVER_MAX_VOLUME);
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
    if (gain > maxgain) gain = maxgain;
-   rb->data_multiply(rb, 0, 0, gain);
+   if (fabsf(gain-1.0f) > LEVEL_96DB) {
+      rb->data_multiply(rb, 0, 0, gain);
+   }
 
    return AAX_TRUE;
 }
@@ -191,6 +193,7 @@ _aaxFrameProcessEqualizer(_aaxRingBuffer *rb, _aaxAudioFrame *mixer, MIX_T **scr
    }
 }
 
+// Apply the final filters like the equalizer
 static void
 _aaxSubFramePostProcess(const _aaxRendererData *data)
 {
@@ -207,7 +210,7 @@ _aaxSubFramePostProcess(const _aaxRendererData *data)
    _aaxMutexUnLock(subframe->mutex);
 }
 
-
+// Apply the final filters like convolution, the equalizer and limitter
 static void
 _aaxSensorPostProcess(const _aaxRendererData *data)
 {
@@ -354,6 +357,7 @@ _aaxSensorPostProcess(const _aaxRendererData *data)
    rb->limit(rb, RB_COMPRESS);
 }
 
+// Send the rendered audio to the backend driver.
 int
 _aaxSoftwareMixerPlay(void* rb, UNUSED(const void* devices), const void* ringbuffers, UNUSED(const void* frames), void* props2d, char capturing, UNUSED(const void* sensor), const void* backend, const void* be_handle, const void* fbackend, const void* fbe_handle, char batched)
 {
@@ -365,7 +369,7 @@ _aaxSoftwareMixerPlay(void* rb, UNUSED(const void* devices), const void* ringbuf
    int res;
 
    // NOTE: File backend must be first, it's the only backend that
-   //       converts the buffer back to floats when done!
+   //       converts the buffer back to floats when done.
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
    if (fbe) {	/* tied file-out backend */
       fbe->play(fbe_handle, dest_rb, 1.0f, gain, batched);
@@ -387,6 +391,10 @@ _aaxSoftwareMixerPlay(void* rb, UNUSED(const void* devices), const void* ringbuf
 }
 
 
+/*
+ * Main mixer update function:
+ * mixes all assigned audio-frames, sensors and emitters
+ */
 int
 _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
 {
@@ -423,6 +431,15 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
       }
       else if (_IS_PLAYING(handle))
       {
+         // In the past all mixer registered audio frames rendered in their own
+         // thread. Which included rendering all sub-frames, sensors and
+         // emitters. This was replaced by worker threads which render all
+         // emitters at the leaf-node audio-frame which spreads the load across
+         // all availabe CPU's.
+         // Copying all relevant data was de best way to hold the lock as short
+         // as possible. Keeping this behavior (for now) doesn't do any harm
+         // and makes it easier to render audio-threads in an thread again, if
+         // desired.
          dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
          if (dptr_sensor)
          {
