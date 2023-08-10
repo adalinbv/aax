@@ -1596,11 +1596,12 @@ _aaxMixerInit(_handle_t *handle)
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
                _aaxAudioFrame *mixer = sensor->mixer;
                _aax2dProps *p2d = mixer->props2d;
-               float cur;
+               float hw, cur;
 
-               cur = be->param(be_handle, DRIVER_VOLUME);
-               if (cur < 0.05f) cur = 1.0f;
-               _FILTER_SET(p2d, VOLUME_FILTER, AAX_GAIN, cur);
+               cur = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
+               hw = be->param(be_handle, DRIVER_VOLUME);
+               if (hw < LEVEL_32DB) hw = 1.0f;
+               _FILTER_SET(p2d, VOLUME_FILTER, AAX_GAIN, hw*cur);
                _intBufReleaseData(dptr, _AAX_SENSOR);
             }
          }
