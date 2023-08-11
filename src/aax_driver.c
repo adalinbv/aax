@@ -1560,23 +1560,19 @@ _aaxFreeSensor(void *ssr)
    _FILTER_FREE_DATA(sensor->mixer, EQUALIZER_LF);
    _FILTER_FREE_DATA(sensor->mixer, HRTF_HEADSHADOW);
 
-   _aaxMutexLock(smixer->props2d->mutex);
    for (i=0; i<MAX_STEREO_FILTER; ++i) {
       _FILTER_FREE2D_DATA(smixer, i);
    }
    for (i=0; i<MAX_STEREO_EFFECT; ++i) {
       _EFFECT_FREE2D_DATA(smixer, i);
    }
-   _aaxMutexDestroy(smixer->props2d->mutex);
 
-   _aaxMutexLock(smixer->props3d->mutex);
    for (i=0; i<MAX_3D_FILTER; ++i) {
       _FILTER_FREE3D_DATA(smixer, i);
    }
    for (i=0; i<MAX_3D_EFFECT; ++i) {
       _EFFECT_FREE3D_DATA(smixer, i);
    }
-   _aaxMutexDestroy(smixer->props3d->mutex);
 
    _intBufErase(&smixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
    _aax_aligned_free(smixer->props3d->dprops3d);

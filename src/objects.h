@@ -331,7 +331,6 @@ typedef struct _aax3dProps_s
    _aaxDelayed3dProps* m_dprops3d;      /* modiefied */
 
    /* 3d filters and effects */
-   void *mutex;
    _aaxFilterInfo filter[MAX_3D_FILTER];
    _aaxEffectInfo effect[MAX_3D_EFFECT];
 
@@ -358,7 +357,6 @@ typedef ALIGN16 struct _aax2dProps_s
    struct _aax2dProps_s *parent;
 
    /* stereo filters */
-   void *mutex;
    _aaxFilterInfo filter[MAX_STEREO_FILTER];
    _aaxEffectInfo effect[MAX_STEREO_EFFECT];
 
