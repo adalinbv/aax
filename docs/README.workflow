@@ -1,11 +1,12 @@
-ALSA/WASAPI/Software Thread
+* Most driver backends work in a rendering thread. Some use a callback function.
+* Emitters are rendered in worker threads which are bound to a physical CPU.
 
  _aaxSoftwareMixerTreadUpdate
- | _aaxSensorCapture							(READ)
+ | _aaxSensorCapture					backend thread	(READ)
  |
- | _aaxSoftwareMixerSignalFrames					(WRITE)
+ | _aaxSoftwareMixerSignalFrames			backend thread	(WRITE)
  | _aaxAudioFrameProcess
- | _aaxEmittersProcess
+ | _aaxEmittersProcess					worker thread
  | + [0 .. no_emitters]
  | + | be->prepare3d						(stage == 2)
  | + | be->mix3d 
