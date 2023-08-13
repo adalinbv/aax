@@ -23,13 +23,13 @@
  <sound gain="4.45" frequency="65.4064">
   <layer n="0">
    <waveform src="white-noise" ratio="0.1"/>
-   <waveform src="sine" processing="add" ratio="0.616324"/>
-   <waveform src="sine" processing="add" ratio="0.436324" pitch="2.0"/>
-   <waveform src="sine" processing="add" ratio="0.308894" pitch="3.0"/>
-   <waveform src="sine" processing="add" ratio="0.21868" pitch="4.0"/>
-   <waveform src="sine" processing="add" ratio="0.308894" pitch="5.0"/>
-   <waveform src="sine" processing="add" ratio="0.1096" pitch="6.0"/>
-   <waveform src="sine" processing="add" ratio="0.0775906" pitch="8.0"/>
+   <waveform src="sine" processing="add" ratio="1.3"/>
+   <waveform src="sine" processing="add" ratio="0.88" pitch="2.0"/>
+   <waveform src="sine" processing="add" ratio="0.6" pitch="3.0"/>
+   <waveform src="sine" processing="add" ratio="0.4" pitch="4.0"/>
+   <waveform src="sine" processing="add" ratio="0.6" pitch="5.0"/>
+   <waveform src="sine" processing="add" ratio="0.2" pitch="6.0"/>
+   <waveform src="sine" processing="add" ratio="0.14" pitch="8.0"/>
   </layer>
  </sound>
 
@@ -37,13 +37,13 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.209</param>
-    <param n="1">0.08</param>
+    <param n="1">0.04</param>
     <param n="2">0.311</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
-    <param n="1">0.7</param>
+    <param n="1">0.35</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

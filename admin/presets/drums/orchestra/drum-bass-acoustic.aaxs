@@ -20,31 +20,29 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.20" frequency="92.4986" duration="0.3">
-  <layer n="0">
-   <waveform src="white-noise" ratio="5.0" pitch="0.012"/>
-   <filter type="frequency">
-    <slot n="0">
-     <param n="0" pitch="6.8">629.0</param>
-     <param n="1">1.0</param>
-     <param n="2">0.0</param>
-     <param n="3">1.0</param>
-    </slot>
-   </filter>
-  </layer>
+ <sound gain="2.16" frequency="92.4986" duration="0.3">
+  <waveform src="white-noise" ratio="5.0" pitch="0.012"/>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0" pitch="6.8">629.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.8">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">0.01</param>
+    <param n="1">0.005</param>
     <param n="2">0.729</param>
-    <param n="3">0.1</param>
+    <param n="3">0.05</param>
    </slot>
    <slot n="1">
     <param n="0">0.581</param>
-    <param n="1">1.6</param>
+    <param n="1">0.8</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

@@ -20,11 +20,11 @@
   <note polyphony="4" min="36" max="96" step="6"/>
  </info>
 
- <sound gain="2.01" frequency="195.998" duration="1.3" pitch="1.3">
-  <layer n="0" pitch="1.3">
+ <sound gain="2.41" frequency="195.998" duration="0.3">
+  <layer n="0">
    <waveform src="sine" processing="add" ratio="0.37"/>
+   <waveform src="white-noise" processing="add" ratio="0.074" pitch="0.774"/>
    <waveform src="sine" processing="add" pitch="0.588"/>
-   <waveform src="white-noise" processing="add" ratio="0.174" pitch="0.574"/>
   </layer>
  </sound>
 
@@ -32,16 +32,16 @@
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">0.05</param>
-    <param n="2">0.631</param>
-    <param n="3">1.13</param>
+    <param n="1">0.015</param>
+    <param n="2">0.531</param>
+    <param n="3">0.565</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">1.5</param>
     <param n="1">0.01</param>
-    <param n="2">1.5</param>
+    <param n="2">1.2</param>
     <param n="3">0.03</param>
    </slot>
    <slot n="1">
@@ -53,21 +53,6 @@
   </effect>
  </emitter>
 
- <audioframe pan="-0.2">
-  <filter type="equalizer">
-   <slot n="0">
-    <param n="0">150.0</param>
-    <param n="1">1.5</param>
-    <param n="2">1.0</param>
-    <param n="3">5.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1650.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
- </audioframe>
+ <audioframe pan="-0.2"/>
 
 </aeonwave>

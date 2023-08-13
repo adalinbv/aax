@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="Effects (Fantasy)" bank="127" program="32">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="4" min="60" max="108" step="12"/>
+ </info>
+
+ <sound gain="2.07" frequency="261.626" duration="0.35">
+  <layer n="0" ratio="0.5" pitch="1.06">
+   <waveform src="sine" pitch="1.696"/>
+   <waveform src="cycloid" processing="add" ratio="0.2" pitch="5.0"/>
+   <waveform src="sine" processing="modulate" pitch="4.0587"/>
+  </layer>
+  <layer n="1" ratio="1.5">
+   <waveform src="sine" pitch="0.4978"/>
+   <waveform src="sine" processing="add" ratio="0.061" pitch="2.4938"/>
+  </layer>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="dynamic-layer" src="timed">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.6</param>
+    <param n="2">1.0</param>
+    <param n="3">0.2</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain" src="envelope" release-time="0.7">
+   <slot n="0">
+    <param n="0">0.855</param>
+    <param n="1">0.025</param>
+    <param n="2">1.0</param>
+    <param n="3">0.025</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.652</param>
+    <param n="1">0.35</param>
+    <param n="2">0.546</param>
+    <param n="3">3.75</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">1.14</param>
+    <param n="1">0.01</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>

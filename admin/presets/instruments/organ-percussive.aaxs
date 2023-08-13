@@ -29,7 +29,7 @@
    <waveform src="sine" processing="add" ratio="0.140853" pitch="8.0"/>
    <filter type="frequency">
     <slot n="0">
-     <param n="0" pitch="3.0">392.4</param>
+     <param n="0" pitch="3.0">196.2</param>
      <param n="1">1.0</param>
      <param n="2">0.01</param>
      <param n="3">1.0</param>
@@ -42,13 +42,13 @@
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">0.16</param>
+    <param n="1">0.08</param>
     <param n="2">0.902</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
     <param n="0">0.664</param>
-    <param n="1">0.2</param>
+    <param n="1">0.1</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

@@ -20,9 +20,9 @@
   <note polyphony="4" min="55" max="96" step="12"/>
  </info>
 
- <sound mode="1" gain="1.51" frequency="220" duration="0.5">
+ <sound gain="1.31" frequency="220" duration="0.5">
   <layer n="0">
-   <waveform src="impulse" ratio="0.2" pitch="2.0"/>
+   <waveform src="cycloid" pitch="2.0"/>
    <waveform src="sawtooth" processing="add"/>
   </layer>
  </sound>
@@ -31,15 +31,15 @@
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.571</param>
-    <param n="1">0.0829</param>
+    <param n="1">0.0415</param>
     <param n="2">0.759</param>
-    <param n="3">0.4</param>
+    <param n="3">0.2</param>
    </slot>
    <slot n="1">
     <param n="0">0.679</param>
     <param n="1">inf</param>
     <param n="2">1.0</param>
-    <param n="3">0.03</param>
+    <param n="3">0.015</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -55,15 +55,9 @@
  <audioframe pan="-0.3">
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">294.0</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">4.0</param>
-   </slot>
-   <slot n="1">
     <param n="0">440.0</param>
     <param n="1">1.0</param>
-    <param n="2">1.0</param>
+    <param n="2">0.8</param>
     <param n="3">3.0</param>
    </slot>
   </filter>

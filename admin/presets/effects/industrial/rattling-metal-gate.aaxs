@@ -53,7 +53,7 @@
     <param n="3">0.25</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="inverse-pure-cycloid">
+  <filter type="dynamic-gain" src="inverse-cycloid">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">8.0</param>

@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="Synth Brass 3" bank="8" program="63">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="2" min="35" max="96" step="12"/>
+ </info>
+
+ <sound gain="2.05" frequency="880" duration="0.25">
+  <layer n="0">
+   <waveform src="sawtooth" ratio="0.75" pitch="0.993"/>
+   <waveform src="impulse" processing="add" pitch="3.0"/>
+  </layer>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="frequency" src="inverse-timed|logarithmic" optional="true">
+   <slot n="0">
+    <param n="0" pitch="1.3">1144.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">2.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0" pitch="10.0">8800.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">2.5</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain" src="envelope">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.025</param>
+    <param n="2">1.0</param>
+    <param n="3">0.075</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.877</param>
+    <param n="1">inf</param>
+    <param n="2">0.877</param>
+    <param n="3">0.1</param>
+   </slot>
+  </filter>
+ </emitter>
+
+</aeonwave>

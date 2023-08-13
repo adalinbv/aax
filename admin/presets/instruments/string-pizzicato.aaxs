@@ -23,7 +23,7 @@
 
  <sound gain="0.98" frequency="220">
   <layer n="0">
-   <waveform src="pure-impulse" ratio="0.1"/>
+   <waveform src="impulse" ratio="0.1"/>
    <waveform src="cycloid" processing="add"/>
   </layer>
  </sound>

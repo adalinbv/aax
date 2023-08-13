@@ -47,7 +47,7 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <effect type="dynamic-pitch" src="pure-sawtooth">
+  <effect type="dynamic-pitch" src="sawtooth">
    <slot n="0">
     <param n="0">0.3</param>
     <param n="1">1.71</param>

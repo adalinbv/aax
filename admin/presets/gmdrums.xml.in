@@ -122,26 +122,26 @@
   </bank>
 
   <bank n="25">
-   <drum n="36" name="Bass Drum 1" file="drums/tr-808/drum-kick"/>
-   <drum n="37" name="Rim Shot" file="drums/tr-808/rim-shot"/>
-   <drum n="38" name="Acoustic Snare" file="drums/tr-808/drum-snare-acoustic"/>
-   <drum n="40" name="Electric Snare" file="drums/tr-808/drum-snare-electric"/>
-   <drum n="41" name="Low Floor Tom" file="drums/tr-808/tom-floor-low"/>
-   <drum n="42" name="Closed Hi-Hat" file="drums/tr-808/hi-hat-closed"/>
-   <drum n="43" name="High Floor Tom" file="drums/tr-808/tom-floor-high"/>
-   <drum n="44" name="Pedal Hi-Hat" file="drums/tr-808/hi-hat-pedal"/>
-   <drum n="45" name="Low Tom" file="drums/tr-808/tom-low"/>
-   <drum n="46" name="Open Hi-Hat" file="drums/tr-808/hi-hat-open"/>
-   <drum n="47" name="Low Mid-Tom" file="drums/tr-808/tom-mid-low"/>
-   <drum n="48" name="Hi Mid-Tom" file="drums/tr-808/tom-mid-high"/>
-   <drum n="49" name="Crash Cymbal" file="drums/tr-808/cymbal-crash"/>
-   <drum n="50" name="High Tom" file="drums/tr-808/tom-high"/>
-   <drum n="56" name="Cowbell" file="drums/tr-808/cowbell"/>
-   <drum n="62" name="High Conga" file="drums/tr-808/conga-high"/>
-   <drum n="63" name="Mid Conga" file="drums/tr-808/conga-mid"/>
-   <drum n="64" name="Low Conga" file="drums/tr-808/conga-low"/>
-   <drum n="70" name="Maracas" file="drums/tr-808/maracas"/>
-   <drum n="75" name="Claves" file="drums/tr-808/claves"/>
+   <drum n="36" name="Bass Drum 1" file="drums/analog/drum-kick"/>
+   <drum n="37" name="Rim Shot" file="drums/analog/rim-shot"/>
+   <drum n="38" name="Acoustic Snare" file="drums/analog/drum-snare-acoustic"/>
+   <drum n="40" name="Electric Snare" file="drums/analog/drum-snare-electric"/>
+   <drum n="41" name="Low Floor Tom" file="drums/analog/tom-floor-low"/>
+   <drum n="42" name="Closed Hi-Hat" file="drums/analog/hi-hat-closed"/>
+   <drum n="43" name="High Floor Tom" file="drums/analog/tom-floor-high"/>
+   <drum n="44" name="Pedal Hi-Hat" file="drums/analog/hi-hat-pedal"/>
+   <drum n="45" name="Low Tom" file="drums/analog/tom-low"/>
+   <drum n="46" name="Open Hi-Hat" file="drums/analog/hi-hat-open"/>
+   <drum n="47" name="Low Mid-Tom" file="drums/analog/tom-mid-low"/>
+   <drum n="48" name="Hi Mid-Tom" file="drums/analog/tom-mid-high"/>
+   <drum n="49" name="Crash Cymbal" file="drums/analog/cymbal-crash"/>
+   <drum n="50" name="High Tom" file="drums/analog/tom-high"/>
+   <drum n="56" name="Cowbell" file="drums/analog/cowbell"/>
+   <drum n="62" name="High Conga" file="drums/analog/conga-high"/>
+   <drum n="63" name="Mid Conga" file="drums/analog/conga-mid"/>
+   <drum n="64" name="Low Conga" file="drums/analog/conga-low"/>
+   <drum n="70" name="Maracas" file="drums/analog/maracas"/>
+   <drum n="75" name="Claves" file="drums/analog/claves"/>
   </bank>
 
   <bank n="32">

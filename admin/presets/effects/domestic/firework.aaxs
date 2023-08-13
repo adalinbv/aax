@@ -44,7 +44,7 @@
     <param n="3">0.6</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="inverse-pure-sawtooth">
+  <filter type="dynamic-gain" src="inverse-sawtooth">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">1.0</param>

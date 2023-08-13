@@ -20,7 +20,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="2.91" frequency="987.767" duration="0.3">
+ <sound gain="3.49" frequency="987.767" duration="0.3">
   <layer n="0">
    <waveform src="square" pitch="3.0"/>
    <waveform src="triangle" processing="add" ratio="0.6" pitch="3.025"/>
@@ -36,9 +36,9 @@
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.544</param>
-    <param n="1">0.015</param>
+    <param n="1">0.0075</param>
     <param n="2">1.0</param>
-    <param n="3">0.325</param>
+    <param n="3">0.162</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

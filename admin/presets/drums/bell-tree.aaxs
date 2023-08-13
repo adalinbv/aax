@@ -20,7 +20,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.17" frequency="523.251">
+ <sound gain="1.40" frequency="523.251">
   <layer n="0">
    <waveform src="cycloid" pitch="6.0"/>
    <waveform src="sine" processing="modulate" pitch="3.0"/>
@@ -41,13 +41,13 @@
   <filter type="timed-gain" src="envelope" release-time="1.0">
    <slot n="0">
     <param n="0">0.733</param>
-    <param n="1">0.2</param>
+    <param n="1">0.1</param>
     <param n="2">1.0</param>
-    <param n="3">0.4</param>
+    <param n="3">0.2</param>
    </slot>
    <slot n="1">
     <param n="0">0.6</param>
-    <param n="1">2.0</param>
+    <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

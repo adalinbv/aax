@@ -22,7 +22,7 @@
 
  <sound gain="2.75" frequency="440" ratio="0.4">
   <layer n="0" ratio="0.4">
-   <waveform src="pure-square" ratio="0.5" pitch="2.0"/>
+   <waveform src="square" ratio="0.5" pitch="2.0"/>
   </layer>
  </sound>
 
@@ -30,13 +30,13 @@
   <filter type="timed-gain" release-time="0.5">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">0.05</param>
+    <param n="1">0.025</param>
     <param n="2">0.607</param>
-    <param n="3">0.125</param>
+    <param n="3">0.0625</param>
    </slot>
    <slot n="1">
     <param n="0">0.951</param>
-    <param n="1">8.5</param>
+    <param n="1">4.25</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

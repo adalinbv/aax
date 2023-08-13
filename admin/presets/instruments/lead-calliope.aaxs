@@ -20,13 +20,13 @@
   <note polyphony="43" min="20" max="96" step="6"/>
  </info>
 
- <sound gain="2.20" frequency="22.0">
+ <sound mode="1" gain="1.90" frequency="110">
   <layer n="0">
    <waveform src="triangle"/>
    <waveform src="sine" processing="add" ratio="0.1" pitch="3.0"/>
    <filter type="frequency" optional="true">
     <slot n="0">
-     <param n="0" pitch="1.0">58.3</param>
+     <param n="0" pitch="1.0">110.0</param>
      <param n="1">1.0</param>
      <param n="2">0.0</param>
      <param n="3">40.0</param>
@@ -39,19 +39,17 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.162</param>
-    <param n="1">0.05</param>
+    <param n="1">0.025</param>
     <param n="2">1.0</param>
-    <param n="3">0.15</param>
+    <param n="3">0.075</param>
    </slot>
    <slot n="1">
     <param n="0">0.944</param>
     <param n="1">inf</param>
     <param n="2">0.944</param>
-    <param n="3">0.1</param>
+    <param n="3">0.05</param>
    </slot>
   </filter>
  </emitter>
-
- <audioframe/>
 
 </aeonwave>

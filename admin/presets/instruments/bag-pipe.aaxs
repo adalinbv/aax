@@ -20,7 +20,7 @@
   <note polyphony="6" min="36" max="77" step="12"/>
  </info>
 
- <sound mode="1" gain="1.09" frequency="65.4064" duration="0.75">
+ <sound mode="1" gain="0.85" frequency="65.4064" duration="0.75">
   <layer n="0">
    <waveform src="impulse"/>
    <waveform src="cycloid" processing="add" ratio="0.3" pitch="1.987"/>
@@ -33,13 +33,13 @@
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.762</param>
-    <param n="1">0.1</param>
+    <param n="1">0.05</param>
     <param n="2">0.997</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
     <param n="0">0.955</param>
-    <param n="1">0.2</param>
+    <param n="1">0.1</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

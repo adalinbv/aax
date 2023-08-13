@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="Helicopter">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="1" pitch-fraction="0.3"/>
+ </info>
+
+ <sound gain="2.20" frequency="55" duration="6.7">
+  <layer n="0">
+   <waveform src="white-noise" ratio="6.0" pitch="0.5"/>
+   <waveform src="cycloid" processing="mix" ratio="0.98"/>
+   <waveform src="sawtooth" processing="modulate" pitch="0.25"/>
+  </layer>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain" src="envelope" release-time="2.0">
+   <slot n="0">
+    <param n="0">0.2</param>
+    <param n="1">0.375</param>
+    <param n="2">1.0</param>
+    <param n="3">500.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">0.75</param>
+    <param n="1">2.0</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>

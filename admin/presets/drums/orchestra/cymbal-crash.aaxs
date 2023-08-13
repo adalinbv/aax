@@ -21,55 +21,31 @@
  </info>
 
  <sound mode="1" gain="2.42" frequency="123.471" duration="0.3">
-  <layer n="0">
-   <waveform src="sine"/>
-   <waveform src="sine" processing="modulate" ratio="0.5" pitch="9.0"/>
-   <waveform src="pink-noise" processing="add" ratio="1.1" pitch="0.9"/>
-   <waveform src="square" processing="modulate" pitch="0.5"/>
-   <filter type="frequency">
-    <slot n="0">
-     <param n="0">800.0</param>
-     <param n="1">0.1</param>
-     <param n="2">1.2</param>
-     <param n="3">5.0</param>
-    </slot>
-   </filter>
-  </layer>
-  <layer n="1">
-   <waveform src="sine"/>
-   <waveform src="sine" processing="modulate" ratio="0.5" pitch="11.0"/>
-   <waveform src="pink-noise" processing="add" ratio="1.9" pitch="0.9"/>
-   <waveform src="square" processing="modulate"/>
-   <filter type="frequency">
-    <slot n="0">
-     <param n="0">900.0</param>
-     <param n="1">0.1</param>
-     <param n="2">1.2</param>
-     <param n="3">5.0</param>
-    </slot>
-   </filter>
-  </layer>
+  <waveform src="sine"/>
+  <waveform src="sine" processing="modulate" ratio="0.5" pitch="9.0"/>
+  <waveform src="pink-noise" processing="add" ratio="1.1" pitch="0.9"/>
+  <waveform src="square" processing="modulate" pitch="0.5"/>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0">800.0</param>
+    <param n="1">0.1</param>
+    <param n="2">1.2</param>
+    <param n="3">5.0</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true" pan="-0.47">
-  <filter type="dynamic-layer" src="envelope">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">8.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" release-time="0.6">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">0.03</param>
+    <param n="1">0.015</param>
     <param n="2">0.761</param>
-    <param n="3">0.2</param>
+    <param n="3">0.1</param>
    </slot>
    <slot n="1">
     <param n="0">0.674</param>
-    <param n="1">1.8</param>
+    <param n="1">0.9</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

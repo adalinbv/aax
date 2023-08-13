@@ -23,7 +23,7 @@
 
  <sound gain="2.02" frequency="220" duration="0.5">
   <layer n="0">
-   <waveform src="pure-sine"/>
+   <waveform src="sine"/>
    <waveform src="sine" processing="add" ratio="0.8" pitch="3.0"/>
    <waveform src="triangle" processing="modulate"/>
   </layer>
@@ -33,13 +33,13 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.13</param>
+    <param n="1">0.065</param>
     <param n="2">1.0</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
-    <param n="1">0.1</param>
+    <param n="1">0.05</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -53,7 +53,5 @@
    </slot>
   </effect>
  </emitter>
-
- <audioframe/>
 
 </aeonwave>

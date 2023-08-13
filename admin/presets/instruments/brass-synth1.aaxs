@@ -20,38 +20,28 @@
   <note polyphony="2" min="35" max="96" step="12"/>
  </info>
 
- <sound gain="1.57" frequency="880">
+ <sound gain="2.50" frequency="880" voices="3" spread="0.08" phasing="true">
   <layer n="0">
-   <waveform src="sawtooth" pitch="0.983"/>
-   <waveform src="impulse" processing="add" ratio="0.2"/>
+   <waveform src="sawtooth" pitch="0.993"/>
+   <waveform src="cycloid" processing="add" ratio="0.25"/>
   </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.571</param>
-    <param n="1">0.05</param>
-    <param n="2">1.0</param>
-    <param n="3">0.15</param>
+    <param n="0">1.0</param>
+    <param n="1">0.025</param>
+    <param n="2">0.857</param>
+    <param n="3">0.075</param>
    </slot>
    <slot n="1">
-    <param n="0">1.1</param>
+    <param n="0">0.836</param>
     <param n="1">inf</param>
     <param n="2">0.836</param>
-    <param n="3">0.2</param>
+    <param n="3">0.05</param>
    </slot>
   </filter>
-  <effect type="timed-pitch" src="envelope">
-   <slot n="0">
-    <param n="0">0.9</param>
-    <param n="1">0.03</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
  </emitter>
-
- <audioframe/>
 
 </aeonwave>

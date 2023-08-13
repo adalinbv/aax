@@ -20,7 +20,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="4.44" frequency="277.183" duration="0.3">
+ <sound gain="5.33" frequency="277.183" duration="0.3">
   <layer n="0">
    <waveform src="sawtooth" pitch="1.297"/>
    <waveform src="square" processing="modulate" pitch="2.5"/>
@@ -77,9 +77,9 @@
   <filter type="timed-gain" release-time="0.6">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">0.03</param>
+    <param n="1">0.015</param>
     <param n="2">0.709</param>
-    <param n="3">1.5</param>
+    <param n="3">0.75</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

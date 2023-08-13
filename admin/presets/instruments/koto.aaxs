@@ -21,7 +21,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.69" frequency="220">
+ <sound gain="1.49" frequency="220">
   <layer n="0">
    <waveform src="square"/>
    <waveform src="sine" processing="modulate" pitch="3.0"/>
@@ -32,7 +32,7 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">2.15</param>
+    <param n="1">1.08</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

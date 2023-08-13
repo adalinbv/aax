@@ -20,27 +20,12 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="3.61" frequency="277.183" duration="0.5">
-  <layer n="0" pitch="0.98">
-   <waveform src="sine" ratio="0.55" phase="0.107"/>
-   <waveform src="white-noise" processing="add" ratio="0.05" pitch="0.3"/>
-  </layer>
-  <layer n="1">
-   <waveform src="sine" ratio="0.55" phase="0.107"/>
-   <waveform src="sine" processing="add" ratio="0.6" pitch="0.66" phase="0.107"/>
-   <waveform src="white-noise" processing="add" ratio="0.1" pitch="0.1"/>
-  </layer>
+ <sound gain="3.61" frequency="277.183" duration="0.5" pitch="0.98">
+ pitch="0.98"  <waveform src="sine" ratio="0.55" phase="0.107"/>
+  <waveform src="white-noise" processing="add" ratio="0.05" pitch="0.3"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="envelope">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">3.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="bitcrusher" src="inverse-envelope">
    <slot n="0">
     <param n="0">0.0</param>
@@ -52,9 +37,9 @@
   <filter type="timed-gain" src="envelope" release-time="0.03">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">0.2</param>
+    <param n="1">0.1</param>
     <param n="2">0.601</param>
-    <param n="3">0.2</param>
+    <param n="3">0.1</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

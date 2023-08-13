@@ -21,18 +21,16 @@
  </info>
 
  <sound gain="1.77" frequency="1567.98" duration="0.3">
-  <layer n="0">
-   <waveform src="square"/>
-   <waveform src="white-noise" processing="mix" ratio="0.8" pitch="0.25"/>
-   <waveform src="square" processing="modulate" ratio="0.9" pitch="4.1"/>
-  </layer>
+  <waveform src="square"/>
+  <waveform src="white-noise" processing="mix" ratio="0.8" pitch="0.25"/>
+  <waveform src="square" processing="modulate" ratio="0.9" pitch="4.1"/>
  </sound>
 
  <emitter looping="true" pan="0.31">
   <filter type="timed-gain" src="envelope" release-time="0.1">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">0.2</param>
+    <param n="1">0.1</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

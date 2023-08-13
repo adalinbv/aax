@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2023 by Erik Hofman.
+ * Copyright (C) 2017-2023 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="Synth Mallet" bank="0" program="2">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2023" by="Adalin B.V."/>
+  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <contact author="Erik Hofman" website="aeonwave.xyz"/>
+  <note polyphony="88" min="21" max="108" step="12"/>
+ </info>
+
+ <sound mode="1" gain="1.67" frequency="1760" duration="0.5">
+  <layer n="0">
+   <waveform src="triangle"/>
+   <waveform src="triangle" processing="modulate" pitch="2.0"/>
+  </layer>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain" src="envelope" release-time="0.2">
+   <slot n="0">
+    <param n="0">1.7</param>
+    <param n="1">0.015</param>
+    <param n="2">0.8</param>
+    <param n="3">0.015</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">1.03</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">1.12</param>
+    <param n="1">0.01</param>
+    <param n="2">1.0</param>
+    <param n="3">9.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.998</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe pan="0.6">
+  <filter type="equalizer" optional="true">
+   <slot n="0">
+    <param n="0">2200.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.4</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </audioframe>
+
+</aeonwave>
