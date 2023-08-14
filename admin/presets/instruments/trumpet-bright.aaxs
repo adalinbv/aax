@@ -23,7 +23,7 @@
  <sound mode="1" gain="1.20" frequency="880" duration="0.5">
   <layer n="0">
    <waveform src="sawtooth"/>
-   <waveform src="impulse" processing="add" pitch="2.0"/>
+   <waveform src="cycloid" processing="add"/>
   </layer>
  </sound>
 

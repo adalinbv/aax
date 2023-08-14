@@ -21,29 +21,13 @@
  </info>
 
  <sound mode="1" gain="1.69" frequency="554.365" duration="0.3">
-  <layer n="0">
-   <waveform src="triangle" pitch="0.985"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.8" pitch="1.9"/>
-   <waveform src="pink-noise" processing="add" ratio="1.2"/>
-   <waveform src="sine" processing="modulate" ratio="1.25" pitch="17.7"/>
-  </layer>
-  <layer n="1">
-   <waveform src="square" ratio="0.7" pitch="0.9"/>
-   <waveform src="white-noise" processing="add" pitch="0.12"/>
-   <waveform src="sawtooth" processing="add" ratio="0.33" pitch="0.707"/>
-   <waveform src="sine" processing="modulate" pitch="11.9"/>
-  </layer>
+  <waveform src="triangle" pitch="0.985"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.8" pitch="1.9"/>
+  <waveform src="pink-noise" processing="add" ratio="1.2"/>
+  <waveform src="sine" processing="modulate" ratio="1.25" pitch="17.7"/>
  </sound>
 
  <emitter looping="true" pan="0.31">
-  <filter type="dynamic-layer" src="envelope">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">8.0</param>
-    <param n="2">0.5</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope" release-time="0.15">
    <slot n="0">
     <param n="0">1.0</param>

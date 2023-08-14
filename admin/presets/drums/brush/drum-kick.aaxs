@@ -20,7 +20,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound mode="2" gain="2.72" frequency="69.2957" duration="0.1">
+ <sound mode="2" gain="4.08" frequency="69.2957" duration="0.1">
   <layer n="0">
    <waveform src="triangle" ratio="0.4"/>
    <waveform src="sine" processing="add" ratio="0.6" pitch="1.1"/>

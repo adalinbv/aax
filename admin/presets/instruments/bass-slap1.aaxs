@@ -24,8 +24,8 @@
  <sound mode="1" gain="2.02" frequency="55" duration="0.1">
   <layer n="0">
    <waveform src="sawtooth" ratio="0.9"/>
-   <waveform src="cycloid" processing="add" ratio="0.6" pitch="9.0"/>
-   <waveform src="triangle" processing="modulate" pitch="5.0"/>
+   <waveform src="cycloid" processing="add" ratio="0.4" pitch="7.0"/>
+   <waveform src="sine" processing="modulate" pitch="5.0"/>
   </layer>
  </sound>
 
@@ -57,10 +57,10 @@
  <audioframe pan="0.1">
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">3000.0</param>
+    <param n="0">2500.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.06</param>
-    <param n="3">6.5</param>
+    <param n="2">0.05</param>
+    <param n="3">4.5</param>
    </slot>
   </filter>
  </audioframe>

@@ -20,7 +20,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="2.23" frequency="155.563" duration="0.1">
+ <sound gain="2.68" frequency="155.563" duration="0.1">
   <layer n="0">
    <waveform src="sine"/>
   </layer>

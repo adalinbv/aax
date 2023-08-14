@@ -21,19 +21,17 @@
  </info>
 
  <sound gain="1.57" frequency="1567.98" duration="0.33">
-  <layer n="0">
-   <waveform src="square"/>
-   <waveform src="white-noise" processing="mix" ratio="0.8" pitch="0.25"/>
-   <waveform src="square" processing="modulate" ratio="0.9" pitch="4.1"/>
-   <filter type="frequency">
-    <slot n="0">
-     <param n="0">3500.0</param>
-     <param n="1">0.1</param>
-     <param n="2">1.0</param>
-     <param n="3">1.0</param>
-    </slot>
-   </filter>
-  </layer>
+  <waveform src="square"/>
+  <waveform src="white-noise" processing="mix" ratio="0.8" pitch="0.25"/>
+  <waveform src="square" processing="modulate" ratio="0.9" pitch="4.1"/>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0">3500.0</param>
+    <param n="1">0.1</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true" pan="0.31">

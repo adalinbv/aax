@@ -20,9 +20,9 @@
   <note polyphony="4" min="55" max="96" step="12"/>
  </info>
 
- <sound mode="1" gain="1.01" frequency="220" duration="0.5">
+ <sound mode="1" gain="1.31" frequency="220" duration="0.5">
   <layer n="0">
-   <waveform src="sawtooth"/>
+   <waveform src="sawtooth" voices="3" phasing="true"/>
    <waveform src="cycloid" processing="add"/>
   </layer>
  </sound>

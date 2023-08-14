@@ -37,7 +37,7 @@
 -->
 
 
-<aeonwave>
+<aeonwave rate="45" polyphony="64">
 
  <midi name="UltraSynth default" version="@AAX_VERSION@">
   <!-- GM -->

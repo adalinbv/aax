@@ -23,8 +23,8 @@
  <sound mode="1" gain="1.93" frequency="440" duration="0.3">
   <layer n="0">
    <waveform src="square"/>
-   <waveform src="pink-noise" processing="add" ratio="0.1" pitch="0.3"/>
    <waveform src="square" processing="modulate" pitch="3.0"/>
+   <waveform src="square" processing="mix" pitch="2.0"/>
   </layer>
  </sound>
 
@@ -62,10 +62,16 @@
  <audioframe pan="-0.2">
   <filter type="equalizer" optional="true">
    <slot n="0">
+    <param n="0">1050.0</param>
+    <param n="1">0.3</param>
+    <param n="2">0.8</param>
+    <param n="3">4.0</param>
+   </slot>
+   <slot n="1">
     <param n="0">2000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.1</param>
-    <param n="3">1.0</param>
+    <param n="1">0.8</param>
+    <param n="2">0.0</param>
+    <param n="3">3.0</param>
    </slot>
   </filter>
  </audioframe>

@@ -20,20 +20,18 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.97" frequency="293.665" duration="0.5">
-  <layer n="0">
-   <waveform src="white-noise" ratio="0.5" pitch="0.4"/>
-   <waveform src="triangle" processing="mix" ratio="0.55"/>
-   <waveform src="triangle" processing="add" ratio="0.6" pitch="0.6"/>
-   <filter type="bitcrusher">
-    <slot n="0">
-     <param n="0">0.0</param>
-     <param n="1">0.0</param>
-     <param n="2">0.0</param>
-     <param n="3">0.45</param>
-    </slot>
-   </filter>
-  </layer>
+ <sound gain="2.36" frequency="293.665" duration="0.5">
+  <waveform src="white-noise" ratio="0.5" pitch="0.4"/>
+  <waveform src="triangle" processing="mix" ratio="0.55"/>
+  <waveform src="triangle" processing="add" ratio="0.6" pitch="0.6"/>
+  <filter type="bitcrusher">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.45</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">
