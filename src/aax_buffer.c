@@ -1878,8 +1878,17 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid)
          if (!b && rb->get_state(rb, RB_IS_VALID))
          {
             float gain = handle->gain;
-            if (handle->midi_mode != AAX_RENDER_NORMAL) {
-                gain *= 0.5f;
+            switch (handle->midi_mode)
+            {
+            case AAX_RENDER_ARCADE:
+               gain *= 0.6f*0.6f;
+               break;
+            case AAX_RENDER_SYNTHESIZER:
+               gain *= 0.6f;
+               break;
+            case AAX_RENDER_NORMAL:
+            default:
+               break;
             }
             handle->gain = _bufNormalize(rb, gain);
          }
