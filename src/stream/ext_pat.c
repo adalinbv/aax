@@ -105,7 +105,7 @@ _pat_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          if (handle->capturing)
          {
             handle->info.no_samples = UINT_MAX;
-            *bufsize = FILE_HEADER_SIZE;
+            *bufsize = MAX_PATCH_SIZE;
          }
          else {
             *bufsize = 0;
