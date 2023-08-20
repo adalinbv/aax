@@ -21,12 +21,12 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="2.05" frequency="220" voices="7" spread="0.91">
+ <sound gain="4.55" frequency="55" voices="7" spread="0.91">
   <layer n="0" ratio="3.0">
    <waveform src="sine" pitch="1.4987"/>
    <waveform src="pink-noise" processing="add" ratio="0.3"/>
    <waveform src="sine" processing="add" ratio="0.055" pitch="3.5"/>
-   <waveform src="triangle" processing="modulate" ratio="3.0" pitch="0.5"/>
+   <waveform src="triangle" processing="modulate" pitch="0.5"/>
   </layer>
  </sound>
 
