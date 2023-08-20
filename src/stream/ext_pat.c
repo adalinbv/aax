@@ -781,7 +781,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
       }
    }
 
-   handle->sampled_release = (handle->wave.envelope_level[5] > 8) ? 1 : 0;
+// handle->sampled_release = (handle->wave.envelope_level[ENVELOPES-1] > 8) ? 1 : 0;
+   handle->sampled_release = (handle->info.volume_envelope[10] > LEVEL_64DB) ? 1 : 0;
 
 #if 0
  printf("==== Wave name:\t\t%s\n", handle->wave.name);
@@ -824,8 +825,6 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
  }
  printf("\n");
 
- printf("Sampled release:\t%s\n", (handle->wave.envelope_level[ENVELOPES-1] > 8) ? "yes" : "no");
-
  printf("Tremolo Sweep:\t\t%3i (%.3g Hz)\n", handle->wave.tremolo_sweep,
                                              handle->info.tremolo_sweep);
  printf("Tremolo Rate:\t\t%3i (%.3g Hz)\n", handle->wave.tremolo_rate,
@@ -855,6 +854,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
             (handle->wave.modes & MODE_ENVELOPE_SUSTAIN) ? "yes" : "no",
             (handle->wave.modes & MODE_ENVELOPE_RELEASE) ? "envelope" : "note-off",
             (handle->wave.modes & MODE_FAST_RELEASE) ? "yes" : "no");
+ printf("Sampled release:\t%s\n", handle->sampled_release ? "yes" : "no");
  printf("Scale Frequency:\t%i\n", handle->wave.scale_frequency);
  printf("Scale Factor:\t\t%i (%.gx)\n\n", handle->wave.scale_factor, handle->info.pitch_fraction);
 #endif
