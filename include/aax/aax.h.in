@@ -275,8 +275,23 @@ enum aaxSetupType
    AAX_COMPRESSION_VALUE      = 0x0400,
    AAX_GATE_ENABLED           = 0x0800,
 
-   /* buffer info, shared with mixer capabilities */
-   AAX_LOOP_COUNT             = 0x1000,
+   /* mixer capabilities */
+   AAX_SHARED_MODE            = 0x1000,
+   AAX_TIMER_MODE,
+   AAX_BATCHED_MODE,
+   AAX_SEEKABLE_SUPPORT,
+   AAX_CAPABILITIES,
+
+   AAX_TRACKS_MIN             = 0x1100,
+   AAX_TRACKS_MAX,
+   AAX_PERIODS_MIN,
+   AAX_PERIODS_MAX,
+   AAX_FREQUENCY_MIN,
+   AAX_FREQUENCY_MAX,
+   AAX_SAMPLES_MAX,
+
+   /* buffer info */
+   AAX_LOOP_COUNT             = 0x1200,
    AAX_LOOP_START,
    AAX_LOOP_END,
    AAX_BASE_FREQUENCY,
@@ -308,21 +323,6 @@ enum aaxSetupType
    AAX_FAST_RELEASE,
    AAX_POLYPHONY,
    AAX_MAX_PATCHES,
-
-   /* mixer capabilities, shared with buffer info */
-   AAX_SHARED_MODE            = 0x1000,
-   AAX_TIMER_MODE,
-   AAX_BATCHED_MODE,
-   AAX_SEEKABLE_SUPPORT,
-   AAX_CAPABILITIES,
-
-   AAX_TRACKS_MIN             = 0x1200,
-   AAX_TRACKS_MAX,
-   AAX_PERIODS_MIN,
-   AAX_PERIODS_MAX,
-   AAX_FREQUENCY_MIN,
-   AAX_FREQUENCY_MAX,
-   AAX_SAMPLES_MAX,
 
    /* File and track information */
    AAX_COVER_IMAGE_DATA         = 0x2000,
