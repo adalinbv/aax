@@ -336,12 +336,6 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_SAMPLE_RATE:
          rv = (unsigned int)handle->info.rate;
          break;
-      case AAX_PITCH_FRACTION:
-         rv = (unsigned int)(handle->info.pitch_fraction*1e6f);
-         break;
-      case AAX_BASE_FREQUENCY:
-         rv = (unsigned int)handle->info.base_frequency;
-         break;
       case AAX_TRACKS:
          rv = handle->info.no_tracks;
          break;
@@ -379,23 +373,11 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
             _aaxErrorSet(AAX_INVALID_STATE);
          }
          break;
-      case AAX_LOOP_START:
-         rv = roundf(handle->info.loop_start);
-         break;
-      case AAX_LOOP_END:
-         rv = roundf(handle->info.loop_end);
-         break;
       case AAX_BLOCK_ALIGNMENT:
          rv = handle->info.blocksize;
          break;
       case AAX_POSITION:
          rv = handle->pos;
-         break;
-      case AAX_SAMPLED_RELEASE:
-         rv = handle->info.sampled_release;
-         break;
-      case AAX_MAX_PATCHES:
-         rv = handle->info.no_patches;
          break;
       case AAX_COMPRESSION_VALUE:
          rv = handle->gain*10000;
@@ -432,6 +414,78 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          } else {
             _aaxErrorSet(AAX_INVALID_STATE);
          }
+         break;
+      case AAX_LOOP_COUNT:
+         rv = (unsigned int)handle->info.loop_count;
+         break;
+      case AAX_LOOP_START:
+         rv = roundf(handle->info.loop_start);
+         break;
+      case AAX_LOOP_END:
+         rv = roundf(handle->info.loop_end);
+         break;
+      case AAX_UPDATE_RATE: /* backwards compatible, deprecated */
+      case AAX_BASE_FREQUENCY:
+         rv = (unsigned int)handle->info.base_frequency;
+         break;
+      case AAX_LOW_FREQUENCY:
+         rv = (unsigned int)handle->info.low_frequency;
+         break;
+      case AAX_HIGH_FREQUENCY:
+         rv = (unsigned int)handle->info.high_frequency;
+         break;
+      case AAX_REFRESH_RATE: /* backwards compatible, deprecated */
+      case AAX_PITCH_FRACTION:
+         rv = (unsigned int)(handle->info.pitch_fraction*1e6f);
+         break;
+      case AAX_TREMOLO_RATE:
+         rv = (unsigned int)(handle->info.tremolo_rate*1e3f);
+         break;
+      case AAX_TREMOLO_DEPTH:
+         rv = (unsigned int)(handle->info.tremolo_depth*1e3f);
+         break;
+      case AAX_TREMOLO_SWEEP:
+         rv = (unsigned int)(handle->info.tremolo_sweep*1e3f);
+         break;
+      case AAX_VIBRATO_RATE:
+         rv = (unsigned int)(handle->info.vibrato_rate*1e3f);
+         break;
+      case AAX_VIBRATO_DEPTH:
+         rv = (unsigned int)(handle->info.vibrato_depth*1e3f);
+         break;
+      case AAX_VIBRATO_SWEEP:
+         rv = (unsigned int)(handle->info.vibrato_sweep*1e3f);
+         break;
+      case AAX_ENVELOPE_LEVEL0:
+      case AAX_ENVELOPE_RATE0:
+      case AAX_ENVELOPE_LEVEL1:
+      case AAX_ENVELOPE_RATE1:
+      case AAX_ENVELOPE_LEVEL2:
+      case AAX_ENVELOPE_RATE2:
+      case AAX_ENVELOPE_LEVEL3:
+      case AAX_ENVELOPE_RATE3:
+      case AAX_ENVELOPE_LEVEL4:
+      case AAX_ENVELOPE_RATE4:
+      case AAX_ENVELOPE_LEVEL5:
+      case AAX_ENVELOPE_RATE5:
+      case AAX_ENVELOPE_LEVEL6:
+      case AAX_ENVELOPE_RATE6:
+         rv = (unsigned int)(handle->info.volume_envelope[type-AAX_ENVELOPE_LEVEL0]*1e6f);
+         break;
+      case AAX_ENVELOPE_SUSTAIN:
+         rv = handle->info.envelope_sustain;
+         break;
+      case AAX_SAMPLED_RELEASE:
+         rv = handle->info.sampled_release;
+         break;
+      case AAX_FAST_RELEASE:
+         rv = handle->info.fast_release;
+         break;
+      case AAX_POLYPHONY:
+         rv = handle->info.polyphony;
+         break;
+      case AAX_MAX_PATCHES:
+         rv = handle->info.no_patches;
          break;
       case AAX_MIDI_PRESSURE_FACTOR:
          rv = handle->pressure_mode;

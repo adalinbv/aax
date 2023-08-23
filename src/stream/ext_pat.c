@@ -499,8 +499,10 @@ env_level_to_level(unsigned char level)
 
    int mantissa = level & 0xF;
    int exponent = level >> 4;
-   int rv = mantissa*(1 << exponent);
-   return 2.5f*rv/491520.0;
+   int prod = mantissa*(1 << exponent);
+   float rv = 2.5f*prod/491520.0;
+   if (rv < LEVEL_60DB) rv = 0.0f;
+   return rv;
 }
 
 static int
@@ -509,7 +511,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    unsigned char *buffer = header;
    ssize_t bufsize = *processed;
    int loop_start, loop_end;
-   float cents, prev;
+   float cents, level, prev;
    int i, pos;
 
    if (handle->skip >= bufsize)
@@ -754,15 +756,14 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
     * at an audible level, then a sampled release can be heard after the
     * laste envelope point.
     */
-   pos  = 1;
-   prev = 0.0f;
-   for (i=0; i<6; ++i)
+   pos  = 0;
+   prev = level = 0.0f;
+   for (i=0; i<ENVELOPES; ++i)
    {
-      float level, rate;
+      float rate;
 
       if (i == 2 && (handle->wave.modes & MODE_ENVELOPE_SUSTAIN))
       {
-//       level = handle->info.volume_envelope[2*(pos-1)];
          level = prev;
          rate = level ? AAX_FPINFINITE: 0.0f;
       }
@@ -771,18 +772,18 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
          level = env_level_to_level(handle->wave.envelope_level[i]);
          rate = env_rate_to_time(handle, handle->wave.envelope_rate[i], prev, level);
       }
-      prev = level;
 
-      if (rate)
+//    if (rate)
       {
          handle->info.volume_envelope[2*pos] = level;
-         handle->info.volume_envelope[2*pos-1] = rate;
+         handle->info.volume_envelope[2*pos+1] = rate;
+         prev = level;
+
          pos++;
       }
    }
 
-// handle->sampled_release = (handle->wave.envelope_level[ENVELOPES-1] > 8) ? 1 : 0;
-   handle->sampled_release = (handle->info.volume_envelope[10] > LEVEL_64DB) ? 1 : 0;
+   handle->sampled_release = (level > LEVEL_60DB) ? 1 : 0;
 
 #if 0
  printf("==== Wave name:\t\t%s\n", handle->wave.name);
