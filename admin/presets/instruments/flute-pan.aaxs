@@ -12,7 +12,7 @@
 
 <aeonwave>
 
- <info name="Recorder" bank="0" program="74">
+ <info name="Pan Flute" bank="0" program="75">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2023" by="Adalin B.V."/>
   <copyright from="2017" until="2023" by="Erik Hofman"/>
@@ -20,47 +20,54 @@
   <note polyphony="2" min="60" max="96" step="12"/>
  </info>
 
- <sound gain="1.59" frequency="261.626" duration="0.3">
-  <layer n="0">
-   <waveform src="pure-sine"/>
-   <waveform src="pink-noise" processing="mix" ratio="0.4"/>
-  </layer>
+ <sound gain="8.55" db="-2.9" frequency="261.626" duration="0.5">
+  <waveform src="triangle" processing="add"/>
+  <waveform src="brownian-noise" processing="add" ratio="0.8"/>
+  <waveform src="triangle" processing="add" ratio="0.15" pitch="3.0"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="bitcrusher" src="timed">
+  <filter type="bitcrusher" src="inversetimed|exponential|pink-noise">
    <slot n="0">
-    <param n="0">0.15</param>
-    <param n="1">1.5</param>
-    <param n="2">0.13</param>
-    <param n="3">0.15</param>
+    <param n="0">0.1</param>
+    <param n="1">0.3</param>
+    <param n="2">0.1</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope" release-time="0.08">
    <slot n="0">
-    <param n="0">0.6</param>
-    <param n="1">0.11</param>
-    <param n="2">1.0</param>
-    <param n="3">0.125</param>
+    <param n="0">0.188</param>
+    <param n="1">0.03</param>
+    <param n="2">0.161</param>
+    <param n="3">9.5</param>
    </slot>
    <slot n="1">
-    <param n="0">0.899</param>
-    <param n="1">inf</param>
-    <param n="2">0.899</param>
-    <param n="3">0.1</param>
+    <param n="0">0.139</param>
+    <param n="1">2.5</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">0.97</param>
-    <param n="1">0.25</param>
+    <param n="0">1.1</param>
+    <param n="1">0.03</param>
     <param n="2">1.0</param>
-    <param n="3">0.1</param>
+    <param n="3">7.5</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">4.5</param>
-    <param n="2">0.998</param>
+    <param n="0">0.992</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+  <effect type="chorus" src="envelope" optional="true">
+   <slot n="0">
+    <param n="0">0.9</param>
+    <param n="1">0.5</param>
+    <param n="2">0.05</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
