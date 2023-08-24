@@ -387,7 +387,7 @@ _pat_get(_ext_t *ext, int type)
       switch (type)
       {
       case __F_LOOP_COUNT:
-         rv = (handle->wave.modes & MODE_LOOPING) ? OFF_T_MAX : 0;
+         rv = handle->info.loop_count;
          break;
       case __F_FREQUENCY:
           rv = handle->info.rate;
@@ -724,13 +724,17 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    handle->info.blocksize = handle->info.no_tracks*handle->bits_sample/8;
    handle->info.no_samples = SIZE2SAMPLES(handle, handle->wave.size);
 
-   loop_start = handle->wave.start_loop;
-   handle->info.loop_start = SIZE2SAMPLES(handle, loop_start);
-   handle->info.loop_start += (float)(handle->wave.fractions >> 4)/16.0f;
+   handle->info.loop_count = (handle->wave.modes & MODE_LOOPING)? OFF_T_MAX : 0;
+   if (handle->info.loop_count)
+   {
+      loop_start = handle->wave.start_loop;
+      handle->info.loop_start = SIZE2SAMPLES(handle, loop_start);
+      handle->info.loop_start += (float)(handle->wave.fractions >> 4)/16.0f;
 
-   loop_end = handle->wave.end_loop;
-   handle->info.loop_end = SIZE2SAMPLES(handle, loop_end);
-   handle->info.loop_end += (float)(handle->wave.fractions & 0xF)/16.0f;
+      loop_end = handle->wave.end_loop;
+      handle->info.loop_end = SIZE2SAMPLES(handle, loop_end);
+      handle->info.loop_end += (float)(handle->wave.fractions & 0xF)/16.0f;
+   }
 
    handle->info.base_frequency = 0.001f*handle->wave.root_frequency;
    handle->info.low_frequency = 0.001f*handle->wave.low_frequency;

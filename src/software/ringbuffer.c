@@ -592,9 +592,22 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
       rbi->curr_sample = 0;
       rbi->loop_no = 0;
 
-      rbi->playing = 0;
-      rbi->stopped = 1;
       rbi->looping = 0;
+      // intentional fallthrough
+   case RB_STOPPED:
+      if (rbi->sampled_release) {
+         rbi->looping = 0;
+      }
+      else
+      {
+         rbi->playing = 0;
+         rbi->stopped = 1;
+         rbi->streaming = 0;
+      }
+      break;
+   case RB_STARTED:
+      rbi->playing = 1;
+      rbi->stopped = 0;
       rbi->streaming = 0;
       break;
    case RB_REWINDED:
@@ -616,22 +629,6 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
       rbi->curr_sample = rbi->sample->no_samples;
       rbi->loop_no = rbi->loop_max;
       rbi->looping = 0;
-      break;
-   case RB_STARTED:
-      rbi->playing = 1;
-      rbi->stopped = 0;
-      rbi->streaming = 0;
-      break;
-   case RB_STOPPED:
-      if (rbi->sampled_release) {
-         rbi->looping = 0;
-      }
-      else
-      {
-         rbi->playing = 0;
-         rbi->stopped = 1;
-         rbi->streaming = 0;
-      }
       break;
    case RB_STARTED_STREAMING:
       rbi->playing = 1;

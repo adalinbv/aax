@@ -1553,6 +1553,10 @@ _emitterSetPitch(const _aaxEmitter *src, _aax2dProps *p2d)
    _EFFECT_SET(p2d, PITCH_EFFECT, AAX_PITCH_START, pitch);
 }
 
+/*
+ * Create filters and effects from audio file provided data like
+ * envelope (timed-gain filter), tremolo and vibrato.
+ */
 int
 _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
 {

@@ -190,8 +190,13 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    /* Apply envelope filter */
    gnvel = ep2d->note.velocity;
    gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv);
-   if (gain <= -1e-3f) {
-      ret = -2;
+   if (gain <= -1e-3f)
+   {
+      if (srbi->sampled_release) {
+         gain = 1.0f/gnvel;
+      } else {
+         ret = -2;
+      }
    }
    gain *= ep2d->note.soft * ep2d->note.pressure;
 
