@@ -510,11 +510,10 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
 {
    unsigned char *buffer = header;
    ssize_t bufsize = *processed;
-   int loop_start, loop_end;
    float cents, level, prev;
    int i, pos;
 
-   if (handle->skip >= bufsize)
+   if (handle->skip > bufsize)
    {
       handle->skip -= bufsize;
       *processed = bufsize;
@@ -727,6 +726,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    handle->info.loop_count = (handle->wave.modes & MODE_LOOPING)? OFF_T_MAX : 0;
    if (handle->info.loop_count)
    {
+      int loop_start, loop_end;
+
       loop_start = handle->wave.start_loop;
       handle->info.loop_start = SIZE2SAMPLES(handle, loop_start);
       handle->info.loop_start += (float)(handle->wave.fractions >> 4)/16.0f;
@@ -734,6 +735,11 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
       loop_end = handle->wave.end_loop;
       handle->info.loop_end = SIZE2SAMPLES(handle, loop_end);
       handle->info.loop_end += (float)(handle->wave.fractions & 0xF)/16.0f;
+   }
+   else
+   {
+      handle->info.loop_start = 0;
+      handle->info.loop_end = handle->info.no_samples;
    }
 
    handle->info.base_frequency = 0.001f*handle->wave.root_frequency;
@@ -777,7 +783,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
          rate = env_rate_to_time(handle, handle->wave.envelope_rate[i], prev, level);
       }
 
-//    if (rate)
+      if (rate)
       {
          handle->info.volume_envelope[2*pos] = level;
          handle->info.volume_envelope[2*pos-1] = rate;
@@ -794,8 +800,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
  printf("     Wave number: %i of %i\n", handle->sample_num+1, handle->layer.waves);
  printf("Fractions:\t\tstart: %i, end: %i\n", handle->wave.fractions >> 4, handle->wave.fractions & 0xF);
  printf("Sample size:\t\t%i bytes, %i samples, %.3g sec\n",handle->wave.size, SIZE2SAMPLES(handle,handle->wave.size), SAMPLES2TIME(handle,handle->info.no_samples));
- printf("Loop start:\t\t%i bytes, %.20g samples, %.3g sec\n", loop_start, handle->info.loop_start, SAMPLES2TIME(handle,handle->info.loop_start));
- printf("Loop end:\t\t%i bytes, %.20g samples, %.3g sec\n", loop_end, handle->info.loop_end, SAMPLES2TIME(handle,handle->info.loop_end));
+ printf("Loop start:\t\t%i bytes, %.20g samples, %.3g sec\n", handle->wave.start_loop, handle->info.loop_start, SAMPLES2TIME(handle,handle->info.loop_start));
+ printf("Loop end:\t\t%i bytes, %.20g samples, %.3g sec\n", handle->wave.end_loop, handle->info.loop_end, SAMPLES2TIME(handle,handle->info.loop_end));
  printf("Sample rate:\t\t%i Hz\n", handle->wave.sample_rate);
  printf("Low Frequency:\t\t%g Hz, note %i (%s)\n", 0.001f*handle->wave.low_frequency, _freq2note(0.001f*handle->wave.low_frequency), _note2name(_freq2note(0.001f*handle->wave.low_frequency)));
  printf("High Frequency:\t\t%g Hz, note %i (%s)\n", 0.001f*handle->wave.high_frequency, _freq2note(0.001f*handle->wave.high_frequency), _note2name(_freq2note(0.001f*handle->wave.high_frequency)));
