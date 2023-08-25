@@ -760,7 +760,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
     * at an audible level, then a sampled release can be heard after the
     * laste envelope point.
     */
-   pos  = 0;
+   pos  = 1;
    prev = level = 0.0f;
    for (i=0; i<ENVELOPES; ++i)
    {
@@ -780,7 +780,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
 //    if (rate)
       {
          handle->info.volume_envelope[2*pos] = level;
-         handle->info.volume_envelope[2*pos+1] = rate;
+         handle->info.volume_envelope[2*pos-1] = rate;
          prev = level;
 
          pos++;
