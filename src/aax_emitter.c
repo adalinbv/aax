@@ -1631,7 +1631,7 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
             aaxEffectSetParam(eff, AAX_INITIAL_DELAY, AAX_LINEAR, sweep);
             aaxEffectSetParam(eff, AAX_LFO_FREQUENCY, AAX_LINEAR, 2.0f*rate);
             aaxEffectSetParam(eff, AAX_LFO_DEPTH, AAX_LINEAR, depth);
-            aaxEffectSetParam(eff,  AAX_LFO_OFFSET, AAX_LINEAR, 1.0f-0.5f*depth);
+            aaxEffectSetParam(eff,  AAX_LFO_OFFSET, AAX_LINEAR, 1.0f-depth);
             aaxEffectSetState(eff, AAX_TRIANGLE);
 
             effect = get_effect(eff);
