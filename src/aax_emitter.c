@@ -1610,7 +1610,7 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
             aaxFilterSetParam(flt, AAX_LFO_FREQUENCY, AAX_LINEAR, rate);
             aaxFilterSetParam(flt, AAX_LFO_DEPTH, AAX_LINEAR, depth);
             aaxFilterSetParam(flt,  AAX_LFO_OFFSET, AAX_LINEAR, 1.0f-depth);
-            int x = aaxFilterSetState(flt, AAX_SINE);
+            aaxFilterSetState(flt, AAX_SINE);
 
             filter = get_filter(flt);
             rv |= _emitterSetFilter(handle, filter);
