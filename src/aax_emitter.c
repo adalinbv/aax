@@ -1607,10 +1607,10 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
             _filter_t *filter;
 
             aaxFilterSetParam(flt, AAX_INITIAL_DELAY, AAX_LINEAR, sweep);
-            aaxFilterSetParam(flt, AAX_LFO_FREQUENCY, AAX_LINEAR, rate);
+            aaxFilterSetParam(flt, AAX_LFO_FREQUENCY, AAX_LINEAR, 2.0f*rate);
             aaxFilterSetParam(flt, AAX_LFO_DEPTH, AAX_LINEAR, depth);
             aaxFilterSetParam(flt,  AAX_LFO_OFFSET, AAX_LINEAR, 1.0f-depth);
-            aaxFilterSetState(flt, AAX_SINE);
+            aaxFilterSetState(flt, AAX_TRIANGLE);
 
             filter = get_filter(flt);
             rv |= _emitterSetFilter(handle, filter);
@@ -1629,10 +1629,10 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
             _effect_t *effect;
     
             aaxEffectSetParam(eff, AAX_INITIAL_DELAY, AAX_LINEAR, sweep);
-            aaxEffectSetParam(eff, AAX_LFO_FREQUENCY, AAX_LINEAR, rate);
+            aaxEffectSetParam(eff, AAX_LFO_FREQUENCY, AAX_LINEAR, 2.0f*rate);
             aaxEffectSetParam(eff, AAX_LFO_DEPTH, AAX_LINEAR, depth);
             aaxEffectSetParam(eff,  AAX_LFO_OFFSET, AAX_LINEAR, 1.0f-0.5f*depth);
-            aaxEffectSetState(eff, AAX_SINE);
+            aaxEffectSetState(eff, AAX_TRIANGLE);
 
             effect = get_effect(eff);
             rv |= _emitterSetEffect(handle, effect);
