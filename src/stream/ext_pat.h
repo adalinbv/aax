@@ -123,13 +123,11 @@ typedef struct
    uint8_t envelope_rate[ENVELOPES];
    uint8_t envelope_level[ENVELOPES];
 
-   uint8_t tremolo_sweep;
-   uint8_t tremolo_rate;
-   uint8_t tremolo_depth;
-
-   uint8_t vibrato_sweep;
-   uint8_t vibrato_rate;
-   uint8_t vibrato_depth;
+   struct {
+      uint8_t sweep;
+      uint8_t rate;
+      uint8_t depth;
+   } tremolo, vibrato;
 
    /* bit 0 : 0 = 8-bit, 1 = 16-bit wave data			*/
    /* bit 1 : 0 = signed, 1 = unsigned data			*/

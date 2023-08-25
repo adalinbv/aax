@@ -426,22 +426,22 @@ _pat_get(_ext_t *ext, int type)
          rv = handle->info.pitch_fraction*(1 << 24);
          break;
       case __F_TREMOLO_RATE:
-         rv = handle->info.tremolo_rate*(1 << 24);
+         rv = handle->info.tremolo.rate*(1 << 24);
          break;
       case __F_TREMOLO_DEPTH:
-         rv = handle->info.tremolo_depth*(1 << 24);
+         rv = handle->info.tremolo.depth*(1 << 24);
          break;
       case __F_TREMOLO_SWEEP:
-         rv = handle->info.tremolo_sweep*(1 << 24);
+         rv = handle->info.tremolo.sweep*(1 << 24);
          break;
       case __F_VIBRATO_RATE:
-         rv = handle->info.vibrato_rate*(1 << 24);
+         rv = handle->info.vibrato.rate*(1 << 24);
          break;
       case __F_VIBRATO_DEPTH:
-         rv = handle->info.vibrato_depth*(1 << 24);
+         rv = handle->info.vibrato.depth*(1 << 24);
          break;
       case __F_VIBRATO_SWEEP:
-         rv = handle->info.vibrato_sweep*(1 << 24);
+         rv = handle->info.vibrato.sweep*(1 << 24);
          break;
       default:
          if (handle->fmt) {
@@ -677,13 +677,13 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    memcpy(handle->wave.envelope_level, header, ENVELOPES);
    header += ENVELOPES;
 
-   handle->wave.tremolo_sweep = *header++;
-   handle->wave.tremolo_rate = *header++;
-   handle->wave.tremolo_depth = *header++;
+   handle->wave.tremolo.sweep = *header++;
+   handle->wave.tremolo.rate = *header++;
+   handle->wave.tremolo.depth = *header++;
 
-   handle->wave.vibrato_sweep= *header++;
-   handle->wave.vibrato_rate = *header++;
-   handle->wave.vibrato_depth = *header++;
+   handle->wave.vibrato.sweep= *header++;
+   handle->wave.vibrato.rate = *header++;
+   handle->wave.vibrato.depth = *header++;
 
    handle->wave.modes = *header++;
 
@@ -743,13 +743,13 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    cents = 100.0f*(handle->wave.scale_factor-1024.0f)/1024.0f;
    handle->info.pitch_fraction = cents2pitch(cents, 1.0f);
 
-   handle->info.tremolo_rate = CVTRATE(handle->wave.tremolo_rate);
-   handle->info.tremolo_depth = CVTDEPTH(handle->wave.tremolo_depth);
-   handle->info.tremolo_sweep = CVTRATE(handle->wave.tremolo_sweep);
+   handle->info.tremolo.rate = CVTRATE(handle->wave.tremolo.rate);
+   handle->info.tremolo.depth = CVTDEPTH(handle->wave.tremolo.depth);
+   handle->info.tremolo.sweep = CVTRATE(handle->wave.tremolo.sweep);
 
-   handle->info.vibrato_rate = CVTRATE(handle->wave.vibrato_rate);
-   handle->info.vibrato_depth = CVTDEPTH2PITCH(handle->wave.vibrato_depth);
-   handle->info.vibrato_sweep = CVTRATE(handle->wave.vibrato_sweep);
+   handle->info.vibrato.rate = CVTRATE(handle->wave.vibrato.rate);
+   handle->info.vibrato.depth = CVTDEPTH2PITCH(handle->wave.vibrato.depth);
+   handle->info.vibrato.sweep = CVTRATE(handle->wave.vibrato.sweep);
 
    /*
     * An array of 6 rates and levels to implement a 6-point envelope.
@@ -830,22 +830,22 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
  }
  printf("\n");
 
- printf("Tremolo Sweep:\t\t%3i (%.3g Hz)\n", handle->wave.tremolo_sweep,
-                                             handle->info.tremolo_sweep);
- printf("Tremolo Rate:\t\t%3i (%.3g Hz)\n", handle->wave.tremolo_rate,
-                                            handle->info.tremolo_rate);
- printf("Tremolo Depth:\t\t%3i (%.2g, %.3gdB)\n", handle->wave.tremolo_depth,
-                                                  handle->info.tremolo_depth,
-                                       CVTDEPT2DB(handle->wave.tremolo_depth));
+ printf("Tremolo Sweep:\t\t%3i (%.3g Hz)\n", handle->wave.tremolo.sweep,
+                                             handle->info.tremolo.sweep);
+ printf("Tremolo Rate:\t\t%3i (%.3g Hz)\n", handle->wave.tremolo.rate,
+                                            handle->info.tremolo.rate);
+ printf("Tremolo Depth:\t\t%3i (%.2g, %.3gdB)\n", handle->wave.tremolo.depth,
+                                                  handle->info.tremolo.depth,
+                                       CVTDEPT2DB(handle->wave.tremolo.depth));
 
- printf("Vibrato Sweep:\t\t%3i (%.3g Hz)\n", handle->wave.vibrato_sweep,
-                                             handle->info.vibrato_sweep);
- printf("Vibrato Rate:\t\t%3i (%.3g Hz)\n", handle->wave.vibrato_rate,
-                                            handle->info.vibrato_rate);
+ printf("Vibrato Sweep:\t\t%3i (%.3g Hz)\n", handle->wave.vibrato.sweep,
+                                             handle->info.vibrato.sweep);
+ printf("Vibrato Rate:\t\t%3i (%.3g Hz)\n", handle->wave.vibrato.rate,
+                                            handle->info.vibrato.rate);
  printf("Vibrato Depth:\t\t%3i (%.3g octave, %g cents)\n",
-                                                  handle->wave.vibrato_depth,
-                                                  handle->info.vibrato_depth,
-                                    CVTDEPT2CENTS(handle->wave.vibrato_depth));
+                                                  handle->wave.vibrato.depth,
+                                                  handle->info.vibrato.depth,
+                                    CVTDEPT2CENTS(handle->wave.vibrato.depth));
 
  printf("Modes:\t\t\t0x%x\n", handle->wave.modes);
  printf(" - Sample Format:\t%i-bit %s\n",

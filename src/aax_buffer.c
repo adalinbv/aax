@@ -439,22 +439,22 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          rv = (unsigned int)(handle->info.pitch_fraction*1e6f);
          break;
       case AAX_TREMOLO_RATE:
-         rv = (unsigned int)(handle->info.tremolo_rate*1e3f);
+         rv = (unsigned int)(handle->info.tremolo.rate*1e3f);
          break;
       case AAX_TREMOLO_DEPTH:
-         rv = (unsigned int)(handle->info.tremolo_depth*1e3f);
+         rv = (unsigned int)(handle->info.tremolo.depth*1e3f);
          break;
       case AAX_TREMOLO_SWEEP:
-         rv = (unsigned int)(handle->info.tremolo_sweep*1e3f);
+         rv = (unsigned int)(handle->info.tremolo.sweep*1e3f);
          break;
       case AAX_VIBRATO_RATE:
-         rv = (unsigned int)(handle->info.vibrato_rate*1e3f);
+         rv = (unsigned int)(handle->info.vibrato.rate*1e3f);
          break;
       case AAX_VIBRATO_DEPTH:
-         rv = (unsigned int)(handle->info.vibrato_depth*1e3f);
+         rv = (unsigned int)(handle->info.vibrato.depth*1e3f);
          break;
       case AAX_VIBRATO_SWEEP:
-         rv = (unsigned int)(handle->info.vibrato_sweep*1e3f);
+         rv = (unsigned int)(handle->info.vibrato.sweep*1e3f);
          break;
       case AAX_ENVELOPE_LEVEL0:
       case AAX_ENVELOPE_RATE0:
@@ -920,6 +920,13 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                    rb->set_paramf(rb, RB_ENVELOPE_LEVEL+i, level);
                    rb->set_paramf(rb, RB_ENVELOPE_RATE+i, rate);
                 }
+
+                rb->set_paramf(rb, RB_TREMOLO_RATE, info->tremolo.rate);
+                rb->set_paramf(rb, RB_TREMOLO_DEPTH, info->tremolo.depth);
+                rb->set_paramf(rb, RB_TREMOLO_SWEEP, info->tremolo.sweep);
+                rb->set_paramf(rb, RB_VIBRATO_RATE, info->vibrato.rate);
+                rb->set_paramf(rb, RB_VIBRATO_DEPTH, info->vibrato.depth);
+                rb->set_paramf(rb, RB_VIBRATO_SWEEP, info->vibrato.sweep);
              }
              else
              {
@@ -1257,12 +1264,12 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
                info->loop_start = stream->param(id, DRIVER_LOOP_START);
                info->loop_end = stream->param(id, DRIVER_LOOP_END);
                info->sampled_release = stream->param(id, DRIVER_SAMPLED_RELEASE);
-               info->tremolo_rate = stream->param(id, DRIVER_TREMOLO_RATE);
-               info->tremolo_depth = stream->param(id, DRIVER_TREMOLO_DEPTH);
-               info->tremolo_sweep = stream->param(id, DRIVER_TREMOLO_SWEEP);
-               info->vibrato_rate = stream->param(id, DRIVER_VIBRATO_RATE);
-               info->vibrato_depth = stream->param(id, DRIVER_VIBRATO_DEPTH);
-               info->vibrato_sweep = stream->param(id, DRIVER_VIBRATO_SWEEP);
+               info->tremolo.rate = stream->param(id, DRIVER_TREMOLO_RATE);
+               info->tremolo.depth = stream->param(id, DRIVER_TREMOLO_DEPTH);
+               info->tremolo.sweep = stream->param(id, DRIVER_TREMOLO_SWEEP);
+               info->vibrato.rate = stream->param(id, DRIVER_VIBRATO_RATE);
+               info->vibrato.depth = stream->param(id, DRIVER_VIBRATO_DEPTH);
+               info->vibrato.sweep = stream->param(id, DRIVER_VIBRATO_SWEEP);
                info->pitch_fraction = stream->param(id, DRIVER_PITCH_FRACTION);
                if (info->pitch_fraction < FLT_EPSILON) {
                   info->pitch_fraction = 1.0f;
@@ -1310,12 +1317,12 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
  printf("low frequency:\t\t%g Hz\n", info->low_frequency);
  printf("high frequency:\t\t%g Hz\n", info->high_frequency);
  printf("pitch fraction:\t\t%g\n", info->pitch_fraction);
- printf("tremolo rate:\t\t%g Hz\n", info->tremolo_rate);
- printf("tremolo depth:\t\t%g\n", info->tremolo_depth);
- printf("tremolo sweep:\t\t%g Hz\n", info->tremolo_sweep);
- printf("vibrato rate:\t\t%g Hz\n", info->vibrato_rate);
- printf("vibrato depth:\t\t%g\n", info->vibrato_depth);
- printf("vibrato sweep:\t\t%g Hz\n", info->vibrato_sweep);
+ printf("tremolo rate:\t\t%g Hz\n", info->tremolo.rate);
+ printf("tremolo depth:\t\t%g\n", info->tremolo.depth);
+ printf("tremolo sweep:\t\t%g Hz\n", info->tremolo.sweep);
+ printf("vibrato rate:\t\t%g Hz\n", info->vibrato.rate);
+ printf("vibrato depth:\t\t%g\n", info->vibrato.depth);
+ printf("vibrato sweep:\t\t%g Hz\n", info->vibrato.sweep);
  printf("Envelope rates:\n");
  for (i=0; i<_MAX_ENVELOPE_STAGES; ++i) {
    float rate = stream->param(id, DRIVER_ENVELOPE_RATE+i);

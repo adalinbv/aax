@@ -819,22 +819,22 @@ _wav_get(_ext_t *ext, int type)
       rv = handle->info.pitch_fraction*(1 << 24);
       break;
    case __F_TREMOLO_RATE:
-      rv = handle->info.tremolo_rate*(1 << 24);
+      rv = handle->info.tremolo.rate*(1 << 24);
       break;
    case __F_TREMOLO_DEPTH:
-      rv = handle->info.tremolo_depth*(1 << 24);
+      rv = handle->info.tremolo.depth*(1 << 24);
       break;
    case __F_TREMOLO_SWEEP:
-      rv = handle->info.tremolo_sweep*(1 << 24);
+      rv = handle->info.tremolo.sweep*(1 << 24);
       break;
    case __F_VIBRATO_RATE:
-      rv = handle->info.vibrato_rate*(1 << 24);
+      rv = handle->info.vibrato.rate*(1 << 24);
       break;
    case __F_VIBRATO_DEPTH:
-      rv = handle->info.vibrato_depth*(1 << 24);
+      rv = handle->info.vibrato.depth*(1 << 24);
       break;
    case __F_VIBRATO_SWEEP:
-      rv = handle->info.vibrato_sweep*(1 << 24);
+      rv = handle->info.vibrato.sweep*(1 << 24);
       break;
    default:
       if (handle->fmt) {

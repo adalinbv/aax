@@ -20,14 +20,16 @@
   <note polyphony="2" min="60" max="96" step="12"/>
  </info>
 
- <sound gain="8.55" db="-2.9" frequency="261.626" duration="0.5">
-  <waveform src="triangle" processing="add"/>
-  <waveform src="brownian-noise" processing="add" ratio="0.8"/>
-  <waveform src="triangle" processing="add" ratio="0.15" pitch="3.0"/>
+ <sound gain="8.55" frequency="261.626" duration="0.5">
+  <layer n="0">
+   <waveform src="triangle" processing="add"/>
+   <waveform src="brownian-noise" processing="add" ratio="0.8"/>
+   <waveform src="triangle" processing="add" ratio="0.15" pitch="3.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="bitcrusher" src="inversetimed|exponential|pink-noise">
+  <filter type="bitcrusher" src="inverse-envelope|pink-noise|exponential">
    <slot n="0">
     <param n="0">0.1</param>
     <param n="1">0.3</param>

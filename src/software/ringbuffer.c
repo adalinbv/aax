@@ -832,6 +832,24 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       rbi->curr_sample = floorf(fval*rbd->frequency_hz);
       rv = AAX_TRUE;
       break;
+   case RB_TREMOLO_DEPTH:
+      rbd->tremolo.depth = fval;
+      break;
+   case RB_TREMOLO_RATE:
+      rbd->tremolo.rate = fval;
+      break;
+   case RB_TREMOLO_SWEEP:
+      rbd->tremolo.sweep = fval;
+      break;
+   case RB_VIBRATO_DEPTH:
+      rbd->vibrato.depth = fval;
+      break;
+   case RB_VIBRATO_RATE:
+      rbd->vibrato.rate = fval;
+      break;
+   case RB_VIBRATO_SWEEP:
+      rbd->vibrato.sweep = fval;
+      break;
    default:
       if ((param >= RB_PEAK_VALUE) &&
           (param <= RB_PEAK_VALUE_MAX))
@@ -1090,6 +1108,24 @@ _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       break;
    case RB_OFFSET_SEC:
       rv = rbi->curr_pos_sec;
+      break;
+   case RB_TREMOLO_DEPTH:
+      rv = rbd->tremolo.depth;
+      break;
+   case RB_TREMOLO_RATE:
+      rv = rbd->tremolo.rate;
+      break;
+   case RB_TREMOLO_SWEEP:
+      rv = rbd->tremolo.sweep;
+      break;
+   case RB_VIBRATO_DEPTH:
+      rv = rbd->vibrato.depth;
+      break;
+   case RB_VIBRATO_RATE:
+      rv = rbd->vibrato.rate;
+      break;
+   case RB_VIBRATO_SWEEP:
+      rv = rbd->vibrato.sweep;
       break;
    default:
       if ((param >= RB_PEAK_VALUE) &&

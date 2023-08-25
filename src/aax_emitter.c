@@ -1565,11 +1565,13 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
 
    if (config)
    {
-      aaxFilter flt = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
-      if (flt)
+      _aaxRingBuffer *rb = embuf->ringbuffer;
+      aaxEffect eff;
+      aaxFilter flt;
+      float depth;
+
+      if ((flt = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER)) != NULL)
       {
-         _aaxRingBuffer *rb = embuf->ringbuffer;
-         _filter_t* filter;
          int i, param = 0;
          float sum = 0.0f;
 
@@ -1589,11 +1591,54 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
          // only apply the timed-gain filter when at least one level is non-zero.
          if (sum)
          {
-            filter = get_filter(flt);
-            _emitterSetFilter(handle, filter);
+            _filter_t *filter = get_filter(flt);
+            rv = _emitterSetFilter(handle, filter);
          }
          aaxFilterDestroy(flt);
-         rv = AAX_TRUE;
+      }
+
+      depth = rb->get_paramf(rb, RB_TREMOLO_DEPTH);
+      if (depth)
+      {
+         if ((flt = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER)) != NULL)
+         {
+            float rate = rb->get_paramf(rb, RB_TREMOLO_RATE);
+            float sweep = rb->get_paramf(rb, RB_TREMOLO_SWEEP);
+            _filter_t *filter;
+
+            aaxFilterSetParam(flt, AAX_INITIAL_DELAY, AAX_LINEAR, sweep);
+            aaxFilterSetParam(flt, AAX_LFO_FREQUENCY, AAX_LINEAR, rate);
+            aaxFilterSetParam(flt, AAX_LFO_DEPTH, AAX_LINEAR, depth);
+            aaxFilterSetParam(flt,  AAX_LFO_OFFSET, AAX_LINEAR, 1.0f-depth);
+            int x = aaxFilterSetState(flt, AAX_SINE);
+
+            filter = get_filter(flt);
+            rv |= _emitterSetFilter(handle, filter);
+
+            aaxFilterDestroy(flt);
+         }
+      }
+
+      depth = rb->get_paramf(rb, RB_VIBRATO_DEPTH);
+      if (depth)
+      {
+         if ((eff = aaxEffectCreate(config, AAX_DYNAMIC_PITCH_EFFECT)) != NULL)
+         {  
+            float rate = rb->get_paramf(rb, RB_VIBRATO_RATE);
+            float sweep = rb->get_paramf(rb, RB_VIBRATO_SWEEP);
+            _effect_t *effect;
+    
+            aaxEffectSetParam(eff, AAX_INITIAL_DELAY, AAX_LINEAR, sweep);
+            aaxEffectSetParam(eff, AAX_LFO_FREQUENCY, AAX_LINEAR, rate);
+            aaxEffectSetParam(eff, AAX_LFO_DEPTH, AAX_LINEAR, depth);
+            aaxEffectSetParam(eff,  AAX_LFO_OFFSET, AAX_LINEAR, 1.0f-0.5f*depth);
+            aaxEffectSetState(eff, AAX_SINE);
+
+            effect = get_effect(eff);
+            rv |= _emitterSetEffect(handle, effect);
+     
+            aaxEffectDestroy(eff);
+         }
       }
    }
    return rv;
