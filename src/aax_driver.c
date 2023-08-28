@@ -1003,6 +1003,10 @@ get_driver_handle(void *c)
    return rv;
 }
 
+/*
+ * Limit the playback frequency to between 20Hz and 90% of half the sample
+ * frequency (usually 20kHz).
+ */
 static void
 _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
 {
@@ -1037,7 +1041,7 @@ _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
    if (flt[0])
    {
       /* 20 Hz high-pass filter */
-      flt[0]->no_stages = 1;
+      flt[0]->no_stages = 2;
       flt[0]->state = AAX_BUTTERWORTH;
       flt[0]->Q = 1.0f;
       flt[0]->type = HIGHPASS;
@@ -1047,7 +1051,7 @@ _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
       _aax_butterworth_compute(20.0f, flt[0]);
 
       /* 90% of half the sample rate low-pass filter */
-      flt[1]->no_stages = 1;
+      flt[1]->no_stages = 2;
       flt[1]->state = AAX_BUTTERWORTH;
       flt[1]->Q = 1.0f;
       flt[1]->type = LOWPASS;
