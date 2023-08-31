@@ -43,6 +43,10 @@
 static void _grapheq_destroy(void*);
 static void _grapheq_swap(void*,void*);
 
+/*
+ * Implement en 8-band graphic equalizer with frequency bands at the following
+ * center frequencies: 42Hz, 100Hz, 225Hz, 515Hz, 1.2kHz, 2.7kHz, 6.3KHz, 15khz
+ */
 static aaxFilter
 _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
@@ -51,10 +55,12 @@ _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 
    if (flt)
    {
-      flt->slot[0]->param[0] = 1.0f; flt->slot[1]->param[0] = 1.0f;
-      flt->slot[0]->param[1] = 1.0f; flt->slot[1]->param[1] = 1.0f;
-      flt->slot[0]->param[2] = 1.0f; flt->slot[1]->param[2] = 1.0f;
-      flt->slot[0]->param[3] = 1.0f; flt->slot[1]->param[3] = 1.0f;
+      int i;
+
+      // Set all bands to 0dB */
+      for (i=0; i<_AAX_MAX_EQBANDS; ++i) {
+         flt->slot[i/4]->param[i % 4] = 1.0f;
+      }
 
       flt->slot[EQUALIZER_LF]->destroy = NULL;
       flt->slot[EQUALIZER_LF]->swap = NULL;
@@ -111,11 +117,11 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
 
       if (eq && !eq->band[0].freqfilter)
       {
-         size_t dsize = _AAX_MAX_EQBANDS*(sizeof(_aaxRingBufferFreqFilterHistoryData)+MEMALIGN);
+         size_t fsize = sizeof(_aaxRingBufferFreqFilterHistoryData);
+         size_t dsize = _AAX_MAX_EQBANDS*(fsize+MEMALIGN);
          char *ptr;
 
-         ptr = _aax_aligned_alloc(dsize);
-         if (ptr)
+         if ((ptr = _aax_aligned_alloc(dsize)) != NULL)
          {
             int i;
 
@@ -144,9 +150,10 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
 
       if (eq)	/* fill in the fixed frequencies */
       {
-         float fband = logf(44000.0f/67.0f)/8.0f;
+         float fband = _lin2log(22000.0f);
          float fs = filter->info->frequency;
          int s, b, pos = _AAX_MAX_EQBANDS-1;
+         int bands = 24;
          int stages = 2;
 
          do
@@ -164,22 +171,19 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
             else if (fabsf(gain - 1.0f) < LEVEL_128DB) gain = 1.0f;
             flt->high_gain = gain;
             flt->low_gain = 0.0f;
-            if (pos == 0)
-            {
+            if (pos == 0) {
                flt->type = LOWPASS;
-               fc = expf((float)(pos-0.5f)*fband)*67.0f;
-            }
-            else if (pos == 7)
-            {
+            } else if (pos == 7) {
                flt->type = HIGHPASS;
-               fc = expf((float)(pos-0.5f)*fband)*67.0f;
             }
             else
             {
                flt->high_gain *= (2.0f*stages);
                flt->type = BANDPASS;
-               fc = expf(((float)(pos-0.5f))*fband)*67.0f;
             }
+            // start at band 9 (42.5Hz) of 24 bands and use every odd band
+            // which equals to 8 bands in total.
+            fc = _log2lin((9+pos*2)*fband/bands);
 
             flt->k = 0.0f;
             flt->Q = 0.66f; // _MAX(1.4142f/stages, 1.0f);
