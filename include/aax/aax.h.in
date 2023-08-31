@@ -201,6 +201,22 @@ enum aaxModeType
    AAX_MODE_TYPE_MAX,
 };
 
+/* Can be used in combination with AAX_TRACK0 - AAX_TRACK7 */
+enum aaxFrequencyBandType
+{
+   AAX_BAND_ALL = 0x00,
+   AAX_BAND1 = 0x100,
+   AAX_BAND2 = 0x200,
+   AAX_BAND3 = 0x300,
+   AAX_BAND4 = 0x400,
+   AAX_BAND5 = 0x500,
+   AAX_BAND6 = 0x600,
+   AAX_BAND7 = 0x700,
+   AAX_BAND8 = 0x800,
+
+   AAX_MAX_BANDS = 8
+};
+
 enum aaxTrackType
 {
    AAX_TRACK_MIX = 0x40,
@@ -270,11 +286,6 @@ enum aaxSetupType
    AAX_BALANCE,
    AAX_SETUP_TYPE_MAX,
 
-   AAX_PEAK_VALUE             = 0x0100,
-   AAX_AVERAGE_VALUE          = 0x0200,
-   AAX_COMPRESSION_VALUE      = 0x0400,
-   AAX_GATE_ENABLED           = 0x0800,
-
    /* mixer capabilities */
    AAX_SHARED_MODE            = 0x1000,
    AAX_TIMER_MODE,
@@ -342,8 +353,13 @@ enum aaxSetupType
 
    AAX_MUSIC_PERFORMER_UPDATE = 0x2080,
    AAX_TRACK_TITLE_UPDATE,
+   AAX_SHARED_DATA_DIR,
 
-   AAX_SHARED_DATA_DIR = 0x4000,
+   /* can be combined with AAX_TRACK0 - AAX_TRACK7 and AAX_BAND1 - AAX_BAND8 */
+   AAX_PEAK_VALUE             = 0x4000,
+   AAX_AVERAGE_VALUE          = 0x80000,
+   AAX_COMPRESSION_VALUE      = 0x10000,
+   AAX_GATE_ENABLED           = 0x20000,
 
    /* MIDI */
    AAX_MIDI_RELEASE_FACTOR = 0x00200000, /* same as AAX_RELEASE_FACTOR */
