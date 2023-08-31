@@ -525,7 +525,9 @@ _aaxPipeWireDriverConnect(void *config, const void *id, xmlId *xid, const char *
                _AAX_DRVLOG("no. periods too larget.");
                i = 4;
             }
-            handle->no_periods = i;
+
+            // pipewire doesn't work well with period numbers larger than 1
+            handle->no_periods = 1; // i
          }
       }
    }
