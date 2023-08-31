@@ -78,6 +78,8 @@ typedef struct
 
    /* band-pass filter between 20 Hz and 20kHz **/
    _aaxRingBufferFreqFilterData *filter[2];
+   float rms[RB_MAX_TRACKS][_AAX_MAX_EQBANDS];
+   float peak[RB_MAX_TRACKS][_AAX_MAX_EQBANDS];
    void *mutex;
 
 } _sensor_t;

@@ -209,6 +209,8 @@ typedef struct
 typedef struct
 {
    _aaxRingBufferFreqFilterData band[_AAX_MAX_EQBANDS];
+   float rms[_AAX_MAX_EQBANDS];
+   float peak[_AAX_MAX_EQBANDS];
 } _aaxRingBufferEqualizerData;
 
 typedef struct

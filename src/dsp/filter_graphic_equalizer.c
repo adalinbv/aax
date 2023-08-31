@@ -358,12 +358,16 @@ _grapheq_run(void *rb, MIX_PTR_T dptr, MIX_PTR_T sptr, MIX_PTR_T tmp,
    filter = &eq->band[--band];
    rbd->freqfilter(dptr, sptr, track, no_samples, filter);
 
+   _batch_get_average_rms(tmp, no_samples, &eq->rms[band], &eq->peak[band]);
+
    // next 7 bands
    do
    {
       filter = &eq->band[--band];
       rbd->freqfilter(tmp, sptr, track, no_samples, filter);
       rbd->add(dptr, tmp, no_samples, 1.0f, 0.0f);
+
+      _batch_get_average_rms(tmp, no_samples, &eq->rms[band], &eq->peak[band]);
    }
    while(band);
 

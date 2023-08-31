@@ -433,20 +433,39 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
          }
          else if ((type & AAX_PEAK_VALUE) || (type & AAX_AVERAGE_VALUE))
          {
+            unsigned int band = (type >> 8) & 0xF;
             unsigned int track = type & 0x3F;
-            if (track <= _AAX_MAX_SPEAKERS)
+            if (track < AAX_TRACK_MAX && band < AAX_MAX_BANDS)
             {
-               _aaxRingBuffer *rb = handle->ringbuffer;
-               if (rb)
+               if (band == 0)
                {
-                  if (type & AAX_TRACK_ALL) {
-                     track = AAX_TRACK_MAX;
-                  }
+                  _aaxRingBuffer *rb = handle->ringbuffer;
+                  if (rb)
+                  {
+                     if (type & AAX_TRACK_ALL) {
+                        track = AAX_TRACK_MAX;
+                     }
 
-                  if (type & AAX_PEAK_VALUE) {
-                     rv = rb->get_parami(rb, RB_PEAK_VALUE+track);
-                  } else if (type & AAX_AVERAGE_VALUE) {
-                     rv = rb->get_parami(rb, RB_AVERAGE_VALUE+track);
+                     if (type & AAX_PEAK_VALUE) {
+                        rv = rb->get_parami(rb, RB_PEAK_VALUE+track);
+                     } else if (type & AAX_AVERAGE_VALUE) {
+                        rv = rb->get_parami(rb, RB_AVERAGE_VALUE+track);
+                     }
+                  }
+               }
+               else
+               {
+                     const _intBufferData* dptr;
+                  dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+                  if (dptr)
+                  {
+                     _sensor_t* sensor = _intBufGetDataPtr(dptr);
+                     if (type & AAX_PEAK_VALUE) {
+                        rv = sensor->peak[track][band];
+                     } else if (type & AAX_AVERAGE_VALUE) {
+                        rv = sensor->rms[track][band];
+                     }
+                     _intBufReleaseData(dptr, _AAX_SENSOR);
                   }
                }
             }

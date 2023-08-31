@@ -142,7 +142,7 @@ _aaxSoftwareMixerPostProcess(const void *renderer)
 /* -------------------------------------------------------------------------- */
 
 static void
-_aaxFrameProcessEqualizer(_aaxRingBuffer *rb, _aaxAudioFrame *mixer, MIX_T **scratch)
+_aaxFrameProcessEqualizer(_aaxRingBuffer *rb, _sensor_t *sensor, _aaxAudioFrame *mixer, MIX_T **scratch)
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
@@ -188,6 +188,12 @@ _aaxFrameProcessEqualizer(_aaxRingBuffer *rb, _aaxAudioFrame *mixer, MIX_T **scr
             _aax_memcpy(scratch[SCRATCH_BUFFER0], tracks[t], track_len_bytes);
             _grapheq_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0],
                          scratch[SCRATCH_BUFFER1], 0, no_samples, t, eq);
+
+            if (sensor)
+            {
+               memcpy(sensor->rms[t], eq->rms, sizeof(float[_AAX_MAX_EQBANDS]));
+               memcpy(sensor->peak[t],eq->peak,sizeof(float[_AAX_MAX_EQBANDS]));
+            }
          }
       }
    }
@@ -205,7 +211,7 @@ _aaxSubFramePostProcess(const _aaxRendererData *data)
 
    _aaxMutexLock(subframe->mutex);
 
-   _aaxFrameProcessEqualizer(rb, subframe->submix, data->scratch);
+   _aaxFrameProcessEqualizer(rb, NULL, subframe->submix, data->scratch);
 
    _aaxMutexUnLock(subframe->mutex);
 }
@@ -314,7 +320,7 @@ _aaxSensorPostProcess(const _aaxRendererData *data)
       }
    }
 
-   _aaxFrameProcessEqualizer(rb, sensor->mixer, data->scratch);
+   _aaxFrameProcessEqualizer(rb, sensor, sensor->mixer, data->scratch);
    _aaxMutexUnLock(sensor->mutex);
 
    for (t=0; t<no_tracks; t++)

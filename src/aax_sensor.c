@@ -535,9 +535,38 @@ aaxSensorSetSetup(UNUSED(aaxConfig config), UNUSED(enum aaxSetupType type), UNUS
 }
 
 AAX_API unsigned int AAX_APIENTRY
-aaxSensorGetSetup(UNUSED(const aaxConfig config), UNUSED(enum aaxSetupType type))
+aaxSensorGetSetup(aaxConfig config, enum aaxSetupType type)
 {
+   _handle_t *handle = get_handle(config, __func__);
    unsigned int rv = AAX_FALSE;
+
+   if (handle)
+   {
+      const _intBufferData* dptr;
+      dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr)
+      {
+         _sensor_t* sensor = _intBufGetDataPtr(dptr);
+         unsigned int band = (type >> 8) & 0xF;
+         unsigned int track = type & 0x3F;
+
+         switch(type)
+         {
+         default:
+            if (track < AAX_TRACK_MAX && band < AAX_MAX_BANDS)
+            {
+               if (type & AAX_PEAK_VALUE) {
+                  rv = sensor->peak[track][band];
+               } else if (type & AAX_AVERAGE_VALUE) {
+                  rv = sensor->rms[track][band];
+               }
+            }
+            break;
+         }
+         _intBufReleaseData(dptr, _AAX_SENSOR);
+      }
+   }
+
    return rv;
 }
 
