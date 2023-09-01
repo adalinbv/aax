@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2021 by Erik Hofman
- * Copyright 2007-2021 by Adalin B.V.
+ * Copyright 2005-2023 by Erik Hofman
+ * Copyright 2007-2023 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -75,7 +75,9 @@ extern "C" {
 # if defined(__GNUC__) || defined(__TINYC__)
 # endif
 #endif
-#define AAX_PEAK_MAX		8388607
+#define AAX_PEAK_MAX		(1<<23)
+#define AAX_TO_INT(v)		(int)(v*AAX_PEAK_MAX)
+#define AAX_TO_FLOAT(v)		(float)(v/(float)AAX_PEAK_MAX)
 
 enum aaxHandleType
 {
@@ -368,6 +370,7 @@ enum aaxSetupType
    AAX_MIDI_ATTACK_VELOCITY_FACTOR,
    AAX_MIDI_RELEASE_VELOCITY_FACTOR,
    AAX_MIDI_PRESSURE_FACTOR,
+   AAX_MIDI_PRESSURE_MODE = AAX_MIDI_PRESSURE_FACTOR,
    AAX_MIDI_SOFT_FACTOR,
 
    AAX_RELEASE_MODE = -1

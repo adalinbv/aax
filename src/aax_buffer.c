@@ -380,7 +380,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          rv = handle->pos;
          break;
       case AAX_COMPRESSION_VALUE:
-         rv = handle->gain*10000;
+         rv = AAX_TO_INT(handle->gain);
          break;
       case AAX_PEAK_VALUE:
       case AAX_AVERAGE_VALUE:
@@ -424,7 +424,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_LOOP_END:
          rv = roundf(handle->info.loop_end);
          break;
-      case AAX_UPDATE_RATE: /* backwards compatible, deprecated */
+//    case AAX_UPDATE_RATE: /* deprecated */
       case AAX_BASE_FREQUENCY:
          rv = (unsigned int)handle->info.base_frequency;
          break;
@@ -434,27 +434,27 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_HIGH_FREQUENCY:
          rv = (unsigned int)handle->info.high_frequency;
          break;
-      case AAX_REFRESH_RATE: /* backwards compatible, deprecated */
+//    case AAX_REFRESH_RATE: /* deprecated */
       case AAX_PITCH_FRACTION:
-         rv = (unsigned int)(handle->info.pitch_fraction*1e6f);
+         rv = AAX_TO_INT(handle->info.pitch_fraction);
          break;
       case AAX_TREMOLO_RATE:
-         rv = (unsigned int)(handle->info.tremolo.rate*1e3f);
+         rv = AAX_TO_INT(handle->info.tremolo.rate);
          break;
       case AAX_TREMOLO_DEPTH:
-         rv = (unsigned int)(handle->info.tremolo.depth*1e3f);
+         rv = AAX_TO_INT(handle->info.tremolo.depth);
          break;
       case AAX_TREMOLO_SWEEP:
-         rv = (unsigned int)(handle->info.tremolo.sweep*1e3f);
+         rv = AAX_TO_INT(handle->info.tremolo.sweep);
          break;
       case AAX_VIBRATO_RATE:
-         rv = (unsigned int)(handle->info.vibrato.rate*1e3f);
+         rv = AAX_TO_INT(handle->info.vibrato.rate);
          break;
       case AAX_VIBRATO_DEPTH:
-         rv = (unsigned int)(handle->info.vibrato.depth*1e3f);
+         rv = AAX_TO_INT(handle->info.vibrato.depth);
          break;
       case AAX_VIBRATO_SWEEP:
-         rv = (unsigned int)(handle->info.vibrato.sweep*1e3f);
+         rv = AAX_TO_INT(handle->info.vibrato.sweep);
          break;
       case AAX_ENVELOPE_LEVEL0:
       case AAX_ENVELOPE_RATE0:
@@ -470,7 +470,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_ENVELOPE_RATE5:
       case AAX_ENVELOPE_LEVEL6:
       case AAX_ENVELOPE_RATE6:
-         rv = (unsigned int)(handle->info.volume_envelope[type-AAX_ENVELOPE_LEVEL0]*1e6f);
+         rv =AAX_TO_INT(handle->info.volume_envelope[type-AAX_ENVELOPE_LEVEL0]);
          break;
       case AAX_ENVELOPE_SUSTAIN:
          rv = handle->info.envelope_sustain;
@@ -487,7 +487,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_MAX_PATCHES:
          rv = handle->info.no_patches;
          break;
-      case AAX_MIDI_PRESSURE_FACTOR:
+      case AAX_MIDI_PRESSURE_MODE:
          rv = handle->pressure_mode;
          break;
       case AAX_MIDI_RELEASE_VELOCITY_FACTOR:
@@ -1295,9 +1295,9 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
                   if (rate == OFF_T_MAX) {
                      info->volume_envelope[2*i+1] = AAX_FPINFINITE;
                   } else {
-                     info->volume_envelope[2*i+1] = rate*1e-5f;
+                     info->volume_envelope[2*i+1] = rate;
                   }
-                  info->volume_envelope[2*i] = level*1e-5f;
+                  info->volume_envelope[2*i] = level;
                }
                info->envelope_sustain = stream->param(id, DRIVER_ENVELOPE_SUSTAIN);
                info->sampled_release = stream->param(id, DRIVER_SAMPLED_RELEASE);
@@ -1326,12 +1326,12 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
  printf("Envelope rates:\n");
  for (i=0; i<_MAX_ENVELOPE_STAGES; ++i) {
    float rate = stream->param(id, DRIVER_ENVELOPE_RATE+i);
-   if (rate < 10000.0f) printf("%4.2fms ", 1e-2f*rate);
-   else printf("%4.2fs ", 1e-5f*rate);
+   if (rate < 1.0f) printf("%4.2fms ", 1e3f*rate);
+   else printf("%4.2fs ", rate);
  }
  printf("\nEnvelope offsets:\n");
  for (i=0; i<_MAX_ENVELOPE_STAGES; ++i)
-   printf("%4.2f ", 1e-5f*stream->param(id, DRIVER_ENVELOPE_LEVEL+i));
+   printf("%4.2f ", stream->param(id, DRIVER_ENVELOPE_LEVEL+i));
  printf("\n");
  printf("Envelope sustain: %s\n", info->envelope_sustain ? "yes" : "no");
  printf("Fast release: %s\n", info->fast_release ? "yes" : "no");

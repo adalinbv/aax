@@ -196,9 +196,9 @@ public:
     }
 
     // envelope control
-    inline void set_attack_time(unsigned t) { set(AAX_MIDI_ATTACK_FACTOR, t); }
-    inline void set_release_time(unsigned t) { set(AAX_MIDI_RELEASE_FACTOR,t); }
-    inline void set_decay_time(unsigned t) { set(AAX_MIDI_DECAY_FACTOR, t); }
+    inline void set_attack_time(int t) { set(AAX_MIDI_ATTACK_FACTOR, t); }
+    inline void set_release_time(int t) { set(AAX_MIDI_RELEASE_FACTOR,t); }
+    inline void set_decay_time(int t) { set(AAX_MIDI_DECAY_FACTOR, t); }
 
     bool buffer(Buffer& buffer) {
         Emitter::remove_buffer();
@@ -304,9 +304,9 @@ public:
 
     void play(uint32_t key_no, float velocity, Buffer& buffer, float pitch=1.0f)
     {
-        float frequency = buffer.get(AAX_UPDATE_RATE);
+        float frequency = buffer.get(AAX_BASE_FREQUENCY);
         if (!is_drum_channel) {
-            float fraction = 1e-6f*buffer.get(AAX_REFRESH_RATE);
+            float fraction = buffer.getf(AAX_PITCH_FRACTION);
             float f = note2freq(key_no);
             f = (f - frequency)*fraction + frequency;
             pitch *= f/frequency;

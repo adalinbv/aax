@@ -367,11 +367,17 @@ public:
         ptr = aaxBufferCreate(c,n,t,f); closefn = aaxBufferDestroy;
     }
 
-    inline bool set(enum aaxSetupType t, unsigned int s) {
+    inline bool set(enum aaxSetupType t, int s) {
         return aaxBufferSetSetup(ptr,t,s);
     }
+//  inline bool set(enum aaxSetupType t, float s) {
+//      return aaxBufferSetSetup(ptr,t,AAX_TO_INT(s));
+//  }
     inline unsigned int get(enum aaxSetupType t) {
         return aaxBufferGetSetup(ptr,t);
+    }
+    inline float getf(enum aaxSetupType t) {
+        return AAX_TO_FLOAT(aaxBufferGetSetup(ptr,t));
     }
     inline bool fill(const void* d) {
         return aaxBufferSetData(ptr,d);
@@ -507,11 +513,17 @@ public:
     inline int get(enum aaxModeType t) {
         return aaxEmitterGetMode(ptr,t);
     }
-    inline bool set(enum aaxSetupType t, unsigned int s) {
+    inline bool set(enum aaxSetupType t, int s) {
         return aaxEmitterSetSetup(ptr,t,s);
     }
+//  inline bool set(enum aaxSetupType t, float s) {
+//      return aaxEmitterSetSetup(ptr,t,AAX_TO_INT(s));
+//  }
     inline unsigned int get(enum aaxSetupType t) {
         return aaxEmitterGetSetup(ptr,t);
+    }
+    inline float getf(enum aaxSetupType t) {
+        return AAX_TO_FLOAT(aaxEmitterGetSetup(ptr,t));
     }
     inline bool set(enum aaxState s) {
         return aaxEmitterSetState(ptr,s);
@@ -623,11 +635,17 @@ public:
         return aaxMixerGetMode(ptr,aaxModeType(0));
     }
 
-    inline bool set(enum aaxSetupType t, unsigned int s) {
+    inline bool set(enum aaxSetupType t, int s) {
         return aaxMixerSetSetup(ptr,t,s);
     }
+//  inline bool set(enum aaxSetupType t, float s) {
+//      return aaxMixerSetSetup(ptr,t,AAX_TO_INT(s));
+//  }
     inline unsigned int get(enum aaxSetupType t) {
         return aaxMixerGetSetup(ptr,t);
+    }
+    inline float getf(enum aaxSetupType t) {
+        return AAX_TO_FLOAT(aaxMixerGetSetup(ptr,t));
     }
 
     inline bool set(enum aaxState s) {
@@ -841,11 +859,17 @@ public:
     Frame& operator=(const Frame&) = delete;
     Frame& operator=(Frame&&) = default;
 
-    inline bool set(enum aaxSetupType t, unsigned int s) {
+    inline bool set(enum aaxSetupType t, int s) {
         return aaxAudioFrameSetSetup(ptr,t,s);
     }
+//  inline bool set(enum aaxSetupType t, float s) {
+//      return aaxAudioFrameSetSetup(ptr,t,AAX_TO_INT(s));
+//  }
     inline unsigned int get(enum aaxSetupType t) {
         return aaxAudioFrameGetSetup(ptr,t);
+    }
+    inline float getf(enum aaxSetupType t) {
+        return AAX_TO_FLOAT(aaxAudioFrameGetSetup(ptr,t));
     }
 
     inline bool set(enum aaxState s) {
