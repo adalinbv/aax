@@ -777,11 +777,11 @@ _wav_extension(char *ext)
    return (ext && !strcasecmp(ext, "wav")) ? 1 : 0;
 }
 
-off_t
+float
 _wav_get(_ext_t *ext, int type)
 {
    _driver_t *handle = ext->id;
-   off_t rv = 0;
+   float rv = 0.0f;
 
    switch (type)
    {
@@ -801,40 +801,40 @@ _wav_get(_ext_t *ext, int type)
       rv = handle->info.loop_count;
       break;
    case __F_LOOP_START:
-      rv = roundf(handle->info.loop_start * 16.0f);
+      rv = handle->info.loop_start;
       break;
    case __F_LOOP_END:
-      rv = roundf(handle->info.loop_end * 16.0f);
+      rv = handle->info.loop_end;
       break;
    case __F_BASE_FREQUENCY:
-      rv = handle->info.base_frequency*(1 << 16);
+      rv = handle->info.base_frequency;
       break;
    case __F_LOW_FREQUENCY:
-      rv = handle->info.low_frequency*(1 << 16);
+      rv = handle->info.low_frequency;
       break;
    case __F_HIGH_FREQUENCY:
-      rv = handle->info.high_frequency*(1 << 16);
+      rv = handle->info.high_frequency;
       break;
    case __F_PITCH_FRACTION:
-      rv = handle->info.pitch_fraction*(1 << 24);
+      rv = handle->info.pitch_fraction;
       break;
    case __F_TREMOLO_RATE:
-      rv = handle->info.tremolo.rate*(1 << 24);
+      rv = handle->info.tremolo.rate;
       break;
    case __F_TREMOLO_DEPTH:
-      rv = handle->info.tremolo.depth*(1 << 24);
+      rv = handle->info.tremolo.depth;
       break;
    case __F_TREMOLO_SWEEP:
-      rv = handle->info.tremolo.sweep*(1 << 24);
+      rv = handle->info.tremolo.sweep;
       break;
    case __F_VIBRATO_RATE:
-      rv = handle->info.vibrato.rate*(1 << 24);
+      rv = handle->info.vibrato.rate;
       break;
    case __F_VIBRATO_DEPTH:
-      rv = handle->info.vibrato.depth*(1 << 24);
+      rv = handle->info.vibrato.depth;
       break;
    case __F_VIBRATO_SWEEP:
-      rv = handle->info.vibrato.sweep*(1 << 24);
+      rv = handle->info.vibrato.sweep;
       break;
    default:
       if (handle->fmt) {
@@ -845,11 +845,11 @@ _wav_get(_ext_t *ext, int type)
    return rv;
 }
 
-off_t
-_wav_set(_ext_t *ext, int type, off_t value)
+float
+_wav_set(_ext_t *ext, int type, float value)
 {
    _driver_t *handle = ext->id;
-   off_t rv = 0;
+   float rv = 0.0f;
 
    switch (type)
    {

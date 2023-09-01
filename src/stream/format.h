@@ -65,8 +65,8 @@ typedef size_t (_fmt_cvt_from_fn)(struct _fmt_st*, int32_ptrptr, size_t, size_t*
 typedef size_t (_fmt_cvt_to_fn)(struct _fmt_st*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 typedef size_t (_fmt_fill_fn)(struct _fmt_st*, void_ptr, ssize_t*);
 typedef size_t (_fmt_copy_fn)(struct _fmt_st*, int32_ptr, size_t, size_t*);
-typedef off_t (_fmt_set_fn)(struct _fmt_st*, int, off_t);
-typedef off_t (_fmt_get_fn)(struct _fmt_st*, int);
+typedef float (_fmt_set_fn)(struct _fmt_st*, int, float);
+typedef float (_fmt_get_fn)(struct _fmt_st*, int);
 
 struct _fmt_st
 {
@@ -109,8 +109,8 @@ size_t _pcm_fill(_fmt_t*, void_ptr, ssize_t*);
 size_t _pcm_copy(_fmt_t*, int32_ptr, size_t, size_t*);
 char* _pcm_name(_fmt_t*, enum _aaxStreamParam);
 int _pcm_set_name(_fmt_t*, enum _aaxStreamParam, const char*);
-off_t _pcm_set(_fmt_t*, int, off_t);
-off_t _pcm_get(_fmt_t*, int);
+float _pcm_set(_fmt_t*, int, float);
+float _pcm_get(_fmt_t*, int);
 
 /* MP3 - pdmp3/mpg123 & lame */
 int _mp3_detect(_fmt_t*, int);
@@ -124,8 +124,8 @@ size_t _mp3_fill(_fmt_t*, void_ptr, ssize_t*);
 size_t _mp3_copy(_fmt_t*, int32_ptr, size_t, size_t*);
 char* _mp3_name(_fmt_t*, enum _aaxStreamParam);
 int _mp3_set_name(_fmt_t*, enum _aaxStreamParam, const char*);
-off_t _mp3_set(_fmt_t*, int, off_t);
-off_t _mp3_get(_fmt_t*, int);
+float _mp3_set(_fmt_t*, int, float);
+float _mp3_get(_fmt_t*, int);
 
 // void* _mp3_update(_fmt_t*, size_t*, size_t*, char);
 
@@ -140,8 +140,8 @@ size_t _opus_fill(_fmt_t*, void_ptr, ssize_t*);
 size_t _opus_copy(_fmt_t*, int32_ptr, size_t, size_t*);
 char* _opus_name(_fmt_t*, enum _aaxStreamParam);
 int _opus_set_name(_fmt_t*, enum _aaxStreamParam, const char*);
-off_t _opus_set(_fmt_t*, int, off_t);
-off_t _opus_get(_fmt_t*, int);
+float _opus_set(_fmt_t*, int, float);
+float _opus_get(_fmt_t*, int);
 
 /* Vorbis */
 int _vorbis_detect(_fmt_t*, int);
@@ -154,8 +154,8 @@ size_t _vorbis_fill(_fmt_t*, void_ptr, ssize_t*);
 size_t _vorbis_copy(_fmt_t*, int32_ptr, size_t, size_t*);
 char* _vorbis_name(_fmt_t*, enum _aaxStreamParam);
 int _vorbis_set_name(_fmt_t*, enum _aaxStreamParam, const char*);
-off_t _vorbis_set(_fmt_t*, int, off_t);
-off_t _vorbis_get(_fmt_t*, int);
+float _vorbis_set(_fmt_t*, int, float);
+float _vorbis_get(_fmt_t*, int);
 
 /* FLAC */
 int _flac_detect(_fmt_t*, int);
@@ -168,8 +168,8 @@ size_t _flac_fill(_fmt_t*, void_ptr, ssize_t*);
 size_t _flac_copy(_fmt_t*, int32_ptr, size_t, size_t*);
 char* _flac_name(_fmt_t*, enum _aaxStreamParam);
 int _flac_set_name(_fmt_t*, enum _aaxStreamParam, const char*);
-off_t _flac_set(_fmt_t*, int, off_t);
-off_t _flac_get(_fmt_t*, int);
+float _flac_set(_fmt_t*, int, float);
+float _flac_get(_fmt_t*, int);
 
 /* RAW binary data */
 int _binary_detect(_fmt_t*, int);
@@ -182,8 +182,8 @@ size_t _binary_fill(_fmt_t*, void_ptr, ssize_t*);
 size_t _binary_copy(_fmt_t*, int32_ptr, size_t, size_t*);
 char* _binary_name(_fmt_t*, enum _aaxStreamParam);
 int _binary_set_name(_fmt_t*, enum _aaxStreamParam, const char*);
-off_t _binary_set(_fmt_t*, int, off_t);
-off_t _binary_get(_fmt_t*, int);
+float _binary_set(_fmt_t*, int, float);
+float _binary_get(_fmt_t*, int);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

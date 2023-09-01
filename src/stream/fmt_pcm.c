@@ -447,11 +447,11 @@ _pcm_name(UNUSED(_fmt_t *fmt), UNUSED(enum _aaxStreamParam param))
    return NULL;
 }
 
-off_t
+float
 _pcm_get(_fmt_t *fmt, int type)
 {
    _driver_t *handle = fmt->id;
-   off_t rv = 0;
+   float rv = 0.0f;
 
    switch(type)
    {
@@ -479,11 +479,11 @@ _pcm_get(_fmt_t *fmt, int type)
    return rv;
 }
 
-off_t
-_pcm_set(_fmt_t *fmt, int type, off_t value)
+float
+_pcm_set(_fmt_t *fmt, int type, float value)
 {
    _driver_t *handle = fmt->id;
-   off_t rv = 0;
+   float rv = 0.0f;
 
    switch(type)
    {

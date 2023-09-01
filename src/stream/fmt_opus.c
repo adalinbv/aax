@@ -589,11 +589,11 @@ _opus_name(_fmt_t *fmt, enum _aaxStreamParam param)
    return rv;
 }
 
-off_t
+float
 _opus_get(_fmt_t *fmt, int type)
 {
    _driver_t *handle = fmt->id;
-   off_t rv = 0;
+   float rv = 0.0f;
 
    switch(type)
    {
@@ -629,11 +629,11 @@ _opus_get(_fmt_t *fmt, int type)
    return rv;
 }
 
-off_t
-_opus_set(_fmt_t *fmt, int type, off_t value)
+float
+_opus_set(_fmt_t *fmt, int type, float value)
 {
    _driver_t *handle = fmt->id;
-   off_t rv = 0;
+   float rv = 0.0f;
 
    switch(type)
    {

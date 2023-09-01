@@ -817,11 +817,12 @@ _ogg_extension(char *ext)
    return rv;
 }
 
-off_t
+float
 _ogg_get(_ext_t *ext, int type)
 {
    _driver_t *handle = ext->id;
-   off_t rv = 0;
+   float rv = 0.0f;
+
    if (handle->fmt) {
       rv = handle->fmt->get(handle->fmt, type);
    }
@@ -831,11 +832,12 @@ _ogg_get(_ext_t *ext, int type)
    return rv;
 }
 
-off_t
-_ogg_set(_ext_t *ext, int type, off_t value)
+float
+_ogg_set(_ext_t *ext, int type, float value)
 {
    _driver_t *handle = ext->id;
-   off_t rv = 0;
+   float rv = 0.0f;
+
    if (handle->fmt) {
       rv = handle->fmt->set(handle->fmt, type, value);
    }

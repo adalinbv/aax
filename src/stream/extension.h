@@ -152,13 +152,13 @@ typedef int (_ext_extension_fn)(char*);
 //
 // handle must have been created using _ext_create(type);
 // param: the requested parameter (enum _aaxStreamParam)
-typedef off_t (_ext_get_param_fn)(struct _ext_st *handle, int param);
+typedef float (_ext_get_param_fn)(struct _ext_st *handle, int param);
 
 // Set the value of one single parameter from the extension
 //
 // param: the requested parameter (enum _aaxStreamParam)
 // value: the value to set the parameter to
-typedef off_t (_ext_set_param_fn)(struct _ext_st *handle, int param, off_t value);
+typedef float (_ext_set_param_fn)(struct _ext_st *handle, int param, float value);
 
 // Fill the extension and/or formats internal buffer with new data
 //
@@ -258,8 +258,8 @@ int _wav_set_name(_ext_t*, enum _aaxStreamParam, const char*);
 
 char* _wav_interfaces(int, int);
 int _wav_extension(char*);
-off_t _wav_get(_ext_t*, int);
-off_t _wav_set(_ext_t*, int, off_t);
+float _wav_get(_ext_t*, int);
+float _wav_set(_ext_t*, int, float);
 
 size_t _wav_copy(_ext_t*, int32_ptr, size_t, size_t*);
 size_t _wav_fill(_ext_t*, void_ptr, ssize_t*);
@@ -278,8 +278,8 @@ int _aiff_set_name(_ext_t*, enum _aaxStreamParam, const char*);
 
 char* _aiff_interfaces(int, int);
 int _aiff_extension(char*);
-off_t _aiff_get(_ext_t*, int);
-off_t _aiff_set(_ext_t*, int, off_t);
+float _aiff_get(_ext_t*, int);
+float _aiff_set(_ext_t*, int, float);
 
 size_t _aiff_copy(_ext_t*, int32_ptr, size_t, size_t*);
 size_t _aiff_fill(_ext_t*, void_ptr, ssize_t*);
@@ -297,8 +297,8 @@ int _ogg_set_name(_ext_t*, enum _aaxStreamParam, const char*);
 
 char* _ogg_interfaces(int, int);
 int _ogg_extension(char*);
-off_t _ogg_get(_ext_t*, int);
-off_t _ogg_set(_ext_t*, int, off_t);
+float _ogg_get(_ext_t*, int);
+float _ogg_set(_ext_t*, int, float);
 
 size_t _ogg_copy(_ext_t*, int32_ptr, size_t, size_t*);
 size_t _ogg_fill(_ext_t*, void_ptr, ssize_t*);
@@ -317,8 +317,8 @@ int _snd_set_name(_ext_t*, enum _aaxStreamParam, const char*);
 
 char* _snd_interfaces(int, int);
 int _snd_extension(char*);
-off_t _snd_get(_ext_t*, int);
-off_t _snd_set(_ext_t*, int, off_t);
+float _snd_get(_ext_t*, int);
+float _snd_set(_ext_t*, int, float);
 
 size_t _snd_copy(_ext_t*, int32_ptr, size_t, size_t*);
 size_t _snd_fill(_ext_t*, void_ptr, ssize_t*);
@@ -336,8 +336,8 @@ int _pat_set_name(_ext_t*, enum _aaxStreamParam, const char*);
 
 char* _pat_interfaces(int, int);
 int _pat_extension(char*);
-off_t _pat_get(_ext_t*, int);
-off_t _pat_set(_ext_t*, int, off_t);
+float _pat_get(_ext_t*, int);
+float _pat_set(_ext_t*, int, float);
 
 size_t _pat_copy(_ext_t*, int32_ptr, size_t, size_t*);
 size_t _pat_fill(_ext_t*, void_ptr, ssize_t*);
@@ -355,8 +355,8 @@ int _raw_set_name(_ext_t*, enum _aaxStreamParam, const char*);
 
 char* _raw_interfaces(int, int);
 int _raw_extension(char*);
-off_t _raw_get(_ext_t*, int);
-off_t _raw_set(_ext_t*, int, off_t);
+float _raw_get(_ext_t*, int);
+float _raw_set(_ext_t*, int, float);
 
 size_t _raw_copy(_ext_t*, int32_ptr, size_t, size_t*);
 size_t _raw_fill(_ext_t*, void_ptr, ssize_t*);
