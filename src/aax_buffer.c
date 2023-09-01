@@ -334,7 +334,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       switch(type)
       {
       case AAX_SAMPLE_RATE:
-         rv = (unsigned int)handle->info.rate;
+         rv = (unsigned int)roundf(handle->info.rate);
          break;
       case AAX_TRACKS:
          rv = handle->info.no_tracks;
@@ -426,13 +426,13 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          break;
 //    case AAX_UPDATE_RATE: /* deprecated */
       case AAX_BASE_FREQUENCY:
-         rv = (unsigned int)handle->info.base_frequency;
+         rv = (unsigned int)roundf(handle->info.base_frequency);
          break;
       case AAX_LOW_FREQUENCY:
-         rv = (unsigned int)handle->info.low_frequency;
+         rv = (unsigned int)roundf(handle->info.low_frequency);
          break;
       case AAX_HIGH_FREQUENCY:
-         rv = (unsigned int)handle->info.high_frequency;
+         rv = (unsigned int)roundf(handle->info.high_frequency);
          break;
 //    case AAX_REFRESH_RATE: /* deprecated */
       case AAX_PITCH_FRACTION:
