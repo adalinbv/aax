@@ -306,13 +306,13 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                {
                   _sensor_t* sensor = _intBufGetDataPtr(dptr);
                   if (sensor->mixer->capturing) {
-                     rv = (unsigned int)(1e6f/info->period_rate);
+                     rv = AAX_TO_INT(1.0f/info->period_rate);
                   } else {
-                     rv = (unsigned int)(handle->elapsed*1000000.0f);
+                     rv = AAX_TO_INT(handle->elapsed);
                   }
                   _intBufReleaseData(dptr, _AAX_SENSOR);
                } else {
-                  rv = (unsigned int)(handle->elapsed*1000000.0f);
+                  rv = AAX_TO_INT(handle->elapsed);
                }
                break;
             }
