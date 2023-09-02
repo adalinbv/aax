@@ -393,31 +393,52 @@ aaxAudioFrameGetVelocity(aaxFrame frame, aaxVec3f velocity)
 }
 
 AAX_API int AAX_APIENTRY
-aaxAudioFrameSetSetup(UNUSED(aaxFrame frame), UNUSED(enum aaxSetupType type), UNUSED(unsigned int setup))
+aaxAudioFrameSetSetup(aaxFrame frame, enum aaxSetupType type, int64_t setup)
 {
-   _frame_t *handle = get_frame(frame, _NOLOCK, __func__);
    int rv = AAX_FALSE;
 
-   switch(type)
+   if (frame == NULL)
    {
-   case AAX_MONO_EMITTERS:
-       rv = handle->max_emitters;
-      break;
-   case AAX_STEREO_EMITTERS:
-      rv = handle->max_emitters/2;
-      break;
-   default:
-      break;
+      switch(type)
+      {
+      case AAX_STEREO_EMITTERS:
+         setup *= 2;
+         // intentional fallthrough
+      case AAX_MONO_EMITTERS:
+         rv = (setup <= _aaxGetNoEmitters(NULL)) ? AAX_TRUE : AAX_FALSE;
+         break;
+      default:
+         break;
+      }
+   }
+   else
+   {
+      _frame_t *handle = get_frame(frame, _NOLOCK, __func__);
+      if (handle)
+      {
+         switch(type)
+         {
+         case AAX_STEREO_EMITTERS:
+            setup *= 2;
+            // intentional fallthrough
+         case AAX_MONO_EMITTERS:
+            handle->max_emitters = setup;
+            rv = AAX_TRUE;
+            break;
+         default:
+            break;
+         }
+      }
    }
    return rv;
 }
 
-AAX_API unsigned int AAX_APIENTRY
+AAX_API int64_t AAX_APIENTRY
 aaxAudioFrameGetSetup(const aaxFrame frame, enum aaxSetupType type)
 {
    _frame_t *handle = get_frame(frame, _NOLOCK, __func__);
-   unsigned int track = type & 0x3F;
-   unsigned int rv = __release_mode;
+   int track = type & 0x3F;
+   int64_t rv = __release_mode;
 
    if (!rv)
    {

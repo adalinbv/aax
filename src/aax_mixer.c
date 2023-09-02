@@ -55,7 +55,7 @@ static int _mixerCreateEFFromAAXS(aaxConfig, _buffer_t*);
 static aaxBuffer _aaxCreateBufferFromAAXS(aaxConfig, _buffer_t*, char*);
 
 AAX_API int AAX_APIENTRY
-aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
+aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
 {
    int rv = AAX_FALSE;
 
@@ -70,7 +70,8 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
          rv = (setup <= _aaxGetNoEmitters(NULL)) ? AAX_TRUE : AAX_FALSE;
          break;
       case AAX_RELEASE_MODE:
-         __release_mode = setup ? AAX_TRUE : AAX_FALSE;
+         __release_mode = setup;
+         rv = AAX_TRUE;
          break;
       default:
          break;
@@ -183,7 +184,8 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
          case AAX_RELEASE_MODE:
-            __release_mode = setup ? AAX_TRUE : AAX_FALSE;
+            __release_mode = setup;
+            rv = AAX_TRUE;
             break;
          case AAX_CAPABILITIES:
             switch(setup)
@@ -191,14 +193,17 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             case AAX_RENDER_NORMAL:
                info->midi_mode = AAX_RENDER_NORMAL;
                _aaxMixerSetRendering(handle);
+               rv = AAX_TRUE;
                break;
             case AAX_RENDER_SYNTHESIZER:
                info->midi_mode = AAX_RENDER_SYNTHESIZER;
                _aaxMixerSetRendering(handle);
+               rv = AAX_TRUE;
                break;
             case AAX_RENDER_ARCADE:
                info->midi_mode = AAX_RENDER_ARCADE;
                _aaxMixerSetRendering(handle);
+               rv = AAX_TRUE;
                break;
             default:
                _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -244,10 +249,10 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
    return rv;
 }
 
-AAX_API unsigned int AAX_APIENTRY
+AAX_API int64_t AAX_APIENTRY
 aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
 {
-   unsigned int rv = AAX_FALSE;
+   int64_t rv = AAX_FALSE;
 
    if (type == AAX_CAPABILITIES) {
          return _aaxGetCapabilities(config);

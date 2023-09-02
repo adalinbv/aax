@@ -150,7 +150,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
 }
 
 AAX_API int AAX_APIENTRY
-aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
+aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
    int rv = __release_mode;
@@ -312,11 +312,11 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
    return rv;
 }
 
-AAX_API unsigned int AAX_APIENTRY
+AAX_API int64_t AAX_APIENTRY
 aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
-   int rv = __release_mode;
+   int64_t rv = __release_mode;
 
    if (!rv && handle)
    {

@@ -367,13 +367,13 @@ public:
         ptr = aaxBufferCreate(c,n,t,f); closefn = aaxBufferDestroy;
     }
 
-    inline bool set(enum aaxSetupType t, int s) {
+    inline bool set(enum aaxSetupType t, int64_t s) {
         return aaxBufferSetSetup(ptr,t,s);
     }
 //  inline bool set(enum aaxSetupType t, float s) {
 //      return aaxBufferSetSetup(ptr,t,AAX_TO_INT(s));
 //  }
-    inline unsigned int get(enum aaxSetupType t) {
+    inline int64_t get(enum aaxSetupType t) {
         return aaxBufferGetSetup(ptr,t);
     }
     inline float getf(enum aaxSetupType t) {
@@ -513,13 +513,13 @@ public:
     inline int get(enum aaxModeType t) {
         return aaxEmitterGetMode(ptr,t);
     }
-    inline bool set(enum aaxSetupType t, int s) {
+    inline bool set(enum aaxSetupType t, int64_t s) {
         return aaxEmitterSetSetup(ptr,t,s);
     }
 //  inline bool set(enum aaxSetupType t, float s) {
 //      return aaxEmitterSetSetup(ptr,t,AAX_TO_INT(s));
 //  }
-    inline unsigned int get(enum aaxSetupType t) {
+    inline int64_t get(enum aaxSetupType t) {
         return aaxEmitterGetSetup(ptr,t);
     }
     inline float getf(enum aaxSetupType t) {
@@ -635,13 +635,13 @@ public:
         return aaxMixerGetMode(ptr,aaxModeType(0));
     }
 
-    inline bool set(enum aaxSetupType t, int s) {
+    inline bool set(enum aaxSetupType t, int64_t s) {
         return aaxMixerSetSetup(ptr,t,s);
     }
 //  inline bool set(enum aaxSetupType t, float s) {
 //      return aaxMixerSetSetup(ptr,t,AAX_TO_INT(s));
 //  }
-    inline unsigned int get(enum aaxSetupType t) {
+    inline int64_t get(enum aaxSetupType t) {
         return aaxMixerGetSetup(ptr,t);
     }
     inline float getf(enum aaxSetupType t) {
@@ -859,13 +859,13 @@ public:
     Frame& operator=(const Frame&) = delete;
     Frame& operator=(Frame&&) = default;
 
-    inline bool set(enum aaxSetupType t, int s) {
+    inline bool set(enum aaxSetupType t, int64_t s) {
         return aaxAudioFrameSetSetup(ptr,t,s);
     }
 //  inline bool set(enum aaxSetupType t, float s) {
 //      return aaxAudioFrameSetSetup(ptr,t,AAX_TO_INT(s));
 //  }
-    inline unsigned int get(enum aaxSetupType t) {
+    inline int64_t get(enum aaxSetupType t) {
         return aaxAudioFrameGetSetup(ptr,t);
     }
     inline float getf(enum aaxSetupType t) {

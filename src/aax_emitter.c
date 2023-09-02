@@ -1114,7 +1114,7 @@ aaxEmitterGetOffsetSec(const aaxEmitter emitter)
 }
 
 AAX_API int AAX_APIENTRY
-aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setup)
+aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, int64_t setup)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    _aax2dProps *p2d = handle->source->props2d;
@@ -1123,25 +1123,32 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
    {
    case AAX_MIDI_RELEASE_FACTOR:
       handle->midi.release_factor = (float)setup/64.0f;         // 0.0 .. 2.0
+      rv = AAX_TRUE;
       break;
    case AAX_MIDI_ATTACK_FACTOR:
       handle->midi.attack_factor = (float)setup/64.0f;          // 0.0 .. 2.0
+      rv = AAX_TRUE;
       break;
    case AAX_MIDI_DECAY_FACTOR:
       handle->midi.decay_factor = (float)setup/64.0f;           // 0.0 .. 2.0
+      rv = AAX_TRUE;
       break;
    case AAX_MIDI_ATTACK_VELOCITY_FACTOR:
       p2d->note.velocity = (float)setup/127.0f;                 // 0.0 .. 1.0
       p2d->note.velocity = 0.66f + 0.66f*p2d->note.velocity*p2d->note.velocity;
+      rv = AAX_TRUE;
       break;
    case AAX_MIDI_RELEASE_VELOCITY_FACTOR:
       p2d->note.release = (float)setup/64.0f;                   // 0.0 .. 2.0
+      rv = AAX_TRUE;
       break;
    case AAX_MIDI_PRESSURE_FACTOR:
       p2d->note.pressure = (float)setup/127.0f;			// 0.0 .. 1.0
+      rv = AAX_TRUE;
       break;
    case AAX_MIDI_SOFT_FACTOR:
       p2d->note.soft = (float)setup/127.0f;                     // 0.0 .. 1.0
+      rv = AAX_TRUE;
       break;
    default:
       break;
@@ -1150,12 +1157,13 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
    return rv;
 }
 
-AAX_API unsigned int AAX_APIENTRY
+AAX_API int64_t AAX_APIENTRY
 aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    _aax2dProps *p2d = handle->source->props2d;
-   unsigned int rv = AAX_FALSE;
+   int64_t rv = AAX_FALSE;
+
    switch(type)
    {
    case AAX_MIDI_ATTACK_FACTOR:

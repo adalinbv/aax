@@ -528,17 +528,17 @@ aaxSensorGetMode(UNUSED(const aaxConfig config), UNUSED(enum aaxModeType type))
 }
 
 AAX_API int AAX_APIENTRY
-aaxSensorSetSetup(UNUSED(aaxConfig config), UNUSED(enum aaxSetupType type), UNUSED(unsigned int setup))
+aaxSensorSetSetup(UNUSED(aaxConfig config), UNUSED(enum aaxSetupType type), UNUSED(int64_t setup))
 {
    int rv = AAX_FALSE;
    return rv;
 }
 
-AAX_API unsigned int AAX_APIENTRY
+AAX_API int64_t AAX_APIENTRY
 aaxSensorGetSetup(aaxConfig config, enum aaxSetupType type)
 {
    _handle_t *handle = get_handle(config, __func__);
-   unsigned int rv = AAX_FALSE;
+   int64_t rv = AAX_FALSE;
 
    if (handle)
    {

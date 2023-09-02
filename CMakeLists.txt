@@ -284,11 +284,6 @@ else(MSVC)
      set(C_FLAGS "${C_FLAGS} -ffp-contract=fast" CACHE STRING
          "Hide unused clang options"
          FORCE)
-   elseif (MIPSPRO)
-     set(CMAKE_C_COMPILER c99)
-     set(C_FLAGS "${C_FLAGS} -c99 -O2 -n32 -IPA" CACHE STRING
-         "fastest options"
-         FORCE)
    endif(CLANG)
 
    if (GCC OR CLANG)
