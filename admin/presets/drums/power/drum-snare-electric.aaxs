@@ -12,7 +12,7 @@
 
 <aeonwave>
 
- <info name="Acoustic Snare" bank="16" program="38">
+ <info name="Electric Snare" bank="16" program="40">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2023" by="Adalin B.V."/>
   <copyright from="2017" until="2023" by="Erik Hofman"/>
@@ -20,51 +20,51 @@
   <note polyphony="1"/>
  </info>
 
- <sound mode="1" gain="3.46" frequency="293.665" duration="0.5">
+ <sound mode="1" gain="2.52" frequency="261.626" duration="0.5">
   <layer n="0">
-   <waveform src="sine" ratio="0.75" phase="0.107"/>
-   <waveform src="white-noise" processing="add" ratio="0.25" pitch="0.2"/>
+   <waveform src="white-noise" ratio="0.3" pitch="0.5"/>
+   <waveform src="sine" processing="add"/>
   </layer>
-  <layer n="1" ratio="1.5">
-   <waveform src="triangle" pitch="0.67" phase="0.307"/>
-   <waveform src="white-noise" processing="add" ratio="0.04" pitch="0.1"/>
+  <layer n="1">
+   <waveform src="triangle"/>
+   <waveform src="sine" processing="add" ratio="0.85" pitch="0.7"/>
   </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="envelope|exponential">
+  <filter type="dynamic-layer" src="inverse-envelope">
    <slot n="0">
-    <param n="0">0.02</param>
+    <param n="0">0.05</param>
     <param n="1">16.0</param>
     <param n="2">1.0</param>
-    <param n="3">0.0</param>
+    <param n="3">0.3</param>
    </slot>
   </filter>
-  <filter type="bitcrusher" src="inverse-envelope">
+  <filter type="bitcrusher" src="inverse-envelope|pink-noise">
    <slot n="0">
-    <param n="0">0.1</param>
-    <param n="1">0.075</param>
-    <param n="2">0.2</param>
-    <param n="3">0.03</param>
+    <param n="0">0.0</param>
+    <param n="1">0.5</param>
+    <param n="2">0.275</param>
+    <param n="3">0.075</param>
    </slot>
   </filter>
-  <filter type="timed-gain" src="envelope" release-time="0.25">
+  <filter type="timed-gain" src="envelope" release-time="0.16">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">0.025</param>
-    <param n="2">0.736</param>
-    <param n="3">0.315</param>
+    <param n="1">0.1</param>
+    <param n="2">0.775</param>
+    <param n="3">0.53</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.9</param>
+    <param n="0">0.95</param>
     <param n="1">0.01</param>
-    <param n="2">1.05</param>
+    <param n="2">1.04</param>
     <param n="3">0.03</param>
    </slot>
    <slot n="1">
-    <param n="0">0.98</param>
+    <param n="0">0.99</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

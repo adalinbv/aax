@@ -100,6 +100,7 @@
   <bank n="16">
    <drum n="36" name="Bass Drum 1" file="drums/power/drum-kick"/>
    <drum n="38" name="Acoustic Snare" file="drums/power/drum-snare-acoustic"/>
+   <drum n="40" name="Electric Snare" file="drums/power/drum-snare-electric"/>
    <drum n="41" name="Low Floor Tom" file="drums/power/tom-floor-low"/>
    <drum n="43" name="High Floor Tom" file="drums/power/tom-floor-high"/>
    <drum n="45" name="Low Tom" file="drums/power/tom-low"/>
