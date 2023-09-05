@@ -391,7 +391,9 @@ public:
     }
 
     inline void set_soft(float s) {
-        soft = (!is_drum_channel) ? 1.0f - 0.5f*s : 1.0f; set_filter_cutoff();
+        // sitch between 1.0f (non-soft) and 0.707f (soft)
+        soft = (!is_drum_channel) ? 1.0f - 0.293f*s : 1.0f;
+        set_filter_cutoff();
         for (auto& it : key) it.second->set_soft(soft);
     }
 
