@@ -103,8 +103,8 @@ _batch_fmadd_proc _batch_fmadd = _batch_fmadd_cpu;
 _batch_cvt_to_proc _batch_fmul = _batch_fmul_cpu;
 _batch_mul_value_proc _batch_imul_value = _batch_imul_value_cpu;
 _batch_mul_value_proc _batch_fmul_value = _batch_fmul_value_cpu;
-_batch_ema_proc _batch_movingaverage = _batch_ema_iir_cpu;
 _batch_freqfilter_proc _batch_freqfilter = _batch_freqfilter_cpu;
+_batch_ema_float_proc _batch_allpass_float = _batch_iir_allpass_float_cpu;
 _batch_ema_float_proc _batch_movingaverage_float = _batch_ema_iir_float_cpu;
 _batch_freqfilter_float_proc _batch_freqfilter_float = _batch_freqfilter_float_cpu;
 

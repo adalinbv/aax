@@ -88,7 +88,6 @@ extern _batch_imadd_proc _batch_imadd;
 extern _batch_fmadd_proc _batch_fmadd;
 extern _batch_fmadd_proc _batch_fma3;
 extern _batch_fmadd_proc _batch_fma4;
-extern _batch_ema_proc _batch_movingaverage;
 extern _batch_freqfilter_proc _batch_freqfilter;
 extern _batch_ema_float_proc _batch_movingaverage_float;
 extern _batch_freqfilter_float_proc _batch_freqfilter_float;

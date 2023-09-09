@@ -1334,6 +1334,50 @@ FN(batch_endianswap64,A)(void* data, size_t num)
    }
 }
 
+/**
+ * 1st order all-pass filter
+ *
+ * X[k] = a*Y[k] + Y[k-1] - a*X[k-1]
+ * https://thewolfsound.com/allpass-filter/
+ *
+ * Used for:
+ *  - phaser
+ */
+void
+FN(batch_iir_allpass_float,A)(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
+{
+   if (num)
+   {
+      float *s = (float*)sptr;
+      size_t i = num;
+      float smp, s1;
+
+      s1 = hist[1];
+      smp = hist[0];
+      do
+      {
+         smp = a1*(*s) + s1 - a1*smp;
+         *d++ = smp;
+         s1 = *s++;
+      }
+      while (--i);
+      hist[0] = smp;
+      hist[1] = s1;
+   }
+}
+
+/**
+ * 1st order, 6dB/octave exponential moving average Butterwordth FIR filter
+ *
+ * X[k] = a*X[k-1] + (1-a)*Y[k]
+ * http://lorien.ncl.ac.uk/ming/filter/fillpass.htm
+ *
+ * Used for:
+ *  - frequency filtering (frames and emitters)
+ *  - per emitter HRTF head shadow filtering
+ *  - surround crossover
+ */
+
 void
 FN(batch_ema_iir_float,A)(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
 {
