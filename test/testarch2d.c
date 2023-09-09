@@ -56,6 +56,8 @@ extern _batch_mul_value_proc _batch_fmul_value;
 extern _batch_resample_float_proc _batch_resample_float;
 extern _batch_get_average_rms_proc _batch_get_average_rms;
 extern _batch_freqfilter_float_proc _batch_freqfilter_float;
+extern _batch_ema_float_proc _batch_movingaverage_float;
+extern _batch_ema_float_proc _batch_allpass_float;
 extern _aax_generate_waveform_proc _aax_generate_waveform_float;
 extern _batch_convolution_proc _batch_convolution;
 
@@ -67,6 +69,8 @@ _batch_mul_value_proc batch_fmul_value;
 _batch_resample_float_proc batch_resample_float;
 _batch_get_average_rms_proc batch_get_average_rms;
 _batch_freqfilter_float_proc batch_freqfilter_float;
+_batch_ema_float_proc batch_movingaverage_float;
+_batch_ema_float_proc batch_allpass_float;
 _aax_generate_waveform_proc aax_generate_waveform_float;
 
 void _batch_atan_cpu(void_ptr, const_void_ptr, size_t);
@@ -165,6 +169,7 @@ int main()		// x86		X86_64		ARM
       _aaxRingBufferFreqFilterData flt;
       float *src, *dst1, *dst2, *dst3;
       float rms1, rms2, peak1, peak2;
+      float alpha, h[4];
       double cpu, cpu2, eps;
       int i;
 
@@ -617,6 +622,27 @@ int main()		// x86		X86_64		ARM
       /*
        * batch freqfilter calulculation
        */
+      alpha = 1.0f;
+      memset(&h, 0, sizeof(h)); 
+      _aax_EMA_compute(2200.0f, 44100.0f, &alpha);
+
+      printf("\n== EMA filter:\n");
+      memset(&history, 0, sizeof(history));
+      batch_movingaverage_float = _batch_movingaverage_float;
+
+      TIMEFN(batch_movingaverage_float(dst1, src, MAXNUM, h, alpha), cpu, MAXNUM);
+      printf("freq " CPU ":\t%f ms %c\n", cpu*1e3, (batch_movingaverage_float == _batch_movingaverage_float) ? '*' : ' ');
+      cpu2 = cpu;
+
+      printf("\n== EMA allpass filter:\n");
+      memset(&history, 0, sizeof(history));
+      batch_allpass_float = _batch_allpass_float;
+
+      TIMEFN(batch_allpass_float(dst1, src, MAXNUM, h, alpha), cpu, MAXNUM);
+      printf("freq " CPU ":\t%f ms %c\n", cpu*1e3, (batch_allpass_float == _batch_allpass_float) ? '*' : ' ');
+      cpu2 = cpu;
+
+      printf("\n== Butterworth filter:\n");
       memset(&flt, 0, sizeof(_aaxRingBufferFreqFilterData));
       flt.freqfilter = &history;
       flt.fs = 44100.0f;
@@ -629,7 +655,6 @@ int main()		// x86		X86_64		ARM
       flt.state = AAX_BUTTERWORTH;
       _aax_butterworth_compute(2200.0f, &flt);
 
-      printf("\n== Butterworth filter:\n");
       memset(&history, 0, sizeof(history));
       batch_freqfilter_float = _batch_freqfilter_float_cpu;
 
