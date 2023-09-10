@@ -447,7 +447,7 @@ _aax_allpass_compute(float fc, float fs, float *a)
 
 // http://www.dsprelated.com/showarticle/182.php
 void
-_aax_EMA_compute(float fc, float fs, float *a)
+_aax_ema_compute(float fc, float fs, float *a)
 {
    float n = *a;
 
@@ -680,7 +680,7 @@ _aax_bessel_compute(float fc, void *flt)
 
    if (stages > 0) alpha = 2.0f*stages;
    if (type == HIGHPASS) alpha = 1.0f/alpha;
-   _aax_EMA_compute(_MIN(fc, 4800.0f), fs, &alpha);
+   _aax_ema_compute(_MIN(fc, 4800.0f), fs, &alpha);
    beta = 1.0f - alpha;
 
    if (stages == 0)	// 1st order exponential moving average filter

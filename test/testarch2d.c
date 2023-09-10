@@ -622,21 +622,44 @@ int main()		// x86		X86_64		ARM
       /*
        * batch freqfilter calulculation
        */
-      alpha = 1.0f;
-      memset(&h, 0, sizeof(h)); 
-      _aax_EMA_compute(2200.0f, 44100.0f, &alpha);
-
       printf("\n== EMA filter:\n");
+      alpha = 1.0f;
+      memset(&h, 0, sizeof(h));
+      _aax_ema_compute(2200.0f, 44100.0f, &alpha);
+
       memset(&history, 0, sizeof(history));
-      batch_movingaverage_float = _batch_movingaverage_float;
+      batch_movingaverage_float = _batch_ema_iir_float_cpu;
 
       TIMEFN(batch_movingaverage_float(dst1, src, MAXNUM, h, alpha), cpu, MAXNUM);
       printf("freq " CPU ":\t%f ms %c\n", cpu*1e3, (batch_movingaverage_float == _batch_movingaverage_float) ? '*' : ' ');
       cpu2 = cpu;
 
+      if (simd)
+      {
+         memset(&history, 0, sizeof(history));
+         batch_movingaverage_float = GLUE(_batch_ema_iir_float, SIMD);
+
+         TIMEFN(batch_movingaverage_float(dst2, src, MAXNUM, h, alpha), cpu, MAXNUM);
+         printf("freq %s:\t%f ms - cpu x %3.2f %c", MKSTR(SIMD), eps*1e3, cpu/eps, (batch_movingaverage_float == _batch_movingaverage_float) ? '*' : ' ');
+         TESTF("freq "MKSTR(SIMD), dst1, dst2);
+      }
+      if (simd1)
+      {
+         memset(&history, 0,sizeof(history));
+         batch_movingaverage_float = GLUE(_batch_ema_iir_float, SIMD1);
+
+         TIMEFN(batch_movingaverage_float(dst2, src, MAXNUM, h, alpha), cpu, MAXNUM);
+         printf("freq "MKSTR(SIMD1)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_movingaverage_float == _batch_movingaverage_float) ? '*' : ' ');
+         TESTF("freq "MKSTR(SIMD1), dst1, dst2);
+      }
+
       printf("\n== EMA allpass filter:\n");
+      alpha = 1.0f;
+      memset(&h, 0, sizeof(h));
+      _aax_allpass_compute(2200.0f, 44100.0f, &alpha);
+
       memset(&history, 0, sizeof(history));
-      batch_allpass_float = _batch_allpass_float;
+      batch_allpass_float = _batch_iir_allpass_float_cpu;
 
       TIMEFN(batch_allpass_float(dst1, src, MAXNUM, h, alpha), cpu, MAXNUM);
       printf("freq " CPU ":\t%f ms %c\n", cpu*1e3, (batch_allpass_float == _batch_allpass_float) ? '*' : ' ');

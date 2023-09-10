@@ -1337,40 +1337,32 @@ FN(batch_endianswap64,A)(void* data, size_t num)
 /**
  * 1st order all-pass filter
  *
- * X[k] = a*Y[k] + Y[k-1] - a*X[k-1]
+ * d[k] = a1*s[k] + (s[k-1] - a1*d[k-1])
  * https://thewolfsound.com/allpass-filter/
  *
  * Used for:
  *  - phaser
  */
 void
-FN(batch_iir_allpass_float,A)(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
+FN(batch_iir_allpass_float,A)(float32_ptr d, const_float32_ptr s, size_t i, float *hist, float a1)
 {
-   if (num)
+   if (i)
    {
-      float *s = (float*)sptr;
-      size_t i = num;
-      float smp, s1;
-
-      s1 = hist[1];
-      smp = hist[0];
-      do
+      float smp = hist[0];
       {
-         smp = a1*(*s) + s1 - a1*smp;
-         *d++ = smp;
-         s1 = *s++;
+         *d = a1*(*s) + smp;
+         smp = *s++ - a1*(*d++); // s[k-1] - a1*d[k-1]
       }
       while (--i);
       hist[0] = smp;
-      hist[1] = s1;
    }
 }
 
 /**
- * 1st order, 6dB/octave exponential moving average Butterwordth FIR filter
+ * 1st order, 6dB/octave Exponential (weighted) Moving Average filter
  *
- * X[k] = a*X[k-1] + (1-a)*Y[k]
- * http://lorien.ncl.ac.uk/ming/filter/fillpass.htm
+ * d[k] = (1-a1)*s[k] + a1*d[k-1]
+ * https://web.archive.org/web/20150430031015/http://lorien.ncl.ac.uk/ming/filter/fillpass.htm
  *
  * Used for:
  *  - frequency filtering (frames and emitters)
@@ -1379,23 +1371,20 @@ FN(batch_iir_allpass_float,A)(float32_ptr d, const_float32_ptr sptr, size_t num,
  */
 
 void
-FN(batch_ema_iir_float,A)(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
+FN(batch_ema_iir_float,A)(float32_ptr d, const_float32_ptr s, size_t i, float *hist, float a1)
 {
-   if (num)
+   if (i)
    {
-      float32_ptr s = (float32_ptr)sptr;
-      size_t i = num;
-      float smp;
-
-      smp = *hist;
+      float smp = hist[0];
       do
       {
-//       smp = a1*(*s++) + (1.0f - a1)*smp;
-         smp += a1*(*s++ - smp);        // smp = a1*(*s++ - smp) + smp;
+//      smp = (1.0f-a1)*smp + a1*(*s++);
+//      smp = smp + a1*(-smp + *s++);
+         smp += a1*(*s++ - smp);
          *d++ = smp;
       }
       while (--i);
-      *hist = smp;
+      hist[0] = smp;
    }
 }
 

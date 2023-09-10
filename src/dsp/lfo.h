@@ -109,7 +109,8 @@ typedef struct
 void _env_reset(_aaxEnvelopeData*);
 
 float _aaxEnvelopeGet(_aaxEnvelopeData*, char, float*, _aaxEnvelopeData*);
-void _aax_EMA_compute(float, float, float*);
+void _aax_allpass_compute(float, float, float*);
+void _aax_ema_compute(float, float, float*);
 
 #endif /* _AAX_FE_LFO_H */
 

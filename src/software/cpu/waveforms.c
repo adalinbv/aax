@@ -391,9 +391,9 @@ _aax_generate_noise_float(float *rv, size_t no_samples, uint64_t seed, unsigned 
 
       prev = 0.0f;
       alpha = 1.0f;
-      // exponential moving average (EMA) filter
+      // exponential moving average (ema) filter
       // to filter frequencies below FC (50Hz)
-      _aax_EMA_compute(FC, fs, &alpha);
+      _aax_ema_compute(FC, fs, &alpha);
 
       ds = FC/fs;
 
