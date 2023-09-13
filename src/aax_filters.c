@@ -96,8 +96,9 @@ aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
             if (!is_nan(p[i]))
             {
                _flt_function_tbl *flt = _aaxFilters[filter->type-1];
+               int pn = slot << 4 | i;
                filter->slot[slot]->param[i] =
-                                  flt->limit(flt->get(p[i], ptype, i), slot, i);
+                                 flt->limit(flt->get(p[i], ptype, pn), slot, i);
             }
          }
          if TEST_FOR_TRUE(filter->state) {
@@ -119,13 +120,13 @@ aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
 }
 
 AAX_API int AAX_APIENTRY
-aaxFilterSetParam(const aaxFilter f, int param, int ptype, float value)
+aaxFilterSetParam(const aaxFilter f, int p, int ptype, float value)
 {
    _filter_t* filter = get_filter(f);
-   unsigned slot = param >> 4;
+   unsigned slot = p >> 4;
+   int param = p & 0xF;
    int rv = __release_mode;
 
-   param &= 0xF;
    if (!rv)
    {
       void *handle = filter ? filter->handle : NULL;
@@ -145,7 +146,7 @@ aaxFilterSetParam(const aaxFilter f, int param, int ptype, float value)
    if (rv)
    {
       _flt_function_tbl *flt = _aaxFilters[filter->type-1];
-      filter->slot[slot]->param[param] = flt->get(value, ptype, param);
+      filter->slot[slot]->param[param] = flt->get(value, ptype, p);
       if TEST_FOR_TRUE(filter->state) {
          aaxFilterSetState(filter, filter->state);
       }
@@ -210,21 +211,21 @@ aaxFilterGetState(aaxFilter f)
 }
 
 AAX_API float AAX_APIENTRY
-aaxFilterGetParam(const aaxFilter f, int param, int ptype)
+aaxFilterGetParam(const aaxFilter f, int p, int ptype)
 {
    _filter_t* filter = get_filter(f);
    float rv = 0.0f;
    if (filter)
    {
       void *handle = filter->handle;
-      int slot = param >> 4;
+      int slot = p >> 4;
       if ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
       {
-         param &= 0xF;
+         int param = p & 0xF;
          if ((param >= 0) && (param < 4))
          {
             _flt_function_tbl *flt = _aaxFilters[filter->type-1];
-            rv = flt->set(filter->slot[slot]->param[param], ptype, param);
+            rv = flt->set(filter->slot[slot]->param[param], ptype, p);
          }
          else {
             _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
@@ -268,7 +269,8 @@ aaxFilterGetSlotParams(const aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
             for (i=0; i<4; i++)
             {
                _flt_function_tbl *flt = _aaxFilters[filter->type-1];
-               p[i] = flt->set(filter->slot[slot]->param[i], ptype, i);
+               int pn = slot << 4 | i;
+               p[i] = flt->set(filter->slot[slot]->param[i], ptype, pn);
             }
             rv = AAX_TRUE;
          }
