@@ -97,8 +97,9 @@ aaxEffectSetSlotParams(aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
                if (!is_nan(p[i]))
                {
                   _eff_function_tbl *eff = _aaxEffects[effect->type-1];
+                  int pn = slot << 4 | i;
                   effect->slot[slot]->param[i] =
-                                  eff->limit(eff->get(p[i], ptype, i), slot, i);
+                                 eff->limit(eff->get(p[i], ptype, pn), slot, i);
                }
             }
             if TEST_FOR_TRUE(effect->state) {
@@ -122,13 +123,13 @@ aaxEffectSetSlotParams(aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
 }
 
 AAX_API int AAX_APIENTRY
-aaxEffectSetParam(const aaxEffect e, int param, int ptype, float value)
+aaxEffectSetParam(const aaxEffect e, int p, int ptype, float value)
 {
    _effect_t* effect = get_effect(e);
-   unsigned slot = param >> 4;
+   unsigned slot = p >> 4;
+   int param = p & 0xF;
    int rv = __release_mode;
 
-   param &= 0xF;
    if (!rv)
    {
       void *handle = effect ? effect->handle : NULL;
@@ -148,7 +149,7 @@ aaxEffectSetParam(const aaxEffect e, int param, int ptype, float value)
    if (rv)
    {
       _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-      effect->slot[slot]->param[param] = eff->get(value, ptype, param);
+      effect->slot[slot]->param[param] = eff->get(value, ptype, p);
       
       if TEST_FOR_TRUE(effect->state) {
          aaxEffectSetState(effect, effect->state);
@@ -252,21 +253,21 @@ aaxEffectGetState(aaxEffect e)
 
 
 AAX_API float AAX_APIENTRY
-aaxEffectGetParam(const aaxEffect e, int param, int ptype)
+aaxEffectGetParam(const aaxEffect e, int p, int ptype)
 {
    _effect_t* effect = get_effect(e);
    float rv = 0.0f;
    if (effect)
    {
       void *handle = effect->handle;
-      unsigned slot = param >> 4;
+      unsigned slot = p >> 4;
       if ((slot < _MAX_FE_SLOTS) && effect->slot[slot])
       {
-         param &= 0xF;
+         int param = p & 0xF;
          if ((param >= 0) && (param < 4))
          {
             _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-            rv = eff->set(effect->slot[slot]->param[param], ptype, param);
+            rv = eff->set(effect->slot[slot]->param[param], ptype, p);
          }
          else {
             _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
@@ -313,7 +314,8 @@ aaxEffectGetSlotParams(const aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
             for (i=0; i<4; i++)
             {
                _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-               p[i] = eff->set(effect->slot[slot]->param[i], ptype, i);
+               int pn = slot << 4 | i;
+               p[i] = eff->set(effect->slot[slot]->param[i], ptype, pn);
             }
             rv = AAX_TRUE;
          }
