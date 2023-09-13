@@ -38,7 +38,7 @@
 #include "dsp.h"
 #include "api.h"
 
-#define VERSION	1.13
+#define VERSION	1.14
 #define DSIZE	sizeof(_aaxRingBufferFreqFilterData)
 
 void _freqfilter_swap(void*, void*);
@@ -151,10 +151,6 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt->low_gain = fabsf(filter->slot[0]->param[AAX_HF_GAIN]);
          if (flt->low_gain < LEVEL_128DB) flt->low_gain = 0.0f;
 
-         if (fabsf(flt->low_gain - flt->high_gain) < LEVEL_128DB) {
-             flt->high_gain *= 0.9f;
-         }
-
          if (ostate == AAX_48DB_OCT) stages = 4;
          else if (ostate == AAX_36DB_OCT) stages = 3;
          else if (ostate == AAX_24DB_OCT) stages = 2;
@@ -164,8 +160,15 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt->no_stages = stages;
          flt->state = (state & AAX_BESSEL) ? AAX_BESSEL : AAX_BUTTERWORTH;
          flt->Q = filter->slot[0]->param[AAX_RESONANCE];
-         flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
          flt->resonance = resonance ? flt->Q/fmax : 0.0f;
+
+         if (fabsf(flt->high_gain - flt->low_gain) <= LEVEL_60DB) {
+            flt->type = ALLPASS;
+         } else if (flt->high_gain > flt->low_gain) {
+            flt->type = LOWPASS;
+         } else {
+            flt->type = HIGHPASS;
+         }
 
          if (flt->state == AAX_BESSEL) {
              _aax_bessel_compute(fc, flt);
@@ -437,6 +440,7 @@ _freqfilter_destroy(void *ptr)
    _aax_dsp_destroy(ptr);
 }
 
+// first order allpass:
 // https://thewolfsound.com/allpass-filter/
 void
 _aax_allpass_compute(float fc, float fs, float *a)
@@ -445,6 +449,7 @@ _aax_allpass_compute(float fc, float fs, float *a)
    *a = (c - 1.0f)/(c + 1.0f);
 }
 
+// first order exponential moving average:
 // http://www.dsprelated.com/showarticle/182.php
 void
 _aax_ema_compute(float fc, float fs, float *a)
@@ -512,6 +517,10 @@ _aax_bilinear_s2z(float *a0, float *a1, float *a2,
  *
  * It can be easily confirmed that
  *  (s+0.707 + j0.707) (s+0.707 -j0.707) = s2 + 1.414s + 1.
+ *
+ * To obtain an allpass biquad section, the numerator polynomial is simply the
+ * "flip" of the denominator polynomial. To obtain unity gain, we set
+ * k = a2, b1 = a1/a2, b2 = 1/a2
  */
 void
 _aax_butterworth_compute(float fc, void *flt)
@@ -555,7 +564,7 @@ _aax_butterworth_compute(float fc, void *flt)
    {
       float b2, b1, b0;
 
-      if (A > LEVEL_128DB)
+      if (A > LEVEL_128DB) // shelf filter
       {
          switch (filter->type)
          {
@@ -578,6 +587,7 @@ _aax_butterworth_compute(float fc, void *flt)
             b1 = sqrtf(A)/(_Q[pos][i] * Q);
             b0 = 1.0f;
             break;
+         case ALLPASS:
          case LOWPASS:
          default:
             a2 = A;
@@ -591,7 +601,7 @@ _aax_butterworth_compute(float fc, void *flt)
             break;
          }
       }
-      else
+      else // not a shelf filter
       {
          switch (filter->type)
          {
@@ -605,6 +615,7 @@ _aax_butterworth_compute(float fc, void *flt)
             a1 = first_order ? 1.0f : 0.0f;
             a0 = 0.0f;
             break;
+         case ALLPASS:
          case LOWPASS:
          default:
             a2 = 0.0f;
@@ -615,6 +626,13 @@ _aax_butterworth_compute(float fc, void *flt)
          b2 = 1.0f;
          b1 = 1.0f/(_Q[pos][i] * Q);
          b0 = 1.0f;
+      }
+
+      if (filter->type == ALLPASS)
+      {
+         k *= a2;
+         b1 = a1/a2;
+         b2 = 1/a2;
       }
 
       _aax_bilinear_s2z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
@@ -776,6 +794,7 @@ _aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int s
             b1 = sqrtf(A)/(_Q[pos][i] * Q);
             b0 = 1.0f;
             break;
+         case ALLPASS:
          case LOWPASS:
          default:
             a2 = A;
@@ -803,6 +822,7 @@ _aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int s
             a1 = first_order ? 1.0f : 0.0f;
             a0 = 0.0f;
             break;
+         case ALLPASS:
          case LOWPASS:
          default:
             a2 = 0.0f;

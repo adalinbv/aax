@@ -136,7 +136,8 @@ enum _aaxFreqFilterType
 {
    LOWPASS = -1,
    BANDPASS = 0,
-   HIGHPASS = 1
+   HIGHPASS = 1,
+   ALLPASS = 2
 };
 
 typedef struct
