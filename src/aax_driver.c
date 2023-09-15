@@ -980,7 +980,7 @@ get_read_handle(aaxConfig config, const char *func)
 }
 
 _handle_t *
-get_driver_handle(void *c)
+get_driver_handle(const void *c)
 {
    _frame_t* frame = (_frame_t*)c;
    _handle_t* rv = NULL;

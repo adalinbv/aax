@@ -218,7 +218,7 @@ typedef struct aax_frame_t
 
 _frame_t* get_frame(aaxFrame, int, const char*);
 void put_frame(aaxFrame);
-_handle_t *get_driver_handle(void*);
+_handle_t *get_driver_handle(const void*);
 int _aaxAudioFrameStop(_frame_t*);
 void _aaxAudioFrameResetDistDelay(_aaxAudioFrame*, _aaxAudioFrame*);
 void _aaxAudioFrameFree(void*);

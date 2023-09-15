@@ -15,9 +15,7 @@ set(DSP_SOURCES
   effect_timed_pitch.c
   effect_dynamic_pitch.c
   effect_delay.c
-  effect_phasing.c
   effect_chorus.c
-  effect_flanging.c
   effect_distortion.c
   effect_reverb.c
   effect_convolution.c
