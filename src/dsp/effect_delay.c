@@ -354,11 +354,11 @@ _aaxDelayLineEffectSet(float val, int ptype, unsigned char param)
    else if (param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET)
    {
       if (ptype == AAX_SECONDS) {
-         rv = (CHORUS_MIN + val*CHORUS_MAX);
+         rv = (DELAY_MIN + val*DELAY_MAX);
       } else if (ptype == AAX_MILLISECONDS) {
-         rv = (CHORUS_MIN + val*CHORUS_MAX)*1e3f;
+         rv = (DELAY_MIN + val*DELAY_MAX)*1e3f;
       } else if (ptype == AAX_MICROSECONDS) {
-         rv = (CHORUS_MIN + val*CHORUS_MAX)*1e6f;
+         rv = (DELAY_MIN + val*DELAY_MAX)*1e6f;
       }
    }
    return rv;
@@ -374,11 +374,11 @@ _aaxDelayLineEffectGet(float val, int ptype, unsigned char param)
    else if (param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET)
    {
       if (ptype == AAX_SECONDS) {
-         rv = _MINMAX((val - CHORUS_MIN)/CHORUS_MAX, 0.0f, 1.0f);
+         rv = _MINMAX((val - DELAY_MIN)/DELAY_MAX, 0.0f, 1.0f);
       } else if (ptype == AAX_MILLISECONDS) {
-         rv = _MINMAX((val*1e-3f - CHORUS_MIN)/CHORUS_MAX, 0.0f, 1.0f);
+         rv = _MINMAX((val*1e-3f - DELAY_MIN)/DELAY_MAX, 0.0f, 1.0f);
       } else if (ptype == AAX_MICROSECONDS) {
-         rv = _MINMAX((val*1e-6f - CHORUS_MIN)/CHORUS_MAX, 0.0f, 1.0f);
+         rv = _MINMAX((val*1e-6f - DELAY_MIN)/DELAY_MAX, 0.0f, 1.0f);
       }
    }
    return rv;
