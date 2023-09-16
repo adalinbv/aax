@@ -37,7 +37,7 @@ extern "C" {
 #include "dsp.h"
 #include "api.h"
 
-#define DELAY_EFFECTS_TIME      	0.070f
+#define DELAY_EFFECTS_TIME      	0.080f
 #define DELAY_LINE_EFFECTS_TIME		1.000f
 #define REVERB_EFFECTS_TIME     	1.000f
 #define MAX_EFFECTS_TIME	_MAX(DELAY_LINE_EFFECTS_TIME,REVERB_EFFECTS_TIME)

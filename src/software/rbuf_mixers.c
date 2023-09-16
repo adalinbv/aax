@@ -167,6 +167,7 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
 
       rdesamps = 0;
 #if 0
+      // replaced by the code below
       if (ddesamps || delay_effect)
       {
          float dde = DELAY_EFFECTS_TIME*dfreq;
@@ -236,7 +237,7 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
             if (ddesamps || delay_effect)
             {
                float dde = effect ? effect->delay.sample_offs[t] :
-                                    DELAY_EFFECTS_TIME*dfreq;;
+                                    DELAY_EFFECTS_TIME*dfreq;
                ddesamps = (size_t)dde;
                rdesamps = (size_t)(dde*fact);
             }

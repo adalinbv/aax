@@ -392,7 +392,7 @@ _aaxChorusEffectGet(float val, int ptype, unsigned char param)
 }
 
 #define MIN	PHASING_MIN
-#define MAX1	(1.2f*CHORUS_MAX)
+#define MAX1	DELAY_EFFECTS_TIME
 #define MAX2	(MAX1-MIN)
 static float
 _aaxChorusEffectMinMax(float val, int slot, unsigned char param)
