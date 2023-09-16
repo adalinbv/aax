@@ -350,15 +350,21 @@ _aaxChorusEffectSet(float val, int ptype, unsigned char param)
    else if (param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET)
    {
       // value is in seconds internally
-      if (ptype == AAX_MILLISECONDS) {
-         rv = val*1e3f;
-      } else if (ptype == AAX_MICROSECONDS) {
-         rv = val*1e6f;
-      }
-      else if (ptype != AAX_SECONDS) // chorus range 0.0 .. 1.0
+      switch(ptype)
       {
+      case AAX_MILLISECONDS:
+         rv = val*1e3f;
+         break;
+      case AAX_MICROSECONDS:
+         rv = val*1e6f;
+         break;
+      case AAX_TYPE_NONE: // chorus range 0.0 .. 1.0
          if (param == AAX_LFO_OFFSET) val -= CHORUS_MIN;
          rv = val/CHORUS_DEPTH;
+         break;
+      case AAX_SECONDS:
+      default:
+         break;
       }
    }
    return rv;
@@ -374,18 +380,21 @@ _aaxChorusEffectGet(float val, int ptype, unsigned char param)
    else if (param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET)
    {
       // value is in seconds internally
-      if (ptype == AAX_MILLISECONDS) {
-         rv = val*1e-3f;
-      } else if (ptype == AAX_MICROSECONDS) {
-         rv = val*1e-6f;
-      }
-      else if (ptype != AAX_SECONDS) // chorus range 0.0 .. 1.0
+      switch(ptype)
       {
-         if (param == AAX_LFO_OFFSET) {
-            rv = val*CHORUS_MAX;
-         } else {
-             rv = val*CHORUS_DEPTH;
-         }
+      case AAX_MILLISECONDS:
+         rv = val*1e-3f;
+         break;
+      case AAX_MICROSECONDS:
+         rv = val*1e-6f;
+         break;
+      case AAX_TYPE_NONE: // chorus range 0.0 .. 1.0
+         if (param == AAX_LFO_OFFSET) rv = val*CHORUS_MAX;
+         else rv = val*CHORUS_DEPTH;
+         break;
+      case AAX_SECONDS:
+      default:
+         break;
       }
    }
    return rv;
@@ -440,15 +449,21 @@ _aaxPhasingEffectSet(float val, int ptype, unsigned char param)
    else if (param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET)
    {
       // value is in seconds internally
-      if (ptype == AAX_MILLISECONDS) {
-         rv = val*1e3f;
-      } else if (ptype == AAX_MICROSECONDS) {
-         rv = val*1e6f;
-      }
-      else if (ptype != AAX_SECONDS) // chorus range 0.0 .. 1.0
+      switch(ptype)
       {
+      case AAX_MILLISECONDS:
+         rv = val*1e3f;
+         break;
+      case AAX_MICROSECONDS:
+         rv = val*1e6f;
+         break;
+      case AAX_TYPE_NONE: // chorus range 0.0 .. 1.0
          if (param == AAX_LFO_OFFSET) val -= PHASING_MIN;
          rv = val/PHASING_DEPTH;
+         break;
+      case AAX_SECONDS:
+      default:
+         break;
       }
    }
    return rv;
@@ -464,18 +479,21 @@ _aaxPhasingEffectGet(float val, int ptype, unsigned char param)
    else if (param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET)
    {
       // value is in seconds internally
-      if (ptype == AAX_MILLISECONDS) {
-         rv = val*1e-3f;
-      } else if (ptype == AAX_MICROSECONDS) {
-         rv = val*1e-6f;
-      }
-      else if (ptype != AAX_SECONDS) // chorus range 0.0 .. 1.0
+      switch(ptype)
       {
-         if (param == AAX_LFO_OFFSET) {
-            rv = val*PHASING_MAX;
-         } else {
-             rv = val*PHASING_DEPTH;
-         }
+      case AAX_MILLISECONDS:
+         rv = val*1e-3f;
+         break;
+      case AAX_MICROSECONDS:
+         rv = val*1e-6f;
+         break;
+      case AAX_TYPE_NONE: // chorus range 0.0 .. 1.0
+         if (param == AAX_LFO_OFFSET) rv = val*PHASING_MAX;
+         else rv = val*PHASING_DEPTH;
+         break;
+      case AAX_SECONDS:
+      default:
+         break;
       }
    }
    return rv;
