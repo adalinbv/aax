@@ -188,14 +188,14 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
             flt->state = (state & AAX_BESSEL) ? AAX_BESSEL : AAX_BUTTERWORTH;
             flt->Q = effect->slot[1]->param[AAX_WET_RESONANCE & 0xF];
             flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
+            flt->fc_low = fc;
+            flt->fc_high = fmax;
 
             if ((state & AAX_SOURCE_MASK) == AAX_RANDOM_SELECT)
             {
                float lfc2 = _lin2log(fmax);
                float lfc1 = _lin2log(fc);
 
-               flt->fc_low = fc;
-               flt->fc_high = fmax;
                flt->random = 1;
 
                lfc1 += (lfc2 - lfc1)*_aax_random();
@@ -341,8 +341,30 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
    no_samples = dmax+ds-dmin;
 // DBG_MEMCLR(1, d-ds, ds+dmax, bps);
 
-   if (lfo) {
+   if (lfo)
+   {
       lfo_fact = lfo->get(lfo, env, sptr, track, no_samples);
+      if (flt) // && !ctr
+      {
+         float fc = flt->fc;
+
+         fc = _MINMAX(flt->fc_low + lfo_fact*(flt->fc_high-flt->fc_low),
+                      20.0f, 0.9f*0.5f*flt->fs);
+
+         if (flt->resonance > 0.0f) {
+            if (flt->type > BANDPASS) { // HIGHPASS
+                flt->Q = _MAX(flt->resonance*(flt->fc_high - fc), 1.0f);
+            } else {
+               flt->Q = flt->resonance*fc;
+            }
+         }
+
+         if (flt->state == AAX_BESSEL) {
+            _aax_bessel_compute(fc, flt);
+         } else {
+            _aax_butterworth_compute(fc, flt);
+         }
+      }
    }
    fact = params[AAX_DISTORTION_FACTOR]*lfo_fact;
    clip = params[AAX_CLIPPING_FACTOR];
