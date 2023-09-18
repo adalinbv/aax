@@ -205,14 +205,14 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
             flt->state = (state & AAX_BESSEL) ? AAX_BESSEL : AAX_BUTTERWORTH;
             flt->Q = effect->slot[1]->param[AAX_DELAY_RESONANCE & 0xF];
             flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
+            flt->fc_low = fc;
+            flt->fc_high = fmax;
 
             if ((state & AAX_SOURCE_MASK) == AAX_RANDOM_SELECT)
             {
                float lfc2 = _lin2log(fmax);
                float lfc1 = _lin2log(fc);
 
-               flt->fc_low = fc;
-               flt->fc_high = fmax;
                flt->random = 1;
 
                lfc1 += (lfc2 - lfc1)*_aax_random();
