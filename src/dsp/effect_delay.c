@@ -208,14 +208,14 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
             flt->state = (state & AAX_BESSEL) ? AAX_BESSEL : AAX_BUTTERWORTH;
             flt->Q = effect->slot[1]->param[AAX_DELAY_RESONANCE & 0xF];
             flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
+            flt->fc_low = fc;
+            flt->fc_high = fmax;
 
             if (state & AAX_RANDOM_SELECT)
             {
                float lfc2 = _lin2log(fmax);
                float lfc1 = _lin2log(fc);
 
-               flt->fc_low = fc;
-               flt->fc_high = fmax;
                flt->random = 1;
 
                lfc1 += (lfc2 - lfc1)*_aax_random();
@@ -639,9 +639,12 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    MIX_T *nsptr = sptr;
    ssize_t offs, noffs;
    float volume, gain;
+   float lfo_fact;
    int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __func__);
+
+   lfo_fact = effect->lfo.get(&effect->lfo, env, s, track, end);
 
    assert(s != 0);
    assert(d != 0);
@@ -661,7 +664,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    }
    else
    {
-      noffs = (size_t)effect->lfo.get(&effect->lfo, env, s, track, end);
+      noffs = (size_t)lfo_fact;
       effect->delay.sample_offs[track] = noffs;
       effect->offset->noffs[track] = noffs;
    }
@@ -753,6 +756,26 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          {
             if (flt)
             {
+               float fact = lfo_fact/effect->lfo.max;
+               float fc = flt->fc;
+
+               fc = _MINMAX(flt->fc_low + fact*(flt->fc_high-flt->fc_low),
+                            20.0f, 0.9f*0.5f*flt->fs);
+
+               if (flt->resonance > 0.0f) {
+                  if (flt->type > BANDPASS) { // HIGHPASS
+                      flt->Q = _MAX(flt->resonance*(flt->fc_high - fc), 1.0f);
+                  } else {
+                     flt->Q = flt->resonance*fc;
+                  }
+               }
+
+               if (flt->state == AAX_BESSEL) {
+                  _aax_bessel_compute(fc, flt);
+               } else {
+                  _aax_butterworth_compute(fc, flt);
+               }
+
                flt->run(rbd, dptr, nsptr-offs, 0, no_samples, 0, track, flt, env, 1.0f, 0);
             }  else if (fabsf(volume - 1.0f) > LEVEL_96DB) {
                rbd->multiply(dptr, nsptr-offs, bps, no_samples, gain);
