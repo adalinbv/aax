@@ -139,14 +139,6 @@ typedef struct _aaxRingBuffer_t __aaxRingBuffer;
 
 typedef struct
 {
-   _aaxLFOData *lfo;
-   int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
-              unsigned int, void*, void*);
-}
-_aaxRingBufferDistoritonData;
-
-typedef struct
-{
    int (*run)(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
    int (*add_noise)(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
 
@@ -187,6 +179,16 @@ typedef struct
    _aaxRingBufferFreqFilterHistoryData *freqfilter;
 
 } _aaxRingBufferFreqFilterData;
+
+typedef struct
+{
+   _aaxLFOData *lfo;
+   int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
+              unsigned int, void*, void*);
+
+   _aaxRingBufferFreqFilterData *freq_filter;
+
+} _aaxRingBufferDistoritonData;
 
 typedef struct
 {
