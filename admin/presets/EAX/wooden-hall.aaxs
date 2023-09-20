@@ -1,3 +1,26 @@
+<!--
+  Density: 1.000000
+  Diffusion: 1.000000
+  Gain: 0.316200
+  GainHF: 0.079400
+  GainLF: 0.281800
+  DecayTime: 3.450000
+  DecayHFRatio: 0.300000
+  DecayLFRatio: 0.820000
+  ReflectionsGain: 0.891300
+  ReflectionsDelay: 0.088000
+  LateReverbGain: 0.794300
+  LateReverbDelay: 0.063000
+  EchoTime: 0.250000
+  EchoDepth: 0.000000
+  ModulationTime: 0.250000
+  ModulationDepth: 0.000000
+  AirAbsorptionGainHF: 0.994300
+  HFReference: 4705.000000
+  LFReference: 99.599998
+  RoomRolloffFactor: 0.000000
+  DecayHFLimit: 1
+-->
 <?xml version="1.0"?>
 
 
@@ -21,26 +44,15 @@
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
  </info>
 
- <audioframe mode="append">
-  <effect type="reverb">
+ <audioframe mode"append">
+>
    <slot n="0">
-    <param n="0">519.9</param>
-    <param n="1">0.070</param>
-    <param n="2">0.316</param>
-    <param n="3">1.942</param>
+    <param n="0">4705.0</param>
+    <param n="1">0.088</param>
+    <param n="2">0.181</param>
+    <param n="3">4.954</param>
    </slot>
   </effect>
  </audioframe>
-
- <mixer mode="append">
-  <effect type="reverb">
-   <slot n="0">
-    <param n="0">519.9</param>
-    <param n="1">0.070</param>
-    <param n="2">0.316</param>
-    <param n="3">1.942</param>
-   </slot>
-  </effect>
- </mixer>
 
 </aeonwave>
