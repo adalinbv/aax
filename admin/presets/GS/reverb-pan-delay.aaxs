@@ -22,25 +22,20 @@
  </info>
 
  <audioframe mode="append">
-  <effect type="reverb">
+  <effect type="delay" stereo="true">
    <slot n="0">
+    <param n="0">0.504</param>
+    <param n="1">0.0</param>
+    <param n="2" type="sec">0.129</param>
+    <param n="3">0.0</param>
+   </slot>
+   <slot n="1">
     <param n="0">0.0</param>
-    <param n="1">0.000</param>
-    <param n="2">0.504</param>
-    <param n="3">0.129</param>
+    <param n="1">0.0</param>
+    <param n="2">0.247</param>
+    <param n="3">1.0</param>
    </slot>
   </effect>
  </audioframe>
-
- <mixer mode="append">
-  <effect type="reveb">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.000</param>
-    <param n="2">0.504</param>
-    <param n="3">0.129</param>
-   </slot>
-  </effect>
- </mixer>
 
 </aeonwave>
