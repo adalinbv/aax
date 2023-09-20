@@ -24,10 +24,16 @@
  <audioframe mode="append">
   <effect type="chorus" src="sine">
    <slot n="0">
-    <param n="0">0.508</param>
+    <param n="0">0.996</param>
     <param n="1">0.160</param>
-    <param n="2" type="msec">10.394</param>
+    <param n="2" type="msec">4.400</param>
     <param n="3" type="msec">23.300</param>
+   </slot>
+   <slot n="1">
+    <param n="0">500.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.000</param>
+    <param n="3">1.0</param>
    </slot>
   </effect>
   <filter type="equalizer">
@@ -45,30 +51,5 @@
    </slot>
   </filter>
  </audioframe>
-
- <mixer mode="append">
-  <effect type="chorus" src="sine">
-   <slot n="0">
-    <param n="0">0.508</param>
-    <param n="1">0.160</param>
-    <param n="2" type="msec">10.394</param>
-    <param n="3" type="msec">23.300</param>
-   </slot>
-  </effect>
-  <filter type="equalizer">
-   <slot n="0">
-    <param n="0">4000.0</param>
-    <param n="1">1.000</param>
-    <param n="2">1.000</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="2">
-    <param n="0">4000.0</param>
-    <param n="1">1.000</param>
-    <param n="2">1.259</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
- </mixer>
 
 </aeonwave>

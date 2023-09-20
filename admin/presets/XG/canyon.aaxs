@@ -26,8 +26,8 @@
    <slot n="0">
     <param n="0">2520.0</param>
     <param n="1">0.0993</param>
-    <param n="2">0.635</param>
-    <param n="3">0.747</param>
+    <param n="2">0.622</param>
+    <param n="3">0.816</param>
    </slot>
    <slot n="1">
     <param n="0">9.4</param>
@@ -37,22 +37,5 @@
    </slot>
   </effect>
  </audioframe>
-
- <mixer mode="append">
-  <effect type="reverb">
-   <slot n="0">
-    <param n="0">2520.0</param>
-    <param n="1">0.0993</param>
-    <param n="2">0.635</param>
-    <param n="3">0.747</param>
-   </slot>
-   <slot n="1">
-    <param n="0">9.4</param>
-    <param n="1">17.3</param>
-    <param n="2">28.1</param>
-    <param n="3">0.000</param>
-   </slot>
-  </effect>
- </mixer>
 
 </aeonwave>

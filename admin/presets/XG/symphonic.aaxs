@@ -24,23 +24,18 @@
  <audioframe mode="append">
   <effect type="chorus" src="sine">
    <slot n="0">
-    <param n="0">1.008</param>
+    <param n="0">1.976</param>
     <param n="1">0.500</param>
-    <param n="2" type="msec">5.906</param>
+    <param n="2" type="msec">2.500</param>
     <param n="3" type="msec">1.600</param>
+   </slot>
+   <slot n="1">
+    <param n="0">500.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.000</param>
+    <param n="3">1.0</param>
    </slot>
   </effect>
  </audioframe>
-
- <mixer mode="append">
-  <effect type="chorus" src="sine">
-   <slot n="0">
-    <param n="0">1.008</param>
-    <param n="1">0.500</param>
-    <param n="2" type="msec">5.906</param>
-    <param n="3" type="msec">1.600</param>
-   </slot>
-  </effect>
- </mixer>
 
 </aeonwave>

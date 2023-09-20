@@ -22,25 +22,14 @@
  </info>
 
  <audioframe mode="append">
-  <effect type="distortion" src="envelope">
+  <effect type="distortion" src="inverse-envelope">
    <slot n="0">
     <param n="0">0.209</param>
     <param n="1">0.819</param>
-    <param n="2">0.217</param>
+    <param n="2">0.212</param>
     <param n="3">0.181</param>
    </slot>
   </effect>
  </audioframe>
-
- <mixer mode="append">
-  <effect type="distortion" src="envelope">
-   <slot n="0">
-    <param n="0">0.209</param>
-    <param n="1">0.819</param>
-    <param n="2">0.217</param>
-    <param n="3">0.181</param>
-   </slot>
-  </effect>
- </mixer>
 
 </aeonwave>

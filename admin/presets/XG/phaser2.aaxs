@@ -24,7 +24,7 @@
  <audioframe mode="append">
   <effect type="phasing" src="sine">
    <slot n="0">
-    <param n="0">0.000</param>
+    <param n="0">0.996</param>
     <param n="1">0.330</param>
     <param n="2">0.291</param>
     <param n="3">0.583</param>
@@ -37,22 +37,5 @@
    </slot>
   </effect>
  </audioframe>
-
- <mixer mode="append">
-  <effect type="phasing" src="sine">
-   <slot n="0">
-    <param n="0">0.000</param>
-    <param n="1">0.330</param>
-    <param n="2">0.291</param>
-    <param n="3">0.583</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.429</param>
-    <param n="3">1.0</param>
-   </slot>
-  </effect>
- </mixer>
 
 </aeonwave>

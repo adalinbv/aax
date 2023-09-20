@@ -38,21 +38,4 @@
   </filter>
  </audioframe>
 
- <mixer mode="append">
-  <filter type="equalizer">
-   <slot n="0">
-    <param n="0">500.0</param>
-    <param n="1">1.995</param>
-    <param n="2">0.631</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">4000.0</param>
-    <param n="1">0.631</param>
-    <param n="2">1.995</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
- </mixer>
-
 </aeonwave>
