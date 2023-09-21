@@ -81,7 +81,17 @@ _aaxCompressorSetState(_filter_t* filter, int state)
 
    switch (state & AAX_SOURCE_MASK)
    {
+   case AAX_CONSTANT:
+   case AAX_SAWTOOTH:
+   case AAX_SQUARE:
+   case AAX_TRIANGLE:
+   case AAX_SINE:
+   case AAX_CYCLOID:
+   case AAX_IMPULSE:
+   case AAX_RANDOMNESS:
+   case AAX_RANDOM_SELECT:
    case AAX_ENVELOPE_FOLLOW:
+   case AAX_TIMED_TRANSITION:
    {
       _aaxLFOData* lfo = filter->slot[0]->data;
       if (lfo == NULL) {

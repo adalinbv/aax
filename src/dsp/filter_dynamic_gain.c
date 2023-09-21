@@ -86,7 +86,9 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
    case AAX_CYCLOID:
    case AAX_IMPULSE:
    case AAX_RANDOMNESS:
+   case AAX_RANDOM_SELECT:
    case AAX_ENVELOPE_FOLLOW:
+   case AAX_TIMED_TRANSITION:
    {
       _aaxLFOData* lfo = filter->slot[0]->data;
       if (lfo == NULL) {
