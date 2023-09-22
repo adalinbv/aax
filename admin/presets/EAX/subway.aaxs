@@ -31,7 +31,7 @@
    </slot>
    <slot n="1">
     <param n="0">4022.6</param>
-    <param n="1">0.000</param>
+    <param n="1">4022.6</param>
     <param n="2">0.105</param>
     <param n="3">0.0</param>
    </slot>

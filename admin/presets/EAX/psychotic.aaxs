@@ -22,11 +22,11 @@
  </info>
 
  <audioframe mode"append">
-  <effect type="delay" src="sine">
+  <effect type="delay" src="sine" stereo="true">
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.250</param>
-    <param n="2">1.000</param>
+    <param n="2">0.100</param>
     <param n="3" type="sec">0.250</param>
    </slot>
   </effect>
