@@ -1,26 +1,3 @@
-<!--
-  Density: 0.171500
-  Diffusion: 0.560000
-  Gain: 0.316200
-  GainHF: 0.707900
-  GainLF: 0.891300
-  DecayTime: 0.790000
-  DecayHFRatio: 0.810000
-  DecayLFRatio: 0.550000
-  ReflectionsGain: 1.412500
-  ReflectionsDelay: 0.007000
-  LateReverbGain: 1.778300
-  LateReverbDelay: 0.018000
-  EchoTime: 0.181000
-  EchoDepth: 0.310000
-  ModulationTime: 0.250000
-  ModulationDepth: 0.000000
-  AirAbsorptionGainHF: 0.994300
-  HFReference: 3316.100098
-  LFReference: 458.200012
-  RoomRolloffFactor: 0.000000
-  DecayHFLimit: 1
--->
 <?xml version="1.0"?>
 
 
@@ -52,13 +29,19 @@
     <param n="2">0.000</param>
     <param n="3" type="sec">0.181</param>
    </slot>
+   <slot n="1">
+    <param n="0">847.5</param>
+    <param n="1">0.000</param>
+    <param n="2">0.155</param>
+    <param n="3">0.0</param>
+   </slot>
   </effect>
->
+  <effect type="reverb">
    <slot n="0">
-    <param n="0">948.3</param>
-    <param n="1">0.004</param>
-    <param n="2">0.800</param>
-    <param n="3">0.016</param>
+    <param n="0">847.5</param>
+    <param n="1">0.007</param>
+    <param n="2">0.297</param>
+    <param n="3">0.102</param>
    </slot>
   </effect>
  </audioframe>

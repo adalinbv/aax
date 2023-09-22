@@ -32,15 +32,4 @@
   </effect>
  </audioframe>
 
- <mixer mode="append">
-  <effect type="reveb">
-   <slot n="0">
-    <param n="0">571.9</param>
-    <param n="1">0.012</param>
-    <param n="2">0.504</param>
-    <param n="3">0.198</param>
-   </slot>
-  </effect>
- </mixer>
-
 </aeonwave>
