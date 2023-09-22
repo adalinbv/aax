@@ -58,16 +58,10 @@ int _grapheq_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigne
 #define CHORUS_MAX	 60e-3f
 #define CHORUS_DEPTH	(CHORUS_MAX-CHORUS_MIN)
 #define DELAY_MIN	 60e-3f
-#define DELAY_MAX	   1.0f	// DELAY_LINE_EFFECTS_TIME
+#define DELAY_MAX	   1.0f
 #define DELAY_DEPTH	(DELAY_MAX-DELAY_MIN)
 #define DELAY_MAX_ORG	200e-3f
-
-void* _delay_create(void*, void*, char, char, int, float);
-void _delay_swap(void*, void*);
-void _delay_destroy(void*);
-void _delay_reset(void*);
-size_t _delay_prepare(MIX_PTR_T, MIX_PTR_T, size_t, void*, unsigned int);
-int _delay_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
+#define DELAY_NORM_FACT	(DELAY_MAX/DELAY_MAX_ORG)
 
 // occlusion
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);

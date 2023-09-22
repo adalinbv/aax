@@ -253,7 +253,6 @@ typedef ALIGN16 struct
    size_t history_samples;
    size_t no_tracks;
    float feedback;
-   char flanger;
 
 } _aaxRingBufferDelayEffectData ALIGN16C;
 
