@@ -860,17 +860,16 @@ _eff_function_tbl _aaxPhasingEffect =
 static aaxEffect
 _aaxFlangingEffectSetState(_effect_t* effect, int state)
 {
-   // flanging only has 2nd order effects: feedback
+   /* Convert to Chorus feedback. */
    state &= ~AAX_EFFECT_1ST_ORDER;
    state |= AAX_EFFECT_2ND_ORDER;
 
-   /* this is what _aaxDelayEffectSetState expects */
    effect->slot[1]->param[AAX_FEEDBACK_GAIN & 0xF] 
       = effect->slot[0]->param[AAX_DELAY_GAIN];
 
    effect->slot[0]->param[AAX_DELAY_GAIN] = 0.0f;
 
-   return _aaxDelayEffectSetState(effect, state);
+   return _aaxChorusEffectSetState(effect, state);
 }
 
 _eff_function_tbl _aaxFlangingEffect =
