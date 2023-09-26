@@ -322,7 +322,6 @@ _aaxLFODelay(_aaxLFOData* lfo, float rv)
 
        lfo->dt += 1.0f/lfo->period_rate;
        f = lfo->dt/delay;
-       f = f*f;
 
        if (lfo->delay < 0.0f) rv = 1.0f - (1.0f - rv)*f;	// pitch
        else rv *= f;						// gain
@@ -877,14 +876,19 @@ _logarithmic(float v, _aaxLFOData *lfo)
 float
 _exponential(float v, _aaxLFOData *lfo)
 {
-   float depth = (lfo->max-lfo->min);
+   float fact, depth;
    float rv;
 
+   v = _MINMAX(v, 0.0f, 1.0f);
+   fact = (expf(v)-1.0f)/(GMATH_E1-1.0f);
+   depth = (lfo->max-lfo->min);
+
    if (lfo->inverse) {
-      rv = lfo->max - depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
+      rv = lfo->max - depth*fact;
    } else {
-      rv = lfo->min + depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
+      rv = lfo->min + depth*fact;
    }
+
    return rv;
 }
 
