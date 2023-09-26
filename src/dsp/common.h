@@ -175,6 +175,7 @@ void _aaxRingBufferDelaysRemove(void**);
 //size_t _aaxRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], size_t, int);
 
 float _lin(float v);
+float _ln(float v);
 float _lin2db(float v);
 float _db2lin(float v);
 float _square(float v);
