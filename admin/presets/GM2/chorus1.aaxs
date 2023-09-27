@@ -22,12 +22,12 @@
  </info>
 
  <audioframe mode="append">
-  <effect type="phasing" src="sine">
+  <effect type="chorus" src="sine">
    <slot n="0">
     <param n="0">0.50</param>
     <param n="1">0.4</param>
     <param n="2" type="msec">1.875</param>
-    <param n="3" type="msec">0.100</param>
+    <param n="3" type="msec">2.240</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>

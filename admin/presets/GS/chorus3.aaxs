@@ -27,7 +27,7 @@
     <param n="0">0.49</param>
     <param n="1">0.3</param>
     <param n="2" type="msec">5.700</param>
-    <param n="3" type="msec">0.100</param>
+    <param n="3" type="msec">8.000</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>
