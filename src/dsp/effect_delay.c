@@ -365,7 +365,7 @@ _aaxDelayEffectGet(float val, int ptype, unsigned char param)
          rv = val*1e-6f;
          break;
       case AAX_LINEAR: // delay range 0.0 .. 5.0
-         rv = (val/DELAY_NORM_FACT)*DELAY_DEPTH;
+         rv = val*DELAY_DEPTH;
          if (param == AAX_LFO_OFFSET) rv += DELAY_MIN;
          break;
       case AAX_SECONDS:
@@ -396,7 +396,7 @@ _aaxDelayEffectSet(float val, int ptype, unsigned char param)
          break;
       case AAX_LINEAR: //delay-line range 0.0 .. 5.0
          if (param == AAX_LFO_OFFSET) val -= DELAY_MIN;
-         rv = (val/DELAY_DEPTH)*DELAY_NORM_FACT;
+         rv = val/DELAY_DEPTH;
          break;
       case AAX_SECONDS:
       default:
@@ -468,7 +468,7 @@ _aaxChorusEffectGet(float val, int ptype, unsigned char param)
          rv = val*1e-6f;
          break;
       case AAX_LINEAR: // chorus range 0.0 .. 1.0
-         rv = (val/CHORUS_NORM_FACT)*CHORUS_DEPTH;
+         rv = val*CHORUS_DEPTH;
          if (param == AAX_LFO_OFFSET) rv += CHORUS_MIN;
          break;
       case AAX_SECONDS:
@@ -497,9 +497,9 @@ _aaxChorusEffectSet(float val, int ptype, unsigned char param)
       case AAX_MICROSECONDS:
          rv = val*1e6f;
          break;
-      case AAX_LINEAR: // chorus range 0.0 .. 1.333
+      case AAX_LINEAR: // chorus range 0.0 .. 1.0
          if (param == AAX_LFO_OFFSET) val -= CHORUS_MIN;
-         rv = (val/CHORUS_DEPTH)*CHORUS_NORM_FACT;
+         rv = val/CHORUS_DEPTH;
          break;
       case AAX_SECONDS:
       default:
@@ -565,7 +565,7 @@ _aaxPhasingEffectGet(float val, int ptype, unsigned char param)
       case AAX_MICROSECONDS:
          rv = val*1e-6f;
          break;
-      case AAX_LINEAR: // chorus range 0.0 .. 1.0
+      case AAX_LINEAR: // phasing range 0.0 .. 1.0
          rv = val*PHASING_DEPTH;
          if (param == AAX_LFO_OFFSET) rv += PHASING_MIN;
          break;
@@ -595,7 +595,7 @@ _aaxPhasingEffectSet(float val, int ptype, unsigned char param)
       case AAX_MICROSECONDS:
          rv = val*1e6f;
          break;
-      case AAX_LINEAR: // chorus range 0.0 .. 1.0
+      case AAX_LINEAR: // phasing range 0.0 .. 1.0
          if (param == AAX_LFO_OFFSET) val -= PHASING_MIN;
          rv = val/PHASING_DEPTH;
          break;
