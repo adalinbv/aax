@@ -700,15 +700,27 @@ aaxGetSourceTypeByName(const char *wave)
                {
                   rv |= AAX_2ND_ORDER;
                }
+               else if (!strncasecmp(name, "3rd", len))
+               {
+                  rv |= AAX_3RD_ORDER;
+               }
                else if (!strncasecmp(name, "4th", len) ||
                         !strncasecmp(name, "24db", len))
                {
                   rv |= AAX_4TH_ORDER;
                }
+               else if (!strncasecmp(name, "5th", len))
+               {
+                  rv |= AAX_5TH_ORDER;
+               }
                else if (!strncasecmp(name, "6th", len) ||
                         !strncasecmp(name, "36db", len))
                {
                   rv |= AAX_6TH_ORDER;
+               }
+               else if (!strncasecmp(name, "7th", len))
+               {
+                  rv |= AAX_7TH_ORDER;
                }
                else if (!strncasecmp(name, "8th", len) ||
                         !strncasecmp(name, "48db", len))
