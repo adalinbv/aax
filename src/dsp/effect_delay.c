@@ -37,6 +37,20 @@
 #include "dsp.h"
 #include "api.h"
 
+/*
+ * Implements phasing, chorus, flanging and delay-line
+ *
+ * phasing and chorus are now exactly the same except the time range of the
+ * linear, typeless, values 0.0 .. 1.0
+ *
+ * flaning is converted o chorus by setting the feedback gain of the chorus
+ * effect from the delay gain value of the flanger effect and setting the delay
+ * level of the chorus effect to 0.0
+ *
+ * delay-line differs from chorus only by the maxmimum allowed delay and it's
+ * corresponding linear, typeless, values 0.0 .. 1.0
+ */
+
 #define VERSION		1.15
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
@@ -78,7 +92,7 @@ _aaxDelayEffectDestroy(_effect_t* effect)
 }
 
 static aaxEffect
-_aaxDelayEffectSetState(_effect_t* effect, int state, float max_delay)
+_aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float feedback_gain, float max_delay)
 {
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
@@ -87,6 +101,10 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float max_delay)
 
    if ((state & (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER)) == 0) {
       state |= (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
+   }
+
+   if ((state & AAX_ALL_SOURCE_MASK) == 0 && (state & AAX_ORDER_MASK)) {
+      state |= AAX_CONSTANT;
    }
 
    effect->state = state;
@@ -105,8 +123,7 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float max_delay)
    case AAX_TIMED_TRANSITION:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
-      float feedback = effect->slot[1]->param[AAX_FEEDBACK_GAIN & 0xF];
-      char fbhist = feedback ? AAX_TRUE : AAX_FALSE;
+      char fbhist = (feedback_gain > LEVEL_32DB) ? AAX_TRUE : AAX_FALSE;
 
       data = _delay_create(data, effect->info, fbhist, state, max_delay);
 
@@ -161,7 +178,6 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float max_delay)
          data->freq_filter = flt;
          data->prepare = _delay_prepare;
          data->run = _delay_run;
-         data->feedback = feedback;
 
          _lfo_setup(&data->lfo, effect->info, effect->state);
 
@@ -177,7 +193,8 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float max_delay)
 
          constant = _lfo_set_timing(&data->lfo);
 
-         data->delay.gain = effect->slot[0]->param[AAX_DELAY_GAIN];
+         data->feedback = feedback_gain;
+         data->delay.gain = delay_gain;
          for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
             data->delay.sample_offs[t] = (size_t)data->lfo.value[t];
          }
@@ -325,7 +342,10 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float max_delay)
 static aaxEffect
 _aaxDelayLineEffectSetState(_effect_t* effect, int state)
 {
-   return _aaxDelayEffectSetState(effect, state, DELAY_MAX);
+   float delay = effect->slot[0]->param[AAX_DELAY_GAIN];
+   float feedback = effect->slot[1]->param[AAX_FEEDBACK_GAIN & 0xF];
+
+   return _aaxDelayEffectSetState(effect, state, delay, feedback, DELAY_MAX);
 }
 
 static _effect_t*
@@ -446,7 +466,10 @@ _eff_function_tbl _aaxDelayLineEffect =
 static aaxEffect
 _aaxChorusEffectSetState(_effect_t* effect, int state)
 {
-   return _aaxDelayEffectSetState(effect, state, CHORUS_MAX);
+   float delay = effect->slot[0]->param[AAX_DELAY_GAIN];
+   float feedback = effect->slot[1]->param[AAX_FEEDBACK_GAIN & 0xF];
+
+   return _aaxDelayEffectSetState(effect, state, delay, feedback, CHORUS_MAX);
 }
 
 static float
@@ -627,16 +650,14 @@ _eff_function_tbl _aaxPhasingEffect =
 static aaxEffect
 _aaxFlangingEffectSetState(_effect_t* effect, int state)
 {
+   float delay = 0.0f;
+   float feedback = effect->slot[0]->param[AAX_DELAY_GAIN];
+
    /* Convert to Chorus feedback. */
    state &= ~AAX_EFFECT_1ST_ORDER;
    state |= AAX_EFFECT_2ND_ORDER;
 
-   effect->slot[1]->param[AAX_FEEDBACK_GAIN & 0xF]
-      = effect->slot[0]->param[AAX_DELAY_GAIN];
-
-   effect->slot[0]->param[AAX_DELAY_GAIN] = 0.0f;
-
-   return _aaxDelayEffectSetState(effect, state, CHORUS_MAX);
+   return _aaxDelayEffectSetState(effect, state, delay, feedback, CHORUS_MAX);
 }
 
 _eff_function_tbl _aaxFlangingEffect =

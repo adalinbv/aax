@@ -244,6 +244,9 @@ typedef ALIGN16 struct
               size_t, size_t, void*, void*, unsigned int);
 
    int state;
+   int no_tracks;
+   int no_delays;
+   float feedback;
 
    _aaxLFOData lfo;
    _aaxRingBufferOffsetData *offset;
@@ -251,8 +254,6 @@ typedef ALIGN16 struct
    _aaxRingBufferHistoryData *feedback_history;
    _aaxRingBufferFreqFilterData *freq_filter;
    size_t history_samples;
-   size_t no_tracks;
-   float feedback;
 
 } _aaxRingBufferDelayEffectData ALIGN16C;
 
