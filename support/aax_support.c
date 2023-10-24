@@ -668,9 +668,10 @@ aaxGetSourceTypeByName(const char *wave)
             } else if (!strncasecmp(name, "inverse", len)) {
                rv |= AAX_CONSTANT|AAX_INVERSE;
             }
-            else /* frequency filter */
+            else /* frequency filter, delay effects */
             {
-               if (len >= 5 && !strncasecmp(name+len-5, "ORDER", 5))
+               if (len >= 5 && (!strncasecmp(name+len-5, "ORDER", 5) ||
+                                !strncasecmp(name+len-5, "STAGE", 5)))
                {
                   if (len >= 6 && (*(name+len-6) == '_' ||
                                    *(name+len-6) == '-')) {
@@ -690,44 +691,52 @@ aaxGetSourceTypeByName(const char *wave)
                {
                   rv |= AAX_RESONANCE_FACTOR;
                }
-               else if (!strncasecmp(name, "1st", len) ||
+               else if (!strncasecmp(name, "1", len) ||
+                        !strncasecmp(name, "1st", len) ||
                         !strncasecmp(name, "6db", len))
                {
                   rv |= AAX_1ST_ORDER;
                }
-               else if (!strncasecmp(name, "2nd", len) ||
+               else if (!strncasecmp(name, "2", len) ||
+                        !strncasecmp(name, "2nd", len) ||
                         !strncasecmp(name, "12db", len))
                {
                   rv |= AAX_2ND_ORDER;
                }
-               else if (!strncasecmp(name, "3rd", len))
+               else if (!strncasecmp(name, "3", len) ||
+                        !strncasecmp(name, "3rd", len))
                {
                   rv |= AAX_3RD_ORDER;
                }
-               else if (!strncasecmp(name, "4th", len) ||
+               else if (!strncasecmp(name, "4", len) ||
+                        !strncasecmp(name, "4th", len) ||
                         !strncasecmp(name, "24db", len))
                {
                   rv |= AAX_4TH_ORDER;
                }
-               else if (!strncasecmp(name, "5th", len))
+               else if (!strncasecmp(name, "5", len) ||
+                        !strncasecmp(name, "5th", len))
                {
                   rv |= AAX_5TH_ORDER;
                }
-               else if (!strncasecmp(name, "6th", len) ||
+               else if (!strncasecmp(name, "6", len) ||
+                        !strncasecmp(name, "6th", len) ||
                         !strncasecmp(name, "36db", len))
                {
                   rv |= AAX_6TH_ORDER;
                }
-               else if (!strncasecmp(name, "7th", len))
+               else if (!strncasecmp(name, "7", len) ||
+                        !strncasecmp(name, "7th", len))
                {
                   rv |= AAX_7TH_ORDER;
                }
-               else if (!strncasecmp(name, "8th", len) ||
+               else if (!strncasecmp(name, "8", len) ||
+                        !strncasecmp(name, "8th", len) ||
                         !strncasecmp(name, "48db", len))
                {
                   rv |= AAX_8TH_ORDER;
                }
-            } /* frequency filter */
+            } /* frequency filter, delay effects */
          }
          else {
             rv = AAX_CONSTANT;
