@@ -964,8 +964,11 @@ _aaxPipeWireDriverSetName(const void *id, int type, const char *name)
 
       if (ret)
       {
-         if (handle->pw) {
+         if (handle->pw)
+         {
+            ppw_thread_loop_lock(handle->ml);
             ppw_stream_update_properties(handle->pw, &SPA_DICT_INIT(item, nitems));
+            ppw_thread_loop_unlock(handle->ml);
          }
       }
    }
