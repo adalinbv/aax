@@ -1003,14 +1003,18 @@ _aaxPipeWireDriverState(const void *id, enum _aaxDriverState state)
    case DRIVER_PAUSE:
       if (handle)
       {
+         ppw_thread_loop_lock(handle->ml);
          ppw_stream_set_active(handle->pw, AAX_FALSE);
+         ppw_thread_loop_unlock(handle->ml);
          rv = AAX_TRUE;
       }
       break;
    case DRIVER_RESUME:
       if (handle)
       {
+         ppw_thread_loop_lock(handle->ml);
          ppw_stream_set_active(handle->pw, AAX_TRUE);
+         ppw_thread_loop_unlock(handle->ml);
          rv = AAX_TRUE;
       }
       break;
