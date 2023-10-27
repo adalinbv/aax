@@ -678,12 +678,8 @@ public:
         return aaxIsEffectSupported(ptr, aaxEffectGetNameByType(ptr,e));
     }
     bool supports(const char* fe) {
-        if (strstr(fe, "_filter")) {
-            return aaxIsFilterSupported(ptr,fe);
-        } else if (strstr(fe, "_effect")) {
-            return aaxIsEffectSupported(ptr,fe);
-        }
-        return false;
+        return aaxIsFilterSupported(ptr,fe) ? true
+                                            : aaxIsEffectSupported(ptr,fe);
     }
     inline bool supports(std::string& s) {
         return supports(s.c_str());
