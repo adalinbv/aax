@@ -108,7 +108,8 @@ enum aaxTypeName
     AAX_DISTANCE_MODEL_NAME,
     AAX_TYPE_NAME,
 
-    AAX_FREQUENCY_FILTER_NAME = 7 /* AAX_FREQUENCY_FILTER */
+    AAX_FREQUENCY_FILTER_NAME = 7, /* AAX_FREQUENCY_FILTER */
+    AAX_DELAY_EFFECT_NAME /* AAX_(PHASING,CHORUS,FLAGING,DELAY,REVERB)_EFFECT */
 };
 
 enum aaxFormat
@@ -727,6 +728,8 @@ AAX_API int64_t AAX_APIENTRY aaxGetSetup(enum aaxSetupType);
 
 AAX_API unsigned int AAX_APIENTRY aaxGetByType(enum aaxSetupType);
 AAX_API int AAX_APIENTRY aaxGetByName(const char*, enum aaxTypeName);
+AAX_API char* AAX_APIENTRY aaxGetStringByType(int, enum aaxTypeName);
+
 AAX_API const char* AAX_APIENTRY aaxGetString(enum aaxSetupType);
 AAX_API const char* AAX_APIENTRY aaxGetFormatString(enum aaxFormat);
 

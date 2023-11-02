@@ -456,7 +456,7 @@ _aaxSetSlotFromAAXS(const xmlId *xid, int (*setStateFn)(void*, int, int), int (*
                         {
                            float min = xmlAttributeGetDouble(xpid, "min");
                            float max = xmlAttributeGetDouble(xpid, "max");
-                           if (min <= 0.0f) min = 0.01f;
+                           if (min <= 0.01f) min = 0.01f;
                            if (max <= min) max = FLT_MAX;
                            value=_MINMAX(value-adjust*_lin2log(freq), min, max);
                         }

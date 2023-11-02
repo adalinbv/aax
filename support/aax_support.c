@@ -758,6 +758,199 @@ aaxGetSourceTypeByName(const char *wave)
    return rv;
 }
 
+#define SRC_ADD(p, l, m, s) { \
+    size_t sl = strlen(s); \
+    if (m && l) *p++ = '|'; \
+    if (l > sl) { \
+        memcpy(p, s, sl); \
+        p += sl; l -= sl; m = 1; *p= 0; \
+    } \
+}
+
+static char*
+aaxGetSourceNameByType(enum aaxSourceType type, char freqfilter, char delay)
+{
+   enum aaxSourceType ntype = type & AAX_NOISE_MASK;
+   enum aaxSourceType stype = type & AAX_SOURCE_MASK;
+   char rv[1024] = "none";
+   int l = 1024;
+   char *p = rv;
+   char m = 0;
+
+   if (type & AAX_INVERSE) {
+      SRC_ADD(p, l, m, "inverse-");
+   }
+
+   m = 0;
+   /* AAX_CONSTANT, AAX_IMPULSE and noises are different for
+      frequency filters. */
+   switch(stype)
+   {
+   case AAX_SAWTOOTH:
+      SRC_ADD(p, l, m, "sawtooth");
+      break;
+   case AAX_SQUARE:
+      SRC_ADD(p, l, m, "square");
+      break;
+   case AAX_TRIANGLE:
+      SRC_ADD(p, l, m, "triangle");
+      break;
+   case AAX_SINE:
+      SRC_ADD(p, l, m, "sine");
+      break;
+   case AAX_CYCLOID:
+      SRC_ADD(p, l, m, "cycloid");
+      break;
+   case AAX_ENVELOPE_FOLLOW:
+      SRC_ADD(p, l, m, "envelope");
+      break;
+   case AAX_TIMED_TRANSITION:
+      SRC_ADD(p, l, m, "timed");
+      break;
+   case AAX_RANDOMNESS:
+      SRC_ADD(p, l, m, "randomness");
+      break;
+   case AAX_RANDOM_SELECT:
+      SRC_ADD(p, l, m, "random");
+      break;
+   case AAX_PURE_SAWTOOTH:
+      SRC_ADD(p, l, m, "pure-sawtooth");
+      break;
+   case AAX_PURE_SQUARE:
+      SRC_ADD(p, l, m, "pure-square");
+      break;
+   case AAX_PURE_TRIANGLE:
+      SRC_ADD(p, l, m, "pure-triangle");
+      break;
+   case AAX_PURE_SINE:
+      SRC_ADD(p, l, m, "pure-sine");
+      break;
+   case AAX_PURE_CYCLOID:
+      SRC_ADD(p, l, m, "pure-cycloid");
+      break;
+   case AAX_WAVE_NONE:
+   default:
+      break;
+   }
+
+   if (delay) /* phasing, chorus, flanging, delay-line */
+   {
+      int order = type & AAX_ORDER_MASK;
+
+      if (type & AAX_EFFECT_1ST_ORDER) {
+         SRC_ADD(p, l, m, "1st-order");
+      } else if (type & AAX_EFFECT_2ND_ORDER) {
+         SRC_ADD(p, l, m, "2nd-order");
+      }
+
+      if (order == AAX_1STAGE) {
+         SRC_ADD(p, l, m, "1-stage");
+      } else if (order == AAX_2STAGE) {
+         SRC_ADD(p, l, m, "2-stage");
+      } else if (order == AAX_3STAGE) {
+         SRC_ADD(p, l, m, "3-stage");
+      } else if (order == AAX_4STAGE) {
+         SRC_ADD(p, l, m, "4-stage");
+      } else if (order == AAX_5STAGE) {
+         SRC_ADD(p, l, m, "5-stage");
+      } else if (order == AAX_6STAGE) {
+         SRC_ADD(p, l, m, "6-stage");
+      } else if (order == AAX_7STAGE) {
+         SRC_ADD(p, l, m, "7-stage");
+      } else if (order == AAX_8STAGE) {
+         SRC_ADD(p, l, m, "8-stage");
+      }
+   }
+   else if (freqfilter) /* frequency filter */
+   {
+      int order = type & AAX_ORDER_MASK;
+
+      if (order == AAX_1ST_ORDER) {
+         SRC_ADD(p, l, m, "6db");
+      } else if (order == AAX_2ND_ORDER) {
+         SRC_ADD(p, l, m, "12db");
+      } else if (order == AAX_4TH_ORDER) {
+         SRC_ADD(p, l, m, "24db");
+      } else if (order == AAX_6TH_ORDER) {
+         SRC_ADD(p, l, m, "36db");
+      } else if (order == AAX_8TH_ORDER) {
+         SRC_ADD(p, l, m, "48db");
+      } else if (order == AAX_RESONANCE_FACTOR) {
+         SRC_ADD(p, l, m, "Q");
+      }
+
+      if (type & AAX_BESSEL) {
+         SRC_ADD(p, l, m, "bessel");
+      }
+
+      if (type & AAX_LFO_EXPONENTIAL) {
+         SRC_ADD(p, l, m, "logarithmic");
+      }
+   }
+   else /* not a delay effect nor a frequency filter */
+   {
+      int order = type & AAX_ORDER_MASK;
+
+      if (type & AAX_EFFECT_1ST_ORDER) {
+         SRC_ADD(p, l, m, "1st-order");
+      } else if (type & AAX_EFFECT_2ND_ORDER) {
+         SRC_ADD(p, l, m, "2nd-order");
+      }
+
+      if (order == AAX_1ST_ORDER) {
+         SRC_ADD(p, l, m, "1st-order");
+      } else if (order == AAX_2ND_ORDER) {
+         SRC_ADD(p, l, m, "2nd-order");
+      } else if (order == AAX_3RD_ORDER) {
+         SRC_ADD(p, l, m, "3rd-order");
+      } else if (order == AAX_4TH_ORDER) {
+         SRC_ADD(p, l, m, "4th-order");
+      } else if (order == AAX_5TH_ORDER) {
+         SRC_ADD(p, l, m, "5th-order");
+      } else if (order == AAX_6TH_ORDER) {
+         SRC_ADD(p, l, m, "6th-order");
+      } else if (order == AAX_7TH_ORDER) {
+         SRC_ADD(p, l, m, "7th-order");
+      } else if (order == AAX_8TH_ORDER) {
+         SRC_ADD(p, l, m, "8th-order");
+      }
+
+      switch(stype)
+      {
+      case AAX_CONSTANT:
+         SRC_ADD(p, l, m, "true");
+         break;
+      case AAX_IMPULSE:
+         SRC_ADD(p, l, m, "impulse");
+         break;
+      default:
+         break;
+      }
+
+      switch(ntype)
+      {
+      case AAX_WHITE_NOISE:
+         SRC_ADD(p, l, m, "white-noise");
+         break;
+      case AAX_PINK_NOISE:
+         SRC_ADD(p, l, m, "pink-noise");
+         break;
+      case AAX_BROWNIAN_NOISE:
+         SRC_ADD(p, l, m, "brownian-noise");
+         break;
+      default:
+         break;
+      }
+
+      if (type & AAX_LFO_EXPONENTIAL) {
+         SRC_ADD(p, l, m, "exponential");
+      }
+   }
+
+   if (!strcmp(rv, "none")) return NULL;
+   return strdup(rv);
+}
+
 
 static enum aaxDistanceModel
 aaxGetDistanceModelByName(const char *name)
@@ -931,10 +1124,12 @@ aaxEffectGetByName(const char *name)
    else if (!strncasecmp(name, "chorus", slen)) {
       rv = AAX_CHORUS_EFFECT;
    }
-   else if (!strncasecmp(name, "flanging", slen)) {
+   else if (!strncasecmp(name, "flanging", slen) ||
+            !strncasecmp(name, "flanger", slen)) {
       rv = AAX_FLANGING_EFFECT;
    }
-   else if (!strncasecmp(name, "delay", slen)) {
+   else if (!strncasecmp(name, "delay", slen) ||
+            !strncasecmp(name, "delay-line", slen)) {
       rv = AAX_DELAY_EFFECT;
    }
    else if (!strncasecmp(name, "reverb", slen)) {
@@ -972,6 +1167,7 @@ aaxGetByName(const char* name, enum aaxTypeName type)
       rv = aaxFilterGetByName(name);
       break;
    case AAX_EFFECT_NAME:
+   case AAX_DELAY_EFFECT_NAME:
       rv = aaxEffectGetByName(name);
       break;
    case AAX_DISTANCE_MODEL_NAME:
@@ -985,6 +1181,222 @@ aaxGetByName(const char* name, enum aaxTypeName type)
    }
 
    return rv;
+}
+
+AAX_API char* AAX_APIENTRY
+aaxGetStringByType(int type, enum aaxTypeName name)
+{
+   char *rv = NULL;
+   switch(name)
+   {
+   case AAX_SOURCE_NAME:
+      rv = aaxGetSourceNameByType(type, AAX_FALSE, AAX_FALSE);
+      break;
+   case AAX_FREQUENCY_FILTER_NAME:
+      rv = aaxGetSourceNameByType(type, AAX_TRUE, AAX_FALSE);
+      break;
+   case AAX_DELAY_EFFECT_NAME:
+      rv = aaxGetSourceNameByType(type, AAX_FALSE, AAX_TRUE);
+      break;
+   case AAX_FILTER_NAME:
+      switch (type)
+      {
+      case AAX_EQUALIZER:
+         rv = "equalizer";
+         break;
+      case AAX_VOLUME_FILTER:
+         rv = "volume";
+         break;
+      case AAX_DYNAMIC_GAIN_FILTER:
+         rv = "dynamic-gain";
+         break;
+      case AAX_TIMED_GAIN_FILTER:
+         rv = "timed-gain";
+         break;
+      case AAX_DIRECTIONAL_FILTER:
+         rv = "directional";
+         break;
+      case AAX_DISTANCE_FILTER:
+         rv = "distance";
+         break;
+      case AAX_FREQUENCY_FILTER:
+         rv = "frequency";
+         break;
+      case AAX_BITCRUSHER_FILTER:
+         rv = "bitcrusher";
+         break;
+      case AAX_GRAPHIC_EQUALIZER:
+         rv = "graphic-equalizer";
+         break;
+      case AAX_COMPRESSOR:
+         rv = "compressor";
+         break;
+      case AAX_DYNAMIC_LAYER_FILTER:
+         rv = "dynamic-layer";
+         break;
+      case AAX_FILTER_NONE:
+      case AAX_FILTER_MAX:
+      default:
+         rv = "none";
+         break;
+      }
+      break;
+   case AAX_EFFECT_NAME:
+      switch (type)
+      {
+      case AAX_PITCH_EFFECT:
+         rv = "pitch";
+         break;
+      case AAX_DYNAMIC_PITCH_EFFECT:
+         rv = "dynamic-pitch";
+         break;
+      case AAX_TIMED_PITCH_EFFECT:
+         rv = "timed-pitch";
+         break;
+      case AAX_DISTORTION_EFFECT:
+         rv = "distortion";
+         break;
+      case AAX_PHASING_EFFECT:
+         rv = "phasing";
+         break;
+      case AAX_CHORUS_EFFECT:
+         rv = "chorus";
+         break;
+      case AAX_FLANGING_EFFECT:
+         rv = "flanging";
+         break;
+      case AAX_VELOCITY_EFFECT:
+         rv = "velocity";
+         break;
+      case AAX_REVERB_EFFECT:
+         rv = "reverb";
+         break;
+      case AAX_CONVOLUTION_EFFECT:
+         rv = "convolution";
+         break;
+      case AAX_RINGMODULATOR_EFFECT:
+         rv = "ringmodulator";
+         break;
+      case AAX_DELAY_EFFECT:
+         rv = "delay";
+         break;
+      case AAX_EFFECT_NONE:
+      case AAX_EFFECT_MAX:
+      default:
+         rv = "none";
+         break;
+      }
+      break;
+   case AAX_DISTANCE_MODEL_NAME:
+      switch (type)
+      {
+      case AAX_EXPONENTIAL_DISTANCE:
+         rv = "exponential-distance";
+         break;
+      case AAX_ISO9613_DISTANCE:
+         rv = "iso9613-distance";
+         break;
+      case AAX_DISTANCE_DELAY:
+         rv = "distance-delay";
+         break;
+      case AAX_EXPONENTIAL_DISTANCE_DELAY:
+         rv = "exponential-distance-delay";
+         break;
+      case AAX_ISO9613_DISTANCE_DELAY:
+         rv = "iso9613-distance-delay";
+         break;
+      case AAX_AL_INVERSE_DISTANCE:
+         rv = "al-inverse-distance";
+         break;
+      case AAX_AL_INVERSE_DISTANCE_CLAMPED:
+         rv = "al-inverse-distance-clamped";
+         break;
+      case AAX_AL_LINEAR_DISTANCE:
+         rv = "al-linear-distance";
+         break;
+      case AAX_AL_LINEAR_DISTANCE_CLAMPED:
+         rv = "al-linear-distance-clamped";
+         break;
+      case AAX_AL_EXPONENT_DISTANCE:
+         rv = "al-exponential-distance";
+         break;
+      case AAX_AL_EXPONENT_DISTANCE_CLAMPED:
+         rv = "al-exponential-distance-clamped";
+         break;
+      case AAX_DISTANCE_MODEL_MAX:
+      case AAX_AL_DISTANCE_MODEL_MAX:
+      default:
+         rv = "none";
+         break;
+      }
+      break;
+   case AAX_TYPE_NAME:
+      switch (type)
+      {
+//    case AAX_KELVIN:
+//    case AAX_KILOPASCAL:
+      case AAX_LINEAR:
+         rv = "linear";
+         break;
+//    case AAX_LOGARITHMIC:
+      case AAX_DECIBEL:
+         rv = "db";
+         break;
+      case AAX_RADIANS:
+         rv = "rad";
+         break;
+      case AAX_DEGREES:
+         rv = "deg";
+         break;
+      case AAX_BYTES:
+         rv = "bytes";
+         break;
+      case AAX_FRAMES:
+         rv = "frames";
+         break;
+      case AAX_SAMPLES:
+         rv = "samples";
+         break;
+      case AAX_MICROSECONDS:
+         rv = "usec";
+         break;
+      case AAX_DEGREES_CELSIUS:
+         rv = "degC";
+         break;
+      case AAX_DEGREES_FAHRENHEIT:
+         rv = "degF";
+         break;
+      case AAX_ATMOSPHERE:
+         rv = "atm";
+         break;
+      case AAX_BAR:
+         rv = "bar";
+         break;
+      case AAX_POUNDS_PER_SQUARE_INCH:
+//    case AAX_PSI:
+         rv = "psi";
+         break;
+      case AAX_BITS_PER_SAMPLE:
+//    case AAX_BPS:
+         rv = "bps";
+         break;
+      case AAX_MILLISECONDS:
+         rv = "msec";
+         break;
+      case AAX_SECONDS: 
+         rv = "sec";
+         break;
+      case AAX_TYPE_MAX:
+      default:
+         rv = "none";
+         break;
+      }
+      break;
+   default:
+      break;
+   }
+
+   return rv ? strdup(rv) : rv;
 }
 
 /* -------------------------------------------------------------------------- */
