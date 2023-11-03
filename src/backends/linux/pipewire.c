@@ -403,6 +403,7 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
             _aaxPipeWireDriverLogVar(NULL, "PipeWire: hotplug loop error: %s",
                                      strerror(errno));
             _aaxPipeWireDriverDisconnect(handle);
+            handle = NULL;
          }
       }
    }
