@@ -1728,21 +1728,14 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
       {
          if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
          {
-            int non_optional = AAX_TRUE;
-            if (xmlAttributeExists(xfid, "optional")) {
-               non_optional = !xmlAttributeGetBool(xfid, "optional");
-            }
-            if (non_optional || !get_low_resource())
+            aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq,
+                                            0.0f, 0.0f, &handle->midi);
+            if (flt)
             {
-                aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq,
-                                               0.0f, 0.0f, &handle->midi);
-                if (flt)
-                {
-                  _filter_t* filter = get_filter(flt);
-                   _emitterSetFilter(handle, filter);
-                   aaxFilterDestroy(flt);
-          }
-             }
+               _filter_t* filter = get_filter(flt);
+               _emitterSetFilter(handle, filter);
+               aaxFilterDestroy(flt);
+            }
          }
       }
       xmlFree(xfid);
@@ -1756,20 +1749,13 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
       {
          if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
          {
-            int non_optional = AAX_TRUE;
-            if (xmlAttributeExists(xeid, "optional")) {
-               non_optional = !xmlAttributeGetBool(xeid, "optional");
-            }
-            if (non_optional || !get_low_resource())
+            aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq,
+                                            0.0f, 0.0f, &handle->midi);
+            if (eff)
             {
-               aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq,
-                                               0.0f, 0.0f, &handle->midi);
-               if (eff)
-               {
-                  _effect_t* effect = get_effect(eff);
-                  _emitterSetEffect(handle, effect);
-                  aaxEffectDestroy(eff);
-               }
+               _effect_t* effect = get_effect(eff);
+               _emitterSetEffect(handle, effect);
+               aaxEffectDestroy(eff);
             }
          }
       }

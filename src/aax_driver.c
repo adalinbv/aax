@@ -789,36 +789,6 @@ int __release_mode = AAX_FALSE;
 _aaxMixerInfo* _info = NULL;
 _aaxMixerInfo __info;
 
-int get_low_resource()
-{
-   static int low_resource = -1;
-   if (low_resource == -1)
-   {
-      char *env = getenv("AAX_USE_LOW_RESOURCE");
-
-      low_resource = _aaxGetNoCores();
-#ifdef __x86_64__
-      // 64-bit
-      if (!env || !_aax_getbool(env))
-      {
-         size_t mem = _aax_get_free_memory()/(50*1024*1024);	// at least 50Mb
-         int avx = _aaxArchDetectAVX();
-         int cores = low_resource/4;
-
-         if (mem && (avx || cores)) { // AVX or at least 4 cores without AVX
-             low_resource = AAX_FALSE;
-         }
-      }
-#else
-      // 32-bit
-      if (env && !_aax_getbool(env)) {
-         low_resource = AAX_FALSE;
-      }
-#endif
-   }
-   return low_resource;
-}
-
 void
 _aaxDriverFree(void *handle)
 {

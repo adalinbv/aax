@@ -73,7 +73,7 @@ aaxAudioFrameCreate(aaxConfig config)
          frame->id = AUDIOFRAME_ID;
          frame->root = handle->root;
          frame->mixer_pos[0] = UINT_MAX;
-         frame->max_emitters = get_low_resource() ? 32 : 256;
+         frame->max_emitters = UINT_MAX;
          if (handle->info->midi_mode)
          {
             if (handle->info->midi_mode == AAX_RENDER_ARCADE) {
@@ -1771,9 +1771,8 @@ _frameCreateBodyFromAAXS(aaxFrame frame, _frame_t* handle, _buffer_t *buffer, xm
 
    if (xmlAttributeExists(xmid, "max-emitters"))
    {
-      unsigned int max = get_low_resource() ? 32 : 256;
       handle->max_emitters = xmlAttributeGetInt(xmid, "max-emitters");
-      handle->max_emitters = _MINMAX(handle->max_emitters, 1, max);
+      handle->max_emitters = _MAX(handle->max_emitters, 1);
    }
 
    fmixer = handle->submix;
@@ -1790,18 +1789,11 @@ _frameCreateBodyFromAAXS(aaxFrame frame, _frame_t* handle, _buffer_t *buffer, xm
       {
          if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
          {
-            int non_optional = AAX_TRUE;
-            if (xmlAttributeExists(xfid, "optional")) {
-               non_optional = !xmlAttributeGetBool(xfid, "optional");
-            }
-            if (non_optional || !get_low_resource())
+            aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq, 0.0f, 0.0f, NULL);
+            if (flt)
             {
-               aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq, 0.0f, 0.0f, NULL);
-               if (flt)
-               {
-                  aaxAudioFrameSetFilter(frame, flt);
-                  aaxFilterDestroy(flt);
-               }
+               aaxAudioFrameSetFilter(frame, flt);
+               aaxFilterDestroy(flt);
             }
          }
       }
@@ -1813,18 +1805,11 @@ _frameCreateBodyFromAAXS(aaxFrame frame, _frame_t* handle, _buffer_t *buffer, xm
       {
          if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
          {
-            int non_optional = AAX_TRUE;
-            if (xmlAttributeExists(xeid, "optional")) {
-               non_optional = !xmlAttributeGetBool(xeid, "optional");
-            }
-            if (non_optional || !get_low_resource())
+            aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq, 0.0f, 0.0f, NULL);
+            if (eff)
             {
-               aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq, 0.0f, 0.0f, NULL);
-               if (eff)
-               {
-                  aaxAudioFrameSetEffect(frame, eff);
-                  aaxEffectDestroy(eff);
-               }
+               aaxAudioFrameSetEffect(frame, eff);
+               aaxEffectDestroy(eff);
             }
          }
       }
@@ -1862,8 +1847,8 @@ _frameCreateEFFromAAXS(aaxFrame frame, _buffer_t *buffer)
       if (polyphony)
       {
          // number of simultaneous keys for an instrument
-         unsigned int min = get_low_resource() ? 8 : 12;
-         unsigned int max = get_low_resource() ? 24 : 88;
+         unsigned int min = 12;
+         unsigned int max = 88;
          handle->max_emitters = polyphony;
          handle->max_emitters = _MINMAX(handle->max_emitters, min, max);
       }
