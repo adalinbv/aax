@@ -73,7 +73,7 @@ aaxAudioFrameCreate(aaxConfig config)
          frame->id = AUDIOFRAME_ID;
          frame->root = handle->root;
          frame->mixer_pos[0] = UINT_MAX;
-         frame->max_emitters = get_low_resource() ? 32 : 256;
+         frame->max_emitters = get_low_resource() ? 32 : UINT_MAX;
          if (handle->info->midi_mode)
          {
             if (handle->info->midi_mode == AAX_RENDER_ARCADE) {
@@ -1767,7 +1767,7 @@ _frameCreateBodyFromAAXS(aaxFrame frame, _frame_t* handle, _buffer_t *buffer, xm
 
    if (xmlAttributeExists(xmid, "max-emitters"))
    {
-      unsigned int max = get_low_resource() ? 32 : 256;
+      unsigned int max = get_low_resource() ? 32 : UINT_MAX;
       handle->max_emitters = xmlAttributeGetInt(xmid, "max-emitters");
       handle->max_emitters = _MINMAX(handle->max_emitters, 1, max);
    }
