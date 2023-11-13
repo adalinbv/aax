@@ -28,7 +28,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="envelope" optional="true">
+  <filter type="frequency" src="envelope|logarithmic" optional="true">
    <slot n="0">
     <param n="0" pitch="6.0">5280.0</param>
     <param n="1">1.0</param>
@@ -39,7 +39,7 @@
     <param n="0" pitch="15.0">13200.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.3</param>
+    <param n="3">0.6</param>
    </slot>
   </filter>
   <filter type="timed-gain" src="envelope" release-time="0.14">
