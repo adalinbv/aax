@@ -230,6 +230,12 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
             int t = track % _AAX_MAX_SPEAKERS;
             MIX_T *sptr = (MIX_T*)srbd->track[track];
             MIX_T *dst, *dptr = track_ptr[t];
+            size_t samples;
+            char resample;
+
+            /* resample factor == 1.0f ? */
+            samples = dest_pos+dno_samples+ddesamps;
+            resample = (fabsf(fact-1.0f)*samples < 1.0f) ? 0 : 1;
 
 #if 1
             // replaces the code above.
@@ -250,20 +256,23 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
             {
                size_t samples = cno_samples+HISTORY_SAMPS;
                size_t send = sno_samples;
-               MIX_T *ptr = scratch0;
 
                if (srbi->streaming) {
                   send += HISTORY_SAMPS;
                }
 
+               if (!resample && !eff) { /* codec performs directly on dptr */
+                  scratch0 = dptr+dest_pos;
+               }
+
 //             DBG_MEMCLR(1, scratch0, dend, sizeof(int32_t));
-               srbi->codec((int32_t*)ptr, sptr, srbd->codec,
+               srbi->codec((int32_t*)scratch0, sptr, srbd->codec,
                             src_pos, sstart, send, 0, samples,
                             sbps, src_loops);
 #if RB_FLOAT_DATA
                // convert from int32_t to float32
-               _batch_cvtps24_24(ptr, ptr, samples);
-               DBG_TESTNAN(ptr, samples);
+               _batch_cvtps24_24(scratch0, scratch0, samples);
+               DBG_TESTNAN(scratch0, samples);
 #endif
             }
 
@@ -271,17 +280,29 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
             if (!delay_effect && history)
             {
                size_t size = HISTORY_SAMPS*sizeof(MIX_T);
-               MIX_T *ptr = scratch0-HISTORY_SAMPS;
 
-               _aax_memcpy(ptr, history[t], size);
-               _aax_memcpy(history[t], ptr+cno_samples, size);
+               _aax_memcpy(scratch0-HISTORY_SAMPS, history[t], size);
+               _aax_memcpy(history[t], scratch0-HISTORY_SAMPS+cno_samples, size);
             }
 
             dst = eff ? scratch1 : dptr;
 //          DBG_MEMCLR(1, dst-ddesamps, ddesamps+dend, sizeof(MIX_T));
 
-            drbd->resample(dst-ddesamps, scratch0-rdesamps,
-                           dest_pos, dest_pos+dno_samples+ddesamps, smu, fact);
+            if (!resample)
+            {
+               if (eff)
+               {
+                  assert(ddesamps == rdesamps);
+                  dst = scratch0;
+              }
+              // else case handled above: codec performs directly on dptr
+            }
+            else
+            {
+               dst = eff ? scratch1 : dptr;
+               drbd->resample(dst-ddesamps, scratch0-rdesamps,
+                              dest_pos,samples, smu, fact);
+            }
 #if RB_FLOAT_DATA
             DBG_TESTNAN(dst-ddesamps+dest_pos, dno_samples+ddesamps);
 #endif
