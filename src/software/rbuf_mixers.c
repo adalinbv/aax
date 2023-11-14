@@ -233,10 +233,6 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
             size_t samples;
             char resample;
 
-            /* resample factor == 1.0f ? */
-            samples = dest_pos+dno_samples+ddesamps;
-            resample = (fabsf(fact-1.0f)*samples < 1.0f) ? 0 : 1;
-
 #if 1
             // replaces the code above.
             if (ddesamps || delay_effect)
@@ -247,6 +243,10 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
                rdesamps = (size_t)(dde*fact);
             }
 #endif
+
+            /* resample factor == 1.0f ? */
+            samples = dest_pos+dno_samples+ddesamps;
+            resample = (fabsf(fact-1.0f)*samples < 1.0f) ? 0 : 1;
 
             /* short-cut for automatic file streaming with registered sensors */
             if (srbd->mixer_fmt) {
