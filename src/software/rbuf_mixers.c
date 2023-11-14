@@ -294,7 +294,10 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
                {
                   assert(ddesamps == rdesamps);
                   dst = scratch0;
-              }
+               }
+               else if (srbd->mixer_fmt) {
+                  memcpy(dptr, scratch0, samples*sizeof(MIX_T));
+               }
               // else case handled above: codec performs directly on dptr
             }
             else
