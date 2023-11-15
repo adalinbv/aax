@@ -37,7 +37,8 @@ extern "C" {
 #define CUBIC_SAMPS		4
 #define HISTORY_SAMPS		(4*CUBIC_SAMPS)
 
-typedef int32_t	_history_t[_AAX_MAX_SPEAKERS][HISTORY_SAMPS];
+/* Same as MIX_T in ringbuffer.h */
+typedef float	_history_t[_AAX_MAX_SPEAKERS][HISTORY_SAMPS];
 
 /*
  * Beware: state can be both PLAYING and STOPPED, meaning the emitter is

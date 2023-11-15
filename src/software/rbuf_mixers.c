@@ -225,10 +225,10 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
             resample = (fabsf(fact-1.0f)*samples < 1.0f) ? 0 : 1;
 
             /* short-cut for automatic file streaming with registered sensors */
-            if (srbd->mixer_fmt) {
+            if (srbd->mixer_fmt) { /* no CODEC required */
                 scratch0 = sptr+src_pos-HISTORY_SAMPS;
             }
-            else
+            else /* CODEC required */
             {
                size_t samples = cno_samples+HISTORY_SAMPS;
                size_t send = sno_samples;
@@ -248,14 +248,14 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
 
                // convert from int32_t to float32
                _batch_cvtps24_24(scratch0, scratch0, samples);
+
                DBG_TESTNAN(ptr, samples);
             }
 
             /* update the history */
             if (!delay_effect && history)
             {
-               size_t size = HISTORY_SAMPS*sizeof(MIX_T);
-
+               size_t size = sizeof(history[t]);
                _aax_memcpy(scratch0-HISTORY_SAMPS, history[t], size);
                _aax_memcpy(history[t],scratch0-HISTORY_SAMPS+cno_samples, size);
             }
@@ -263,6 +263,7 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
 
             if (!resample)
             {
+               dst = dptr;
                if (eff)
                {
                   assert(ddesamps == rdesamps);
