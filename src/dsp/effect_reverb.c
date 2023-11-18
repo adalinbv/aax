@@ -33,7 +33,7 @@
 #define NUM_LOOPBACKS_MIN	2
 #define NUM_LOOPBACKS_MAX	7
 #define NUM_REFLECTIONS_MIN	4
-#define NUM_REFLECTIONS_MAX	6
+#define NUM_REFLECTIONS_MAX	7
 
 static void _reverb_swap(void*,void*);
 static void _reverb_destroy(void*);
@@ -549,7 +549,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       gains[4] = decay_level*0.8346f;
       gains[5] = decay_level*0.7718f;
       gains[6] = decay_level*0.7946f;
-      assert(7 < NUM_REFLECTIONS_MAX);
+      assert(7 <= NUM_REFLECTIONS_MAX);
 
       // depth definies the initial delay of the first reflections
       idepth = 0.005f+0.045f*depth;
