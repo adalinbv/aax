@@ -217,7 +217,7 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
                float dde = effect ? effect->delay.sample_offs[t] :
                                     DELAY_EFFECTS_TIME*dfreq;
                ddesamps = (size_t)dde;
-               rdesamps = (size_t)(dde*fact);
+               rdesamps = (size_t)rintf(dde*fact);
             }
 
             /* resample factor == 1.0f ? */
