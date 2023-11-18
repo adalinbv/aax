@@ -322,13 +322,12 @@ static inline float
 _aaxLFOCalculate(_aaxLFOData *lfo, float val, unsigned track)
 {
    float max = (lfo->max - lfo->min);
-   float rv;
-
-   assert(max);
-
-   rv = max ? (val - lfo->min)/max : val;
-   rv = _aaxLFODelay(lfo, rv);
-
+   float rv = lfo->min;
+   if (max)
+   {
+      rv = max ? (val - lfo->min)/max : val;
+      rv = _aaxLFODelay(lfo, rv);
+   }
    lfo->compression[track] = 1.0f - rv;
 
    rv = lfo->convert(rv, lfo);
