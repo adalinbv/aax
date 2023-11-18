@@ -1688,7 +1688,7 @@ _aaxMixerStart(_handle_t *handle)
       handle->thread.started = AAX_TRUE;
       ms = rintf(1000/handle->info->period_rate);
       r = _aaxThreadStart(handle->thread.ptr, handle->backend.ptr->thread,
-                          handle, ms);
+                          handle, ms, "aaxMixer");
       if (r == 0)
       {
          int p = 0;

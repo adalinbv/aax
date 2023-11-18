@@ -188,7 +188,7 @@ _aaxThreadDestroy(void *t)
 }
 
 int
-_aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, UNUSED(unsigned int ms))
+_aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, UNUSED(unsigned int ms), const char *name)
 {
    struct sched_param sched_param;
    pthread_attr_t attr;
@@ -211,6 +211,11 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, UNUSED(unsigned in
 #endif
 
    ret = pthread_create(t, &attr, handler, arg);
+   if (!ret && name)
+   {
+      pthread_t *id = t;
+      pthread_setname_np(*id, name);
+   }
 
    return ret;
 }
@@ -754,6 +759,7 @@ _aaxSemaphoreRelease(_aaxSemaphore *sem)
 
 #elif defined( WIN32 )	/* HAVE_PTHREAD_H */
 
+#include <processthreadsapi.h>
 #include <base/dlsym.h>
 
 # ifndef __MINGW32__
@@ -928,7 +934,7 @@ _callback_handler(LPVOID t)
 }
 
 int
-_aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, unsigned int ms)
+_aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, unsigned int ms, const char *name)
 {
    _aaxThread *thread = t;
    int rv = -1;
@@ -937,8 +943,10 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, unsigned int ms)
    thread->callback_fn = handler;
    thread->callback_data = arg;
    thread->handle = CreateThread(NULL, 0, _callback_handler, t, 0, NULL);
-   if (thread->handle != NULL) {
-     rv = 0;
+   if (thread->handle != NULL)
+   {
+      if (name) SetThreadDescription(thread->handle, name);
+      rv = 0;
    }
 
    return rv;

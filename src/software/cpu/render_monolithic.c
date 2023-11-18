@@ -191,7 +191,8 @@ _aaxCPUProcess(struct _aaxRenderer_t *render, _aaxRendererData *data)
       handle.data = data;
 
       for (t=0; t<no_tracks; ++t) {
-         _aaxThreadStart(convolution->tid[t], _aaxConvolutionThread, &handle,0);
+         _aaxThreadStart(convolution->tid[t], _aaxConvolutionThread, &handle,
+			 0, "aaxConvolution");
       }
 
       for (t=0; t<no_tracks; ++t) {

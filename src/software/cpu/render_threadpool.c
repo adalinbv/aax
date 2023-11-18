@@ -177,7 +177,8 @@ _aaxWorkerSetup(int dt)
 
          handle->worker_no = i;
          thread->ptr = _aaxThreadCreate();
-         res = _aaxThreadStart(thread->ptr, _aaxWorkerThread, handle, dt);
+         res = _aaxThreadStart(thread->ptr, _aaxWorkerThread, handle, dt,
+			       "aaxWorker");
          if (res == 0)
          {
             int q = 100;

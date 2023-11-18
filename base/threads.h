@@ -145,7 +145,7 @@ void *_aaxThreadCreate();
 int _aaxThreadSetAffinity(void *, int);
 int _aaxThreadSetPriority(void *, int);
 void _aaxThreadDestroy(void *);
-int _aaxThreadStart(void *,  void *(*handler)(void*), void*, unsigned int);
+int _aaxThreadStart(void *,  void *(*handler)(void*), void*, unsigned int, const char*);
 // int _aaxThreadCancel(void *);
 int _aaxThreadJoin(void *);
 

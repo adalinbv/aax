@@ -716,10 +716,12 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   handle->ioBufLock = _aaxMutexCreate(handle->ioBufLock);
 
                   res = _aaxThreadStart(handle->iothread.ptr,
-                                        _aaxStreamDriverReadThread, handle, 20);
+                                        _aaxStreamDriverReadThread, handle, 20,
+					"aaxStreamRead");
                } else {
                   res = _aaxThreadStart(handle->iothread.ptr,
-                                       _aaxStreamDriverWriteThread, handle, 20);
+                                       _aaxStreamDriverWriteThread, handle, 20,
+				       "aaxStreamWrite");
                }
             }
             else {
