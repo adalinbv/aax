@@ -31,7 +31,7 @@
 #define LOOPBACKSIZE	sizeof(_aaxRingBufferLoopbackData)
 
 #define NUM_LOOPBACKS_MIN	2
-#define NUM_LOOPBACKS_MAX	6
+#define NUM_LOOPBACKS_MAX	7
 #define NUM_REFLECTIONS_MIN	4
 #define NUM_REFLECTIONS_MAX	6
 
@@ -646,7 +646,7 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
          loopbacks->loopback[4].gain = decay_level*0.80317f;
          loopbacks->loopback[5].gain = decay_level*0.73317f;
          loopbacks->loopback[6].gain = decay_level*0.88317f;
-         assert(7 < NUM_LOOPBACKS_MAX);
+         assert(7 < _AAX_MAX_LOOPBACKS);
 #if 0
  for (int i=0; i<7; ++i)
  printf(" loopback[%i].gain: %f\n", i,  loopbacks->loopback[i].gain);
