@@ -248,8 +248,7 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
 
                // convert from int32_t to float32
                _batch_cvtps24_24(scratch0, scratch0, samples);
-
-               DBG_TESTNAN(ptr, samples);
+               DBG_TESTNAN(scratch0, samples);
             }
 
             /* update the history */

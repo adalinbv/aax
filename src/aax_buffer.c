@@ -1946,7 +1946,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid)
          _bufLimit(rb);
       }
 
-      if (0)  { // handle->to_mixer)
+      if (handle->to_mixer) {
          _bufConvertDataToMixerFormat(handle, rb);
       }
       else if (bits == 16)
@@ -2633,7 +2633,6 @@ _bufConvertDataToMixerFormat(_buffer_t *buf, _aaxRingBuffer *rb)
             _bufConvertDataToPCM24S(dst[t], src[t], no_samples, fmt);
          }
          nrb->release_tracks_ptr(nrb);
-         be->destroy_ringbuffer(rb);
       }
       else {
          nrb = rb;
