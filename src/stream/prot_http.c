@@ -68,7 +68,7 @@ _http_connect(_prot_t *prot, _data_t *buf, _io_t *io, char **server, const char 
             s = _get_yaml(buf, "icy-name");
             if (s)
             {
-               prot->meta.artist_changed = AAX_TRUE;
+               prot->meta.artist_changed = true;
                prot->meta.artist = strdup(s);
                prot->meta.composer = strdup(s);
             }
@@ -76,7 +76,7 @@ _http_connect(_prot_t *prot, _data_t *buf, _io_t *io, char **server, const char 
             s = _get_yaml(buf, "icy-description");
             if (s)
             {
-               prot->meta.title_changed = AAX_TRUE;
+               prot->meta.title_changed = true;
                prot->meta.title = strdup(s);
                prot->meta.album = strdup(s);
             }
@@ -183,25 +183,25 @@ _http_process(_prot_t *prot, _data_t *buf)
                      *end = '\0';
                   }
 
-                  prot->meta.artist_changed = AAX_TRUE;
+                  prot->meta.artist_changed = true;
                   if (prot->meta.artist) free(prot->meta.artist);
                   if (artist && end)
                   {
-                     prot->meta.artist_changed = AAX_TRUE;
+                     prot->meta.artist_changed = true;
                      prot->meta.artist = strdup(artist);
                   }
                   else prot->meta.artist = strdup("");
 
-                  prot->meta.title_changed = AAX_TRUE;
+                  prot->meta.title_changed = true;
                   if (prot->meta.title) free(prot->meta.title);
                   if (title && end)
                   {
-                     prot->meta.title_changed = AAX_TRUE;
+                     prot->meta.title_changed = true;
                      prot->meta.title = strdup(title);
                   }
                   else prot->meta.title = strdup("");
 
-                  prot->metadata_changed = AAX_TRUE;
+                  prot->metadata_changed = true;
                }
             }
 
@@ -354,14 +354,14 @@ _http_name(_prot_t *prot, enum _aaxStreamParam ptype)
       if (prot->meta.artist_changed)
       {
          ret = prot->meta.artist;
-         prot->meta.artist_changed = AAX_FALSE;
+         prot->meta.artist_changed = false;
       }
       break;
    case __F_TITLE:
       if (prot->meta.title_changed)
       {
          ret = prot->meta.title;
-         prot->meta.title_changed = AAX_FALSE;
+         prot->meta.title_changed = false;
       }
       break;
    case __F_GENRE:
@@ -383,14 +383,14 @@ _http_name(_prot_t *prot, enum _aaxStreamParam ptype)
          if (prot->meta.artist_changed)
          {
             ret = prot->meta.artist;
-            prot->meta.artist_changed = AAX_FALSE;
+            prot->meta.artist_changed = false;
          }
          break;
       case (__F_TITLE):
          if (prot->meta.title_changed)
          {
             ret = prot->meta.title;
-            prot->meta.title_changed = AAX_FALSE;
+            prot->meta.title_changed = false;
          }
          break;
       default:

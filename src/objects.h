@@ -372,7 +372,7 @@ typedef ALIGN16 struct _aax2dProps_s
       float k;			/* attenuation frequency filter */
       float freqfilter_history[_AAX_MAX_SPEAKERS][2];
 
-      char silence;
+      bool silence;
    } final;
 
 } _aax2dProps ALIGN16C;
@@ -400,7 +400,7 @@ typedef struct
 
    unsigned char refctr;
 
-   unsigned char capturing;
+   bool capturing;
 
    /* parametric and graphic equalizer **/
    _aaxFilterInfo filter[EQUALIZER_MAX];

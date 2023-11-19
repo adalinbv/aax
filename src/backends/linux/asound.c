@@ -45,7 +45,7 @@
 #include "audio.h"
 #include "alsa.h"
 
-#define TIMER_BASED		AAX_FALSE
+#define TIMER_BASED		false
 #define MAX_ID_STRLEN		64
 
 #define DEFAULT_DEVNUM		0
@@ -341,7 +341,7 @@ static void *audio = NULL;
 int
 _aaxALSADriverDetect(int mode)
 {
-   static int rv = AAX_FALSE;
+   static int rv = false;
    char *error = 0;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -350,7 +350,7 @@ _aaxALSADriverDetect(int mode)
 # if RELEASE
    const char *env = getenv("AAX_SHOW_ALSA_DEVICES");
    if (!env || !_aax_getbool(env)) {
-      return AAX_FALSE;
+      return false;
    }
 # endif
 #endif
@@ -473,12 +473,12 @@ _aaxALSADriverDetect(int mode)
 
             psnd_lib_error_set_handler(_alsa_error_handler_none);
             psnd_config_update();
-            rv = AAX_TRUE;
+            rv = true;
          }
       }
    }
    else {
-      rv = AAX_FALSE;
+      rv = false;
    }
 
    return rv;
@@ -533,7 +533,7 @@ _aaxALSADriverFreeHandle(UNUSED(void *id))
    _aaxCloseLibrary(audio);
    audio = NULL;
 
-   return AAX_TRUE;
+   return true;
 }
 
 static void *
@@ -589,7 +589,7 @@ _aaxALSADriverConnect(void *config, const void *id, xmlId *xid, const char *rend
             handle->use_timer = xmlNodeGetBool(xid, "timed");
          }
          if (handle->mode == AAX_MODE_READ) {
-            handle->use_timer = AAX_FALSE;
+            handle->use_timer = false;
          }
 
          if (xmlNodeTest(xid, "shared")) {
@@ -697,7 +697,7 @@ static int
 _aaxALSADriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -745,7 +745,7 @@ _aaxALSADriverDisconnect(void *id)
       free(handle);
       handle = 0;
 
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -799,12 +799,12 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
       if (err < 0)
       {
          _AAX_DRVLOG("unsupported number of tracks");
-         return AAX_FALSE;
+         return false;
       }
    }
    /* TODO: for now */
    if (tracks > 2) {
-      handle->use_timer = AAX_FALSE;
+      handle->use_timer = false;
    }
 
    periods = handle->no_periods;
@@ -818,7 +818,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    handle->latency = 1.0f / *refresh_rate;
    if (handle->latency < 0.010f) {
-      handle->use_timer = AAX_FALSE;
+      handle->use_timer = false;
    }
 
    psnd_pcm_hw_params_malloc(&hwparams);
@@ -1081,11 +1081,11 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
                   rb = _aaxRingBufferCreate(0.0f, m);
                   if (rb)
                   {
-                     rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
+                     rb->set_format(rb, AAX_PCM24S, true);
                      rb->set_parami(rb, RB_NO_TRACKS, handle->no_tracks);
                      rb->set_paramf(rb, RB_FREQUENCY, handle->frequency_hz);
                      rb->set_parami(rb, RB_NO_SAMPLES, handle->period_frames);
-                     rb->init(rb, AAX_TRUE);
+                     rb->init(rb, true);
                      rb->set_state(rb, RB_STARTED);
 
                      for (i=0; i<handle->no_periods; i++) {
@@ -1120,7 +1120,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
                const char *rstr = handle->render->info(handle->render->id);
                snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s %s",
                              DEFAULT_RENDERER, psnd_asoundlib_version(), rstr);
-               rv = AAX_TRUE;
+               rv = true;
             }
             else {
                _AAX_DRVLOG("unable to get the renderer");
@@ -1271,7 +1271,7 @@ if (corr)
       /* try to keep the buffer padding at the threshold level at all times */
       chunk = 10;
       size = fetch; // period_frames;
-      rv = AAX_TRUE;
+      rv = true;
       do
       {
          /*
@@ -1373,13 +1373,13 @@ if (corr)
             if (xrun_recovery(handle->pcm, res) < 0)
             {
                _AAX_DRVLOG("unable to run xrun_recovery");
-               rv = AAX_FALSE;
+               rv = false;
                break;
             }
             if (try++ > 2)
             {
                _AAX_DRVLOG("unable to recover from pcm read error");
-               rv = AAX_FALSE;
+               rv = false;
                break;
             }
 //          _AAX_DRVLOG("warning: pcm read error");
@@ -1404,7 +1404,7 @@ if (corr)
          }
       }
    }
-   else rv = AAX_TRUE;
+   else rv = true;
 
    return rv;
 }
@@ -1413,7 +1413,7 @@ static int
 _aaxALSADriverSetName(const void *id, int type, const char *name)
 {
    _driver_t *handle = (_driver_t *)id;
-   int ret = AAX_FALSE;
+   int ret = false;
    if (handle)
    {
       switch (type)
@@ -1461,13 +1461,13 @@ static int
 _aaxALSADriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    switch(state)
    {
    case DRIVER_AVAILABLE:
       if (handle && psnd_pcm_state(handle->pcm) != SND_PCM_STATE_DISCONNECTED) {
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    case DRIVER_PAUSE:
@@ -1501,7 +1501,7 @@ _aaxALSADriverState(const void *id, enum _aaxDriverState state)
       break;
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case DRIVER_NEED_REINIT:
    default:
@@ -1572,7 +1572,7 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
 		/* boolean */
       case DRIVER_SHARED_MODE:
       case DRIVER_TIMER_MODE:
-         rv = (float)AAX_TRUE;
+         rv = (float)true;
          break;
       case DRIVER_BATCHED_MODE:
       default:
@@ -2014,7 +2014,7 @@ _alsa_pcm_open(_driver_t *handle, int m)
 
    /**
     * Test whether this device has hardware mixing,
-    * if so set handle->shared_volume to AAX_TRUE.
+    * if so set handle->shared_volume to true.
     *
     * This is after detecting the proper device name so it only
     * affects volume handling and not timing or which device to choose.
@@ -2036,7 +2036,7 @@ _alsa_pcm_open(_driver_t *handle, int m)
             if (res >= 0)
             {
                res = psnd_pcm_info_get_subdevices_count(pcminfo);
-               if (res > 1) handle->shared_volume = AAX_TRUE;
+               if (res > 1) handle->shared_volume = true;
             }
             psnd_ctl_close(ctl);
          }
@@ -2133,7 +2133,7 @@ _alsa_set_access(const void *id, snd_pcm_hw_params_t *hwparams)
 
    /* for testing purposes */
    s = getenv("AAX_USE_MMAP");
-   if (s && (_aax_getbool(s) == AAX_FALSE))
+   if (s && (_aax_getbool(s) == false))
    {
       handle->use_mmap = 0;
       handle->interleaved = 1;
@@ -3221,11 +3221,11 @@ _aaxALSADriverThread(void* config)
       dest_rb = be->get_ringbuffer(MAX_EFFECTS_TIME, mixer->info->mode);
       if (dest_rb)
       {
-         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
+         dest_rb->set_format(dest_rb, AAX_PCM24S, true);
          dest_rb->set_parami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
          dest_rb->set_paramf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
          dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
-         dest_rb->init(dest_rb, AAX_TRUE);
+         dest_rb->init(dest_rb, true);
          dest_rb->set_state(dest_rb, RB_STARTED);
 
          handle->ringbuffer = dest_rb;
@@ -3285,7 +3285,7 @@ _aaxALSADriverThread(void* config)
          msecSleep(stdby_time);
       }
 
-      if (be->state(be_handle, DRIVER_AVAILABLE) == AAX_FALSE) {
+      if (be->state(be_handle, DRIVER_AVAILABLE) == false) {
          _SET_PROCESSED(handle);
       }
 

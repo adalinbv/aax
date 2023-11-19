@@ -53,7 +53,7 @@ _aaxTimedGainFilterDestroy(_filter_t* filter)
    }
    free(filter);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxFilter
@@ -90,7 +90,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
                if (env->repeat0 == AAX_MAX_REPEAT) {
                   env->repeat0 = UINT_MAX;
                }
-               env->sustain = AAX_TRUE;
+               env->sustain = true;
             }
             env->repeat = env->repeat0;
          }
@@ -121,7 +121,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
             }
             else
             {
-               env->sustain = AAX_TRUE;
+               env->sustain = true;
                env->sustain_stage = stage;
             }
 
@@ -153,7 +153,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
             }
             else
             {
-               env->sustain = AAX_TRUE;
+               env->sustain = true;
                env->sustain_stage = stage;
             }
 
@@ -303,7 +303,7 @@ _aaxTimedGainFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxTimedGainFilter =
 {
-   AAX_FALSE,
+   false,
    "AAX_timed_gain_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxTimedGainFilterCreate,
    (_aaxFilterDestroy*)&_aaxTimedGainFilterDestroy,

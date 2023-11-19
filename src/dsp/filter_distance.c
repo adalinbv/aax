@@ -63,7 +63,7 @@ _aaxDistanceFilterDestroy(_filter_t* filter)
    }
    free(filter);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxFilter
@@ -202,7 +202,7 @@ _aaxDistanceFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxDistanceFilter =
 {
-   AAX_TRUE,
+   true,
    "AAX_distance_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxDistanceFilterCreate,
    (_aaxFilterDestroy*)&_aaxDistanceFilterDestroy,

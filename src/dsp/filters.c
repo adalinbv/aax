@@ -42,7 +42,7 @@ _aaxFilterCreateHandle(_aaxMixerInfo *info, enum aaxFilterType type, unsigned sl
       char *ptr;
 
       flt->id = FILTER_ID;
-      flt->state = AAX_FALSE;
+      flt->state = false;
       flt->info = info;
 
       ptr = (char*)flt + sizeof(_filter_t);
@@ -137,7 +137,7 @@ _aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX])
       filter[i].param[AAX_LF_GAIN] = 1.0f;
       filter[i].param[AAX_HF_GAIN] = 1.0f;
       filter[i].param[AAX_RESONANCE] = 1.0f;
-      filter[i].state = AAX_FALSE;
+      filter[i].state = false;
    }
 
    /* Surround Crossover filter */
@@ -145,7 +145,7 @@ _aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX])
    filter[SURROUND_CROSSOVER_LP].param[AAX_LF_GAIN] = 1.0f;
    filter[SURROUND_CROSSOVER_LP].param[AAX_HF_GAIN] = 0.0f;
    filter[SURROUND_CROSSOVER_LP].param[AAX_RESONANCE] = 1.0f;
-   filter[SURROUND_CROSSOVER_LP].state = AAX_FALSE;
+   filter[SURROUND_CROSSOVER_LP].state = false;
 }
 
 void
@@ -163,7 +163,7 @@ _aaxSetDefaultFilter2d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
       if (slot == 0) {
          filter->param[AAX_GAIN] = 1.0f;
          filter->param[AAX_MAX_GAIN] = 1.0f;
-         filter->state = AAX_TRUE;
+         filter->state = true;
       }
       break;
    case FREQUENCY_FILTER:
@@ -220,7 +220,7 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
       filter->param[AAX_OUTER_ANGLE] = 1.0f;
       filter->param[AAX_OUTER_GAIN] = 1.0f;
       filter->param[AAX_FORWARD_GAIN] = 1.0f;
-      filter->state = AAX_TRUE;
+      filter->state = true;
       break;
    case OCCLUSION_FILTER:
       if (slot == 0) {

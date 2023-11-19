@@ -51,14 +51,14 @@ _aaxDynamicPitchEffectDestroy(_effect_t* effect)
    }
    free(effect);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxEffect
 _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
-   aaxEffect rv = AAX_FALSE;
+   aaxEffect rv = false;
 
    assert(effect->info);
 
@@ -89,7 +89,7 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
 
          _lfo_setup(lfo, effect->info, effect->state);
 
-         lfo->envelope = AAX_FALSE;
+         lfo->envelope = false;
          lfo->min_sec = (1.0f - depth)/lfo->fs;
          lfo->max_sec = (1.0f + depth)/lfo->fs;
          lfo->delay = -effect->slot[0]->param[AAX_INITIAL_DELAY];
@@ -106,7 +106,7 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // inetnional fall-through
-   case AAX_FALSE:
+   case false:
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
@@ -170,7 +170,7 @@ _aaxDynamicPitchEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxDynamicPitchEffect =
 {
-   AAX_FALSE,
+   false,
    "AAX_dynamic_pitch_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDynamicPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxDynamicPitchEffectDestroy,

@@ -76,7 +76,7 @@ _aaxGraphicEqualizerDestroy(_filter_t* filter)
    }
    free(filter);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxFilter
@@ -85,7 +85,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
    void *handle = filter->handle;
    aaxFilter rv = NULL;
 
-   if (state == AAX_TRUE)
+   if (state == true)
    {
       _aaxRingBufferEqualizerData *eq = filter->slot[EQUALIZER_HF]->data;
 
@@ -184,7 +184,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
       }
       rv = filter;
    }
-   else if (state == AAX_FALSE)
+   else if (state == false)
    {
       assert(filter->slot[EQUALIZER_LF]->data == NULL);
       if (filter->slot[EQUALIZER_HF]->data)
@@ -271,7 +271,7 @@ _aaxGraphicEqualizerMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxGraphicEqualizer =
 {
-   AAX_TRUE,
+   true,
    "AAX_graphic_equalizer", 1.0f,
    (_aaxFilterCreate*)&_aaxGraphicEqualizerCreate,
    (_aaxFilterDestroy*)&_aaxGraphicEqualizerDestroy,
@@ -330,7 +330,7 @@ _grapheq_run(void *rb, MIX_PTR_T dptr, MIX_PTR_T sptr, MIX_PTR_T tmp,
 {
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferFreqFilterData* filter;
-   int rv = AAX_FALSE;
+   int rv = false;
    size_t no_samples;
    int band;
 
@@ -338,8 +338,8 @@ _grapheq_run(void *rb, MIX_PTR_T dptr, MIX_PTR_T sptr, MIX_PTR_T tmp,
    no_samples = dmax - dmin;
 
    // TODO: Make sure we actually need to filter something, otherwise return
-   //       AAX_FALSE, although the impact is rather low being mixer-only.
-   rv = AAX_TRUE;
+   //       false, although the impact is rather low being mixer-only.
+   rv = true;
 
    // first band, straight into dptr to save a bzero() and rbd->add()
    band = _AAX_MAX_EQBANDS;

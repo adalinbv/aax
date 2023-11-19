@@ -40,7 +40,7 @@ _aaxEffectCreateHandle(_aaxMixerInfo *info, enum aaxEffectType type, unsigned sl
       char *ptr;
 
       eff->id = EFFECT_ID;
-      eff->state = AAX_FALSE;
+      eff->state = false;
       eff->info = info;
 
       ptr = (char*)eff + sizeof(_effect_t);
@@ -139,7 +139,7 @@ _aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
       effect->param[AAX_PITCH] = 1.0f;
       effect->param[AAX_MAX_PITCH] = 4.0f;
       effect->param[AAX_PITCH_START] = 1.0f;
-      effect->state = AAX_TRUE;
+      effect->state = true;
       break;
    case TIMED_PITCH_EFFECT:
       effect->param[AAX_LEVEL0] = 1.0f;
@@ -210,7 +210,7 @@ _aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
       effect->param[AAX_SOUND_VELOCITY] = 343.0f;
       effect->param[AAX_DOPPLER_FACTOR] = 1.0f;
 //    effect->param[AAX_LIGHT_VELOCITY] = 299792458.0f;
-      effect->state = AAX_TRUE;
+      effect->state = true;
       break;
    }
    default:

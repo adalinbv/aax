@@ -96,14 +96,14 @@ int
 _snd_detect(UNUSED(_ext_t *ext), int mode)
 {
    // only capturing (for now)
-   return (mode == 0) ? AAX_TRUE : AAX_FALSE;
+   return (mode == 0) ? true : false;
 }
 
 int
 _snd_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int format, size_t no_samples, int bitrate)
 {
    int bits_sample = aaxGetBitsPerSample(format);
-   int rv = AAX_FALSE;
+   int rv = false;
 
    assert(ext != NULL);
    assert(ext->id == NULL);
@@ -135,7 +135,7 @@ _snd_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          {
          }
          ext->id = handle;
-         rv = AAX_TRUE;
+         rv = true;
       }
       else {
          _AAX_FILEDRVLOG("SND: Insufficient memory");
@@ -232,7 +232,7 @@ int
 _snd_close(_ext_t *ext)
 {
    _driver_t *handle = ext->id;
-   int res = AAX_TRUE;
+   int res = true;
 
    if (handle)
    {

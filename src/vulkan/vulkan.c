@@ -24,7 +24,7 @@ int
 _aaxDetectVulkan()
 {
    static void *renderer = NULL;
-   static int rv = AAX_FALSE;
+   static int rv = false;
 
    char *error = 0;
 
@@ -49,12 +49,12 @@ _aaxDetectVulkan()
       if (vkCreateInstance(&info, 0, &instance) == VK_SUCCESS)
       {
          if (vkEnumeratePhysicalDevices(id, &num, 0) == VK_SUCCESS) {
-            rv = AAX_TRUE;
+            rv = true;
          } else {
-            rv = AAX_FALSE;
+            rv = false;
          }
       } else {
-         rv = AAX_FALSE;
+         rv = false;
       }
    }
 

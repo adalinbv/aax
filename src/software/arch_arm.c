@@ -210,20 +210,20 @@ char _aaxArchDetectHelium() {
 uint32_t
 _aaxGetSIMDSupportLevel()
 {
-   static char support_simd256 = AAX_FALSE;
-   static char support_simd = AAX_FALSE;
+   static bool support_simd256 = false;
+   static bool support_simd = false;
    static uint32_t rv = AAX_SIMD_NONE;
-   static int init = AAX_TRUE;
+   static bool init = true;
 
    if (init)
    {
       char *simd_support = getenv("AAX_NO_SIMD_SUPPORT");
       char *simd_level = getenv("AAX_SIMD_LEVEL");
 
-      init = AAX_FALSE;
+      init = false;
       rv = _aaxArchDetectFeatures();
       if (rv >= AAX_SIMD_NEON) {
-         support_simd = AAX_TRUE;
+         support_simd = true;
       }
 
       if (simd_support) { // for backwards compatibility
@@ -237,11 +237,11 @@ _aaxGetSIMDSupportLevel()
       {
          int level = atoi(simd_level);
          if (level < 256) {
-            support_simd256 = AAX_FALSE;
+            support_simd256 = false;
          }
          if (level < 128)
          {
-            support_simd = AAX_FALSE;
+            support_simd = false;
             rv = AAX_SIMD_NONE;
          }
       }

@@ -46,7 +46,7 @@
 # pragma warning(disable : 4995)
 #endif
 
-#define USE_EVENT_SESSION	AAX_TRUE
+#define USE_EVENT_SESSION	true
 
 // Testing purposes only!
 #ifdef NDEBUG
@@ -321,7 +321,7 @@ static void *audio = NULL;
 static int
 _aaxWASAPIDriverDetect(int mode)
 {
-   static int rv = AAX_FALSE;
+   static int rv = false;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -332,7 +332,7 @@ _aaxWASAPIDriverDetect(int mode)
    if (audio)
    {
       snprintf(_wasapi_id_str, MAX_ID_STRLEN, "%s", DEFAULT_RENDERER);
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -354,14 +354,14 @@ _aaxWASAPIDriverNewHandle(enum aaxRenderMode mode)
       handle->min_tracks = 1;
       handle->max_tracks = _AAX_MAX_SPEAKERS;
 
-      handle->paused = AAX_TRUE;
-      handle->exclusive = AAX_TRUE;
-      handle->use_timer = AAX_FALSE;
+      handle->paused = true;
+      handle->exclusive = true;
+      handle->use_timer = false;
 
-      handle->co_init = AAX_FALSE;
-      handle->driver_init = AAX_TRUE;
-      handle->driver_connected = AAX_FALSE;
-      handle->driver_reinit = AAX_FALSE;
+      handle->co_init = false;
+      handle->driver_init = true;
+      handle->driver_connected = false;
+      handle->driver_reinit = false;
    }
 
    return handle;
@@ -373,7 +373,7 @@ _aaxWASAPIDriverFreeHandle(UNUSED(void *id))
    _aaxCloseLibrary(audio);
    audio = NULL;
 
-   return AAX_TRUE;
+   return true;
 }
 
 static void *
@@ -431,7 +431,7 @@ _aaxWASAPIDriverConnect(void *config, const void *id, xmlId *xid, const char *re
             handle->use_timer = xmlNodeGetBool(xid, "timed");
          }
          if (handle->Mode == eCapture) {
-            handle->use_timer = AAX_FALSE;
+            handle->use_timer = false;
          }
 
          i = xmlNodeGetInt(xid, "frequency-hz");
@@ -480,7 +480,7 @@ _aaxWASAPIDriverConnect(void *config, const void *id, xmlId *xid, const char *re
          }
 
          if (xmlNodeGetBool(xid, "shared")) {
-            handle->exclusive = AAX_FALSE;
+            handle->exclusive = false;
          }
       }
    }
@@ -505,7 +505,7 @@ _aaxWASAPIDriverConnect(void *config, const void *id, xmlId *xid, const char *re
        */
       hr = pCoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
       if (hr != RPC_E_CHANGED_MODE) {
-         handle->co_init = AAX_TRUE;
+         handle->co_init = true;
       }
 
       if (SUCCEEDED(hr))
@@ -539,7 +539,7 @@ static int
 _aaxWASAPIDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (handle)
    {
@@ -578,7 +578,7 @@ _aaxWASAPIDriverDisconnect(void *id)
 
       free(handle);
 
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -598,7 +598,7 @@ _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *fmt,
    WAVEFORMATEX *pfmt;
    WORD nChannels;
    HRESULT hr;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    assert(handle);
 
@@ -697,7 +697,7 @@ _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *fmt,
    }
 
    rv = _wasapi_setup(handle, &period_frames, registered);
-   if (rv == AAX_TRUE)
+   if (rv == true)
    {
       bits = handle->Fmt.Format.wBitsPerSample;
       rate = handle->Fmt.Format.nSamplesPerSec;
@@ -774,15 +774,15 @@ _aaxWASAPIDriverCapture(const void *id, void **data, ssize_t *offset, size_t *re
    _driver_t *handle = (_driver_t *)id;
    size_t no_samples;
    ssize_t offs = *offset;
-   ssize_t rv = AAX_FALSE;
+   ssize_t rv = false;
 
    if (!handle || !handle->scratch_ptr || !req_frames || !data) {
-      return AAX_FALSE;
+      return false;
    }
 
    no_samples = *req_frames;
    if (no_samples == 0) {
-      return AAX_TRUE;
+      return true;
    } 
 
    if (handle->driver_init) {
@@ -802,8 +802,8 @@ _aaxWASAPIDriverCapture(const void *id, void **data, ssize_t *offset, size_t *re
             _aaxWASAPIDriverCaptureFromHardware(handle);
          }
          handle->scratch_offs = 0;
-         handle->driver_init = AAX_FALSE;
-         return AAX_TRUE;
+         handle->driver_init = false;
+         return true;
       }
 
       /* try to keep the buffer padding at the threshold level at all times */
@@ -851,7 +851,7 @@ _aaxWASAPIDriverCapture(const void *id, void **data, ssize_t *offset, size_t *re
       }
 
       *req_frames -= fetch;
-      rv = AAX_TRUE;
+      rv = true;
    }
    else {
      *req_frames = 0;
@@ -911,7 +911,7 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float gain,
          }
       }
 
-      assert(handle->driver_init == AAX_FALSE);
+      assert(handle->driver_init == false);
       assert(frames <= no_samples);
 
       if (frames >= no_samples)
@@ -963,7 +963,7 @@ static int
 _aaxWASAPIDriverSetName(const void *id, int type, const char *name)
 {
    _driver_t *handle = (_driver_t *)id;
-   int ret = AAX_FALSE;
+   int ret = false;
    if (handle)
    {
       switch (type)
@@ -992,7 +992,7 @@ static int
 _aaxWASAPIDriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
    HRESULT hr;
 
    switch(state)
@@ -1001,22 +1001,22 @@ _aaxWASAPIDriverState(const void *id, enum _aaxDriverState state)
       if (handle)
       {
          LONG flags = InterlockedAnd(&handle->flags, (LONG)(ULONG)-1);
-         rv = (flags & DRIVER_CONNECTED_MASK) ? AAX_TRUE : AAX_FALSE;
+         rv = (flags & DRIVER_CONNECTED_MASK) ? true : false;
       }
       break;
    case DRIVER_NEED_REINIT:
       if (handle)
       {
          LONG flags = InterlockedAnd(&handle->flags, (LONG)(ULONG)-1);
-         rv = (flags & DRIVER_REINIT_MASK) ? AAX_TRUE : AAX_FALSE;
+         rv = (flags & DRIVER_REINIT_MASK) ? true : false;
       }
       break;
    case DRIVER_SHARED_MIXER:
-      rv = (handle->exclusive) ? AAX_FALSE : AAX_TRUE;
+      rv = (handle->exclusive) ? false : true;
       break;
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case DRIVER_PAUSE:
       if (handle && !handle->paused)
@@ -1025,9 +1025,9 @@ _aaxWASAPIDriverState(const void *id, enum _aaxDriverState state)
          if (hr == S_OK)
          {
             hr = pIAudioClient_Reset(handle->pAudioClient);
-            handle->driver_init = AAX_TRUE;
-            handle->paused = AAX_TRUE;
-            rv = AAX_TRUE;
+            handle->driver_init = true;
+            handle->paused = true;
+            rv = true;
          }
       }
       break;
@@ -1037,16 +1037,16 @@ _aaxWASAPIDriverState(const void *id, enum _aaxDriverState state)
          hr = pIAudioClient_Start(handle->pAudioClient);
          if (hr == S_OK)
          {
-            handle->driver_init = AAX_FALSE;
-            rv = AAX_TRUE;
+            handle->driver_init = false;
+            rv = true;
          }
          else {
             _AAX_DRVLOG(WASAPI_RESUME_FAILED);
          }
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
-      handle->paused = AAX_FALSE;
+      handle->paused = false;
       break;
    default:
       break;
@@ -1117,7 +1117,7 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
 		/* boolean */
       case DRIVER_SHARED_MODE:
       case DRIVER_TIMER_MODE:
-         rv = (float)AAX_TRUE;
+         rv = (float)true;
          break;
       case DRIVER_BATCHED_MODE:
       default:
@@ -1140,14 +1140,14 @@ _aaxWASAPIDriverGetDevices(const void *id, int mode)
    if (t_now > (t_previous[m]+5))
    {
       IMMDeviceEnumerator *enumerator = NULL;
-      int co_init = AAX_FALSE;
+      int co_init = false;
       HRESULT hr;
 
       t_previous[m] = t_now;
 
       hr = pCoInitialize(NULL);
       if (hr != RPC_E_CHANGED_MODE) {
-         co_init = AAX_TRUE;
+         co_init = true;
       }
 
       hr = pCoCreateInstance(pCLSID_MMDeviceEnumerator, NULL,
@@ -1257,7 +1257,7 @@ _aaxWASAPIDriverGetInterfaces(const void *id, const char *devname, int mode)
    if (handle && !rv)
    {
       IMMDeviceEnumerator *enumerator = NULL;
-      int co_init = AAX_FALSE;
+      int co_init = false;
       char interfaces[1024];
       size_t len = 1024;
       HRESULT hr;
@@ -1266,7 +1266,7 @@ _aaxWASAPIDriverGetInterfaces(const void *id, const char *devname, int mode)
 
       hr = pCoInitialize(NULL);
       if (hr != RPC_E_CHANGED_MODE) {
-         co_init = AAX_TRUE;
+         co_init = true;
       }
 
       hr = pCoCreateInstance(pCLSID_MMDeviceEnumerator, NULL,
@@ -1701,13 +1701,13 @@ name_to_id(const WCHAR* dname, unsigned char m)
 {
    IMMDeviceCollection *collection = NULL;
    IMMDeviceEnumerator *enumerator = NULL;
-   int co_init = AAX_FALSE;
+   int co_init = false;
    LPWSTR rv = 0;
    HRESULT hr;
 
    hr = pCoInitialize(NULL);
    if (hr != RPC_E_CHANGED_MODE) {
-      co_init = AAX_TRUE;
+      co_init = true;
    }
 
    hr = pCoCreateInstance(pCLSID_MMDeviceEnumerator, NULL,
@@ -1817,11 +1817,11 @@ _aaxWASAPIDriverThread(void* config)
       dest_rb = be->get_ringbuffer(MAX_EFFECTS_TIME, mixer->info->mode);
       if (dest_rb)
       {
-         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
+         dest_rb->set_format(dest_rb, AAX_PCM24S, true);
          dest_rb->set_parami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
          dest_rb->set_paramf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
          dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
-         dest_rb->init(dest_rb, AAX_TRUE);
+         dest_rb->init(dest_rb, true);
          dest_rb->set_state(dest_rb, RB_STARTED);
 
          handle->ringbuffer = dest_rb;
@@ -1887,7 +1887,7 @@ _aaxWASAPIDriverThread(void* config)
       if (!_IS_STOPPED(handle) && !_IS_PROCESSED(handle))
       {
          LONG flags = InterlockedAnd(&be_handle->flags, (LONG)(ULONG)-1);
-         if ((flags & DRIVER_CONNECTED_MASK) == AAX_FALSE)
+         if ((flags & DRIVER_CONNECTED_MASK) == false)
          {
             if ((flags & DRIVER_REINIT_MASK) != 0) {
                _SET_STOPPED(handle);
@@ -1954,7 +1954,7 @@ copyFmtEx(WAVEFORMATEX *out, WAVEFORMATEX *in)
    out->cbSize = 0;
 
 
-   return AAX_TRUE;
+   return true;
 }
 
 static int
@@ -1979,13 +1979,13 @@ copyFmtExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEXTENSIBLE *in)
    out->Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
    out->Format.cbSize = CBSIZE;
 
-   return AAX_TRUE;
+   return true;
 }
 
 static int
 exToExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEX *in, enum aaxRenderMode setup)
 {
-   int rv = AAX_TRUE;
+   int rv = true;
 
    assert(in);
 
@@ -2016,7 +2016,7 @@ exToExtensible(WAVEFORMATEXTENSIBLE *out, WAVEFORMATEX *in, enum aaxRenderMode s
    else
    {
       _aaxWASAPIDriverLog(NULL, 0, WASAPI_UNSUPPORTED_FORMAT, __func__);
-      rv = AAX_FALSE;
+      rv = false;
    }
 
    return rv;
@@ -2264,7 +2264,7 @@ _wasapi_close(_driver_t *handle)
       handle->scratch_ptr = 0;
       handle->scratch = 0;
 
-      handle->driver_init = AAX_FALSE;
+      handle->driver_init = false;
 
       InterlockedAnd(&handle->flags, ~DRIVER_CONNECTED_MASK);
    }
@@ -2276,7 +2276,7 @@ static int
 _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
 {
    _driver_t *id = handle;
-   int co_init, rv = AAX_FALSE;
+   int co_init, rv = false;
    REFERENCE_TIME hnsBufferDuration;
    REFERENCE_TIME hnsPeriodicity;
    AUDCLNT_SHAREMODE mode;
@@ -2291,10 +2291,10 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
 
    frames = *period_frames;
 
-   co_init = AAX_FALSE;
+   co_init = false;
    hr = pCoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
    if (hr != RPC_E_CHANGED_MODE) {
-      co_init = AAX_TRUE;
+      co_init = true;
    }
 
    init = S_OK;
@@ -2357,7 +2357,7 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
          {
             _AAX_DRVLOG(WASAPI_EXCLUSIVE_MODE_FAILED);
 
-            handle->exclusive = AAX_FALSE;
+            handle->exclusive = false;
 
             wfx = &handle->Fmt.Format;
             mode = AUDCLNT_SHAREMODE_SHARED;
@@ -2510,18 +2510,18 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
       {
          if (handle->exclusive)
          {                              /* try shared, event-driven mode */
-            handle->exclusive = AAX_FALSE;
+            handle->exclusive = false;
             _AAX_DRVLOG(WASAPI_EXCLUSIVE_MODE_FAILED);
          }
          else if (!handle->use_timer && !handle->exclusive)
          {                              /* try exclusive, timer-driven mode */
-            handle->use_timer = AAX_TRUE;
-            handle->exclusive = AAX_TRUE;
+            handle->use_timer = true;
+            handle->exclusive = true;
             _AAX_DRVLOG(WASAPI_EVENT_MODE_FAILED);
          }
          else if (handle->use_timer && handle->exclusive)
          {                              /* try shared, timer-driven mode */
-            handle->exclusive = AAX_FALSE;
+            handle->exclusive = false;
          }
          else
          {
@@ -2532,7 +2532,7 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
       else if (hr == AUDCLNT_E_DEVICE_IN_USE)
       {
          if (!handle->exclusive) break;
-         handle->exclusive = AAX_FALSE;
+         handle->exclusive = false;
          _AAX_DRVLOG(WASAPI_EXCLUSIVE_MODE_FAILED);
       }
       else if (hr == AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED && init == S_OK)
@@ -2626,7 +2626,7 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
          {
             InterlockedOr(&handle->flags, DRIVER_CONNECTED_MASK);
             InterlockedAnd(&handle->flags, ~DRIVER_REINIT_MASK);
-            rv = AAX_TRUE;
+            rv = true;
          }
          else {
             _AAX_DRVLOG(WASAPI_GET_AUDIO_SERVICE_FAILED);

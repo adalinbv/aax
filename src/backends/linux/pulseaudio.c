@@ -54,8 +54,8 @@
 #define DEFAULT_OUTPUT_RATE	48000
 #define DEFAULT_REFRESH		25.0
 
-#define USE_PULSE_THREAD	AAX_TRUE
-#define CAPTURE_CALLBACK	AAX_TRUE
+#define USE_PULSE_THREAD	true
+#define CAPTURE_CALLBACK	true
 
 #define BUFFER_SIZE_FACTOR	4.0f
 #define CAPTURE_BUFFER_SIZE	(DEFAULT_PERIODS*8192)
@@ -269,7 +269,7 @@ static const char *env = "true";
 int
 _aaxPulseAudioDriverDetect(UNUSED(int mode))
 {
-   static int rv = AAX_FALSE;
+   static int rv = false;
    char *error = NULL;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -352,7 +352,7 @@ _aaxPulseAudioDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(pa_cvolume_set);
          TIE_FUNCTION(pa_context_set_sink_input_volume);
          TIE_FUNCTION(pa_context_set_source_output_volume);
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -442,7 +442,7 @@ _aaxPulseAudioDriverFreeHandle(UNUSED(void *id))
    _aaxCloseLibrary(audio);
    audio = NULL;
 
-   return AAX_TRUE;
+   return true;
 }
 
 static void *
@@ -547,7 +547,7 @@ static int
 _aaxPulseAudioDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (handle)
    {
@@ -587,7 +587,7 @@ _aaxPulseAudioDriverDisconnect(void *id)
 
       free(handle);
 
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -602,7 +602,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
    unsigned int period_samples;
    int periods, samples, frame_sz;
    pa_sample_spec req;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    *fmt = AAX_PCM16S;
 
@@ -676,7 +676,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->cvt_from_intl = _batch_cvt24_8_intl;
          break;
       default:
-         rv = AAX_FALSE;
+         rv = false;
          break;
       }
 
@@ -713,7 +713,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
          snprintf(_pulseaudio_id_str, MAX_ID_STRLEN ,"%s %s %s",
                   DEFAULT_RENDERER, ppa_get_library_version(), rstr);
-         rv = AAX_TRUE;
+         rv = true;
       }
       else {
             _AAX_DRVLOG("unable to get the renderer");
@@ -778,11 +778,11 @@ _aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t
 
    *offset = 0;
    if ((handle->mode != 0) || (frames == 0) || (data == 0)) {
-     return AAX_FALSE;
+     return false;
    }
 
    if (nframes == 0) {
-      return AAX_TRUE;
+      return true;
    }
 
    if (handle->dataBuffer == 0)
@@ -794,7 +794,7 @@ _aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t
       if (a) size = DEFAULT_PERIODS*a->maxlength;
 
       handle->dataBuffer = _aaxDataCreate(1, size, 1);
-      if (handle->dataBuffer == 0) return AAX_FALSE;
+      if (handle->dataBuffer == 0) return false;
 
 #if CAPTURE_CALLBACK
       ppa_stream_set_read_callback(handle->pa, stream_capture_cb, handle);
@@ -864,7 +864,7 @@ _aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t
       *frames = nframes;
    }
 
-   return AAX_TRUE;
+   return true;
 }
 
 static size_t
@@ -932,7 +932,7 @@ static int
 _aaxPulseAudioDriverSetName(const void *id, int type, const char *name)
 {
    _driver_t *handle = (_driver_t *)id;
-   int ret = AAX_FALSE;
+   int ret = false;
    if (handle)
    {
       switch (type)
@@ -968,7 +968,7 @@ static int
 _aaxPulseAudioDriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    switch(state)
    {
@@ -980,7 +980,7 @@ _aaxPulseAudioDriverState(const void *id, enum _aaxDriverState state)
             ppa_stream_cork(handle->pa, 1, NULL, NULL);
          }
          ppa_threaded_mainloop_unlock(handle->ml);
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    case DRIVER_RESUME:
@@ -991,14 +991,14 @@ _aaxPulseAudioDriverState(const void *id, enum _aaxDriverState state)
             ppa_stream_cork(handle->pa, 0, NULL, NULL);
          }
          ppa_threaded_mainloop_unlock(handle->ml);
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    case DRIVER_AVAILABLE:
    case DRIVER_SHARED_MIXER:
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case DRIVER_NEED_REINIT:
    default:
@@ -1064,7 +1064,7 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
 		/* boolean */
       case DRIVER_SHARED_MODE:
       case DRIVER_TIMER_MODE:
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case DRIVER_BATCHED_MODE:
       default:
@@ -1343,10 +1343,10 @@ _aaxPulseAudioDriverThread(void* config)
          freq = info->frequency;
          tracks = info->no_tracks;
          dest_rb->set_parami(dest_rb, RB_NO_TRACKS, tracks);
-         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
+         dest_rb->set_format(dest_rb, AAX_PCM24S, true);
          dest_rb->set_paramf(dest_rb, RB_FREQUENCY, freq);
          dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
-         dest_rb->init(dest_rb, AAX_TRUE);
+         dest_rb->init(dest_rb, true);
          dest_rb->set_state(dest_rb, RB_STARTED);
 
          handle->ringbuffer = dest_rb;
@@ -1423,7 +1423,7 @@ _aaxPulseAudioDriverThread(void* config)
 
       res = _aaxSignalWaitTimed(&handle->thread.signal, dt);
    }
-   while (res == AAX_TIMEOUT || res == AAX_TRUE);
+   while (res == AAX_TIMEOUT || res == true);
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
@@ -1556,12 +1556,12 @@ sink_device_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, v
       return;
    }
 
-   is_lazy = AAX_FALSE;
+   is_lazy = false;
    if ((env && _aax_getbool(env)) ||
        (info->name && (!strncmp(info->name, "alsa_output.usb", 15) ||
                        !strncmp(info->name, "alsa_output.bluetooth", 21))))
    {
-      is_lazy = AAX_TRUE;
+      is_lazy = true;
    }
 
    if (is_lazy)
@@ -1630,12 +1630,12 @@ source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eo
       return;
    }
 
-   is_lazy = AAX_FALSE;
+   is_lazy = false;
    if ((env && _aax_getbool(env)) ||
        (info->name && (!strncmp(info->name, "alsa_output.usb", 15) ||
                        !strncmp(info->name, "alsa_output.bluetooth", 21))))
    {
-      is_lazy = AAX_TRUE;
+      is_lazy = true;
    }
 
    if (is_lazy)
@@ -1692,7 +1692,7 @@ source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eo
 static void
 _aaxPulseAudioContextConnect(_driver_t *handle)
 {
-   static char pulse_avail = AAX_TRUE;
+   static char pulse_avail = true;
    const char *name = AAX_LIBRARY_STR;
    char buf[PATH_MAX] = "";
 
@@ -1703,7 +1703,7 @@ _aaxPulseAudioContextConnect(_driver_t *handle)
       if (t_now > (t_previous+1))
       {
          t_previous = t_now;
-         pulse_avail = AAX_TRUE;
+         pulse_avail = true;
       }
    }
 
@@ -1747,7 +1747,7 @@ _aaxPulseAudioContextConnect(_driver_t *handle)
          }
          else
          {
-            pulse_avail = AAX_FALSE;
+            pulse_avail = false;
             ppa_context_unref(handle->ctx);
             handle->ctx = NULL;
          }

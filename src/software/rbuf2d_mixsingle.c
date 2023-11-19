@@ -226,7 +226,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    gain *= buffer_gain; // bring gain to a normalized level
    gain = _square(gain)*ep2d->final.gain;
    gain *= gain_emitter;
-   ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? 0 : 1;
+   ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? false : true;
 
    lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_LAYER_FILTER);
    if (lfo)

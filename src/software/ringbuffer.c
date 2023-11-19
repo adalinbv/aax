@@ -130,8 +130,8 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbd->codec = _aaxRingBufferCodecs[rbd->format];
          rbd->bits_sample = _aaxRingBufferFormat[rbd->format].bits;
          rbd->block_size = rbd->bits_sample/8;
-         rbd->block_size_set = AAX_FALSE;
-         rbd->track_len_set = AAX_FALSE;
+         rbd->block_size_set = false;
+         rbd->track_len_set = false;
          rbd->freqfilter = _batch_freqfilter_float;
          rbd->resample = _batch_resample_float;
          rbd->multiply = _batch_fmul_value;
@@ -400,7 +400,7 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
    {
       _aaxRingBufferSample *srbd, *drbd;
       _aaxRingBufferData *drbi;
-      char add_scratchbuf = AAX_FALSE;
+      bool add_scratchbuf = false;
       void *ptr;
 
       srbd = srbi->sample;
@@ -435,7 +435,7 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
             srbd->scratch = NULL;
          }
          else {
-            add_scratchbuf = AAX_TRUE;
+            add_scratchbuf = true;
          }
       }
 
@@ -526,7 +526,7 @@ _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
       }
    }
    rbi->access = RB_RW_MAX;
-   return AAX_TRUE;
+   return true;
 }
 
 void**
@@ -572,7 +572,7 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
    case RB_CLEARED:
    case RB_CLEARED_DDE:
       _aaxRingBufferClear(rbi, RB_ALL_TRACKS,
-                          (state == RB_CLEARED) ? AAX_FALSE : AAX_TRUE);
+                          (state == RB_CLEARED) ? false : true);
 
       rbi->elapsed_sec = 0.0f;
       rbi->pitch_norm = 1.0;
@@ -664,7 +664,7 @@ _aaxRingBufferSetParamd(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, FLOA
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
-   int rv = AAX_TRUE;
+   int rv = true;
 
    assert(rb != NULL);
 
@@ -696,7 +696,7 @@ _aaxRingBufferSetParamd(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, FLOA
          fval += loop_start_sec;
 
          if (rbi->loop_max && (rbi->loop_no >= rbi->loop_max)) {
-            rbi->looping = AAX_FALSE;
+            rbi->looping = false;
          }
       }
 
@@ -708,7 +708,7 @@ _aaxRingBufferSetParamd(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, FLOA
       }
       rbi->curr_pos_sec = fval;
       rbi->curr_sample = floorf(fval*rbd->frequency_hz);
-      rv = AAX_TRUE;
+      rv = true;
       break;
    }
    default:
@@ -726,7 +726,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
-   int rv = AAX_TRUE;
+   int rv = true;
 
    assert(rb != NULL);
 
@@ -772,7 +772,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       {
          rbd->no_samples_avail = val;
          rbd->no_samples = val;
-         rv = AAX_TRUE;
+         rv = true;
       }
       else if (val <= rbd->no_samples_avail)
       {
@@ -782,14 +782,14 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
           * does not alter the actual buffer size, so it can overrun if required
           */
          rbd->no_samples = val;
-         rv = AAX_TRUE;
+         rv = true;
       }
       else if (val > rbd->no_samples_avail)
       {
          rbd->no_samples_avail = val;
          rbd->no_samples = val;
          _aaxRingBufferInitTracks(rbi);
-         rv = AAX_TRUE;
+         rv = true;
       }
 #ifndef NDEBUG
       else if (rbd->track == NULL) {
@@ -803,13 +803,13 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
    case RB_LOOPPOINT_START:
       if (fval < rbd->loop_end_sec) {
          rbd->loop_start_sec = fval;
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    case RB_LOOPPOINT_END:
       if ((rbd->loop_start_sec < fval) && (fval <= rbd->duration_sec)) {
          rbd->loop_end_sec = fval;
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    case RB_OFFSET_SEC:
@@ -818,7 +818,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       }
       rbi->curr_pos_sec = fval;
       rbi->curr_sample = floorf(fval*rbd->frequency_hz);
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case RB_TREMOLO_DEPTH:
       rbd->tremolo.depth = fval;
@@ -875,7 +875,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    assert(rb != NULL);
 
@@ -906,7 +906,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
             }
          }
       }
-      rbd->mixer_fmt = (val != 0) ? AAX_TRUE : AAX_FALSE;
+      rbd->mixer_fmt = (val != 0) ? true : false;
       break;
    case RB_BYTES_SAMPLE:
       if (rbd->track == NULL) {
@@ -914,7 +914,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
          if (!rbd->block_size_set) {
             rbd->block_size = rbd->bits_sample/8;
          }
-         rv = AAX_TRUE;
+         rv = true;
       }
 #ifndef NDEBUG
       else printf("Unable set bytes/sample when rbd->track == NULL\n");
@@ -923,7 +923,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    case RB_NO_TRACKS:
       if ((rbd->track == NULL) || (val <= rbd->no_tracks)) {
          rbd->no_tracks = val;
-         rv = AAX_TRUE;
+         rv = true;
       }
 #ifndef NDEBUG
       else printf("Unable set the no. tracks rbd->track == NULL\n");
@@ -931,12 +931,12 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       break;
    case RB_NO_LAYERS:
       rbd->no_layers = val;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case RB_LOOPING:
-      rbi->looping = rbi->loop_mode = val ? AAX_TRUE : AAX_FALSE;
-      rbi->loop_max = (val > AAX_TRUE) ? val : 0;
-      rv = AAX_TRUE;
+      rbi->looping = rbi->loop_mode = val ? true : false;
+      rbi->loop_max = (val > true) ? val : 0;
+      rv = true;
       break;
    case RB_LOOPPOINT_START:
    {
@@ -945,7 +945,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       if (fval < rbd->loop_end_sec)
       {
          rbd->loop_start_sec = fval;
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    }
@@ -955,12 +955,12 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       if ((rbd->loop_start_sec < fval) && (fval <= rbd->duration_sec))
       {
          rbd->loop_end_sec = fval;
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    }
    case RB_SAMPLED_RELEASE:
-      rbi->sampled_release = val ? AAX_TRUE : AAX_FALSE;
+      rbi->sampled_release = val ? true : false;
       break;
    case RB_FAST_RELEASE: // the envelope-steps after sustain are ignored
       break;
@@ -972,18 +972,18 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       }
       rbi->curr_sample = val;
       rbi->curr_pos_sec = (double)val / rbd->frequency_hz;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case RB_BLOCK_SIZE:
       rbd->block_size = val;
-      rbd->block_size_set = AAX_TRUE;
+      rbd->block_size_set = true;
       break;
    case RB_NO_BLOCKS:
       val *= rbd->block_size;
       // intentional fallthrough
    case RB_TRACKSIZE:
       rbd->track_len_bytes = val;
-      rbd->track_len_set = AAX_TRUE;
+      rbd->track_len_set = true;
       val /= rbd->block_size;
       // intentional fallthrough
    case RB_NO_SAMPLES:
@@ -992,7 +992,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
          rbd->no_samples_avail = val;
          rbd->no_samples = val;
          rbd->duration_sec = (float)val / rbd->frequency_hz;
-         rv = AAX_TRUE;
+         rv = true;
       }
       else if (val <= rbd->no_samples_avail)
       {
@@ -1003,14 +1003,14 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
           */
          rbd->no_samples = val;
          rbd->duration_sec = (float)val / rbd->frequency_hz;
-         rv = AAX_TRUE;
+         rv = true;
       }
       else if (val > rbd->no_samples_avail)
       {
          rbd->no_samples_avail = val;
          rbd->no_samples = val;
          _aaxRingBufferInitTracks(rbi);
-         rv = AAX_TRUE;
+         rv = true;
       }
 #ifndef NDEBUG
       else if (rbd->track == NULL) {
@@ -1022,7 +1022,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       break;
    case RB_STATE:
       _aaxRingBufferSetState(rb, val);
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case RB_FORMAT:
       rbd->format = val;
@@ -1217,10 +1217,10 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       rv = rbd->dde_samples;
       break;
    case RB_IS_PLAYING:
-      rv = (rbi->playing == 0 && rbi->stopped == 1) ? AAX_FALSE : AAX_TRUE;
+      rv = (rbi->playing == 0 && rbi->stopped == 1) ? false : true;
       break;
    case RB_IS_MIXER_BUFFER:
-      rv = (rbd->mixer_fmt != AAX_FALSE) ? AAX_TRUE : AAX_FALSE;
+      rv = (rbd->mixer_fmt != false) ? true : false;
       break;
    default:
       if ((param >= RB_PEAK_VALUE) &&
@@ -1249,7 +1249,7 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format, int mixer)
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
-   int rv = AAX_TRUE;
+   int rv = true;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -1285,7 +1285,7 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSour
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
    int no_tracks = rbd->no_tracks;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (track < no_tracks)
    {
@@ -1306,7 +1306,7 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSour
       case AAX_IMPULSE:
          _bufferMixWaveform(ptr, scratch, type, f, bps, no_samples,
                             ratio, phase, modulate, limiter);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       default:
          break;
@@ -1323,7 +1323,7 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceT
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
    int no_tracks = rbd->no_tracks;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (track < no_tracks)
    {
@@ -1339,17 +1339,17 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceT
       case AAX_WHITE_NOISE:
          _bufferMixWhiteNoise(ptr, scratch, no_samples, bps, pitch,
                               ratio, fs, seed, skip, modulate, limiter);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_PINK_NOISE:
          _bufferMixPinkNoise(ptr, scratch, no_samples, bps, pitch,
                              ratio, fs, seed, skip, modulate, limiter);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_BROWNIAN_NOISE:
          _bufferMixBrownianNoise(ptr, scratch, no_samples, bps, pitch,
                                  ratio, fs, seed, skip, modulate, limiter);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       default:
          break;
@@ -1384,7 +1384,7 @@ _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, f
          rbd->multiply(data+offs, data+offs, bps, no_samples, ratio_orig);
       }
    }
-   return AAX_TRUE;
+   return true;
 }
 
 int
@@ -1437,14 +1437,14 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps 
          _batch_movingaverage_float(d, d, dno_samples, hist+1, fp2d->final.k);
       }
    }
-   return AAX_TRUE;
+   return true;
 }
 
 int
 _aaxRingBufferDataClear(_aaxRingBuffer *rb, int track)
 {
    _aaxRingBufferData *rbi = rb->handle;
-   return _aaxRingBufferClear(rbi, track, AAX_FALSE);
+   return _aaxRingBufferClear(rbi, track, false);
 }
 
 void
@@ -1588,7 +1588,7 @@ _aaxRingBufferClear(_aaxRingBufferData *rbi, int t, char dde)
       }
    }
 
-   return AAX_TRUE;
+   return true;
 }
 
 static void

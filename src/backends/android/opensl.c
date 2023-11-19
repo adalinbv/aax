@@ -163,7 +163,7 @@ static void *audio = NULL;
 static int
 _aaxSLESDriverDetect(int mode)
 {
-   static int rv = AAX_FALSE;
+   static int rv = false;
 // char *error = 0;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -175,7 +175,7 @@ _aaxSLESDriverDetect(int mode)
    if (audio)
    {
       snprintf(_sles_id_str, MAX_ID_STRLEN, "%s", DEFAULT_RENDERER);
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -210,7 +210,7 @@ _aaxSLESDriverFreeHandle(UNUSED(void *id))
    _aaxCloseLibrary(audio);
    audio = NULL;
 
-   return AAX_TRUE;
+   return true;
 }
 
 static void *
@@ -348,7 +348,7 @@ static int
 _aaxSLESDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -379,7 +379,7 @@ _aaxSLESDriverDisconnect(void *id)
       _aaxSemaphoreDestroy(handle->worker_start);
       free(handle);
 
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -436,7 +436,7 @@ _aaxSLESDriverSetup(const void *id, float *refresh_rate, int *fmt,
       snprintf((char *)&str, 255, "Unable to output to %i speakers in "
                 "this setup (2 is the maximum)", *tracks);
       _AAX_SYSLOG(str);
-      return AAX_FALSE;
+      return false;
    }
 
    handle->min_frequency = 8000.0f;
@@ -517,7 +517,7 @@ _aaxSLESDriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
    }
 
-   return (res == SL_RESULT_SUCCESS) ? AAX_TRUE : AAX_FALSE;
+   return (res == SL_RESULT_SUCCESS) ? true : false;
 }
 
 static ssize_t
@@ -525,7 +525,7 @@ _aaxSLESDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fram
 {
 // _driver_t *handle = (_driver_t *)id;
 // ssize_t offs = *offset;
-   ssize_t rv = AAX_FALSE;
+   ssize_t rv = false;
 
    assert(handle->mode == AAX_MODE_READ);
 
@@ -537,7 +537,7 @@ _aaxSLESDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fram
    {
    }
 
-   return AAX_FALSE;
+   return false;
 }
 
 // The documentation available is very unclear about how to best manage buffers.
@@ -601,7 +601,7 @@ static int
 _aaxSLESDriverSetName(const void *id, int type, const char *name)
 {
    _driver_t *handle = (_driver_t *)id;
-   int ret = AAX_FALSE;
+   int ret = false;
    if (handle)
    {
       switch (type)
@@ -624,7 +624,7 @@ static int
 _aaxSLESDriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
    SLresult res;
 
    switch(state)
@@ -632,22 +632,22 @@ _aaxSLESDriverState(const void *id, enum _aaxDriverState state)
    case DRIVER_PAUSE:
       res = (*handle->playItf)->SetPlayState(handle->playItf,
                                                  SL_PLAYSTATE_PAUSED);
-      rv = (res == SL_RESULT_SUCCESS) ? AAX_TRUE : AAX_FALSE;
+      rv = (res == SL_RESULT_SUCCESS) ? true : false;
       break;
    case DRIVER_RESUME:
       res = (*handle->playItf)->SetPlayState(handle->playItf,
                                                  SL_PLAYSTATE_PLAYING);
-      rv = (res == SL_RESULT_SUCCESS) ? AAX_TRUE : AAX_FALSE;
+      rv = (res == SL_RESULT_SUCCESS) ? true : false;
       break;
    case DRIVER_AVAILABLE:
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case DRIVER_SHARED_MIXER:
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case DRIVER_NEED_REINIT:
    default:
@@ -712,7 +712,7 @@ _aaxSLESDriverParam(const void *id, enum _aaxDriverParam param)
 
 		/* boolean */
       case DRIVER_TIMER_MODE:
-         rv = (float)AAX_TRUE;
+         rv = (float)true;
          break;
       case DRIVER_BATCHED_MODE:
       case DRIVER_SHARED_MODE:
@@ -768,7 +768,7 @@ _sles_get_volume_range(_driver_t *handle)
          handle->volumeInit = vol;
          handle->volumeCur = handle->volumeInit;
          handle->volumeHW = handle->volumeInit;
-         rv = AAX_TRUE;
+         rv = true;
       }
       res = (*handle->volumeItf)->GetMaxVolumeLevel(handle->volumeItf, &vol);
       if (res == SL_RESULT_SUCCESS) {
@@ -923,7 +923,7 @@ static int
 _sles_get_hw_settings(_driver_t *handle)
 {
    SLMetadataExtractionItf md;
-   int rv = AAX_FALSE;
+   int rv = false;
    SLuint32 num;
    SLresult res;
 
@@ -1092,11 +1092,11 @@ _aaxSLESDriverThread(void* config)
       dest_rb = be->get_ringbuffer(MAX_EFFECTS_TIME, mixer->info->mode);
       if (dest_rb)
       {
-         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
+         dest_rb->set_format(dest_rb, AAX_PCM24S, true);
          dest_rb->set_parami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
          dest_rb->set_paramf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
          dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
-         dest_rb->init(dest_rb, AAX_TRUE);
+         dest_rb->init(dest_rb, true);
          dest_rb->set_state(dest_rb, RB_STARTED);
 
          handle->ringbuffer = dest_rb;
@@ -1125,7 +1125,7 @@ _aaxSLESDriverThread(void* config)
          break;
       }
 
-      if (be->state(be_handle, DRIVER_AVAILABLE) == AAX_FALSE) {
+      if (be->state(be_handle, DRIVER_AVAILABLE) == false) {
          _SET_PROCESSED(handle);
       }
 

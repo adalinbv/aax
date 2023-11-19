@@ -198,11 +198,11 @@ _aaxTimerDestroy(_aaxTimer* tm)
 int
 _aaxTimerSetCondition(_aaxTimer *tm, void *event)
 {
-    int rv = AAX_FALSE;
+    int rv = false;
     if (tm && !tm->Event[CONDITION_EVENT])
     {
        tm->Event[CONDITION_EVENT] = event;
-       rv = AAX_TRUE;
+       rv = true;
     }
     return rv;
 }
@@ -210,7 +210,7 @@ _aaxTimerSetCondition(_aaxTimer *tm, void *event)
 int
 _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    if (tm && sec > 1e-6f)
    {
       if (tm->Event[WAITABLE_TIMER_EVENT] == NULL) {
@@ -228,7 +228,7 @@ _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
          if (hr)
          {
             setTimerResolution(1);
-            rv = AAX_TRUE;
+            rv = true;
          }
       }
    }
@@ -241,7 +241,7 @@ _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
 int
 _aaxTimerStop(_aaxTimer* tm)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    if (tm && tm->Event[WAITABLE_TIMER_EVENT])
    {
       if (CancelWaitableTimer(tm->Event[WAITABLE_TIMER_EVENT]))
@@ -249,7 +249,7 @@ _aaxTimerStop(_aaxTimer* tm)
          resetTimerResolution(1);
          CloseHandle(tm->Event[WAITABLE_TIMER_EVENT]);
          tm->Event[WAITABLE_TIMER_EVENT] = NULL;
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
    return rv;
@@ -258,7 +258,7 @@ _aaxTimerStop(_aaxTimer* tm)
 int
 _aaxTimerWait(_aaxTimer* tm, void* mutex)
 {
-   int rv = AAX_TRUE;
+   int rv = true;
 
    if (tm->Event[WAITABLE_TIMER_EVENT])
    {
@@ -277,10 +277,10 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
          rv = AAX_TIMEOUT;
          break;
       case WAIT_OBJECT_0 + CONDITION_EVENT:
-         rv = AAX_TRUE;
+         rv = true;
          break;
       default:
-         rv = AAX_FALSE;
+         rv = false;
          break;
       }
    }
@@ -391,7 +391,7 @@ _aaxTimerCreate()
          }
 
          rv->signal = _aaxSignalCreate();
-         rv->user_condition = AAX_FALSE;
+         rv->user_condition = false;
          rv->dt = 0.0f;
       }
       
@@ -462,15 +462,15 @@ _aaxTimerDestroy(_aaxTimer *tm)
 int
 _aaxTimerSetCondition(_aaxTimer *tm, void *condition)
 {
-    int rv = AAX_FALSE;
+    int rv = false;
     if(tm)
     {
        _aaxSignal *signal = tm->signal;
        if (!signal->condition)
        {
           signal->condition = condition;
-          tm->user_condition = AAX_TRUE;
-          rv = AAX_TRUE;
+          tm->user_condition = true;
+          rv = true;
        }
     }
     return rv;
@@ -479,7 +479,7 @@ _aaxTimerSetCondition(_aaxTimer *tm, void *condition)
 int
 _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    if (tm && sec > 1e-6f)
    {
       _aaxSignal *signal = tm->signal;
@@ -491,7 +491,7 @@ _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
       if (signal->condition)
       {
          tm->dt = sec;
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
    else {
@@ -502,14 +502,14 @@ _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
 
 int
 _aaxTimerStop(UNUSED(_aaxTimer* tm)) {
-   return AAX_TRUE;
+   return true;
 }
 
 int
 _aaxTimerWait(_aaxTimer* tm, void* mutex)
 {
    _aaxSignal *signal = tm->signal;
-   int rv = AAX_TRUE;
+   int rv = true;
 
    if (signal->condition)
    {
@@ -526,10 +526,10 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
          rv = AAX_TIMEOUT;
          break;
       case 0:
-         rv = AAX_TRUE;
+         rv = true;
          break;
       default:
-         rv = AAX_FALSE;
+         rv = false;
          break;
       }
    }

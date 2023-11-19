@@ -73,7 +73,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
       } else if (samples*tracks == 0)  {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -104,8 +104,8 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
       buf->mixer_info = VALID_HANDLE(handle) ? &handle->info : &_info;
 
       buf->midi_mode = AAX_RENDER_NORMAL;
-      buf->to_mixer = AAX_FALSE;
-      buf->mipmap = AAX_FALSE;
+      buf->to_mixer = false;
+      buf->mipmap = false;
       buf->ref_counter = 1;
       buf->mip_levels = 1;
       buf->gain = 1.0f;
@@ -121,17 +121,17 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
       /* explicit request not to convert */
       env = getenv("AAX_USE_MIXER_FMT");
       if (env && !_aax_getbool(env)) {
-         buf->to_mixer = AAX_FALSE;
+         buf->to_mixer = false;
       }
 
       /* sound is not mono */
       else if (tracks != 1) {
-         buf->to_mixer = AAX_FALSE;
+         buf->to_mixer = false;
       }
 
       /* more than 500Mb free memory is available, convert */
       else if (_aax_get_free_memory() > (500*1024*1024)) {
-         buf->to_mixer = AAX_TRUE;
+         buf->to_mixer = true;
       }
    }
    return (aaxBuffer)buf;
@@ -149,7 +149,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
       if (!rb) {
          _aaxErrorSet(AAX_INVALID_STATE);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -164,7 +164,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
          if (setup <= handle->info.no_samples)
          {
             handle->pos = setup;
-            rv = AAX_TRUE;
+            rv = true;
          }
          else  _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
@@ -175,7 +175,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
                rb->set_paramf(rb, RB_FREQUENCY, (float)setup);
             }
             handle->info.rate = (float)setup;
-            rv = AAX_TRUE;
+            rv = true;
          }
          else _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
@@ -190,7 +190,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
                }
             }
             handle->info.no_tracks = setup;
-            rv = AAX_TRUE;
+            rv = true;
          }
          break;
       case AAX_FORMAT:
@@ -208,7 +208,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
                handle->info.blocksize = 1;
                break;
             }
-            rv = AAX_TRUE;
+            rv = true;
          }
          else _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
@@ -223,19 +223,19 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
          }
          tmp = handle->info.no_tracks * aaxGetBitsPerSample(handle->info.fmt);
          handle->info.no_samples = setup*8/tmp;
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_LOOP_START:
          if (setup < handle->info.no_samples)
          {
             if (rb)
             {
-               int looping = (setup < handle->info.loop_end) ? AAX_TRUE : AAX_FALSE;
+               int looping = (setup < handle->info.loop_end) ? true : false;
                rb->set_parami(rb, RB_LOOPPOINT_START, setup);
                rb->set_parami(rb, RB_LOOPING, looping);
             }
             handle->info.loop_start = setup;
-            rv = AAX_TRUE;
+            rv = true;
          }
          else _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
@@ -244,12 +244,12 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
          {
             if (rb)
             {
-               int looping = (handle->info.loop_start < setup) ? AAX_TRUE : AAX_FALSE;
+               int looping = (handle->info.loop_start < setup) ? true : false;
                rb->set_parami(rb, RB_LOOPPOINT_END, setup);
                rb->set_parami(rb, RB_LOOPING, looping);
             }
             handle->info.loop_end = setup;
-            rv = AAX_TRUE;
+            rv = true;
          }
          else _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
@@ -260,22 +260,22 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
             {
                handle->info.blocksize = setup;
                rb->set_parami(rb, RB_BLOCK_SIZE, setup);
-               rv = AAX_TRUE;
+               rv = true;
             }
          }
          else if (handle->info.fmt != AAX_IMA4_ADPCM)
          {
             handle->info.blocksize = setup;
             rb->set_parami(rb, RB_BLOCK_SIZE, setup);
-            rv = AAX_TRUE;
+            rv = true;
          }
          break;
       case AAX_SAMPLED_RELEASE:
-         handle->info.sampled_release = setup ? AAX_TRUE : AAX_FALSE;
+         handle->info.sampled_release = setup ? true : false;
          if (rb) {
             rb->set_parami(rb, RB_SAMPLED_RELEASE,handle->info.sampled_release);
          }
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_CAPABILITIES:
          switch(setup)
@@ -312,7 +312,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       if (!rb) {
          _aaxErrorSet(AAX_INVALID_STATE);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -505,11 +505,11 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
          if (!rb || rb->get_parami(rb, RB_NO_SAMPLES) == 0) {
             _aaxErrorSet(AAX_INVALID_STATE);
          } else {
-            rv = AAX_TRUE;
+            rv = true;
          }
       }
       else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -536,7 +536,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       unsigned int native_fmt;
       char fmt_bps;
 
-      rb->init(rb, AAX_FALSE);
+      rb->init(rb, false);
       tracks = rb->get_parami(rb, RB_NO_TRACKS);
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
 
@@ -623,7 +623,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       rb = _bufSetDataInterleaved(handle, rb, data, blocksize);
       handle->ringbuffer[0] = rb;
 
-      rv = AAX_TRUE;
+      rv = true;
       if (ptr) _aax_aligned_free(ptr);
    }
    return rv;
@@ -651,12 +651,12 @@ aaxBufferGetData(const aaxBuffer buffer)
             if (!rb) {
                _aaxErrorSet(AAX_INVALID_STATE);
             } else {
-               rv = AAX_TRUE;
+               rv = true;
             }
          }
       }
       else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -676,7 +676,7 @@ aaxBufferGetData(const aaxBuffer buffer)
 
          data[0] = &data[1];
          memcpy(data+1, handle->aaxs, len);
-         rv = AAX_FALSE; /* we're done */
+         rv = false; /* we're done */
       }
       else {
          user_format = AAX_FLOAT;
@@ -819,7 +819,7 @@ AAX_API int AAX_APIENTRY
 aaxBufferDestroy(aaxBuffer buffer)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle) {
      rv = free_buffer(handle);
    }
@@ -837,7 +837,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
    _buffer_t* buf = NULL;
 
    if (!rv && handle) {
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    if (rv)
@@ -862,7 +862,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                 _buffer_info_t *info = &buf->info;
 
                 rb->set_paramf(rb, RB_FREQUENCY, info->rate);
-                rb->set_format(rb, info->fmt & AAX_FORMAT_NATIVE, AAX_FALSE);
+                rb->set_format(rb, info->fmt & AAX_FORMAT_NATIVE, false);
                 rb->set_parami(rb, RB_NO_TRACKS, info->no_tracks);
 
                 // RB_BLOCK_SIZE must be set before RB_TRACKSIZE
@@ -892,7 +892,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
 # endif
 #endif
 
-             if ((aaxBufferSetData(buf, ptr[0])) != AAX_FALSE)
+             if ((aaxBufferSetData(buf, ptr[0])) != false)
              {
                _aaxRingBuffer* rb = _bufGetRingBuffer(buf, NULL, 0);
                 _buffer_info_t *info = &buf->info;
@@ -938,7 +938,7 @@ _aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, ptr, no_samples, freq, track
 AAX_API int AAX_APIENTRY
 aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType type)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    if (aaxIsValid(buffer, AAX_BUFFER))
    {
       enum aaxFormat format = aaxBufferGetSetup(buffer, AAX_FORMAT);
@@ -964,7 +964,7 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
       _aaxFileDriverWrite(file, type, *data, samples, freq, tracks, format);
       free(data);
 #endif
-      rv = AAX_TRUE;
+      rv = true;
    }
    return rv;
 }
@@ -1026,7 +1026,7 @@ get_buffer(aaxBuffer buffer, const char *func)
 int
 free_buffer(_buffer_t* handle)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle)
    {
       if (--handle->ref_counter == 0)
@@ -1042,7 +1042,7 @@ free_buffer(_buffer_t* handle)
          handle->id = FADEDBAD;
          free(handle);
       }
-      rv = AAX_TRUE;
+      rv = true;
    }
    return rv;
 }
@@ -1084,7 +1084,7 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle, unsigned char pos)
 
          /* initialize the ringbuffer in native format only */
          rb->set_paramf(rb, RB_FREQUENCY, info->rate);
-         rb->set_format(rb, info->fmt & AAX_FORMAT_NATIVE, AAX_FALSE);
+         rb->set_format(rb, info->fmt & AAX_FORMAT_NATIVE, false);
          rb->set_parami(rb, RB_NO_TRACKS, info->no_tracks);
 
          // RB_BLOCK_SIZE must be set before RB_TRACKSIZE
@@ -1099,7 +1099,7 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle, unsigned char pos)
          rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
          rb->set_parami(rb, RB_FAST_RELEASE, info->fast_release);
          /* Postpone until aaxBufferSetData gets called
-          * rb->init(rb, AAX_FALSE);
+          * rb->init(rb, false);
           */
       }
    }
@@ -1154,7 +1154,7 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
          info->fmt = _info->format;
 
          res = stream->setup(id, &refrate, &info->fmt, &info->no_tracks,
-                                 &info->rate, &brate, AAX_FALSE, periodrate);
+                                 &info->rate, &brate, false, periodrate);
          if (TEST_FOR_TRUE(res) &&
              (info->no_tracks >= 1 && info->no_tracks <= RB_MAX_TRACKS) &&
              (info->rate >= 4000 && info->rate <= _AAX_MAX_MIXER_FREQUENCY))
@@ -1203,7 +1203,7 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
                   assert(packets <= datasize*8/(info->no_tracks*bits));
 
                   res = stream->capture(id, dst, &offs, &packets,
-                                            dst[1], datasize, 1.0f, AAX_TRUE);
+                                            dst[1], datasize, 1.0f, true);
 //                if (res > 0) size += res;
                   offs_packets += packets;
 //                if (res > 0) {
@@ -1371,7 +1371,7 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
       }
 
       info->fmt = AAX_PCM24S;
-//    rb->set_format(rb, fmt, AAX_FALSE);
+//    rb->set_format(rb, fmt, false);
       rb->set_parami(rb, RB_NO_LAYERS, info->no_tracks);
       rb->set_parami(rb, RB_NO_TRACKS, info->no_tracks);
       rb->set_paramf(rb, RB_FREQUENCY, info->rate);
@@ -1545,7 +1545,7 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const xmlId *xfid, int layer, float 
       case AAX_FREQUENCY_FILTER:
       {
          int state = filter->state & ~(AAX_BUTTERWORTH|AAX_BESSEL);
-         if (state == AAX_TRUE     ||
+         if (state == true     ||
              state == AAX_6DB_OCT  ||
              state == AAX_12DB_OCT ||
              state == AAX_24DB_OCT ||
@@ -1565,7 +1565,7 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const xmlId *xfid, int layer, float 
       }
       aaxFilterDestroy(flt);
    }
-   return AAX_TRUE;
+   return true;
 }
 
 static int
@@ -1581,12 +1581,12 @@ _bufCreateEffectFromAAXS(_buffer_t* handle, const xmlId *xeid, int layer, float 
    if (eff)
    {
       _effect_t* effect = get_effect(eff);
-      if (effect->type == AAX_DISTORTION_EFFECT && effect->state == AAX_TRUE) {
+      if (effect->type == AAX_DISTORTION_EFFECT && effect->state == true) {
          _bufApplyDistortionEffect(handle, effect, layer);
       }
       aaxEffectDestroy(eff);
    }
-   return AAX_TRUE;
+   return true;
 }
 
 #define MUL     (65536.0f*256.0f)
@@ -1657,7 +1657,7 @@ static int
 _bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fsize)
 {
    _buffer_t* handle = aax_buf->parent;
-   int rv = AAX_FALSE;
+   int rv = false;
    FILE *infile;
 
    infile = fopen(fname, "r");
@@ -1719,10 +1719,10 @@ _bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fs
                    size = d[b+1] - d[b];
                    no_samples = size/sizeof(float);
 
-                   if (rb->get_state(rb, RB_IS_VALID) == AAX_FALSE)
+                   if (rb->get_state(rb, RB_IS_VALID) == false)
                    {
                       rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
-                      rb->init(rb, AAX_FALSE);
+                      rb->init(rb, false);
                       handle->ringbuffer[b] = rb;
                    }
                    assert(size <= rb->get_parami(rb, RB_TRACKSIZE));
@@ -1731,7 +1731,7 @@ _bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fs
                    memcpy(tracks[0], ptr, size);
                    rb->release_tracks_ptr(rb);
                 }
-                rv = AAX_TRUE;
+                rv = true;
             }
          }
          free(data);
@@ -1916,7 +1916,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid)
                   }
                }
 
-               if (rv == AAX_FALSE) break;
+               if (rv == false) break;
             }
             xmlFree(xwid);
          }
@@ -1946,7 +1946,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid)
          _bufLimit(rb);
       }
 
-      if (handle->to_mixer) {
+      if (0 && handle->to_mixer) {
          _bufConvertDataToMixerFormat(handle, rb);
       }
       else if (bits == 16)
@@ -1976,7 +1976,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
    float low_frequency = 0.0f;
    float high_frequency = 0.0f;
    int midi_mode;
-   int rv = AAX_FALSE;
+   int rv = false;
    xmlId *xaid, *xiid;
    xmlId *xsid;
 
@@ -2182,7 +2182,7 @@ _bufAAXSThread(void *d)
    _buffer_aax_t *aax_buf = (_buffer_aax_t*)d;
    _buffer_t* handle = aax_buf->parent;
    const void *aaxs =  aax_buf->aaxs;
-   int rv = AAX_FALSE;
+   int rv = false;
    xmlId *xid, *xiid;
 
    assert(handle);
@@ -2291,7 +2291,7 @@ _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
 {
    _handle_t *handle = buffer->root;
    _buffer_aax_t data;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    memset(&data, 0, sizeof(_buffer_aax_t));
 
@@ -2327,7 +2327,7 @@ _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
    if (data.error) {
       _aaxErrorSet(data.error);
    } else {
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -2371,7 +2371,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
          _aaxErrorSet(AAX_INVALID_PARAMETER + 5);
       }
       else if (handle && handle->mixer_info && (*handle->mixer_info && ((*handle->mixer_info)->id == INFO_ID)))
-         rv = AAX_TRUE;
+         rv = true;
    }
 
    if (rv)
@@ -2409,11 +2409,11 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
       hvoices = voices >> 1;
       voices |= 0x1;
 
-      if (rb->get_state(rb, RB_IS_VALID) == AAX_FALSE)
+      if (rb->get_state(rb, RB_IS_VALID) == false)
       {
          no_samples = floorf((no_samples/samps_period)+1)*samps_period;
          rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
-         rb->init(rb, AAX_FALSE);
+         rb->init(rb, false);
       }
 
       switch (ptype)
@@ -2615,11 +2615,11 @@ _bufConvertDataToMixerFormat(_buffer_t *buf, _aaxRingBuffer *rb)
          int32_t **src, **dst;
          unsigned int t, fmt;
 
-         nrb->set_format(nrb, AAX_PCM24S, AAX_FALSE);
+         nrb->set_format(nrb, AAX_PCM24S, false);
          nrb->set_parami(nrb, RB_NO_TRACKS, buf->info.no_tracks);
          nrb->set_parami(nrb, RB_NO_SAMPLES, buf->info.no_samples);
          nrb->set_paramf(nrb, RB_FREQUENCY, buf->info.rate);
-         nrb->init(nrb, AAX_FALSE);
+         nrb->init(nrb, false);
 
          nrb->set_paramf(nrb, RB_LOOPPOINT_END, buf->info.loop_end/buf->info.rate);
          nrb->set_paramf(nrb, RB_LOOPPOINT_START, buf->info.loop_start/buf->info.rate);
@@ -3097,7 +3097,7 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, uns
          for (t=0; t<no_tracks; t++)
          {
             tracks[t] = p;
-            if (rb->get_parami(rb, RB_IS_MIXER_BUFFER) == AAX_FALSE) {
+            if (rb->get_parami(rb, RB_IS_MIXER_BUFFER) == false) {
                _batch_cvtps24_24(ptr[t], ptr[t], no_samples);
             }
             _batch_resample_float(tracks[t], ptr[t], 0, samples, 0, fact);

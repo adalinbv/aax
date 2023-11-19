@@ -161,7 +161,7 @@ AAX_API int AAX_APIENTRY
 aaxDriverSetSetup(const aaxConfig config, enum aaxSetupType type, const char *setup)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle)
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
@@ -292,7 +292,7 @@ aaxDriverGetByName(const char* devname, enum aaxRenderMode mode)
 
          if (!name)
          {
-            _aaxConfig *cfg = _aaxReadConfig(handle, NULL, mode, AAX_FALSE);
+            _aaxConfig *cfg = _aaxReadConfig(handle, NULL, mode, false);
             if (cfg->node[0].devname)
             {
                name = _aax_strdup(cfg->node[0].devname);
@@ -381,7 +381,7 @@ AAX_API int AAX_APIENTRY
 aaxDriverGetSupport(const aaxConfig config, enum aaxRenderMode mode)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (handle)
    {
@@ -409,12 +409,12 @@ aaxDriverOpen(aaxConfig config)
 {
    _handle_t *handle = _open_handle(config);
    const char *env = getenv("AAX_RELEASE_MODE");
-   if (env) __release_mode = _aax_getbool(env) ? AAX_TRUE : AAX_FALSE;
+   if (env) __release_mode = _aax_getbool(env) ? true : false;
 
    if (handle)
    {
       enum aaxRenderMode mode = handle->info->mode;
-      _aaxConfig *cfg = _aaxReadConfig(handle, NULL, mode, AAX_TRUE);
+      _aaxConfig *cfg = _aaxReadConfig(handle, NULL, mode, true);
       const _aaxDriverBackend *be = handle->backend.ptr;
 
       // for debugging purposes
@@ -515,7 +515,7 @@ AAX_API int AAX_APIENTRY
 aaxDriverDestroy(aaxConfig config)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
 
    aaxMixerSetState(handle, AAX_STOPPED);
    aaxSensorSetState(handle, AAX_STOPPED);
@@ -575,7 +575,7 @@ aaxDriverDestroy(aaxConfig config)
       free(handle);
 
       _aaxRemoveDriverBackends(&_backends);
-      rv = AAX_TRUE;
+      rv = true;
    }
    else if (handle) {
        _aaxErrorSet(AAX_INVALID_STATE);
@@ -587,7 +587,7 @@ AAX_API int AAX_APIENTRY
 aaxDriverClose(aaxConfig config)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (handle)
    {
@@ -600,7 +600,7 @@ aaxDriverClose(aaxConfig config)
          be->disconnect(handle->backend.handle);
       }
       handle->backend.handle = NULL;
-      rv = AAX_TRUE;
+      rv = true;
    }
    else {
       _aaxErrorSet(AAX_ERROR_NONE);
@@ -773,7 +773,7 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
 static const char* _aax_default_devname = "None";
 
 time_t _tvnow = 0;
-int __release_mode = AAX_FALSE;
+int __release_mode = false;
 _aaxMixerInfo* _info = NULL;
 _aaxMixerInfo __info;
 

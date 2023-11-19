@@ -89,7 +89,7 @@ _aaxDSPDestroy(_dsp_t* dsp)
    }
    free(dsp);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxDSP
@@ -151,7 +151,7 @@ _aaxDSPMinMax(float val, int slot, unsigned char param)
 
 _dsp_function_tbl _aaxDSP =
 {
-   AAX_TRUE,
+   true,
    "AAX_DSP_template", 1.0f,
    (_aaxDSPCreate*)&_aaxDSPCreate,
    (_aaxDSPDestroy*)&_aaxDSPDestroy,

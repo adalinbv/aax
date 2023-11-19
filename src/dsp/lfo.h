@@ -61,7 +61,7 @@ typedef struct _aaxLFOData_t
    _aaxLFOGetFn *get;
    _convert_fn *convert;
    void *data;				/* used for occlusion              */
-   char inverse, envelope, stereo_link;
+   bool inverse, envelope, stereo_link;
 
    float delay, dt;
    float fs, period_rate;
@@ -91,7 +91,8 @@ typedef struct
    uint32_t pos, repeat0, repeat;
    int state;
    signed char stage, max_stages;
-   unsigned char sustain, sustain_stage;
+   unsigned char sustain_stage;
+   bool sustain;
 } _aaxEnvelopeData;
 
 void _env_reset(_aaxEnvelopeData*);

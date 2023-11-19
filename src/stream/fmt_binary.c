@@ -57,10 +57,10 @@ typedef struct
 int
 _binary_detect(UNUSED(_fmt_t *fmt), int mode)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (!mode) {
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -148,7 +148,7 @@ _binary_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, UNUSED(enum aaxFormat aax_fmt))
       handle->format = AAX_PCM8U;
       break;
    }
-   return AAX_TRUE;
+   return true;
 }
 
 size_t
@@ -196,7 +196,7 @@ _binary_cvt_to_intl(UNUSED(_fmt_t *fmt), UNUSED(void_ptr dptr), UNUSED(const_int
 int
 _binary_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
 {
-   return AAX_FALSE;
+   return false;
 }
 
 char*

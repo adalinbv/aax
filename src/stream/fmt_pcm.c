@@ -70,7 +70,7 @@ static size_t _batch_cvt24_adpcm_intl(_driver_t*, int32_ptrptr, const_void_ptr, 
 int
 _pcm_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
 {
-   return AAX_TRUE;
+   return true;
 }
 
 void*
@@ -125,24 +125,24 @@ int
 _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
 {
    _driver_t *handle = fmt->id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    switch(pcm_fmt)
    {
    case _FMT_PCM:
    {
-      int need_endian_swap = AAX_FALSE;
-      int need_sign_swap = AAX_FALSE;
+      int need_endian_swap = false;
+      int need_sign_swap = false;
 
       handle->format = aax_fmt;
       if ( ((handle->format & AAX_FORMAT_LE) && is_bigendian()) ||
            ((handle->format & AAX_FORMAT_BE) && !is_bigendian()) )
       {
-         need_endian_swap = AAX_TRUE;
+         need_endian_swap = true;
       }
 
       if (handle->format & AAX_FORMAT_UNSIGNED) {
-         need_sign_swap = AAX_TRUE;
+         need_sign_swap = true;
       }
 
       switch (handle->format & AAX_FORMAT_NATIVE)
@@ -155,7 +155,7 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
             handle->cvt_to_signed = _batch_cvt8u_8s;
             handle->cvt_from_signed = _batch_cvt8s_8u;
          }
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_PCM16S:
          handle->cvt_to_intl = _batch_cvt16_intl_24;
@@ -168,7 +168,7 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
             handle->cvt_to_signed = _batch_cvt16u_16s;
             handle->cvt_from_signed = _batch_cvt16s_16u;
          }
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_PCM24S_PACKED:
          handle->cvt_to_intl = _batch_cvt24_3intl_24;
@@ -183,7 +183,7 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
             handle->bits_sample = 32;
             handle->block_size = handle->no_tracks*handle->bits_sample/8;
          }
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_PCM24S:
          handle->cvt_to_intl = _batch_cvt24_intl_24;
@@ -196,7 +196,7 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
          if (need_endian_swap) {
             handle->cvt_endianness = _batch_endianswap32;
          }
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_PCM32S:
          handle->cvt_to_intl = _batch_cvt32_intl_24;
@@ -209,7 +209,7 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
          if (need_endian_swap) {
             handle->cvt_endianness = _batch_endianswap32;
          }
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_FLOAT:
          handle->cvt_to_intl = _batch_cvtps_intl_24;
@@ -217,7 +217,7 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
          if (need_endian_swap) {
             handle->cvt_endianness = _batch_endianswap32;
          }
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_DOUBLE:
          handle->cvt_to_intl = _batch_cvtpd_intl_24;
@@ -225,19 +225,19 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
          if (need_endian_swap) {
             handle->cvt_endianness = _batch_endianswap64;
          }
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_ALAW:
          handle->cvt_from_intl = _batch_cvt24_alaw_intl;
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_MULAW:
          handle->cvt_from_intl = _batch_cvt24_mulaw_intl;
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_IMA4_ADPCM:
 //       if (handle->copy_to_buffer && handle->no_tracks == 1) {
-            rv = AAX_TRUE;
+            rv = true;
 //       }
          break;
       default:
@@ -426,7 +426,7 @@ _pcm_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t off
 int
 _pcm_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
 {
-   return AAX_FALSE;
+   return false;
 }
 
 char*

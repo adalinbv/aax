@@ -79,7 +79,7 @@ _aaxConvolutionThread(void *id)
 static int
 _aaxCPUDetect()
 {
-   return AAX_TRUE;
+   return true;
 }
 
 static void*
@@ -92,7 +92,7 @@ static int
 _aaxCPUClose(void* id)
 {
    if (id) free(id);
-   return AAX_TRUE;
+   return true;
 }
 
 static void*
@@ -118,7 +118,7 @@ _aaxCPUInfo(UNUSED(void *id))
 static int
 _aaxCPUProcess(struct _aaxRenderer_t *render, _aaxRendererData *data)
 {
-   int rv = AAX_TRUE;
+   int rv = true;
 
    if (render->id == (void*)-1) {
       render->id = _aaxRingBufferCreateScratch(data->drb);
@@ -175,7 +175,7 @@ _aaxCPUProcess(struct _aaxRenderer_t *render, _aaxRendererData *data)
          data->callback(rb, data, NULL, t);
       }
 
-      rv = AAX_TRUE;
+      rv = true;
       break;
    }
    case THREAD_PROCESS_CONVOLUTION:
@@ -199,7 +199,7 @@ _aaxCPUProcess(struct _aaxRenderer_t *render, _aaxRendererData *data)
          _aaxThreadJoin(convolution->tid[t]);
       }
 
-      rv = AAX_TRUE;
+      rv = true;
       break;
    }
    default:

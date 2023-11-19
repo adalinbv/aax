@@ -51,7 +51,7 @@ AAX_API int AAX_APIENTRY
 aaxEffectDestroy(aaxEffect e)
 {
    _effect_t* effect = get_effect(e);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (effect)
    {
       _eff_function_tbl *eff = _aaxEffects[effect->type-1];
@@ -70,7 +70,7 @@ aaxEffectSetSlot(aaxEffect e, unsigned slot, int ptype, float p1, float p2, floa
 AAX_API int AAX_APIENTRY
 aaxEffectSetSlotParams(aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    _effect_t* effect = get_effect(e);
    if (effect)
    {
@@ -93,7 +93,7 @@ aaxEffectSetSlotParams(aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
             if TEST_FOR_TRUE(effect->state) {
                rv = aaxEffectSetState(effect, effect->state);
             } else {
-               rv = AAX_TRUE;
+               rv = true;
             }
          }
          else {
@@ -130,7 +130,7 @@ aaxEffectSetParam(const aaxEffect e, int p, int ptype, float value)
       } else if (is_nan(value)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER + 2);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -175,7 +175,7 @@ aaxEffectAddBuffer(aaxEffect eff, aaxBuffer buf)
             if (!eff->data) {
                _aaxErrorSet(AAX_INVALID_STATE);
             } else {
-               rv = AAX_TRUE;
+               rv = true;
             }
          }
       }
@@ -193,7 +193,7 @@ AAX_API int AAX_APIENTRY
 aaxEffectSetState(aaxEffect e, int state)
 {
    _effect_t* effect = get_effect(e);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (effect)
    {
       _eff_function_tbl *eff = _aaxEffects[effect->type-1];
@@ -222,7 +222,7 @@ aaxEffectSetState(aaxEffect e, int state)
             slot++;
          }
 
-         rv = eff->state(effect, state) ? AAX_TRUE : AAX_FALSE;
+         rv = eff->state(effect, state) ? true : false;
       }
    }
    return rv;
@@ -232,7 +232,7 @@ AAX_API int AAX_APIENTRY
 aaxEffectGetState(aaxEffect e)
 {
    _effect_t* effect = get_effect(e);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (effect) {
       rv = effect->state;
    }
@@ -290,7 +290,7 @@ AAX_API int AAX_APIENTRY
 aaxEffectGetSlotParams(const aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
 {
    _effect_t* effect = get_effect(e);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (effect)
    {
       void *handle = effect->handle;
@@ -305,7 +305,7 @@ aaxEffectGetSlotParams(const aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
                int pn = slot << 4 | i;
                p[i] = eff->set(effect->slot[slot]->param[i], ptype, pn);
             }
-            rv = AAX_TRUE;
+            rv = true;
          }
          else {
             _aaxErrorSet(AAX_INVALID_PARAMETER);

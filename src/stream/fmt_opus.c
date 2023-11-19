@@ -91,7 +91,7 @@ static void *audio = NULL;
 int
 _opus_detect(UNUSED(_fmt_t *fmt), int mode)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
 return rv;
 
    audio = _aaxIsLibraryPresent("opus", "0");
@@ -133,7 +133,7 @@ return rv;
          TIE_FUNCTION(opus_strerror);
          TIE_FUNCTION(opus_get_version_string);
 
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -264,7 +264,7 @@ _opus_close(_fmt_t *fmt)
 int
 _opus_setup(UNUSED(_fmt_t *fmt), UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_fmt))
 {
-   return AAX_TRUE;
+   return true;
 }
 
 size_t
@@ -399,7 +399,7 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
          {
             rv += _aaxDataMove(handle->opusBuffer, 0, NULL, packetSize);
 
-            handle->recover = AAX_FALSE;
+            handle->recover = false;
             _aaxDataIncreaseOffset(handle->pcmBuffer, 0, ret*bps);
 
             // copy the remaining samples
@@ -426,7 +426,7 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
          }
          else if (ret < 0)
          {
-            handle->recover = AAX_TRUE;
+            handle->recover = true;
             _AAX_FILEDRVLOG(popus_strerror(ret));
             rv = __F_NEED_MORE;
          }
@@ -474,53 +474,53 @@ int
 _opus_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
 {
    _driver_t *handle = fmt->id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    switch(param)
    {
    case __F_ARTIST:
       handle->meta.artist = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_TITLE:
       handle->meta.title = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_GENRE:
       handle->meta.genre = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_TRACKNO:
       handle->meta.trackno = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_ALBUM:
       handle->meta.album = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_DATE:
       handle->meta.date = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_COMPOSER:
       handle->meta.composer = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_COMMENT:
       handle->meta.comments = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_COPYRIGHT:
       handle->meta.copyright = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_ORIGINAL:
       handle->meta.original = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_WEBSITE:
       handle->meta.website = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    default:
       break;

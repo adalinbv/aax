@@ -108,7 +108,7 @@ _aaxDataDestroy(_data_t* buf)
       free(buf);
    }
 
-   return AAX_TRUE;
+   return true;
 }
 
 size_t

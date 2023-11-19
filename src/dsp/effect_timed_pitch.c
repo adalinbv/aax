@@ -51,14 +51,14 @@ _aaxTimedPitchEffectDestroy(_effect_t* effect)
    }
    free(effect);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxEffect
 _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
-   aaxEffect rv = AAX_FALSE;
+   aaxEffect rv = false;
 
    if TEST_FOR_TRUE(state)
    {
@@ -78,7 +78,7 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
          int i, stage;
 
          stage = 0;
-         env->sustain = AAX_TRUE;
+         env->sustain = true;
          env->value0 = env->value = nextval;
          env->max_stages = _MAX_ENVELOPE_STAGES-1;
          for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
@@ -224,7 +224,7 @@ _aaxTimedPitchEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxTimedPitchEffect =
 {
-   AAX_FALSE,
+   false,
    "AAX_timed_pitch_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxTimedPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxTimedPitchEffectDestroy,

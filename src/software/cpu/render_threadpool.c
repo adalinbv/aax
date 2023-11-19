@@ -106,7 +106,7 @@ static void* _aaxWorkerThread(void*);
 
 static int
 _aaxWorkerDetect() {
-   return AAX_TRUE;
+   return true;
 }
 
 static void*
@@ -125,7 +125,7 @@ _aaxWorkerClose(void* id)
    for (i=0; i<handle->no_workers; i++)
    {
       struct threat_t *thread = &handle->thread[i];
-      thread->started = AAX_FALSE;
+      thread->started = false;
    }
 
    // signal and wait for the worker-threads to quit
@@ -152,7 +152,7 @@ _aaxWorkerClose(void* id)
    if (handle->id) free(handle->id);
    free(handle);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static void*
@@ -182,7 +182,7 @@ _aaxWorkerSetup(int dt)
          if (res == 0)
          {
             int q = 100;
-            while (q-- && thread->started != AAX_TRUE) {
+            while (q-- && thread->started != true) {
                msecSleep(1);
             }
          }
@@ -220,7 +220,7 @@ _aaxWorkerInfo(void *id)
 static int
 _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
 
    switch(data->mode)
    {
@@ -264,13 +264,13 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
 #ifndef NDEBUG
             // In DEBUG mode handle->processed is too slow to set the
             // processed flag in a timely manner causing rv always to
-            // be AAX_FALSE.
+            // be false.
             // As a result the audio-frame will not get rendered even if
             // there are active emitters, which causes silence.
-            // Therefore always return AAX_TRUE in DEBUG mode.
-            rv = AAX_TRUE;
+            // Therefore always return true in DEBUG mode.
+            rv = true;
 #else
-            rv = _aaxAtomicIntSet(&handle->processed, AAX_FALSE);
+            rv = _aaxAtomicIntSet(&handle->processed, false);
 #endif
          }
          _intBufReleaseNum(he, _AAX_EMITTER);
@@ -302,7 +302,7 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
          data->callback(rb, data, NULL, t);
       }
 
-      rv = AAX_TRUE;
+      rv = true;
       break;
 #else
       _render_t *handle = renderer->id;
@@ -324,7 +324,7 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
       // Wait until al worker threads are finished
       _aaxSemaphoreWait(handle->worker_ready);
 
-      rv = AAX_TRUE;
+      rv = true;
       break;
 #endif
    }
@@ -348,7 +348,7 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
       // Wait until al worker threads are finished
       _aaxSemaphoreWait(handle->worker_ready);
 
-      rv = AAX_TRUE;
+      rv = true;
       break;
    }
    default:
@@ -372,11 +372,11 @@ _aaxWorkerThread(void *id)
    thread = &handle->thread[worker_no];
 
    _aaxThreadSetAffinity(thread->ptr, worker_no % _aaxGetNoCores());
-   thread->started = AAX_TRUE;
+   thread->started = true;
 
    // wait for our first job
    _aaxSemaphoreWait(handle->worker_start);
-   if (thread->started == AAX_TRUE)
+   if (thread->started == true)
    {
       int *busy = &handle->workers_busy;
       int *num = &handle->max_emitters;
@@ -389,7 +389,7 @@ _aaxWorkerThread(void *id)
 
       scratch = _aaxRingBufferCreateScratch(data->drb);
 
-      drb = data->drb->duplicate(data->drb, AAX_TRUE, AAX_TRUE);
+      drb = data->drb->duplicate(data->drb, true, true);
       drb->set_state(drb, RB_STARTED);
 
       _aaxThreadSetPriority(thread->ptr, AAX_HIGH_PRIORITY);
@@ -402,7 +402,7 @@ _aaxWorkerThread(void *id)
          case THREAD_PROCESS_EMITTER:
          {
             int max = _aaxAtomicIntSub(num, _AAX_MIN_EMITTERS_PER_WORKER);
-            int r = AAX_FALSE;
+            int r = false;
 
              /*
              * It might be possible that other threads aleady processed
@@ -431,7 +431,7 @@ _aaxWorkerThread(void *id)
                while (max > 0);
 
                if (r) {
-                  _aaxAtomicIntSet(&handle->processed, AAX_TRUE);
+                  _aaxAtomicIntSet(&handle->processed, true);
                }
 
                /* mix our own ringbuffer with that of the mixer */
@@ -463,7 +463,7 @@ _aaxWorkerThread(void *id)
 
          _aaxSemaphoreWait(handle->worker_start);
       }
-      while (thread->started == AAX_TRUE);
+      while (thread->started == true);
 
       free(scratch);
       drb->destroy(drb);

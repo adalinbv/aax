@@ -45,7 +45,7 @@ _data_t* _aaxDataCreate(unsigned char no_buffers, size_t size, unsigned int bloc
  *
  * buf: the previously created data structure.
  *
- * return AAX_TRUE
+ * return true
  */
 int _aaxDataDestroy(_data_t* buf);
 

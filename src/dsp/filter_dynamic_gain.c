@@ -52,14 +52,14 @@ _aaxDynamicGainFilterDestroy(_filter_t* filter)
    }
    free(filter);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxFilter
 _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
-   aaxFilter rv = AAX_FALSE;
+   aaxFilter rv = false;
 
    assert(filter->info);
 
@@ -90,8 +90,8 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
             float f;
 
             lfo->convert = _linear;
-            lfo->envelope = AAX_TRUE;
-            lfo->stereo_link = AAX_TRUE;
+            lfo->envelope = true;
+            lfo->stereo_link = true;
 
             f = filter->slot[0]->param[AAX_RELEASE_RATE];
             lfo->min_sec = _aaxDynamicGainFilterMinMax(f, 0, AAX_RELEASE_RATE);
@@ -123,7 +123,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
                 offset = 1.0f;
             }
 
-            lfo->envelope = AAX_FALSE;
+            lfo->envelope = false;
             lfo->min_sec = offset/lfo->fs;
             lfo->max_sec =  lfo->min_sec + depth/lfo->fs;
             lfo->delay = -filter->slot[0]->param[AAX_INITIAL_DELAY];
@@ -147,7 +147,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // inetnional fall-through
-   case AAX_FALSE:
+   case false:
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
@@ -211,7 +211,7 @@ _aaxDynamicGainFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxDynamicGainFilter =
 {
-   AAX_FALSE,
+   false,
    "AAX_dynamic_gain_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxDynamicGainFilterCreate,
    (_aaxFilterDestroy*)&_aaxDynamicGainFilterDestroy,

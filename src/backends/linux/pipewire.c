@@ -55,8 +55,8 @@
 #define DEFAULT_OUTPUT_RATE	48000
 #define DEFAULT_REFRESH		25.0
 
-#define USE_PIPEWIRE_THREAD	AAX_TRUE
-#define TIMING_DEBUG		AAX_FALSE
+#define USE_PIPEWIRE_THREAD	true
+#define TIMING_DEBUG		false
 
 #define BUFFER_SIZE_FACTOR	4.0f
 #define CAPTURE_BUFFER_SIZE	(DEFAULT_PERIODS*8192)
@@ -231,7 +231,7 @@ static int spa_audio_info_raw_valid(const struct spa_audio_info_raw*);
 static void hotplug_loop_destroy();
 static int hotplug_loop_init();
 
-static char pipewire_initialized = AAX_FALSE;
+static char pipewire_initialized = false;
 static const char *_const_pipewire_default_name = DEFAULT_DEVNAME;
 const char *_const_pipewire_default_device = NULL;
 
@@ -252,7 +252,7 @@ static char pulseaudio = -1;
 int
 _aaxPipeWireDriverDetect(UNUSED(int mode))
 {
-   static int rv = AAX_FALSE;
+   static int rv = false;
    char *error = NULL;
 #if HAVE_PULSEAUDIO_H
    const char *env = getenv("AAX_SHOW_PIPEWIRE_DEVICES");
@@ -314,7 +314,7 @@ _aaxPipeWireDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(pw_get_library_version);
          TIE_FUNCTION(pw_get_application_name);
          TIE_FUNCTION(pw_get_prgname);
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -383,7 +383,7 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
          int err;
 
          ppw_init(NULL, NULL);
-         pipewire_initialized = AAX_TRUE;
+         pipewire_initialized = true;
 
          err = hotplug_loop_init();
          if (err != 0)
@@ -405,7 +405,7 @@ _aaxPipeWireDriverFreeHandle(UNUSED(void *id))
    _aaxCloseLibrary(audio);
    audio = NULL;
 
-   return AAX_TRUE;
+   return true;
 }
 
 static void *
@@ -536,7 +536,7 @@ static int
 _aaxPipeWireDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (handle)
    {
@@ -577,12 +577,12 @@ _aaxPipeWireDriverDisconnect(void *id)
 
       free(handle);
 
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    if (pipewire_initialized)
    {
-      pipewire_initialized = AAX_FALSE;
+      pipewire_initialized = false;
       hotplug_loop_destroy();
    }
 
@@ -598,7 +598,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
    unsigned int period_samples;
    struct spa_audio_info_raw req;
    int periods; // frame_sz;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    *fmt = AAX_PCM16S;
 
@@ -676,7 +676,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->cvt_from_intl = _batch_cvt24_8_intl;
          break;
       default:
-         rv = AAX_FALSE;
+         rv = false;
          break;
       }
 
@@ -714,7 +714,7 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
             snprintf(_pipewire_id_str, MAX_ID_STRLEN ,"%s %s",
                      DEFAULT_RENDERER, rstr);
          }
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -773,11 +773,11 @@ _aaxPipeWireDriverCapture(const void *id, void **data, ssize_t *offset, size_t *
 
    *offset = 0;
    if ((handle->mode != 0) || (frames == 0) || (data == 0)) {
-     return AAX_FALSE;
+     return false;
    }
 
    if (nframes == 0) {
-      return AAX_TRUE;
+      return true;
    }
 
    if (handle->dataBuffer == 0)
@@ -795,7 +795,7 @@ _aaxPipeWireDriverCapture(const void *id, void **data, ssize_t *offset, size_t *
       }
 
       handle->dataBuffer = _aaxDataCreate(1, size, 1);
-      if (handle->dataBuffer == 0) return AAX_FALSE;
+      if (handle->dataBuffer == 0) return false;
 
 //    stream_set_read_callback
    }
@@ -828,7 +828,7 @@ _aaxPipeWireDriverCapture(const void *id, void **data, ssize_t *offset, size_t *
       *frames = nframes;
    }
 
-   return AAX_TRUE;
+   return true;
 }
 
 static size_t
@@ -897,7 +897,7 @@ static int
 _aaxPipeWireDriverSetName(const void *id, int type, const char *name)
 {
    _driver_t *handle = (_driver_t *)id;
-   int ret = AAX_FALSE;
+   int ret = false;
    if (handle)
    {
       struct spa_dict_item item[3];
@@ -912,7 +912,7 @@ _aaxPipeWireDriverSetName(const void *id, int type, const char *name)
          item[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_ARTIST, name);
          item[1] = SPA_DICT_ITEM_INIT(PW_KEY_NODE_NAME, name);
          nitems = 2;
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_TRACK_TITLE_STRING:
       case AAX_TRACK_TITLE_UPDATE:
@@ -921,25 +921,25 @@ _aaxPipeWireDriverSetName(const void *id, int type, const char *name)
          item[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_TITLE, name);
          item[1] = SPA_DICT_ITEM_INIT(PW_KEY_NODE_DESCRIPTION, name);
          nitems = 2;
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_SONG_COPYRIGHT_STRING:
          if (handle->meta.copyright) free(handle->meta.copyright);
          handle->meta.copyright = strdup(name);
          item[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_COPYRIGHT, name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_SONG_COMMENT_STRING:
          if (handle->meta.comments) free(handle->meta.comments);
          handle->meta.comments = strdup(name);
          item[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_COMMENT, name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_RELEASE_DATE_STRING:
          if (handle->meta.date) free(handle->meta.date);
          handle->meta.date = strdup(name);
          item[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_DATE, name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_COVER_IMAGE_DATA:
       case AAX_MUSIC_GENRE_STRING:
@@ -988,7 +988,7 @@ static int
 _aaxPipeWireDriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    switch(state)
    {
@@ -996,25 +996,25 @@ _aaxPipeWireDriverState(const void *id, enum _aaxDriverState state)
       if (handle)
       {
          ppw_thread_loop_lock(handle->ml);
-         ppw_stream_set_active(handle->pw, AAX_FALSE);
+         ppw_stream_set_active(handle->pw, false);
          ppw_thread_loop_unlock(handle->ml);
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    case DRIVER_RESUME:
       if (handle)
       {
          ppw_thread_loop_lock(handle->ml);
-         ppw_stream_set_active(handle->pw, AAX_TRUE);
+         ppw_stream_set_active(handle->pw, true);
          ppw_thread_loop_unlock(handle->ml);
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    case DRIVER_AVAILABLE:
    case DRIVER_SHARED_MIXER:
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case DRIVER_NEED_REINIT:
    default:
@@ -1081,7 +1081,7 @@ _aaxPipeWireDriverParam(const void *id, enum _aaxDriverParam param)
 
 		/* boolean */
       case DRIVER_SHARED_MODE:
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case DRIVER_TIMER_MODE:
       case DRIVER_BATCHED_MODE:
@@ -1214,8 +1214,8 @@ static struct spa_hook hotplug_core_listener;
 static struct spa_list hotplug_pending_list;
 static struct spa_list hotplug_io_list;
 static int hotplug_init_seq_val = 0;
-static char hotplug_init_complete = AAX_FALSE;
-static char hotplug_events_enabled = AAX_FALSE;
+static char hotplug_init_complete = false;
+static char hotplug_events_enabled = false;
 
 static uint32_t pipewire_default_sink_id = SPA_ID_INVALID;
 static uint32_t pipewire_default_source_id = SPA_ID_INVALID;
@@ -1264,7 +1264,7 @@ struct io_node
 static int
 spa_sample_format_valid(unsigned format)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    switch(format)
    {
    case SPA_AUDIO_FORMAT_ALAW:
@@ -1289,7 +1289,7 @@ spa_sample_format_valid(unsigned format)
    case SPA_AUDIO_FORMAT_F32_BE:
    case SPA_AUDIO_FORMAT_F64_LE:
    case SPA_AUDIO_FORMAT_F64_BE:
-      rv = AAX_TRUE;
+      rv = true;
       break;
    default:
       break;
@@ -1353,12 +1353,12 @@ get_range_param(const struct spa_pod *param, uint32_t key, int *def, int *min, i
                  *max = (int)v[2];
             }
 
-            return AAX_TRUE;
+            return true;
          }
       }
    }
 
-   return AAX_FALSE;
+   return false;
 }
 
 static char
@@ -1374,10 +1374,10 @@ get_int_param(const struct spa_pod *param, uint32_t key, int *val)
       if (val) {
          *val = (int)v;
       }
-      return AAX_TRUE;
+      return true;
    }
 
-   return AAX_FALSE;
+   return false;
 }
 
 /* The active node list */
@@ -1385,14 +1385,14 @@ static char
 io_list_check_add(struct io_node *node)
 {
    struct io_node *n;
-   char ret = AAX_TRUE;
+   char ret = true;
 
    /* See if the node is already in the list */
    spa_list_for_each (n, &hotplug_io_list, link)
    {
       if (n->id == node->id)
       {
-         ret = AAX_FALSE;
+         ret = false;
          goto dup_found;
       }
    }
@@ -1552,7 +1552,7 @@ core_events_hotplug_init_callback(void *object, uint32_t id, int seq)
       spa_hook_remove(&hotplug_core_listener);
 
       /* Signal that the initial I/O list is populated */
-      hotplug_init_complete = AAX_TRUE;
+      hotplug_init_complete = true;
       ppw_thread_loop_signal(hotplug_loop, false);
    }
 }
@@ -1715,9 +1715,9 @@ registry_event_global_callback(void *object, uint32_t id, uint32_t permissions, 
 
          /* Just want sink and capture */
          if (!strcasecmp(media_class, "Audio/Sink")) {
-            is_capture = AAX_FALSE;
+            is_capture = false;
          } else if (!strcasecmp(media_class, "Audio/Source")) {
-            is_capture = AAX_TRUE;
+            is_capture = true;
          } else {
             return;
          }
@@ -1728,14 +1728,14 @@ registry_event_global_callback(void *object, uint32_t id, uint32_t permissions, 
 #endif
          }
 
-         is_lazy = AAX_FALSE;
+         is_lazy = false;
          if (pulseaudio)
          {
             node_desc = spa_dict_lookup(props, PW_KEY_NODE_NAME);
             if (node_desc && (!strncmp(node_desc, "alsa_output.usb", 15) ||
                               !strncmp(node_desc, "alsa_output.bluetooth", 21)))
             {
-               is_lazy = AAX_TRUE;
+               is_lazy = true;
             }
          }
 
@@ -1860,8 +1860,8 @@ hotplug_loop_destroy()
    pending_list_clear();
    io_list_clear();
 
-   hotplug_init_complete = AAX_FALSE;
-   hotplug_events_enabled = AAX_FALSE;
+   hotplug_init_complete = false;
+   hotplug_events_enabled = false;
 
    pipewire_default_sink_id = SPA_ID_INVALID;
    pipewire_default_source_id = SPA_ID_INVALID;
@@ -1925,7 +1925,7 @@ _pipewire_detect_devices(char description[2][MAX_DEVICES_LIST])
       int err;
 
       ppw_init(NULL, NULL);
-      pipewire_initialized = AAX_TRUE;
+      pipewire_initialized = true;
 
       err = hotplug_loop_init();
       if (err != 0)
@@ -1933,7 +1933,7 @@ _pipewire_detect_devices(char description[2][MAX_DEVICES_LIST])
          _aaxPipeWireDriverLogVar(NULL, "PipeWire: hotplug loop error: %s",
                                   strerror(errno));
          hotplug_loop_destroy();
-         pipewire_initialized = AAX_FALSE;
+         pipewire_initialized = false;
       }
    }
 
@@ -1963,7 +1963,7 @@ _pipewire_detect_devices(char description[2][MAX_DEVICES_LIST])
          }
       }
 
-      hotplug_events_enabled = AAX_TRUE;
+      hotplug_events_enabled = true;
 
       ppw_thread_loop_unlock(hotplug_loop);
    }
@@ -2182,7 +2182,7 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, enum pw_stream_flags flags, co
    struct spa_audio_info_raw spa_info = { 0 };
    const struct spa_pod *params = NULL;
    struct spa_pod_builder b;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    *error = NULL;
 
@@ -2286,7 +2286,7 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, enum pw_stream_flags flags, co
                         handle->spec.rate = atoi(p+1);
                         handle->latency = (float)handle->period_frames/handle->spec.rate;
                      }
-                     rv = AAX_TRUE;
+                     rv = true;
                   }
                }
                else {
@@ -2436,10 +2436,10 @@ _aaxPipeWireDriverThread(void* config)
          freq = info->frequency;
          tracks = info->no_tracks;
          dest_rb->set_parami(dest_rb, RB_NO_TRACKS, tracks);
-         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
+         dest_rb->set_format(dest_rb, AAX_PCM24S, true);
          dest_rb->set_paramf(dest_rb, RB_FREQUENCY, freq);
          dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
-         dest_rb->init(dest_rb, AAX_TRUE);
+         dest_rb->init(dest_rb, true);
          dest_rb->set_state(dest_rb, RB_STARTED);
 
          handle->ringbuffer = dest_rb;
@@ -2485,7 +2485,7 @@ _aaxPipeWireDriverThread(void* config)
         be_handle->callback_dt, delay_sec, be_handle->callback_avail);
 #endif
    }
-   while (res == AAX_TIMEOUT || res == AAX_TRUE);
+   while (res == AAX_TIMEOUT || res == true);
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
 

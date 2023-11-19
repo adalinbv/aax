@@ -182,7 +182,7 @@ static void *audio = NULL;
 static int
 _aaxOSSDriverDetect(UNUSED(int mode))
 {
-   static int rv = AAX_FALSE;
+   static int rv = false;
 
    _AAX_LOG(LOG_DEBUG, __func__);
      
@@ -194,7 +194,7 @@ _aaxOSSDriverDetect(UNUSED(int mode))
    }
 
    if (audio && (get_oss_version() > 0)) {
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -230,7 +230,7 @@ _aaxOSSDriverFreeHandle(UNUSED(void *id))
    _aaxCloseLibrary(audio);
    audio = NULL;
 
-   return AAX_TRUE;
+   return true;
 }
 
 static void *
@@ -384,7 +384,7 @@ static int
 _aaxOSSDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (handle)
    {
@@ -418,7 +418,7 @@ _aaxOSSDriverDisconnect(void *id)
       if (handle->ptr) free(handle->ptr);
       free(handle);
 
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -454,7 +454,7 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
       snprintf((char *)&str, 255, "OSS: Unable to output to %i speakers in "
                 "this setup (2 is the maximum)", *tracks);
       _AAX_SYSLOG(str);
-      return AAX_FALSE;
+      return false;
    }
 
    fd = handle->fd;
@@ -570,7 +570,7 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    }
 
-   return (err >= 0) ? AAX_TRUE : AAX_FALSE;
+   return (err >= 0) ? true : false;
 }
 
 
@@ -579,7 +579,7 @@ _aaxOSSDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
 {
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs = *offset;
-   ssize_t rv = AAX_FALSE;
+   ssize_t rv = false;
  
    assert(handle->mode == O_RDONLY);
 
@@ -608,14 +608,14 @@ _aaxOSSDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
          _oss_set_volume(handle, sbuf, offs, res, tracks, gain);
          *frames = res;
 
-         rv = AAX_TRUE;
+         rv = true;
       }
       else {
          _AAX_SYSLOG(strerror(errno));
       }
    }
 
-   return AAX_FALSE;
+   return false;
 }
 
 static size_t
@@ -708,7 +708,7 @@ static int
 _aaxOSSDriverSetName(const void *id, int type, const char *name)
 {
    _driver_t *handle = (_driver_t *)id;
-   int ret = AAX_FALSE;
+   int ret = false;
    if (handle)
    {
       switch (type)
@@ -743,7 +743,7 @@ static int
 _aaxOSSDriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    switch(state)
    {
@@ -752,7 +752,7 @@ _aaxOSSDriverState(const void *id, enum _aaxDriverState state)
       {
          close(handle->fd);
          handle->fd = -1;
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    case DRIVER_RESUME:
@@ -787,7 +787,7 @@ _aaxOSSDriverState(const void *id, enum _aaxDriverState state)
                err = pioctl(fd, SNDCTL_DSP_SPEED, &param);
             }
             if (err >= 0) {
-               rv = AAX_TRUE;
+               rv = true;
             }
          }
       }
@@ -801,19 +801,19 @@ _aaxOSSDriverState(const void *id, enum _aaxDriverState state)
          ainfo.dev = handle->nodenum;
          err = pioctl(handle->fd, SNDCTL_AUDIOINFO_EX, &ainfo);
          if (err >= 0 && ainfo.enabled) {
-           rv = AAX_TRUE;
+           rv = true;
          }
       }
       else {
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    case DRIVER_SHARED_MIXER:
-      rv = handle->exclusive ? AAX_FALSE : AAX_TRUE;
+      rv = handle->exclusive ? false : true;
       break;
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case DRIVER_NEED_REINIT:
    default:
@@ -882,7 +882,7 @@ _aaxOSSDriverParam(const void *id, enum _aaxDriverParam param)
 
 		/* boolean */
       case DRIVER_SHARED_MODE:
-         rv = (float)AAX_TRUE;
+         rv = (float)true;
          break;
       case DRIVER_BATCHED_MODE:
       case DRIVER_TIMER_MODE:
@@ -1280,7 +1280,7 @@ static int
 detect_devnode(_driver_t *handle, UNUSED(char mode))
 {
    int version = get_oss_version();
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (version >= OSS_VERSION_4)
    {
@@ -1307,7 +1307,7 @@ detect_devnode(_driver_t *handle, UNUSED(char mode))
          if (err >= 0)
          {
             handle->devnode = _aax_strdup(ainfo.devnode);
-            rv = AAX_TRUE;
+            rv = true;
          }
       }
    }
@@ -1319,13 +1319,13 @@ detect_devnode(_driver_t *handle, UNUSED(char mode))
       {
          snprintf(name, len, "/dev/dsp%i", handle->nodenum);
          handle->devnode = name;
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
    else
    {
       handle->devnode = (char*)_const_oss_default_name;
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;

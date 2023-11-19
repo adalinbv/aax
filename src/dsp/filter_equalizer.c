@@ -66,7 +66,7 @@ _aaxEqualizerDestroy(_filter_t* filter)
    }
    free(filter);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxFilter
@@ -75,7 +75,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
    void *handle = filter->handle;
    aaxFilter rv = NULL;
 
-   if (state == AAX_TRUE)
+   if (state == true)
    {
       _aaxRingBufferFreqFilterData *flt[_AAX_EQFILTERS];
       unsigned s;
@@ -177,7 +177,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          for (s=0; s<_AAX_EQFILTERS; ++s)
          {
             float fc = filter->slot[s]->param[AAX_CUTOFF_FREQUENCY];
-            int lp = (gain[s] >= gain[s+1]) ? AAX_TRUE : AAX_FALSE;
+            int lp = (gain[s] >= gain[s+1]) ? true : false;
             int stages, state = filter->slot[s]->src;
             int ostate = state & AAX_ORDER_MASK;
 
@@ -213,7 +213,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
       rv = filter;
    }
-   else if (state == AAX_FALSE)
+   else if (state == false)
    {
       if (filter->slot[EQUALIZER_LF]->data)
       {
@@ -291,7 +291,7 @@ _aaxEqualizerMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxEqualizer =
 {
-   AAX_FALSE,
+   false,
    "AAX_equalizer_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxEqualizerCreate,
    (_aaxFilterDestroy*)&_aaxEqualizerDestroy,
@@ -354,5 +354,5 @@ _equalizer_run(void *rb, MIX_PTR_T dptr, UNUSED(MIX_PTR_T scratch),
       }
    }
 
-   return AAX_TRUE;
+   return true;
 }

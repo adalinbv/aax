@@ -53,14 +53,14 @@ _aaxDynamicTimbreFilterDestroy(_filter_t* filter)
    }
    free(filter);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxFilter
 _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
-   aaxFilter rv = AAX_FALSE;
+   aaxFilter rv = false;
 
    assert(filter->info);
 
@@ -112,7 +112,7 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // inetnional fall-through
-   case AAX_FALSE:
+   case false:
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
@@ -176,7 +176,7 @@ _aaxDynamicTimbreFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxDynamicTimbreFilter =
 {
-   AAX_FALSE,
+   false,
    "AAX_dynamic_layer_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxDynamicTimbreFilterCreate,
    (_aaxFilterDestroy*)&_aaxDynamicTimbreFilterDestroy,

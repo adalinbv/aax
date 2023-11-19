@@ -352,7 +352,7 @@ _aaxSetFilterSlotState(const aaxFilter f, int slot, int state)
 
    filter->slot[slot]->src = state;
 
-   return AAX_TRUE;
+   return true;
 }
 
 static int
@@ -362,14 +362,14 @@ _aaxSetEffectSlotState(const aaxEffect e, int slot, int state)
 
    effect->slot[slot]->src = state;
 
-   return AAX_TRUE;
+   return true;
 }
 
 static int
 _aaxSetSlotFromAAXS(const xmlId *xid, int (*setStateFn)(void*, int, int), int (*setParamFn)(void*, int, int, float), void *id, float freq, float min, float max, _midi_t *midi)
 {
    unsigned int s, snum = xmlNodeGetNum(xid, "slot");
-   int rv = AAX_FALSE;
+   int rv = false;
    xmlId *xsid;
 
    xsid = xmlMarkId(xid);
@@ -471,7 +471,7 @@ _aaxSetSlotFromAAXS(const xmlId *xid, int (*setStateFn)(void*, int, int), int (*
                }
                xmlFree(xpid);
             }
-            rv = AAX_TRUE;
+            rv = true;
          }
       }
    }

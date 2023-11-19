@@ -62,7 +62,7 @@ _aaxVolumeFilterDestroy(_filter_t* filter)
    }
    free(filter);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxFilter
@@ -151,7 +151,7 @@ _aaxVolumeFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxVolumeFilter =
 {
-   AAX_TRUE,
+   true,
    "AAX_volume_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxVolumeFilterCreate,
    (_aaxFilterDestroy*)&_aaxVolumeFilterDestroy,
@@ -192,7 +192,7 @@ _aaxRingBufferOcclusionData*
 _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
                   int state, float fs)
 {
-   if (state != AAX_FALSE &&
+   if (state != false &&
        ((slot->param[0] >= 0.1f && slot->param[1] >= 0.1f) ||
         (slot->param[0] >= 0.1f && slot->param[2] >= 0.1f) ||
         (slot->param[1] >= 0.1f && slot->param[2] >= 0.1f)) &&
@@ -233,7 +233,7 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
          occlusion->gain_reverb = 1.0f;
          occlusion->gain = 1.0f;
          occlusion->level = 0.0f;
-         occlusion->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         occlusion->inverse = (state & AAX_INVERSE) ? true : false;
 
          occlusion->freq_filter.run = _freqfilter_run;
          occlusion->freq_filter.lfo = 0;
@@ -253,7 +253,7 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
             _aaxLFOData* lfo = occlusion->freq_filter.lfo;
 
             lfo->data = occlusion;
-            lfo->state = AAX_TRUE;
+            lfo->state = true;
             lfo->fs = fs;
             lfo->period_rate = 1.0f/fs;
          
@@ -265,9 +265,9 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
             lfo->depth = 1.0f;
             lfo->offset = 0.0f;
             lfo->f = 0.6f;
-            lfo->inverse = AAX_TRUE;
-            lfo->stereo_link = AAX_TRUE;
-            lfo->envelope = AAX_FALSE;
+            lfo->inverse = true;
+            lfo->stereo_link = true;
+            lfo->envelope = false;
 
             lfo->get = _occlusion_lfo;
          }
@@ -330,7 +330,7 @@ _occlusion_prepare(_aaxEmitter *src, const _aax3dProps *fp3d, void *data)
          if (cpath && (cpath->occlusion.v4[3] > 0.01f))
          {
             float density = cpath->occlusion.v4[3];
-            int ahead, blocked = AAX_FALSE;
+            int ahead, blocked = false;
 
             // calculate the sum of the current dimension vector and the
             // parent dimension vector, and test fpvec against that.
@@ -469,14 +469,14 @@ _occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, UNUSED(MIX_PTR_T 
    _aaxRingBufferOcclusionData *occlusion = (_aaxRingBufferOcclusionData*)data;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferFreqFilterData *freq_flt;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    /* add the direct path */
    assert(occlusion);
 
    // TODO: Make sure we actually need to filter something, otherwise
    //
-   rv = AAX_TRUE;
+   rv = true;
 
    freq_flt = &occlusion->freq_filter;
    freq_flt->run(rbd, scratch, sptr, 0, samples, 0, track, freq_flt, NULL, 1.0f, 0);

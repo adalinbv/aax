@@ -108,7 +108,7 @@ AAX_API int AAX_APIENTRY
 aaxEmitterDestroy(aaxEmitter emitter)
 {
    _emitter_t *handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle)
    {
 //    _aaxRingBufferDelayEffectData* data;
@@ -142,7 +142,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
          handle->id = FADEDBAD;
          free(handle);
          handle = 0;
-         rv = AAX_TRUE;
+         rv = true;
       }
       else
       {
@@ -185,12 +185,12 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
                   if (!handle->midi.mode) {
                      handle->midi.mode = buffer->midi_mode;
                   }
-                  rv = AAX_TRUE;
+                  rv = true;
                }
             } else if (!buffer->aaxs) {
                _aaxErrorSet(AAX_INVALID_STATE);
             } else {
-               rv = AAX_TRUE;
+               rv = true;
             }
          }
       }
@@ -245,7 +245,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
          else
          {
             _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-            rv = AAX_FALSE;
+            rv = false;
          }
          _emitterCreateEFFromRingbuffer(handle, embuf);
          _emitterSetPitch(src, ep2d);
@@ -276,7 +276,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
       if (!_IS_PROCESSED(src->props3d) && src->buffer_pos == 0) {
          _aaxErrorSet(AAX_INVALID_STATE);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -303,7 +303,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
       else
       {
          _aaxErrorSet(AAX_INVALID_REFERENCE);
-         rv = AAX_FALSE;
+         rv = false;
       }
    }
    put_emitter(handle);
@@ -378,7 +378,7 @@ AAX_API int AAX_APIENTRY
 aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle)
    {
       _aaxEmitter *src = handle->source;
@@ -396,7 +396,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             }
          }
          else if (_IS_PAUSED(src->props3d)) {
-            _TAS_PAUSED(src->props3d, AAX_FALSE);
+            _TAS_PAUSED(src->props3d, false);
          }
          // intentional fallthrough
       case AAX_UPDATE:				/* update distance delay */
@@ -422,7 +422,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
                _aaxEMitterResetDistDelay(src, pmixer);
             }
          }
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_STOPPED:
          if (_IS_PLAYING(src->props3d))
@@ -444,13 +444,13 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
                _SET_STOPPED(src->props3d);
             }
          }
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_SUSPENDED:
          if (_IS_PLAYING(src->props3d)) {
             _SET_PAUSED(src->props3d);
          }
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_PROCESSED:
          if (!_IS_PROCESSED(src->props3d))
@@ -459,7 +459,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             _SET_PROCESSED(src->props3d);
             src->buffer_pos = UINT_MAX;
          }
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_INITIALIZED:	/* or rewind */
       {
@@ -468,7 +468,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          src->buffer_pos = 0;
          src->curr_pos_sec = 0.0f;
 
-         handle->mtx_set = AAX_FALSE;
+         handle->mtx_set = false;
          dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, 0);
          if (dptr)
          {
@@ -492,7 +492,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             }
 //          _aaxMutexDestroy(src->props2d->mutex);
          }
-         rv = AAX_TRUE;
+         rv = true;
          break;
       }
       default:
@@ -507,7 +507,7 @@ AAX_API int AAX_APIENTRY
 aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle)
    {
       _filter_t* filter = get_filter(f);
@@ -530,7 +530,7 @@ AAX_API aaxFilter AAX_APIENTRY
 aaxEmitterGetFilter(const aaxEmitter emitter, enum aaxFilterType type)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   aaxFilter rv = AAX_FALSE;
+   aaxFilter rv = false;
    if (handle)
    {
       switch(type)
@@ -560,7 +560,7 @@ AAX_API int AAX_APIENTRY
 aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle)
    {
       _effect_t* effect = get_effect(e);
@@ -583,7 +583,7 @@ AAX_API aaxEffect AAX_APIENTRY
 aaxEmitterGetEffect(const aaxEmitter emitter, enum aaxEffectType type)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   aaxEffect rv = AAX_FALSE;
+   aaxEffect rv = false;
    if (handle)
    {
       switch(type)
@@ -614,7 +614,7 @@ AAX_API int AAX_APIENTRY
 aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle)
    {
       _aaxEmitter *src = handle->source;
@@ -622,12 +622,12 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
       {
       case AAX_POSITION:
       {
-         int m = (mode > AAX_MODE_NONE) ? AAX_TRUE : AAX_FALSE;
+         int m = (mode > AAX_MODE_NONE) ? true : false;
          _aax3dProps *ep3d = src->props3d;
          _TAS_POSITIONAL(ep3d, m);
          if TEST_FOR_TRUE(m)
          {
-            m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
+            m = (mode == AAX_RELATIVE) ? true : false;
             _TAS_RELATIVE(ep3d, m);
             if (_IS_RELATIVE(ep3d))
             {
@@ -637,7 +637,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
                }
             }
          }
-         rv = AAX_TRUE;
+         rv = true;
          break;
       }
       case AAX_LOOPING:
@@ -652,7 +652,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
          }
          handle->looping = mode;
-         rv = AAX_TRUE;
+         rv = true;
          break;
       }
       case AAX_BUFFER_TRACK:
@@ -665,7 +665,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
             if (mode < (int)rb->get_parami(rb, RB_NO_TRACKS))
             {
                handle->track = mode;
-               rv = AAX_TRUE;
+               rv = true;
             }
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
          }
@@ -692,7 +692,7 @@ aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
       } else if (!mtx64 || detect_nan_mtx4d(mtx64)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -710,7 +710,7 @@ aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
          edp3d->matrix.m4[LOCATION][3] = 1.0;
       }
       _PROP_MTX_SET_CHANGED(ep3d);
-      handle->mtx_set = AAX_TRUE;
+      handle->mtx_set = true;
    }
    put_emitter(handle);
 
@@ -730,7 +730,7 @@ aaxEmitterGetMatrix64(const aaxEmitter emitter, aaxMtx4d mtx64)
       } else if (!mtx64) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -757,7 +757,7 @@ aaxEmitterSetVelocity(aaxEmitter emitter, aaxVec3f velocity)
       } else if (!velocity || detect_nan_vec3(velocity)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -811,7 +811,7 @@ AAX_API int AAX_APIENTRY
 aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle)
    {
       _aaxEmitter *src = handle->source;
@@ -851,7 +851,7 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
             {
                handle->mixer_pos = pos;
                rb->set_parami(rb, RB_OFFSET_SAMPLES, offs);
-               rv = AAX_TRUE;
+               rv = true;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
@@ -874,7 +874,7 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
             {
                handle->mixer_pos = pos;
                rb->set_paramf(rb, RB_OFFSET_SEC, fpos);
-               rv = AAX_TRUE;
+               rv = true;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
@@ -903,7 +903,7 @@ aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
       if (is_nan(offs)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -944,14 +944,14 @@ aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
          else
          {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
-            rv = AAX_FALSE;
+            rv = false;
          }
          _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
       }
       else
       {
          _aaxErrorSet(AAX_INVALID_REFERENCE);
-         rv = AAX_FALSE;
+         rv = false;
       }
       _intBufReleaseNum(src->buffers, _AAX_EMITTER_BUFFER);
    }
@@ -964,7 +964,7 @@ AAX_API int AAX_APIENTRY
 aaxEmitterGetMode(const aaxEmitter emitter, enum aaxModeType type)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle)
    {
       const _aaxEmitter *src = handle->source;
@@ -1106,37 +1106,37 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, int64_t setup)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    _aax2dProps *p2d = handle->source->props2d;
-   int rv = AAX_FALSE;
+   int rv = false;
    switch(type)
    {
    case AAX_MIDI_RELEASE_FACTOR:
       handle->midi.release_factor = (float)setup/64.0f;         // 0.0 .. 2.0
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case AAX_MIDI_ATTACK_FACTOR:
       handle->midi.attack_factor = (float)setup/64.0f;          // 0.0 .. 2.0
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case AAX_MIDI_DECAY_FACTOR:
       handle->midi.decay_factor = (float)setup/64.0f;           // 0.0 .. 2.0
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case AAX_MIDI_ATTACK_VELOCITY_FACTOR:
       p2d->note.velocity = (float)setup/127.0f;                 // 0.0 .. 1.0
       p2d->note.velocity = 0.66f + 0.66f*p2d->note.velocity*p2d->note.velocity;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case AAX_MIDI_RELEASE_VELOCITY_FACTOR:
       p2d->note.release = (float)setup/64.0f;                   // 0.0 .. 2.0
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case AAX_MIDI_PRESSURE_FACTOR:
       p2d->note.pressure = (float)setup/127.0f;			// 0.0 .. 1.0
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case AAX_MIDI_SOFT_FACTOR:
       p2d->note.soft = (float)setup/127.0f;                     // 0.0 .. 1.0
-      rv = AAX_TRUE;
+      rv = true;
       break;
    default:
       break;
@@ -1150,7 +1150,7 @@ aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    _aax2dProps *p2d = handle->source->props2d;
-   int64_t rv = AAX_FALSE;
+   int64_t rv = false;
 
    switch(type)
    {
@@ -1383,7 +1383,7 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
    _aax2dProps *p2d = src->props2d;
    _aax3dProps *p3d = src->props3d;
    int type = filter->pos;
-   int rv = AAX_TRUE;
+   int rv = true;
 
    switch (filter->type)
    {
@@ -1420,7 +1420,7 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
       break;
    case AAX_DISTANCE_FILTER:
       _FILTER_SWAP_SLOT(p3d, type, filter, 0);
-      if (_EFFECT_GET_UPDATED(p3d, VELOCITY_EFFECT) == AAX_FALSE)
+      if (_EFFECT_GET_UPDATED(p3d, VELOCITY_EFFECT) == false)
       {
          _aaxRingBufferDistanceData *data;
          data = _FILTER_GET_DATA(p3d, DISTANCE_FILTER);
@@ -1449,7 +1449,7 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
       break;
    }
    default:
-      rv = AAX_FALSE;
+      rv = false;
       break;
    }
 
@@ -1463,7 +1463,7 @@ _emitterSetEffect(_emitter_t *handle, _effect_t *effect)
    _aax2dProps *p2d = src->props2d;
    _aax3dProps *p3d = src->props3d;
    int type = effect->pos;
-   int rv = AAX_TRUE;
+   int rv = true;
 
    switch (effect->type)
    {
@@ -1514,7 +1514,7 @@ _emitterSetEffect(_emitter_t *handle, _effect_t *effect)
       _EFFECT_SET_UPDATED(p3d, type, _EFFECT_GET_SLOT_UPDATED(effect));
       break;
    default:
-      rv = AAX_FALSE;
+      rv = false;
       break;
    }
 
@@ -1557,7 +1557,7 @@ int
 _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
 {
    aaxConfig config = handle->root;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (config)
    {
@@ -1582,7 +1582,7 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
 
             if ((++param % 4) == 0) param += 0x10 - 4;
          }
-         aaxFilterSetState(flt, AAX_TRUE);
+         aaxFilterSetState(flt, true);
 
          // only apply the timed-gain filter when at least one level is non-zero.
          if (sum)
@@ -1648,7 +1648,7 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
    float freq = pitch*embuf->buffer->info.base_frequency;
    unsigned int i, num = xmlNodeGetNum(xmid, "filter");
    aaxConfig config = handle->root;
-   int clear = AAX_FALSE;
+   int clear = false;
    xmlId *xeid, *xfid;
 
    if (xmlAttributeExists(xmid, "mode")) {
@@ -1699,7 +1699,7 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
              edp3d->matrix.m4[LOCATION][3] = 1.0;
           }
           _PROP_MTX_SET_CHANGED(ep3d);
-          handle->mtx_set = AAX_TRUE;
+          handle->mtx_set = true;
       }
    }
 
@@ -1750,14 +1750,14 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
       xmlFree(xeid);
    }
 
-   return AAX_TRUE;
+   return true;
 }
 
 int
 _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aaxs)
 {
    aaxConfig config = handle->root;
-   int rv = AAX_TRUE;
+   int rv = true;
    xmlId *xid;
 
    if (!config) {
@@ -1810,7 +1810,7 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aax
    else
    {
       _aaxErrorSet(AAX_INVALID_STATE);
-      rv = AAX_FALSE;
+      rv = false;
    }
    return rv;
 }

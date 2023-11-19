@@ -33,8 +33,8 @@ typedef struct _aaxRendererData_t
 {
    char mode;
 
-   char ssr;
-   char mono;
+   bool ssr;
+   bool mono;
    void *subframe;
    void *sensor;
 

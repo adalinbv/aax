@@ -149,7 +149,7 @@ static void *audio = NULL;
 int
 _ogg_detect(UNUSED(_ext_t *ext), int mode)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (mode) // write
    {
@@ -170,12 +170,12 @@ _ogg_detect(UNUSED(_ext_t *ext), int mode)
             TIE_FUNCTION(ogg_page_eos);
 
             error = _aaxGetSymError(0);
-            if (!error) rv = AAX_TRUE;
+            if (!error) rv = true;
          }
       }
    }
    else {
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -185,7 +185,7 @@ int
 _ogg_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int format, size_t no_samples, int bitrate)
 {
    int bits_sample = aaxGetBitsPerSample(format);
-   int rv = AAX_FALSE;
+   int rv = false;
 
    assert(ext != NULL);
    assert(ext->id == NULL);
@@ -219,7 +219,7 @@ _ogg_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          ext->id = handle;
 
          crc32_init();
-         rv = AAX_TRUE;
+         rv = true;
       }
       else {
          _AAX_FILEDRVLOG("OGG: Insufficient memory");
@@ -381,7 +381,7 @@ int
 _ogg_close(_ext_t *ext)
 {
    _driver_t *handle = ext->id;
-   int res = AAX_TRUE;
+   int res = true;
 
    if (handle)
    {
@@ -419,7 +419,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    uint8_t *header;
    ssize_t avail;
 
-   handle->need_more = AAX_FALSE;
+   handle->need_more = false;
    if (sptr && bytes)
    {
       res = _aaxDataAdd(handle->oggBuffer, 0, sptr, *bytes);
@@ -449,7 +449,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
          if (rv <= 0)
          {
             if (rv == __F_NEED_MORE) {
-               handle->need_more = AAX_TRUE;
+               handle->need_more = true;
             }
          }
       }
@@ -459,7 +459,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
       header = _aaxDataGetData(handle->oggBuffer, 0);
       avail = _aaxDataGetDataAvail(handle->oggBuffer, 0);
       if (handle->page_size ||
-          (rv = _getOggPageHeader(handle, header, avail, AAX_TRUE)) > 0)
+          (rv = _getOggPageHeader(handle, header, avail, true)) > 0)
       {
          handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->page_size);
 
@@ -620,47 +620,47 @@ _ogg_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
       {
       case __F_ARTIST:
          handle->meta.artist = strreplace(handle->meta.artist, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_TITLE:
          handle->meta.title = strreplace(handle->meta.title, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_GENRE:
          handle->meta.genre = strreplace(handle->meta.genre, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_TRACKNO:
          handle->meta.trackno = strreplace(handle->meta.trackno, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_ALBUM:
          handle->meta.album = strreplace(handle->meta.album, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_DATE:
          handle->meta.date = strreplace(handle->meta.date, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_COMMENT:
          handle->meta.comments = strreplace(handle->meta.comments, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_COPYRIGHT:
          handle->meta.copyright = strreplace(handle->meta.copyright, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_COMPOSER:
          handle->meta.composer = strreplace(handle->meta.composer, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_ORIGINAL:
          handle->meta.original = strreplace(handle->meta.original, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_WEBSITE:
          handle->meta.website = strreplace(handle->meta.website, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       default:
          break;
@@ -681,11 +681,11 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
       {
       case __F_ARTIST:
          rv = handle->meta.artist;
-         handle->meta.artist_changed = AAX_FALSE;
+         handle->meta.artist_changed = false;
          break;
       case __F_TITLE:
          rv = handle->meta.title;
-         handle->meta.title_changed = AAX_FALSE;
+         handle->meta.title_changed = false;
          break;
       case __F_GENRE:
          rv = handle->meta.genre;
@@ -723,14 +723,14 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
                if (handle->meta.artist_changed)
                {
                   rv = handle->meta.artist;
-                  handle->meta.artist_changed = AAX_FALSE;
+                  handle->meta.artist_changed = false;
                }
                break;
             case __F_TITLE:
                if (handle->meta.title_changed)
                {
                   rv = handle->meta.title;
-                  handle->meta.title_changed = AAX_FALSE;
+                  handle->meta.title_changed = false;
                }
                break;
             default:
@@ -1389,7 +1389,7 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
 
    if ((len > 5) && !strncmp(h, "\177FLAC", 5))
    {
-      handle->keep_ogg_header = AAX_FALSE;
+      handle->keep_ogg_header = false;
 //    handle->ogg_format = FLAC_OGG_FILE;
       handle->format_type = _FMT_FLAC;
       handle->format = AAX_PCM16S;
@@ -1397,14 +1397,14 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
    }
    else if ((len > 7) && !strncmp(h, "\x01vorbis", 7))
    {
-      handle->keep_ogg_header = AAX_TRUE;
+      handle->keep_ogg_header = true;
       handle->format_type = _FMT_VORBIS;
 //    handle->ogg_format = VORBIS_OGG_FILE;
       rv = _aaxFormatDriverReadVorbisHeader(handle, ch, len);
    }
    else if ((len > 8) && !strncmp(h, "OpusHead", 8))
    {
-      handle->keep_ogg_header = AAX_FALSE;
+      handle->keep_ogg_header = false;
       handle->format_type = _FMT_OPUS;
 //    handle->ogg_format = OPUS_OGG_FILE;
       rv = _aaxFormatDriverReadOpusHeader(handle, h, len);
@@ -1412,14 +1412,14 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
 #if 0
    else if ((len > 8) && !strncmp(h, "PCM     ", 8))
    {
-      handle->keep_ogg_header = AAX_FALSE;
+      handle->keep_ogg_header = false;
       handle->format_type = _FMT_PCM;
       handle->ogg_format = PCM_OGG_FILE;
       rv = _aaxFormatDriverReadPCMHeader(handle, h, len);
    }
    else if ((len > 8) && !strncmp(h, "Speex   ", 8))
    {
-      handle->keep_ogg_header = AAX_FALSE;
+      handle->keep_ogg_header = false;
       handle->format_type = _FMT_SPEEX;
       handle->ogg_format = SPEEX_OGG_FILE;
       handle->format = AAX_PCM16S;
@@ -1493,16 +1493,16 @@ _getOggOpusComment(_driver_t *handle, unsigned char *h, size_t len)
          if (!STRCMP(field, "TITLE"))
          {
             handle->meta.title = stradd(handle->meta.title, field+strlen("TITLE="));
-            handle->meta.title_changed = AAX_TRUE;
+            handle->meta.title_changed = true;
          }
          else if (!STRCMP(field, "ARTIST")) {
             handle->meta.artist = stradd(handle->meta.artist, field+strlen("ARTIST="));
-            handle->meta.artist_changed = AAX_TRUE;
+            handle->meta.artist_changed = true;
          }
 //       else if (!STRCMP(field, "PERFORMER"))
 //       {
 //          handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
-//          handle->artist_changed = AAX_TRUE;
+//          handle->artist_changed = true;
 //       }
          else if (!STRCMP(field, "ALBUM")) {
             handle->meta.album = stradd(handle->meta.album, field+strlen("ALBUM="));
@@ -1596,16 +1596,16 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *h, size_t len)
          if (!STRCMP(field, "TITLE"))
          {
              handle->meta.title = stradd(handle->meta.title, field+strlen("TITLE="));
-             handle->meta.title_changed = AAX_TRUE;
+             handle->meta.title_changed = true;
          }
          else if (!STRCMP(field, "ARTIST")) {
             handle->meta.artist = stradd(handle->meta.artist, field+strlen("ARTIST="));
-            handle->meta.artist_changed = AAX_TRUE;
+            handle->meta.artist_changed = true;
          }
 //       else if (!STRCMP(field, "PERFORMER"))
 //       {
 //           handle->meta.artist = stradd(handle->meta.artist, field+strlen("PERFORMER="));
-//           handle->meta.artist_changed = AAX_TRUE;
+//           handle->meta.artist_changed = true;
 //       }
          else if (!STRCMP(field, "ALBUM")) {
              handle->meta.album = stradd(handle->meta.album, field+strlen("ALBUM="));
@@ -1657,7 +1657,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
    {
       do
       {
-         rv = _getOggPageHeader(handle, header, bufsize, AAX_FALSE);
+         rv = _getOggPageHeader(handle, header, bufsize, false);
          if ((rv >= 0) && (handle->segment_size > 0) &&
              (handle->page_sequence_no < 2))
          {

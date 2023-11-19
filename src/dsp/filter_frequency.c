@@ -58,25 +58,25 @@ _aaxFrequencyFilterDestroy(_filter_t* filter)
    }
    free(filter);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxFilter
 _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
-   aaxFilter rv = AAX_FALSE;
+   aaxFilter rv = false;
    int ostate, sstate;
    int resonance, stereo;
 
    assert(filter->info);
 
-   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
+   stereo = (state & AAX_LFO_STEREO) ? true : false;
    state &= ~AAX_LFO_STEREO;
 
    sstate = state & (AAX_SOURCE_MASK & ~AAX_PURE_WAVEFORM);
    ostate = state & AAX_ORDER_MASK;
-   resonance = (ostate == AAX_RESONANCE_FACTOR) ? AAX_TRUE : AAX_FALSE;
+   resonance = (ostate == AAX_RESONANCE_FACTOR) ? true : false;
    if (ostate == 0) ostate = AAX_12DB_OCT;
 
    if ((ostate >= AAX_1ST_ORDER && ostate <= AAX_LAST_ORDER) || resonance ||
@@ -128,7 +128,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
             fmax = _log2lin(lfc2);
 
             flt->fc_high = fmax;
-            flt->random = 1;
+            flt->random = true;
          }
          flt->fc_low = fc;
          flt->fc_high = fmax;
@@ -242,18 +242,18 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                lfo->max_sec = lfo->max/lfo->fs;
 
                lfo->f = filter->slot[1]->param[AAX_SWEEP_RATE & 0xF];
-               lfo->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+               lfo->inverse = (state & AAX_INVERSE) ? true : false;
                lfo->stereo_link = !stereo;
 
                constant = _lfo_set_timing(lfo);
-               lfo->envelope = AAX_FALSE;
+               lfo->envelope = false;
 
                if (!_lfo_set_function(lfo, constant)) {
                   _aaxErrorSet(AAX_INVALID_PARAMETER);
                }
             } /* flt->lfo */
          } /* flt */
-         else if (sstate == AAX_FALSE)
+         else if (sstate == false)
          {
             _lfo_destroy(flt->lfo);
             flt->lfo = NULL;
@@ -261,7 +261,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
    }
-   else if (sstate == AAX_FALSE)
+   else if (sstate == false)
    {
       if (filter->slot[0]->data)
       {
@@ -356,7 +356,7 @@ _aaxFrequencyFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxFrequencyFilter =
 {
-   AAX_TRUE,
+   true,
    "AAX_frequency_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxFrequencyFilterCreate,
    (_aaxFilterDestroy*)&_aaxFrequencyFilterDestroy,
@@ -537,7 +537,7 @@ _aax_butterworth_compute(float fc, void *flt)
    Q = filter->Q;
    fs = filter->fs;
    coef = filter->coeff;
-   first_order = stages ? AAX_FALSE : AAX_TRUE;
+   first_order = stages ? false : true;
 
    A = 0.0f;
    if (filter->high_gain > LEVEL_128DB)
@@ -750,7 +750,7 @@ _aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int s
 
    assert(stages <= _AAX_MAX_STAGES);
 
-   first_order = stages ? AAX_FALSE : AAX_TRUE;
+   first_order = stages ? false : true;
    if (!stages) stages++;
 
    pos = stages-1;
@@ -888,5 +888,5 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       rbd->add(dptr, sptr, dmax, filter->low_gain, 0.0f);
    }
 
-   return AAX_TRUE;
+   return true;
 }

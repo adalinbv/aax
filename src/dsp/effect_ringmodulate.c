@@ -52,7 +52,7 @@ _aaxModulatorEffectDestroy(_effect_t* effect)
    }
    free(effect);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static void
@@ -64,12 +64,12 @@ static aaxEffect
 _aaxModulatorEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
-   aaxFilter rv = AAX_FALSE;
+   aaxFilter rv = false;
    int stereo;
 
    assert(effect->info);
 
-   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
+   stereo = (state & AAX_LFO_STEREO) ? true : false;
    state &= ~AAX_LFO_STEREO;
 
    effect->state = state;
@@ -103,7 +103,7 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
          modulator->run = _modulator_run;
 
          gain = effect->slot[0]->param[AAX_GAIN];
-         modulator->amplitude = (gain < 0.0f) ? AAX_TRUE : AAX_FALSE;
+         modulator->amplitude = (gain < 0.0f) ? true : false;
          modulator->gain = fabsf(gain);
 
          modulator->lfo.convert = _linear;
@@ -112,7 +112,7 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
          modulator->lfo.period_rate = effect->info->period_rate;
          modulator->lfo.min = effect->slot[0]->param[AAX_LFO_OFFSET];
          modulator->lfo.max = modulator->lfo.min + effect->slot[0]->param[AAX_LFO_DEPTH];
-         modulator->lfo.envelope = AAX_FALSE;
+         modulator->lfo.envelope = false;
          modulator->lfo.stereo_link = !stereo;
 
          modulator->lfo.min_sec = modulator->lfo.min/modulator->lfo.fs;
@@ -120,7 +120,7 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
          modulator->lfo.depth = 1.0f;
          modulator->lfo.offset = 0.0f;
          modulator->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
-         modulator->lfo.inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         modulator->lfo.inverse = (state & AAX_INVERSE) ? true : false;
 
          constant = _lfo_set_timing(&modulator->lfo);
          if (!_lfo_set_function(&modulator->lfo, constant)) {
@@ -133,7 +133,7 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // inetnional fall-through
-   case AAX_FALSE:
+   case false:
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
@@ -196,7 +196,7 @@ _aaxModulatorEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxModulatorEffect =
 {
-   AAX_TRUE,
+   true,
    "AAX_ringmodulator_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxModulatorEffectCreate,
    (_aaxEffectDestroy*)&_aaxModulatorEffectDestroy,
@@ -214,7 +214,7 @@ _modulator_run(MIX_PTR_T s, size_t end, size_t no_samples, void *data, void *env
 {
    _aaxRingBufferModulatorData *modulate = data;
    float f, gain, p, step;
-   int rv = AAX_FALSE;
+   int rv = false;
    int i;
 
    gain = modulate->gain;
@@ -244,7 +244,7 @@ _modulator_run(MIX_PTR_T s, size_t end, size_t no_samples, void *data, void *env
       assert(track < _AAX_MAX_SPEAKERS);
       modulate->phase[track] = p;
 
-      rv = AAX_TRUE;
+      rv = true;
    }
    return rv;
 }

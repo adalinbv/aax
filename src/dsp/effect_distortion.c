@@ -53,13 +53,13 @@ _aaxDistortionEffectDestroy(_effect_t* effect)
    }
    free(effect);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static int
 _aaxDistortionEffectReset(void *data)
 {
-   return AAX_TRUE;
+   return true;
 }
 
 
@@ -67,7 +67,7 @@ static aaxEffect
 _aaxDistortionEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
-   aaxEffect rv = AAX_FALSE;
+   aaxEffect rv = false;
 
    effect->state = state;
    switch (state & AAX_SOURCE_MASK)
@@ -184,7 +184,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
                float lfc2 = _lin2log(fmax);
                float lfc1 = _lin2log(fc);
 
-               flt->random = 1;
+               flt->random = true;
 
                lfc1 += (lfc2 - lfc1)*_aax_random();
                fc = _log2lin(lfc1);
@@ -210,7 +210,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // inetnional fall-through
-   case AAX_FALSE:
+   case false:
       do {
          _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
 
@@ -281,7 +281,7 @@ _aaxDistortionEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxDistortionEffect =
 {
-   AAX_FALSE,
+   false,
    "AAX_distortion_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDistortionEffectCreate,
    (_aaxEffectDestroy*)&_aaxDistortionEffectDestroy,
@@ -307,7 +307,7 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
    _aaxLFOData* lfo = dist_data->lfo;
    float *params = dist_effect->param;
    float clip, asym, fact, mix;
-   int rv = AAX_FALSE;
+   int rv = false;
    size_t no_samples;
    float lfo_fact = 1.0;
    CONST_MIX_PTR_T sptr;
@@ -386,7 +386,7 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
          rbd->add(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
       }  
 
-      rv = AAX_TRUE;
+      rv = true;
    }
    return rv;
 }

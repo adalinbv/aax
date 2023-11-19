@@ -64,11 +64,11 @@ static drflac_bool32 _flac_callback_seek(void*, int, drflac_seek_origin);
 int
 _flac_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
 {
-   int rv = AAX_FALSE;
+   int rv = false;
 
 #if 0
    if (mode == 0) {
-      rv = AAX_TRUE;
+      rv = true;
    }
 #endif
 
@@ -179,7 +179,7 @@ _flac_close(_fmt_t *fmt)
 int
 _flac_setup(UNUSED(_fmt_t *fmt), UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_fmt))
 {
-   return AAX_TRUE;
+   return true;
 }
 
 size_t
@@ -334,7 +334,7 @@ _flac_cvt_to_intl(UNUSED(_fmt_t *fmt), UNUSED(void_ptr dptr), UNUSED(const_int32
 int
 _flac_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
 {
-   return AAX_FALSE;
+   return false;
 }
 
 char*

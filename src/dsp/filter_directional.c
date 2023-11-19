@@ -43,7 +43,7 @@ _aaxDirectionalFilterDestroy(_filter_t* filter)
 {
    free(filter);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxFilter
@@ -119,7 +119,7 @@ _aaxDirectionalFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxDirectionalFilter =
 {
-   AAX_TRUE,
+   true,
    "AAX_directional_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxDirectionalFilterCreate,
    (_aaxFilterDestroy*)&_aaxDirectionalFilterDestroy,

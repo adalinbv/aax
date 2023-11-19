@@ -36,14 +36,14 @@ typedef struct
 int
 _raw_detect(UNUSED(_ext_t *ext), UNUSED(int mode))
 {
-   return AAX_TRUE;
+   return true;
 }
 
 int
 _raw_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int format, size_t no_samples, int bitrate)
 {
    _driver_t *handle;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    handle = calloc(1, sizeof(_driver_t));
    if (handle)
@@ -73,7 +73,7 @@ _raw_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          if (!handle->mode) {	// read
             *bufsize = (no_samples*tracks*bits)/8;
          }
-         rv = AAX_TRUE;
+         rv = true;
       }  
    }
    else {
@@ -94,7 +94,7 @@ int
 _raw_close(_ext_t *ext)
 {
    _driver_t *handle = ext->id;
-   int res = AAX_TRUE;
+   int res = true;
 
    if (handle)
    {

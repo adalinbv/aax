@@ -568,27 +568,27 @@ _aaxSignalWait(_aaxSignal *signal)
    {
       _aaxMutex *m = (_aaxMutex *)signal->mutex;
 
-      signal->waiting = AAX_TRUE;
-      do {	// wait for _aaxSignalTrigger to set signal->waiting = AAX_FALSE
+      signal->waiting = true;
+      do {	// wait for _aaxSignalTrigger to set signal->waiting = false
          rv = pthread_cond_wait(signal->condition, &m->mutex);
       }
-      while (signal->waiting == AAX_TRUE);
+      while (signal->waiting == true);
 
       switch(rv)
       {
       case 0:
          signal->triggered--;
-         rv = AAX_TRUE;
+         rv = true;
          break;
       default:
-         rv = AAX_FALSE;
+         rv = false;
          break;
       }
    }
    else
    {
       signal->triggered--;
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -597,7 +597,7 @@ _aaxSignalWait(_aaxSignal *signal)
 int
 _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (!signal->triggered && timeout > 0.0f)
    {
@@ -619,12 +619,12 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
          signal->ts.tv_nsec -= 1000000000L;
       }
 
-      signal->waiting = AAX_TRUE;
+      signal->waiting = true;
       do {
          rv = pthread_cond_timedwait(signal->condition, &m->mutex, &signal->ts);
          if (rv == ETIMEDOUT) break;
       }
-      while (signal->waiting == AAX_TRUE);
+      while (signal->waiting == true);
 
       switch(rv)
       {
@@ -633,17 +633,17 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
          break;
       case 0:
          signal->triggered--;
-         rv = AAX_TRUE;
+         rv = true;
          break;
       default:
-         rv = AAX_FALSE;
+         rv = false;
          break;
       }
    }
    else if (signal->triggered > 0)
    {
       signal->triggered--;
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -662,7 +662,7 @@ _aaxSignalTriggerDebug(_aaxSignal *signal, char *file, int line)
       /* signaling a condition which isn't waiting gets lost */
       /* try to prevent this situation anyhow.               */
       signal->triggered = 1;
-      signal->waiting = AAX_FALSE;
+      signal->waiting = false;
       rv =  pthread_cond_signal(signal->condition);
    }
    _aaxMutexUnLock(signal->mutex);
@@ -681,7 +681,7 @@ _aaxSignalTrigger(_aaxSignal *signal)
       /* signaling a condition which isn't waiting gets lost */
       /* try to prevent this situation anyhow.               */
       signal->triggered = 1;
-      signal->waiting = AAX_FALSE;
+      signal->waiting = false;
       rv =  pthread_cond_signal(signal->condition);
    }
    _aaxMutexUnLock(signal->mutex);
@@ -709,7 +709,7 @@ _aaxSemaphoreCreate(unsigned initial)
 inline int
 _aaxSemaphoreDestroy(_aaxSemaphore *sem)
 {
-   int rv = sem_destroy(sem) ? AAX_FALSE : AAX_TRUE;
+   int rv = sem_destroy(sem) ? false : true;
    if (rv) {
       free(sem);
    }
@@ -740,20 +740,20 @@ _aaxSemaphoreWaitDebug(_aaxSemaphore *sem, char *file, int line)
          break;
       }
    }
-   return rv ? AAX_FALSE : AAX_TRUE;
+   return rv ? false : true;
 }
 #else
 inline int
 _aaxSemaphoreWait(_aaxSemaphore *sem)
 {
-   return sem_wait(sem) ? AAX_FALSE : AAX_TRUE;
+   return sem_wait(sem) ? false : true;
 }
 #endif
 
 inline int
 _aaxSemaphoreRelease(_aaxSemaphore *sem)
 {
-   return sem_post(sem) ? AAX_FALSE : AAX_TRUE;
+   return sem_post(sem) ? false : true;
 }
 
 
@@ -1245,30 +1245,30 @@ _aaxSignalWait(_aaxSignal *signal)
       _aaxMutex *mutex = (_aaxMutex *)signal->mutex;
       DWORD hr;
 
-      signal->waiting = AAX_TRUE;
+      signal->waiting = true;
       do
       {
          _aaxMutexUnLock(mutex);
          hr = WaitForSingleObject(signal->condition, INFINITE);
          _aaxMutexLock(mutex);
       }
-      while (signal->waiting == AAX_TRUE);
+      while (signal->waiting == true);
 
       switch (hr)
       {
       case WAIT_OBJECT_0:
          signal->triggered--;
-         rv = AAX_TRUE;
+         rv = true;
          break;
       default:
-         rv = AAX_FALSE;
+         rv = false;
          break;
       }
    }
    else
    {
       signal->triggered--;
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -1277,7 +1277,7 @@ _aaxSignalWait(_aaxSignal *signal)
 int
 _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (!signal->triggered && timeout > 0.0f)
    {
@@ -1287,14 +1287,14 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
       if (timeout > 0.0f)	
       {
          timeout *= 1000.0f;		/* from seconds to ms */
-         signal->waiting = AAX_TRUE;
+         signal->waiting = true;
          do
          {
             _aaxMutexUnLock(mutex);
             hr = WaitForSingleObject(signal->condition, (DWORD)floorf(timeout));
             _aaxMutexLock(mutex);
          }
-         while (signal->waiting == AAX_TRUE);
+         while (signal->waiting == true);
 
          switch (hr)
          {
@@ -1303,10 +1303,10 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
             break;
          case WAIT_OBJECT_0:
             signal->triggered--;
-            rv = AAX_TRUE;
+            rv = true;
             break;
          default:
-            rv = AAX_FALSE;
+            rv = false;
             break;
          }
       } else {		/* timeout */
@@ -1317,7 +1317,7 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
    else if (signal->triggered > 0)
    {
       signal->triggered--;
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -1333,7 +1333,7 @@ _aaxSignalTriggerDebug(_aaxSignal *signal, char *file, int line)
    if (!signal->triggered)
    {
       signal->triggered = 1;
-      signal->waiting = AAX_FALSE;
+      signal->waiting = false;
       rv = SetEvent(signal->condition);
 
       /* same return value as pthread_cond_signal() */
@@ -1354,7 +1354,7 @@ _aaxSignalTrigger(_aaxSignal *signal)
    if (!signal->triggered)
    {
       signal->triggered = 1;
-      signal->waiting = AAX_FALSE;
+      signal->waiting = false;
       rv = SetEvent(signal->condition);
 
       /* same return value as pthread_cond_signal() */
@@ -1378,7 +1378,7 @@ inline int
 _aaxSemaphoreDestroy(_aaxSemaphore *sem)
 {
    CloseHandle(sem);
-   return AAX_TRUE;
+   return true;
 }
 
 #ifndef NDEBUG
@@ -1386,7 +1386,7 @@ inline int
 _aaxSemaphoreWaitDebug(_aaxSemaphore *sem, char *file, int line)
 {
    DWORD r = WaitForSingleObject(sem, INFINITE);
-   return (r == WAIT_OBJECT_0) ? AAX_TRUE : AAX_FALSE;
+   return (r == WAIT_OBJECT_0) ? true : false;
 }
 
 #else
@@ -1394,14 +1394,14 @@ inline int
 _aaxSemaphoreWait(_aaxSemaphore *sem)
 {
    DWORD r = WaitForSingleObject(sem, INFINITE);
-   return (r == WAIT_OBJECT_0) ? AAX_TRUE : AAX_FALSE;
+   return (r == WAIT_OBJECT_0) ? true : false;
 }
 #endif
 
 inline int
 _aaxSemaphoreRelease(_aaxSemaphore *sem)
 {
-   return ReleaseSemaphore(sem, 1, NULL) ? AAX_TRUE : AAX_FALSE;
+   return ReleaseSemaphore(sem, 1, NULL) ? true : false;
 }
 
 #else

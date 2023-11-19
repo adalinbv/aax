@@ -52,7 +52,7 @@ _aaxVelocityEffectDestroy(_effect_t* effect)
       effect->slot[0]->data = NULL;
    }
    free(effect);
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxEffect
@@ -65,7 +65,7 @@ _aaxVelocityEffectSetState(_effect_t* effect, UNUSED(int state))
 static aaxEffect
 _aaxVelocityEffectSetData(_effect_t* effect, aaxBuffer buffer)
 {
-   aaxEffect rv = AAX_FALSE;
+   aaxEffect rv = false;
    return rv;
 }
 
@@ -132,7 +132,7 @@ _aaxVelocityEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxVelocityEffect =
 {
-   AAX_TRUE,
+   true,
    "AAX_velocity_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxVelocityEffectCreate,
    (_aaxEffectDestroy*)&_aaxVelocityEffectDestroy,
@@ -284,6 +284,6 @@ _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dPro
 int
 _velocity_run(void *rb, void *data)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    return rv;
 }

@@ -246,7 +246,7 @@ isSafeDir(const char *directory, char mode)
 {
    char abspath[PATH_MAX+1];
    const char *path = abspath;
-   int rv = AAX_FALSE;
+   int rv = false;
 #ifdef WIN32
    char **file;
 
@@ -265,17 +265,17 @@ isSafeDir(const char *directory, char mode)
       {
          path += strlen(USER_DIR);
          if (strncmp(path, USER_AAX_DIR, strlen(USER_AAX_DIR)) != 0) {
-            rv = AAX_TRUE;
+            rv = true;
          }
       }
       else if (!strncmp(path, TEMP_DIR, strlen(TEMP_DIR))) {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
    else // reading
    {
       if (strncmp(path, SYSTEM_DIR, strlen(SYSTEM_DIR)) != 0) {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -374,13 +374,13 @@ _aaxGetEnv(const char*name)
 int
 _aaxSetEnv(const char *name, const char *value, int overwrite)
 {
-   return (SetEnvironmentVariable(name, value) == 0) ? AAX_TRUE : AAX_FALSE;
+   return (SetEnvironmentVariable(name, value) == 0) ? true : false;
 }
 
 int
 _aaxUnsetEnv(const char *name)
 {
-   return (SetEnvironmentVariable(name, NULL) == 0) ? AAX_TRUE : AAX_FALSE;
+   return (SetEnvironmentVariable(name, NULL) == 0) ? true : false;
 }
 
 unsigned long long _aax_get_free_memory()

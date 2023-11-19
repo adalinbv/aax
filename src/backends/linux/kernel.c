@@ -52,7 +52,7 @@
 #include "device.h"
 #include "audio.h"
 
-#define TIMER_BASED		AAX_TRUE
+#define TIMER_BASED		true
 
 #define MAX_NAME		40
 #define MAX_DEVICES		16
@@ -229,7 +229,7 @@ static void *audio = NULL;
 static int
 _aaxLinuxDriverDetect(int mode)
 {
-   static int rv = AAX_FALSE;
+   static int rv = false;
    char *s, *error = 0;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -253,7 +253,7 @@ _aaxLinuxDriverDetect(int mode)
 
    s = getenv("AAX_USE_KERNEL_DRIVER");
    if (s && _aax_getbool(s)) {
-      rv = AAX_FALSE;
+      rv = false;
    }
 
    if (TEST_FOR_FALSE(rv) && !audio)
@@ -271,11 +271,11 @@ _aaxLinuxDriverDetect(int mode)
 
       error = _aaxGetSymError(0);
       if (!error && (access(DEFAULT_PCM_NAME, F_OK) != -1)) {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
    else {
-      rv = AAX_FALSE;
+      rv = false;
    }
 
    return rv;
@@ -304,9 +304,9 @@ _aaxLinuxDriverNewHandle(enum aaxRenderMode mode)
       handle->period_frames = handle->frequency_hz/DEFAULT_REFRESH;
       handle->period_frames_actual = handle->period_frames;
       handle->buf_len = handle->no_tracks*handle->period_frames*handle->bits_sample/8;
-      handle->use_mmap = AAX_FALSE;
+      handle->use_mmap = false;
       handle->mode = mode;
-      handle->interleaved = AAX_TRUE;
+      handle->interleaved = true;
       handle->fd = -1;
       if (handle->mode != AAX_MODE_READ) { // Always interupt based for capture
          handle->use_timer = TIMER_BASED;
@@ -329,7 +329,7 @@ _aaxLinuxDriverFreeHandle(UNUSED(void *id))
    _aaxCloseLibrary(audio);
    audio = NULL;
 
-   return AAX_TRUE;
+   return true;
 }
 
 static void *
@@ -374,7 +374,7 @@ _aaxLinuxDriverConnect(void *config, const void *id, xmlId *xid, const char *ren
             handle->use_timer = xmlNodeGetBool(xid, "timed");
          }
          if (handle->mode == AAX_MODE_READ) {
-            handle->use_timer = AAX_FALSE;
+            handle->use_timer = false;
          }
 
          f = (float)xmlNodeGetDouble(xid, "frequency-hz");
@@ -480,7 +480,7 @@ static int
 _aaxLinuxDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (handle)
    {
@@ -524,7 +524,7 @@ _aaxLinuxDriverDisconnect(void *id)
       if (handle->ptr) free(handle->ptr);
       free(handle);
 
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -536,7 +536,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
                      int registered, float period_rate)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (handle->fd >= 0)
    {
@@ -563,7 +563,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
       handle->latency = 1.0f / *refresh_rate;
       if (handle->latency < 0.010f) {
-         handle->use_timer = AAX_FALSE;
+         handle->use_timer = false;
       }
 
       _init_params(&hwparams);
@@ -646,7 +646,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
       if (err >= 0)
       {
          if (hwparams.info & SNDRV_PCM_INFO_PAUSE) {
-            handle->can_pause = AAX_TRUE;
+            handle->can_pause = true;
          }
 
          memset(&swparams, 0, sizeof(struct snd_pcm_sw_params));
@@ -749,11 +749,11 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
                      rb = _aaxRingBufferCreate(0.0f, m);
                      if (rb)
                      {
-                        rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
+                        rb->set_format(rb, AAX_PCM24S, true);
                         rb->set_parami(rb, RB_NO_TRACKS, handle->no_tracks);
                         rb->set_paramf(rb, RB_FREQUENCY, handle->frequency_hz);
                         rb->set_parami(rb, RB_NO_SAMPLES, handle->period_frames);
-                        rb->init(rb, AAX_TRUE);
+                        rb->init(rb, true);
                         rb->set_state(rb, RB_STARTED);
 
                         for (i=0; i<handle->no_periods; i++) {
@@ -794,7 +794,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   snprintf(_kernel_id_str, MAX_ID_STRLEN, "%s %s",
                                             DEFAULT_RENDERER, rstr);
 #endif
-                  rv = AAX_TRUE;
+                  rv = true;
                }
                else {
                   _AAX_DRVLOG("unable to get the renderer");
@@ -878,7 +878,7 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *req
    snd_pcm_sframes_t avail;
    ssize_t offs = *offset;
    ssize_t init_offs = offs;
-   ssize_t rv = AAX_FALSE;
+   ssize_t rv = false;
    int ret;
  
    assert(handle->mode == AAX_MODE_READ);
@@ -929,7 +929,7 @@ if (corr)
             ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_PREPARE);
             if (ret >= 0) {
                pioctl(handle->fd, SNDRV_PCM_IOCTL_START);
-               handle->prepared = AAX_TRUE;
+               handle->prepared = true;
             }
             else {
                _aaxLinuxDriverLogVar(id, "read prepare: %s", strerror(errno));
@@ -962,7 +962,7 @@ if (corr)
             else
             {
                _aaxLinuxDriverLogVar(id, "read: %s", strerror(errno));
-               handle->prepared = AAX_FALSE;
+               handle->prepared = false;
             }
          }
       }
@@ -981,7 +981,7 @@ if (corr)
                _batch_imul_value(ptr, ptr, sizeof(int32_t), offs, gain);
             }
          }
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -1040,7 +1040,7 @@ _aaxLinuxDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain
       {
          ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_PREPARE);
          if (ret >= 0) {
-            handle->prepared = AAX_TRUE;
+            handle->prepared = true;
          }
          else {
             _aaxLinuxDriverLogVar(id, "write prepare: %s", strerror(errno));
@@ -1071,7 +1071,7 @@ _aaxLinuxDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain
          else
          {
             _aaxLinuxDriverLogVar(id, "write: %s", strerror(errno));
-            handle->prepared = AAX_FALSE;
+            handle->prepared = false;
          }
       }
    }
@@ -1084,7 +1084,7 @@ static int
 _aaxLinuxDriverSetName(const void *id, int type, const char *name)
 {
    _driver_t *handle = (_driver_t *)id;
-   int ret = AAX_FALSE;
+   int ret = false;
    if (handle)
    {
       switch (type)
@@ -1120,7 +1120,7 @@ static int
 _aaxLinuxDriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    switch(state)
    {
@@ -1131,7 +1131,7 @@ _aaxLinuxDriverState(const void *id, enum _aaxDriverState state)
          {
             int err = pioctl(handle->fd, SNDRV_PCM_IOCTL_PAUSE, 1);
             if (err >= 0) {
-               rv = AAX_TRUE;
+               rv = true;
             }
          }
          handle->pause = 1;
@@ -1144,7 +1144,7 @@ _aaxLinuxDriverState(const void *id, enum _aaxDriverState state)
          {
             int err = pioctl(handle->fd, SNDRV_PCM_IOCTL_PAUSE, 0);
             if (err >= 0) {
-               rv = AAX_TRUE;
+               rv = true;
             }
          }
          handle->pause = 0;
@@ -1157,19 +1157,19 @@ _aaxLinuxDriverState(const void *id, enum _aaxDriverState state)
          int state;
          int err = pioctl(handle->fd, SNDRV_CTL_IOCTL_POWER_STATE, &state);
          if ((err >= 0) && (state != 0)) {
-            rv = AAX_TRUE;
+            rv = true;
          }
       }
 #else
-      rv = AAX_TRUE;
+      rv = true;
 #endif
       break;
    case DRIVER_SHARED_MIXER:
-      rv = AAX_FALSE;
+      rv = false;
       break;
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case DRIVER_NEED_REINIT:
    default:
@@ -1240,7 +1240,7 @@ _aaxLinuxDriverParam(const void *id, enum _aaxDriverParam param)
 
 		/* boolean */
       case DRIVER_TIMER_MODE:
-         rv = (float)AAX_TRUE;
+         rv = (float)true;
          break;
       case DRIVER_BATCHED_MODE:
       case DRIVER_SHARED_MODE:
@@ -1566,7 +1566,7 @@ static int
 detect_pcm(_driver_t *handle, char m)
 {
    const char *devname = handle->name;
-   int fd, rv = AAX_FALSE;
+   int fd, rv = false;
 
    handle->pcm = (char*)_const_kernel_default_pcm;
    if (devname && strcasecmp(devname, "default"))
@@ -1598,7 +1598,7 @@ detect_pcm(_driver_t *handle, char m)
                pioctl(fd, SNDRV_PCM_IOCTL_INFO, &info);
 
                name = (const char*)info.name;
-               found = !strcasecmp(ifname, name) ? AAX_TRUE : AAX_FALSE;
+               found = !strcasecmp(ifname, name) ? true : false;
                close(fd);
 
                if (found) break;
@@ -1615,13 +1615,13 @@ detect_pcm(_driver_t *handle, char m)
 
       handle->cardnum = card;
       handle->devnum = device;
-      rv = AAX_TRUE;
+      rv = true;
    }
    else
    {
       handle->cardnum = 0;
       handle->devnum = 0;
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -1748,11 +1748,11 @@ _aaxLinuxDriverThread(void* config)
       dest_rb = be->get_ringbuffer(MAX_EFFECTS_TIME, mixer->info->mode);
       if (dest_rb)
       {
-         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
+         dest_rb->set_format(dest_rb, AAX_PCM24S, true);
          dest_rb->set_parami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
          dest_rb->set_paramf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
          dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
-         dest_rb->init(dest_rb, AAX_TRUE);
+         dest_rb->init(dest_rb, true);
          dest_rb->set_state(dest_rb, RB_STARTED);
 
          handle->ringbuffer = dest_rb;
@@ -1816,7 +1816,7 @@ _aaxLinuxDriverThread(void* config)
                      switch(be_handle->status->state)
                      {
                      case SND_PCM_STATE_XRUN:
-                         be_handle->prepared = AAX_FALSE;
+                         be_handle->prepared = false;
                          break;
                       case SND_PCM_STATE_SUSPENDED:
                       case SND_PCM_STATE_DISCONNECTED:
@@ -1841,7 +1841,7 @@ _aaxLinuxDriverThread(void* config)
          break;
       }
 
-      if (be->state(be_handle, DRIVER_AVAILABLE) == AAX_FALSE) {
+      if (be->state(be_handle, DRIVER_AVAILABLE) == false) {
          _SET_PROCESSED(handle);
       }
 

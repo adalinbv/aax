@@ -157,8 +157,8 @@ typedef struct
 
    unsigned int state;
    unsigned char no_stages;
-   unsigned char random;
    signed char type;
+   bool random;
 
    _aaxLFOData *lfo;
    int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
@@ -257,7 +257,7 @@ typedef struct
 
    _aaxRingBufferFreqFilterData freq_filter;
 
-   char inverse;
+   bool inverse;
 
    void (*prepare)(_aaxEmitter*, const _aax3dProps*, void*);
    int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t,
@@ -371,7 +371,7 @@ typedef struct
    float phase[RB_MAX_TRACKS];
    _aaxLFOData lfo;
 
-   char amplitude;
+   bool amplitude;
 
 } _aaxRingBufferModulatorData;
 
@@ -477,7 +477,7 @@ _aaxRingBufferGetTracksPtrFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferMode);
  *
  * @param rb the ringbuffer which holds the sound data.
  * 
- * returns AAX_TRUE on success or AAX_FALSE otherwise.
+ * returns true on success or false otherwise.
  */
 typedef int
 _aaxRingBufferReleaseTracksPtrFn(struct _aaxRingBuffer_t*);
@@ -595,7 +595,7 @@ _aaxRingBufferGetStateFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferState);
  * @param rb ringbuffer to set
  * @param format internal fromat for the ringbuffer data.
  *
- * returns AAX_TRUE if successful, AAX_FALSE otherwise.
+ * returns true if successful, false otherwise.
  *
  * Note: the format can be retrieved by calling _aaxRingBufferGetParami with
  *       param set to RB_FORMAT
@@ -610,7 +610,7 @@ _aaxRingBufferSetFormatFn(struct _aaxRingBuffer_t*, enum aaxFormat, int);
  * @param param the parameter to set
  * @param val the value to set the parameter to
  *
- * returns AAX_TRUE if successful, AAX_FALSE otherwise.
+ * returns true if successful, false otherwise.
  */
 typedef int
 _aaxRingBufferSetParamiFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferParam, unsigned int);
@@ -622,7 +622,7 @@ _aaxRingBufferSetParamiFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferParam, un
  * @param param the parameter to set
  * @param val the value to set the parameter to
  *
- * returns AAX_TRUE if successful, AAX_FALSE otherwise.
+ * returns true if successful, false otherwise.
  */
 typedef int
 _aaxRingBufferSetParamfFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferParam, float);
@@ -662,7 +662,7 @@ _aaxRingBufferGetParamfFn(const struct _aaxRingBuffer_t*, enum _aaxRingBufferPar
  *
  * @param rb ringbuffer to silence the audio data
  *
- * returns AAX_TRUE if successful, AAX_FALSE otherwise.
+ * returns true if successful, false otherwise.
  */
 typedef int
 _aaxRingBufferDataClearFn(struct _aaxRingBuffer_t*, int);
@@ -674,7 +674,7 @@ _aaxRingBufferDataClearFn(struct _aaxRingBuffer_t*, int);
  * @param srb source ringbuffer to mix with the destination ringbuffer
  * @param lfo optional gain-envelope information, NULL if unused
  *
- * returns AAX_TRUE if successful, AAX_FALSE otherwise.
+ * returns true if successful, false otherwise.
  */
 typedef int
 _aaxRingBufferDataMixDataFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aax2dProps*, unsigned char);
@@ -687,7 +687,7 @@ _aaxRingBufferDataMixDataFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, 
  * @param no_samples number of samples to process
  * @param factor gainn multiplication factor
  *
- * returns AAX_TRUE if successful, AAX_FALSE otherwise.
+ * returns true if successful, false otherwise.
  */
 typedef int
 _aaxRingBufferDataMultiplyFn(struct _aaxRingBuffer_t*, size_t, size_t, float);
@@ -701,7 +701,7 @@ _aaxRingBufferDataMultiplyFn(struct _aaxRingBuffer_t*, size_t, size_t, float);
  * @param ratio volume mixing ratio: 1.0 is overwrite, 0.0f is mix nothing
  * @param phase phase of the waveform, in radians
  *
- * returns AAX_TRUE if successful, AAX_FALSE otherwise.
+ * returns true if successful, false otherwise.
  */
 typedef int
 _aaxRingBufferDataMixWaveformFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxSourceType, int, float, float, float, unsigned char, unsigned char);
@@ -716,7 +716,7 @@ _aaxRingBufferDataMixWaveformFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxSour
  * @param dc duty-cycle of the noise.
  * @param skip 0 for non-static and 100 for highly static noise
  *
- * returns AAX_TRUE if successful, AAX_FALSE otherwise.
+ * returns true if successful, false otherwise.
  */
 typedef int
 _aaxRingBufferDataMixNoiseFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxSourceType, int, float, float, float, uint64_t, char, unsigned char, unsigned char);

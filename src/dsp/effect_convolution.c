@@ -60,7 +60,7 @@ _aaxConvolutionEffectDestroy(_effect_t* effect)
    }
    free(effect);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxEffect
@@ -68,7 +68,7 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
 
-   effect->slot[0]->state = state ? AAX_TRUE : AAX_FALSE;
+   effect->slot[0]->state = state ? true : false;
    switch (state & ~AAX_INVERSE)
    {
    case AAX_CONSTANT:
@@ -145,7 +145,7 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // inetnional fall-through
-   case AAX_FALSE:
+   case false:
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
@@ -162,7 +162,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
    _aaxRingBufferConvolutionData *convolution = effect->slot[0]->data;
    _aaxMixerInfo *info = effect->info;
    void *handle = effect->handle;
-   aaxEffect rv = AAX_FALSE;
+   aaxEffect rv = false;
 
    if (!convolution)
    {
@@ -304,7 +304,7 @@ _aaxConvolutionEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxConvolutionEffect =
 {
-   AAX_TRUE,
+   true,
    "AAX_convolution_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxConvolutionEffectCreate,
    (_aaxEffectDestroy*)&_aaxConvolutionEffectDestroy,
@@ -455,7 +455,7 @@ _convolution_run(const _aaxDriverBackend *be, const void *be_handle, void *rbd, 
 {
    _aaxRingBufferConvolutionData *convolution = data;
    _aaxRingBuffer *rb = rbd;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (convolution->delay_gain > convolution->threshold)
    {
@@ -471,7 +471,7 @@ _convolution_run(const _aaxDriverBackend *be, const void *be_handle, void *rbd, 
 
       render->process(render, &data);
 
-      rv = AAX_TRUE;
+      rv = true;
    }
    return rv;
 }

@@ -25,12 +25,12 @@
 #include "renderer.h"
 #include "audio.h"
 
-char
+bool
 _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
                    _aax2dProps *props2d, int dest_track, char batched)
 {
    _intBuffers *hd = (_intBuffers *)devices;
-   char rv = AAX_FALSE;
+   bool rv = false;
    size_t i, num;
 
    assert(devices);
@@ -53,7 +53,7 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
    return rv;
 }
 
-char
+bool
 _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int dest_track, char batched)
 {
    _handle_t* device = (_handle_t*)id;
@@ -62,17 +62,17 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
    const _aaxDriverBackend *be;
    char unregistered_ssr;
    void *be_handle;
-   char rv = AAX_FALSE;
+   bool rv = false;
 
    be = device->backend.ptr;
    be_handle = device->backend.handle;
-   unregistered_ssr = props2d ? AAX_FALSE : AAX_TRUE;
+   unregistered_ssr = props2d ? false : true;
 
    // It's tempting to test if the device is processed and then continue
    // but the device might still have several unprocessed ringbuffers
    // in the queue. We have to process them first.
 
-   if (be->state(be_handle, DRIVER_AVAILABLE) != AAX_FALSE) {
+   if (be->state(be_handle, DRIVER_AVAILABLE) != false) {
       dptr_sensor = _intBufGet(device->sensors, _AAX_SENSOR, 0);
    }
 
@@ -98,7 +98,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
       {
          p2d = smixer->props2d;
          dest_track = smixer->info->track;
-         batched = device->finished ? AAX_TRUE : AAX_FALSE;
+         batched = device->finished ? true : false;
          srb = drb;
       }
       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
@@ -225,7 +225,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
                   if ((sptr_rb =_intBufGet(srbs, _AAX_RINGBUFFER,0)) != NULL)
                   {
                      ssr_rb = _intBufGetDataPtr(sptr_rb);
-                     /* since res == AAX_TRUE this will be unlocked 
+                     /* since res == true this will be unlocked 
                         after rb->mix2d */
                   }
                   else {
@@ -234,7 +234,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
                }
             }
             while(res);
-            rv = AAX_TRUE;
+            rv = true;
          }
       }
       else if (_IS_PROCESSED(device))
@@ -325,7 +325,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
          _aaxRingBuffer *nrb;
          float rms, peak;
 
-         nrb = drb->duplicate(drb, AAX_FALSE, AAX_TRUE);
+         nrb = drb->duplicate(drb, false, true);
          assert(nrb != 0);
 
          nrbi = nrb->handle;

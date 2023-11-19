@@ -53,7 +53,7 @@ _aaxCompressorDestroy(_filter_t* filter)
    }
    free(filter);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxFilter
@@ -62,9 +62,9 @@ _aaxCompressorSetState(_filter_t* filter, int state)
    void *handle = filter->handle;
    aaxFilter rv = NULL;
 
-   state = state ? (state | AAX_LFO_EXPONENTIAL) : AAX_FALSE;
-   if (state & ~AAX_TRUE) {
-      state &= ~AAX_TRUE;
+   state = state ? (state | AAX_LFO_EXPONENTIAL) : false;
+   if (state & ~true) {
+      state &= ~true;
    }
 
    switch (state & AAX_SOURCE_MASK)
@@ -113,10 +113,10 @@ _aaxCompressorSetState(_filter_t* filter, int state)
             lfo->min = offs;
             lfo->max = offs + depth;
          }
-         lfo->envelope = AAX_FALSE;
-         lfo->stereo_link = AAX_FALSE;
+         lfo->envelope = false;
+         lfo->stereo_link = false;
          lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
-         lfo->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         lfo->inverse = (state & AAX_INVERSE) ? true : false;
          lfo->convert = _linear;
 
          for (t=0; t<_AAX_MAX_SPEAKERS; t++)
@@ -162,8 +162,8 @@ _aaxCompressorSetState(_filter_t* filter, int state)
             switch (state & AAX_SOURCE_MASK)
             {
             case AAX_ENVELOPE_FOLLOW:
-               lfo->envelope = AAX_TRUE;
-               lfo->stereo_link = AAX_TRUE;
+               lfo->envelope = true;
+               lfo->stereo_link = true;
                if (filter->type == AAX_COMPRESSOR)
                {
                   float dt = 1.0f/filter->info->period_rate;
@@ -198,7 +198,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // inetnional fall-through
-   case AAX_FALSE:
+   case false:
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
@@ -266,7 +266,7 @@ _aaxCompressorMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxCompressor =
 {
-   AAX_TRUE,
+   true,
    "AAX_compressor", 1.0f,
    (_aaxFilterCreate*)&_aaxCompressorCreate,
    (_aaxFilterDestroy*)&_aaxCompressorDestroy,

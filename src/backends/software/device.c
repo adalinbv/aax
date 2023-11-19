@@ -166,7 +166,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
 static int
 _aaxNoneDriverDetect(UNUSED(int mode))
 {
-   return AAX_TRUE;
+   return true;
 }
 
 static void *
@@ -178,7 +178,7 @@ _aaxNoneDriverNewHandle(UNUSED(enum aaxRenderMode mode))
 static int
 _aaxNoneDriverFreeHandle(UNUSED(void *id))
 {
-   return AAX_TRUE;
+   return true;
 }
 
 static void *
@@ -191,13 +191,13 @@ _aaxNoneDriverConnect(UNUSED(void *config), UNUSED(const void *id), UNUSED(xmlId
 static int
 _aaxNoneDriverDisconnect(UNUSED(void *id))
 {
-   return AAX_TRUE;
+   return true;
 }
 
 static int
 _aaxNoneDriverSetup(UNUSED(const void *id), UNUSED(float *refresh_rate), UNUSED(int *fmt), UNUSED(unsigned int *tracks), UNUSED(float *speed), UNUSED(int *bitrate), UNUSED(int registered), UNUSED(float period_rate))
 {
-   return AAX_TRUE;
+   return true;
 }
 
 static size_t
@@ -224,7 +224,7 @@ _aaxNoneDriverPostProcess(UNUSED(const void *id))
 static int
 _aaxNoneDriverSetName(const void *id, int type, const char *name)
 {
-   return AAX_FALSE;
+   return false;
 }
 
 static char *
@@ -248,14 +248,14 @@ _aaxNoneDriverGetSetSources(UNUSED(unsigned int max), UNUSED(int num))
 static int
 _aaxNoneDriverState(UNUSED(const void *id), enum _aaxDriverState state)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    switch(state)
    {
    case DRIVER_AVAILABLE:
    case DRIVER_PAUSE:
    case DRIVER_RESUME:
    case DRIVER_SUPPORTS_PLAYBACK:
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case DRIVER_SUPPORTS_CAPTURE:
    case DRIVER_SHARED_MIXER:
@@ -320,7 +320,7 @@ _aaxNoneDriverParam(const void *id, enum _aaxDriverParam param)
 		/* boolean */
    case DRIVER_TIMER_MODE:
    case DRIVER_BATCHED_MODE:
-      rv = (float)AAX_TRUE;
+      rv = (float)true;
       break;
    case DRIVER_SHARED_MODE:
    default:
@@ -393,7 +393,7 @@ _aaxLoopbackDriverDisconnect(void *id)
    }
    free(id);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static int
@@ -423,7 +423,7 @@ _aaxLoopbackDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned 
          snprintf(_loopback_default_renderer, 99, "%s %s", LOOPBACK_RENDERER, rstr);
       }
    }
-   return AAX_TRUE;
+   return true;
 }
 
 void
@@ -488,7 +488,7 @@ _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
 		/* boolean */
       case DRIVER_TIMER_MODE:
       case DRIVER_BATCHED_MODE:
-          rv = (float)AAX_TRUE;
+          rv = (float)true;
           break;
       case DRIVER_SHARED_MODE:
       default:
@@ -593,7 +593,7 @@ _aaxNoneDriverProcessFrame(void* config)
                      {
                         d_offs = s_duration - s_offs;
                         s_offs = s_duration;
-                        rv = AAX_TRUE;
+                        rv = true;
                      }
                      else {
                         s_offs = fmodf(s_offs+dt, s_duration);
@@ -693,7 +693,7 @@ _aaxNoneDriverThread(void* config)
    }
 
    delay_sec = 1.0f/handle->info->period_rate;
-   batched = handle->finished ? AAX_TRUE : AAX_FALSE;
+   batched = handle->finished ? true : false;
 
    dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
@@ -743,7 +743,7 @@ _aaxNoneDriverThread(void* config)
                _intBuffers *rbs = smixer->play_ringbuffers;
                _aaxRingBuffer *rv;
 
-               rv = dest_rb->duplicate(dest_rb, AAX_TRUE, AAX_FALSE);
+               rv = dest_rb->duplicate(dest_rb, true, false);
                rv->set_state(rv, RB_STARTED);
                rv->set_state(rv, RB_REWINDED);
 
@@ -761,7 +761,7 @@ _aaxNoneDriverThread(void* config)
       }
       res = _aaxSignalWaitTimed(&handle->thread.signal, delay_sec);
    }
-   while (res == AAX_TIMEOUT || res == AAX_TRUE);
+   while (res == AAX_TIMEOUT || res == true);
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
@@ -812,10 +812,10 @@ _aaxSoftwareMixerThread(void* config)
 
          tracks = info->no_tracks;
          dest_rb->set_parami(dest_rb, RB_NO_TRACKS, tracks);
-         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
+         dest_rb->set_format(dest_rb, AAX_PCM24S, true);
          dest_rb->set_paramf(dest_rb, RB_FREQUENCY, info->frequency);
          dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
-         dest_rb->init(dest_rb, AAX_TRUE);
+         dest_rb->init(dest_rb, true);
          dest_rb->set_state(dest_rb, RB_STARTED);
 
          handle->ringbuffer = dest_rb;
@@ -860,7 +860,7 @@ _aaxSoftwareMixerThread(void* config)
       }
       res = _aaxSignalWaitTimed(&handle->thread.signal, delay_sec);
    }
-   while (res == AAX_TIMEOUT || res == AAX_TRUE);
+   while (res == AAX_TIMEOUT || res == true);
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
 

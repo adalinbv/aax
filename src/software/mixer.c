@@ -104,7 +104,7 @@ _aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *rendere
       rb->data_multiply(rb, 0, 0, gain);
    }
 
-   return AAX_TRUE;
+   return true;
 }
 
 void
@@ -378,7 +378,7 @@ _aaxSoftwareMixerPlay(void* rb, UNUSED(const void* devices), const void* ringbuf
       _intBuffers *mixer_ringbuffers = (_intBuffers*)ringbuffers;
       _aaxRingBuffer *new_rb;
 
-      new_rb = dest_rb->duplicate(dest_rb, AAX_TRUE, AAX_FALSE);
+      new_rb = dest_rb->duplicate(dest_rb, true, false);
       _intBufAddData(mixer_ringbuffers, _AAX_RINGBUFFER, new_rb);
    }
    return res;
@@ -406,7 +406,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
 
    _aaxTimerStart(handle->timer);
 
-   batched = handle->finished ? AAX_TRUE : AAX_FALSE;
+   batched = handle->finished ? true : false;
 
    be = handle->backend.ptr;
    if (handle->file.driver && _IS_PLAYING((_handle_t*)handle->file.driver)) {
@@ -509,7 +509,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                /* process registered emitters, audio-frames and sensors */
                res = _aaxAudioFrameProcess(rb, NULL, sensor, smixer, ssv, sdf,
                                            &sp2d, &sp3d, &sdp3d, be, be_handle,
-                                           batched, AAX_FALSE);
+                                           batched, false);
                _PROP3D_CLEAR(smixer->props3d->m_dprops3d);
 
                /*

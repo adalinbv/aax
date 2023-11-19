@@ -76,14 +76,14 @@ _aaxDelayEffectDestroy(_effect_t* effect)
    }
    free(effect);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxEffect
 _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float feedback_gain, float max_delay)
 {
    void *handle = effect->handle;
-   aaxEffect rv = AAX_FALSE;
+   aaxEffect rv = false;
 
    assert(effect->info);
 
@@ -111,7 +111,7 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
    case AAX_TIMED_TRANSITION:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
-      char fbhist = (feedback_gain > LEVEL_32DB) ? AAX_TRUE : AAX_FALSE;
+      char fbhist = (feedback_gain > LEVEL_32DB) ? true : false;
 
       data = _delay_create(data, effect->info, fbhist, state, max_delay);
 
@@ -173,7 +173,7 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
          data->lfo.max_sec = _MIN(offset+depth, max_delay);
 
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
-         data->lfo.inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         data->lfo.inverse = (state & AAX_INVERSE) ? true : false;
 
          if ((data->lfo.offset + data->lfo.depth) > 1.0f) {
             data->lfo.depth = 1.0f - data->lfo.offset;
@@ -218,7 +218,7 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
                float lfc2 = _lin2log(fmax);
                float lfc1 = _lin2log(fc);
 
-               flt->random = 1;
+               flt->random = true;
 
                lfc1 += (lfc2 - lfc1)*_aax_random();
                fc = _log2lin(lfc1);
@@ -300,7 +300,7 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
                   lfo->f = data->lfo.f;
 
                   constant = _lfo_set_timing(lfo);
-                  lfo->envelope = AAX_FALSE;
+                  lfo->envelope = false;
 
                   if (!_lfo_set_function(lfo, constant)) {
                      _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -315,7 +315,7 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // inetnional fall-through
-   case AAX_FALSE:
+   case false:
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
@@ -436,7 +436,7 @@ _aaxDelayEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxDelayLineEffect =
 {
-   AAX_FALSE,
+   false,
    "AAX_delay_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDelayEffectCreate,
    (_aaxEffectDestroy*)&_aaxDelayEffectDestroy,
@@ -543,7 +543,7 @@ _aaxChorusEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxChorusEffect =
 {
-   AAX_FALSE,
+   false,
    "AAX_chorus_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDelayEffectCreate,
    (_aaxEffectDestroy*)&_aaxDelayEffectDestroy,
@@ -620,7 +620,7 @@ _aaxPhasingEffectSet(float val, int ptype, unsigned char param)
 
 _eff_function_tbl _aaxPhasingEffect =
 {
-   AAX_FALSE,
+   false,
    "AAX_phasing_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDelayEffectCreate,
    (_aaxEffectDestroy*)&_aaxDelayEffectDestroy,
@@ -650,7 +650,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
 
 _eff_function_tbl _aaxFlangingEffect =
 {
-   AAX_FALSE,
+   false,
    "AAX_flanging_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDelayEffectCreate,
    (_aaxEffectDestroy*)&_aaxDelayEffectDestroy,
@@ -795,7 +795,7 @@ _delay_destroy(void *ptr)
    _aaxRingBufferDelayEffectData *data = ptr;
    if (data)
    {
-      data->lfo.envelope = AAX_FALSE;
+      data->lfo.envelope = false;
       if (data->offset)
       {
          free(data->offset);
@@ -880,7 +880,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    ssize_t offs, noffs;
    float volume, gain;
    float lfo_fact;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -1034,7 +1034,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
             }
          }
          rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 

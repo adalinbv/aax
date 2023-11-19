@@ -39,7 +39,7 @@ aaxSensorSetMatrix64(aaxConfig config, aaxMtx4d mtx64)
       if (!mtx64 || detect_nan_mtx4d(mtx64)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -63,7 +63,7 @@ aaxSensorSetMatrix64(aaxConfig config, aaxMtx4d mtx64)
       else
       {
          _aaxErrorSet(AAX_INVALID_STATE);
-         rv = AAX_FALSE;
+         rv = false;
       }
    }
 
@@ -81,7 +81,7 @@ aaxSensorGetMatrix64(const aaxConfig config, aaxMtx4d mtx64)
       if (!mtx64) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -102,7 +102,7 @@ aaxSensorGetMatrix64(const aaxConfig config, aaxMtx4d mtx64)
       else
       {
          _aaxErrorSet(AAX_INVALID_STATE);
-         rv = AAX_FALSE;
+         rv = false;
       }
    }
 
@@ -120,7 +120,7 @@ aaxSensorSetVelocity(aaxConfig config, aaxVec3f velocity)
       if (!velocity || detect_nan_vec3(velocity)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -147,7 +147,7 @@ aaxSensorSetVelocity(aaxConfig config, aaxVec3f velocity)
       else
       {
          _aaxErrorSet(AAX_INVALID_STATE);
-         rv = AAX_FALSE;
+         rv = false;
       }
    }
 
@@ -165,7 +165,7 @@ aaxSensorGetVelocity(const aaxConfig config, aaxVec3f velocity)
       if (!velocity) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -244,7 +244,7 @@ AAX_API int AAX_APIENTRY
 aaxSensorSetOffset(aaxConfig config, unsigned long offs, enum aaxType type)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (handle)
    {
@@ -303,7 +303,7 @@ aaxSensorSetOffsetSec(aaxConfig config, float offs)
       } else if (is_nan(offs)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -366,10 +366,10 @@ aaxSensorGetBuffer(const aaxConfig config)
                buf->info.fmt = rb->get_parami(rb, RB_FORMAT);
                buf->info.rate = rb->get_paramf(rb, RB_FREQUENCY);
 
-               buf->mipmap = AAX_FALSE;
+               buf->mipmap = false;
 
                buf->mixer_info = &_info;
-               rb->set_parami(rb, RB_IS_MIXER_BUFFER, AAX_FALSE);
+               rb->set_parami(rb, RB_IS_MIXER_BUFFER, false);
                buf->ringbuffer[0] = rb;
 
                buffer = (aaxBuffer)buf;
@@ -392,7 +392,7 @@ AAX_API int AAX_APIENTRY
 aaxSensorWaitForBuffer(aaxConfig config, float timeout)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle)
    {
       const _intBufferData* dptr;
@@ -404,7 +404,7 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
          _intBuffers *ringbuffers = sensor->mixer->play_ringbuffers;
          int nbuf = _intBufGetNumNoLock(ringbuffers, _AAX_RINGBUFFER);
          _intBufReleaseData(dptr, _AAX_SENSOR);
-         if (nbuf) rv = AAX_TRUE;
+         if (nbuf) rv = true;
       }
 
       if (!rv)
@@ -412,7 +412,7 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
          rv = _aaxSignalWaitTimed(&handle->buffer_ready, timeout);
          if (rv == AAX_TIMEOUT)
          {
-            rv = AAX_FALSE;
+            rv = false;
             _aaxErrorSet(AAX_TIMEOUT);
          }
       }
@@ -425,7 +425,7 @@ AAX_API int AAX_APIENTRY
 aaxSensorSetState(aaxConfig config, enum aaxState state)
 {
    _handle_t *handle = get_valid_handle(config, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle)
    {
       switch(state)
@@ -438,7 +438,7 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
          {
             _aaxSensorCreateRingBuffer(handle);
             _SET_PLAYING(handle);
-            rv = AAX_TRUE;
+            rv = true;
          }
          else				/* capture buffer on playback */
          {
@@ -447,9 +447,9 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
             if (dptr)
             {
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
-               sensor->mixer->capturing = AAX_TRUE;
+               sensor->mixer->capturing = true;
                _intBufReleaseData(dptr, _AAX_SENSOR);
-               rv = AAX_TRUE;
+               rv = true;
             }
             else {
                _aaxErrorSet(AAX_INVALID_STATE);
@@ -469,7 +469,7 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
             } else {
                _SET_PROCESSED(handle);
             }
-            rv = AAX_TRUE;
+            rv = true;
          }
          else if (handle->sensors)		/* capture buffer on playback */
          {
@@ -478,9 +478,9 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
             if (dptr)
             {
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
-               sensor->mixer->capturing = AAX_FALSE;
+               sensor->mixer->capturing = false;
                _intBufReleaseData(dptr, _AAX_SENSOR);
-               rv = AAX_TRUE;
+               rv = true;
             }
             else {
                _aaxErrorSet(AAX_INVALID_STATE);
@@ -504,21 +504,21 @@ aaxSensorGetState(UNUSED(const aaxConfig config))
 AAX_API int AAX_APIENTRY
 aaxSensorSetMode(UNUSED(aaxConfig config), UNUSED(enum aaxModeType type), UNUSED(int mode))
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxSensorGetMode(UNUSED(const aaxConfig config), UNUSED(enum aaxModeType type))
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
 aaxSensorSetSetup(UNUSED(aaxConfig config), UNUSED(enum aaxSetupType type), UNUSED(int64_t setup))
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    return rv;
 }
 
@@ -526,7 +526,7 @@ AAX_API int64_t AAX_APIENTRY
 aaxSensorGetSetup(aaxConfig config, enum aaxSetupType type)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int64_t rv = AAX_FALSE;
+   int64_t rv = false;
 
    if (handle)
    {
@@ -565,12 +565,12 @@ int
 _aaxSensorCreateRingBuffer(_handle_t *handle)
 {
    _intBufferData *dptr;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    assert(handle);
 
    if ((handle->info->mode != AAX_MODE_READ) ||
-       (handle->thread.started != AAX_FALSE)) {
+       (handle->thread.started != false)) {
       return rv;
    }
 
@@ -598,7 +598,7 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
          const _aaxDriverBackend *be;
          float min, max;
 
-         rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
+         rb->set_format(rb, AAX_PCM24S, true);
          rb->set_parami(rb, RB_NO_TRACKS, info->no_tracks);
 
          be = handle->backend.ptr;
@@ -615,7 +615,7 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
 
          /* create a ringbuffer with a but of overrun space */
          rb->set_paramf(rb, RB_DURATION_SEC, delay_sec*1.0f);
-         rb->init(rb, AAX_TRUE);
+         rb->init(rb, true);
 
          /* 
           * Now set the actual duration, this will not alter the allocated
@@ -634,10 +634,10 @@ _aaxSensorCreateRingBuffer(_handle_t *handle)
 int
 _aaxSensorCaptureStart(_handle_t *handle)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    assert(handle);
    assert(handle->info->mode == AAX_MODE_READ);
-   assert(handle->thread.started == AAX_FALSE);
+   assert(handle->thread.started == false);
 
    if (_IS_INITIAL(handle) || _IS_PROCESSED(handle))
    {
@@ -654,7 +654,7 @@ _aaxSensorCaptureStart(_handle_t *handle)
          assert(handle->thread.signal.condition != 0);
          assert(handle->thread.signal.mutex != 0);
 
-         handle->thread.started = AAX_TRUE;
+         handle->thread.started = true;
          ms = rintf(1000/handle->info->period_rate);
 #if 0
          r = _aaxThreadStart(handle->thread.ptr,
@@ -678,7 +678,7 @@ _aaxSensorCaptureStart(_handle_t *handle)
             if (r == 0)
             {
                _aaxErrorSet(AAX_TIMEOUT);
-               handle->thread.started = AAX_FALSE;
+               handle->thread.started = false;
             }
             else
             {
@@ -687,12 +687,12 @@ _aaxSensorCaptureStart(_handle_t *handle)
                if (dptr)
                {
                   _sensor_t *sensor = _intBufGetDataPtr(dptr);
-                  sensor->mixer->capturing = AAX_TRUE;
+                  sensor->mixer->capturing = true;
                   _intBufReleaseData(dptr, _AAX_SENSOR);
                }
 
                _SET_PLAYING(handle);
-               rv = AAX_TRUE;
+               rv = true;
             }
          }
       }
@@ -701,7 +701,7 @@ _aaxSensorCaptureStart(_handle_t *handle)
       }
    }
    else if (_IS_STANDBY(handle)) {
-      rv = AAX_TRUE;
+      rv = true;
    }
    return rv;
 }
@@ -709,14 +709,14 @@ _aaxSensorCaptureStart(_handle_t *handle)
 int
 _aaxSensorCaptureStop(_handle_t *handle)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    if TEST_FOR_TRUE(handle->thread.started)
    {
       if (handle->info->mode == AAX_MODE_READ)
       {
          const _intBufferData* dptr;
 
-         handle->thread.started = AAX_FALSE;
+         handle->thread.started = false;
 
          _aaxSignalTrigger(&handle->thread.signal);
          _aaxThreadJoin(handle->thread.ptr);
@@ -728,14 +728,14 @@ _aaxSensorCaptureStop(_handle_t *handle)
          if (dptr)
          {
             _sensor_t *sensor = _intBufGetDataPtr(dptr);
-            sensor->mixer->capturing = AAX_FALSE;
+            sensor->mixer->capturing = false;
 /*          Note: _intBufGetNoLock above, no need to unlock
  *          _intBufReleaseData(dptr, _AAX_SENSOR);
  */
          }
 
          _SET_PROCESSED(handle);
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
    return rv;

@@ -46,12 +46,12 @@
 #define BACKEND_NAME		"Audio Stream"
 #define DEFAULT_RENDERER	AAX_NAME_STR""
 
-#define USE_PID			AAX_TRUE
-#define USE_PLAYBACK_THREAD	AAX_TRUE
+#define USE_PID			true
+#define USE_PLAYBACK_THREAD	true
 #ifdef WIN32
-# define USE_CAPTURE_THREAD	AAX_FALSE
+# define USE_CAPTURE_THREAD	false
 #else
-# define USE_CAPTURE_THREAD	AAX_TRUE
+# define USE_CAPTURE_THREAD	true
 #endif
 
 static _aaxDriverDetect _aaxStreamDriverDetect;
@@ -187,7 +187,7 @@ static int
 _aaxStreamDriverDetect(UNUSED(int mode))
 {
    snprintf(default_renderer, 255, "%s: %s/AeonWaveOut.wav", BACKEND_NAME, tmpDir());
-   return AAX_TRUE;
+   return true;
 }
 
 static void *
@@ -213,7 +213,7 @@ _aaxStreamDriverNewHandle(enum aaxRenderMode mode)
 static int
 _aaxALSADriverFreeHandle(UNUSED(void *id))
 {
-   return AAX_TRUE;
+   return true;
 }
 
 
@@ -358,13 +358,13 @@ static int
 _aaxStreamDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   int ret = AAX_TRUE;
+   int ret = true;
 
    if (handle)
    {
       if (handle->iothread.started)
       {
-         handle->iothread.started = AAX_FALSE;
+         handle->iothread.started = false;
 
          _aaxSignalTrigger(&handle->iothread.signal);
          _aaxThreadJoin(handle->iothread.ptr);
@@ -391,7 +391,7 @@ _aaxStreamDriverDisconnect(void *id)
             size_t offs = 0;
             do
             {
-               buf = handle->ext->update(handle->ext, &offs, &size, AAX_TRUE);
+               buf = handle->ext->update(handle->ext, &offs, &size, true);
                if (offs > 0) {
                   ret = handle->io->write(handle->io, handle->ioBuffer);
                }
@@ -441,7 +441,7 @@ static int
 _aaxStreamDriverFlush(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   int ret = AAX_FALSE;
+   int ret = false;
 
    if (handle->ext->flush) {
       ret = handle->ext->flush(handle->ext);
@@ -459,7 +459,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
    char *s, *protname, *server, *path, *extension, *mip_level;
    int res, port, rate, size, safe_path;
-   int level = 0, rv = AAX_FALSE;
+   int level = 0, rv = false;
    _protocol_t protocol;
    _data_t *ioBuffer;
    size_t headerSize;
@@ -487,7 +487,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    if (!protocol) {
       safe_path = isSafeDir(path, m);
    } else {
-      safe_path = AAX_TRUE;
+      safe_path = true;
    }
 
 #if 0
@@ -514,7 +514,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    handle->io->set_param(handle->io, __F_FLAGS, handle->mode);
 
-   res = AAX_FALSE;
+   res = false;
    ioBuffer = handle->ioBuffer;
    if (safe_path)
    {
@@ -535,7 +535,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                if (handle->ext)
                {
                   handle->no_bytes = rv;
-                  res = AAX_TRUE;
+                  res = true;
                }
             }
             else
@@ -545,7 +545,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                if (handle->ext)
                {
                   handle->no_bytes = rv;
-                  res = AAX_TRUE;
+                  res = true;
                }
             }
 
@@ -573,7 +573,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             {
                handle->no_bytes= handle->io->get_param(handle->io,__F_NO_BYTES);
                _aaxProcessSetPriority(-20);
-               res = AAX_TRUE;
+               res = true;
             }
          }
          else
@@ -649,7 +649,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                      if (res == __F_EOF)
                      {
                          _aaxStreamDriverLog(id, 0,0, "Unexpected end-of-file");
-                         return AAX_FALSE;
+                         return false;
                      }
                      _aaxStreamDriverLog(id, 0, 0, "Timeout");
                      break;
@@ -731,7 +731,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (res == 0)
             {
                if (handle->use_iothread) {
-                  handle->iothread.started = AAX_TRUE;
+                  handle->iothread.started = true;
                }
 
                handle->render = _aaxSoftwareInitRenderer(handle->latency,
@@ -742,7 +742,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   snprintf(_file_default_renderer, MAX_ID_STRLEN, "%s %s",
                                                    DEFAULT_RENDERER, rstr);
                }
-               rv = AAX_TRUE;
+               rv = true;
             }
             else {
                _aaxStreamDriverLog(id, 0, 0, "Internal error: thread failed");
@@ -886,10 +886,10 @@ _aaxStreamDriverCapture(const void *id, void **dst, ssize_t *offset, size_t *fra
       data = NULL;
       bytes = 0;
       samples = no_samples;
-      res = __F_NEED_MORE;	// for handle->start_with_fill == AAX_TRUE
+      res = __F_NEED_MORE;	// for handle->start_with_fill == true
       do
       {
-         // handle->start_with_fill == AAX_TRUE if the previous session was
+         // handle->start_with_fill == true if the previous session was
          // a call to  handle->ext->fill and it returned __F_NEED_MORE
          if (!handle->start_with_fill)
          {
@@ -925,17 +925,17 @@ _aaxStreamDriverCapture(const void *id, void **dst, ssize_t *offset, size_t *fra
                _aaxDataMove(handle->rawBuffer, 0, NULL, avail);
             }
          } /* handle->start_with_fill */
-         handle->start_with_fill = AAX_FALSE;
+         handle->start_with_fill = false;
 
          if (res == __F_EOF) {
-            handle->end_of_file = AAX_TRUE;
+            handle->end_of_file = true;
             bytes = __F_EOF;
             break;
          }
 
          if (handle->end_of_file && res == __F_NEED_MORE)
          {
-            handle->start_with_fill = AAX_TRUE;
+            handle->start_with_fill = true;
             bytes = __F_EOF;
             break;
          }
@@ -1032,7 +1032,7 @@ static int
 _aaxStreamDriverSetName(const void *id, int type, const char *name)
 {
    _driver_t *handle = (_driver_t *)id;
-   int ret = AAX_FALSE;
+   int ret = false;
    if (handle)
    {
       switch (type)
@@ -1040,52 +1040,52 @@ _aaxStreamDriverSetName(const void *id, int type, const char *name)
       case AAX_MUSIC_PERFORMER_STRING:
       case AAX_MUSIC_PERFORMER_UPDATE:
          handle->meta.artist = strdup(name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_TRACK_TITLE_STRING:
       case AAX_TRACK_TITLE_UPDATE:
          handle->meta.title = strdup(name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_MUSIC_GENRE_STRING:
          handle->meta.genre = strdup(name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_TRACK_NUMBER_STRING:
          handle->meta.trackno = strdup(name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_ALBUM_NAME_STRING:
          handle->meta.album = strdup(name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_RELEASE_DATE_STRING:
          handle->meta.date = strdup(name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_SONG_COMPOSER_STRING:
          handle->meta.composer = strdup(name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_SONG_COPYRIGHT_STRING:
          handle->meta.copyright = strdup(name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_SONG_COMMENT_STRING:
          handle->meta.comments = strdup(name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_ORIGINAL_PERFORMER_STRING:
          handle->meta.original = strdup(name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_CONTACT_STRING:
          handle->meta.contact = strdup(name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       case AAX_COVER_IMAGE_DATA:
          handle->meta.image = strdup(name);
-         ret = AAX_TRUE;
+         ret = true;
          break;
       default:
          break;
@@ -1267,7 +1267,7 @@ static int
 _aaxStreamDriverState(UNUSED(const void *id), enum _aaxDriverState state)
 
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    switch(state)
    {
    case DRIVER_AVAILABLE:
@@ -1275,7 +1275,7 @@ _aaxStreamDriverState(UNUSED(const void *id), enum _aaxDriverState state)
    case DRIVER_RESUME:
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case DRIVER_SHARED_MIXER:
    case DRIVER_NEED_REINIT:
@@ -1410,13 +1410,13 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
             if (handle->ext->get_param(handle->ext, __F_POSITION) &&
                 handle->io->get_param(handle->io, __F_POSITION) != -1)
             {
-                rv = (float)AAX_TRUE;
+                rv = (float)true;
             }
          }
          break;
       case DRIVER_TIMER_MODE:
       case DRIVER_BATCHED_MODE:
-         rv = (float)AAX_TRUE;
+         rv = (float)true;
          break;
       case DRIVER_SHARED_MODE:
       default:
@@ -1625,7 +1625,7 @@ _aaxStreamDriverWriteChunk(const void *id)
                size_t spos = 0;
                ssize_t usize;
                void *buf = handle->ext->update(handle->ext, &spos, &usize,
-                                               AAX_FALSE);
+                                               false);
 
                // if update returns non NULL then header needs updating.
                if (buf && handle->io->update_header) {
@@ -1685,10 +1685,10 @@ _aaxStreamDriverThread(void* config)
          freq = info->frequency;
          tracks = info->no_tracks;
          dest_rb->set_parami(dest_rb, RB_NO_TRACKS, tracks);
-         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
+         dest_rb->set_format(dest_rb, AAX_PCM24S, true);
          dest_rb->set_paramf(dest_rb, RB_FREQUENCY, freq);
          dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
-         dest_rb->init(dest_rb, AAX_TRUE);
+         dest_rb->init(dest_rb, true);
          dest_rb->set_state(dest_rb, RB_STARTED);
 
          handle->ringbuffer = dest_rb;
@@ -1769,7 +1769,7 @@ _aaxStreamDriverThread(void* config)
 
       res = _aaxSignalWaitTimed(&handle->thread.signal, dt);
    }
-   while (res == AAX_TIMEOUT || res == AAX_TRUE);
+   while (res == AAX_TIMEOUT || res == true);
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
@@ -1821,7 +1821,7 @@ _aaxStreamDriverReadChunk(const void *id)
    _aaxMutexUnLock(handle->ioBufLock);
 
    if (res == -1) {
-      handle->end_of_file = AAX_TRUE;
+      handle->end_of_file = true;
    }
 
    return res;
@@ -1852,7 +1852,7 @@ _aaxStreamDriverThreadReadChunk(const void *id)
    }
 
    if (res == -1) {
-      handle->end_of_file = AAX_TRUE;
+      handle->end_of_file = true;
    }
 
    return res;

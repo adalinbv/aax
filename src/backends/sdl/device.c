@@ -53,8 +53,8 @@
 #define DEFAULT_RENDERER	"SDL"
 #define DEFAULT_REFRESH		25.0f
 
-#define USE_PID			AAX_TRUE
-#define USE_SDL_THREAD		AAX_TRUE
+#define USE_PID			true
+#define USE_SDL_THREAD		true
 #define FILL_FACTOR		4.0f
 
 #define _AAX_DRVLOG(a)		_aaxSDLDriverLog(id, 0, 0, a)
@@ -195,7 +195,7 @@ static void *audio = NULL;
 static int
 _aaxSDLDriverDetect(UNUSED(int mode))
 {
-   static int rv = AAX_FALSE;
+   static int rv = false;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -236,7 +236,7 @@ _aaxSDLDriverDetect(UNUSED(int mode))
 
       error = _aaxGetSymError(0);
       if (!error) {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -292,7 +292,7 @@ _aaxSDLDriverFreeHandle(UNUSED(void *id))
    _aaxCloseLibrary(audio);
    audio = NULL;
 
-   return AAX_TRUE;
+   return true;
 }
 
 static void *
@@ -436,7 +436,7 @@ static int
 _aaxSDLDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
    char *ifname;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -469,7 +469,7 @@ _aaxSDLDriverDisconnect(void *id)
       pSDL_AudioQuit();
       pSDL_Quit();
 
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -482,7 +482,7 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
 {
    _driver_t *handle = (_driver_t *)id;
    int m = (handle->mode == AAX_MODE_READ) ? 1 : 0;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    *fmt = AAX_PCM16S;
 
@@ -557,7 +557,7 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
             pSDL_GetVersion(&v);
             snprintf(_sdl_id_str, MAX_ID_STRLEN, "%s %i.%i.%i %s",
                      DEFAULT_RENDERER, v.major, v.minor, v.patch, rstr);
-            rv = AAX_TRUE;
+            rv = true;
          }
          else {
             _AAX_DRVLOG("unable to get the renderer");
@@ -623,11 +623,11 @@ _aaxSDLDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
 
    *offset = 0;
    if ((handle->mode != 0) || (frames == 0) || (data == 0)) {
-     return AAX_FALSE;
+     return false;
    }
 
    if (nframes == 0) {
-      return AAX_TRUE;
+      return true;
    }
 
    *frames = 0;
@@ -653,7 +653,7 @@ _aaxSDLDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
    }
    *frames = nframes;
 
-   return AAX_TRUE;
+   return true;
 }
 
 static size_t
@@ -718,7 +718,7 @@ static int
 _aaxSDLDriverSetName(const void *id, int type, const char *name)
 {
    _driver_t *handle = (_driver_t *)id;
-   int ret = AAX_FALSE;
+   int ret = false;
    if (handle)
    {
       switch (type)
@@ -756,7 +756,7 @@ static int
 _aaxSDLDriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    switch(state)
    {
@@ -764,21 +764,21 @@ _aaxSDLDriverState(const void *id, enum _aaxDriverState state)
       if (handle)
       {
          pSDL_PauseAudioDevice(handle->devnum, 1);
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    case DRIVER_RESUME:
       if (handle)
       {
          pSDL_PauseAudioDevice(handle->devnum, 0);
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    case DRIVER_AVAILABLE:
    case DRIVER_SHARED_MIXER:
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case DRIVER_NEED_REINIT:
    default:
@@ -864,7 +864,7 @@ _aaxSDLDriverGetDevices(UNUSED(const void *id), int mode)
       char show_all, *ptr;
 
       t_previous[m] = t_now;
-      show_all = (env && _aax_getbool(env)) ? AAX_TRUE : AAX_FALSE;
+      show_all = (env && _aax_getbool(env)) ? true : false;
 
       ptr = (char *)&names[m];
       *ptr = 0; *(ptr+1) = 0;
@@ -1072,10 +1072,10 @@ _aaxSDLDriverThread(void* config)
          freq = info->frequency;
          tracks = info->no_tracks;
          dest_rb->set_parami(dest_rb, RB_NO_TRACKS, tracks);
-         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
+         dest_rb->set_format(dest_rb, AAX_PCM24S, true);
          dest_rb->set_paramf(dest_rb, RB_FREQUENCY, freq);
          dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
-         dest_rb->init(dest_rb, AAX_TRUE);
+         dest_rb->init(dest_rb, true);
          dest_rb->set_state(dest_rb, RB_STARTED);
 
          handle->ringbuffer = dest_rb;
@@ -1154,7 +1154,7 @@ _aaxSDLDriverThread(void* config)
 
       res = _aaxSignalWaitTimed(&handle->thread.signal, dt);
    }
-   while (res == AAX_TIMEOUT || res == AAX_TRUE);
+   while (res == AAX_TIMEOUT || res == true);
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
 

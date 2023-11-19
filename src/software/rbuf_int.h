@@ -111,17 +111,17 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
     float freqfilter_history_y[RB_MAX_TRACKS];
 
     float volume_envelope[2*_MAX_ENVELOPE_STAGES];
-    unsigned char envelope_sustain;
-    unsigned char sampled_release;
-    unsigned char fast_release;
+    bool envelope_sustain;
+    bool sampled_release;
+    bool fast_release;
 
     struct {
        float depth, rate, sweep;
     } vibrato, tremolo;
 
-    unsigned char track_len_set;
-    unsigned char block_size_set;
-    unsigned char mixer_fmt;    /* 1 if the ringbuffer is part of the mixer */
+    bool track_len_set;
+    bool block_size_set;
+    bool mixer_fmt;    /* true if the ringbuffer is part of the mixer */
 
     enum aaxFormat format;
     _batch_codec_proc codec;
@@ -156,13 +156,13 @@ typedef struct _aaxRingBufferData_t
 
     unsigned int loop_max;
     unsigned int loop_no;
-    unsigned char loop_mode;
-    unsigned char sampled_release;
+    bool loop_mode;
+    bool sampled_release;
 
-    unsigned char looping;
-    unsigned char playing;
-    unsigned char stopped;
-    unsigned char streaming;
+    bool looping;
+    bool playing;
+    bool stopped;
+    bool streaming;
 
 #ifndef NDEBUG
     void *parent;

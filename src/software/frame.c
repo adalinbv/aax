@@ -46,7 +46,7 @@ static void* _aaxAudioFrameSwapBuffers(void*, _intBuffers*, char);
  * NOTE: fp3d must be a copy of the frames dprops3d structure since
  *       this function may alter it's contents.
  */
-char
+bool
 _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
                      void *sensor,  _aaxAudioFrame *fmixer,
                      float ssv, float sdf, _aax2dProps *fp2d, _aax3dProps *fp3d,
@@ -59,14 +59,14 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    _aaxDelayed3dProps *pdp3d_m = NULL;
    _aaxMixerInfo *info = fmixer->info;
    _aaxLFOData *lfo;
-   char process;
-   char ssr = 1;
+   bool ssr = true;
+   bool process;
 
    /* Update the model-view matrix based on our own and that of out parent. */
    /* fp3d->parent == NULL means this is the sensor frame so no math there. */
    if (fp3d->parent)
    {
-      ssr = 0;
+      ssr = false;
       pdp3d_m = fp3d->parent->m_dprops3d;
       if (_PROP3D_MTX_HAS_CHANGED(fdp3d) ||
           _PROP3D_MTX_HAS_CHANGED(pdp3d_m))
@@ -161,10 +161,10 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
             float dt = 1.0f/info->period_rate;
 
             dest_rb->set_parami(frame_rb, RB_NO_TRACKS, info->no_tracks);
-            dest_rb->set_format(frame_rb, AAX_PCM24S, AAX_TRUE);
+            dest_rb->set_format(frame_rb, AAX_PCM24S, true);
             dest_rb->set_paramf(frame_rb, RB_FREQUENCY, info->frequency);
             dest_rb->set_paramf(frame_rb, RB_DURATION_SEC, dt);
-            dest_rb->init(frame_rb, AAX_TRUE);
+            dest_rb->init(frame_rb, true);
             fmixer->ringbuffer = frame_rb;
          }
       }
@@ -264,7 +264,7 @@ _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
 
    _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
 
-   buf = _intBufPopNormal(ringbuffers, _AAX_RINGBUFFER, AAX_TRUE);
+   buf = _intBufPopNormal(ringbuffers, _AAX_RINGBUFFER, true);
    if (buf)
    {
       _aaxRingBuffer *src_rb  = _intBufGetDataPtr(buf);
@@ -276,7 +276,7 @@ _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
        * be used without the need to delete this one now and 
        * create a new ringbuffer later on.
        */
-      _intBufPushNormal(ringbuffers, _AAX_RINGBUFFER, buf, AAX_TRUE);
+      _intBufPushNormal(ringbuffers, _AAX_RINGBUFFER, buf, true);
    }
 
    _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
@@ -295,7 +295,7 @@ _aaxAudioFrameMix3D(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
    _aaxSetupSpeakersFromDistanceVector(&sfpos, dfact, speaker, fp2d, info);
 
    _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
-   buf = _intBufPopNormal(ringbuffers, _AAX_RINGBUFFER, AAX_TRUE);
+   buf = _intBufPopNormal(ringbuffers, _AAX_RINGBUFFER, true);
    if (buf)
    {
       _aaxRingBuffer *src_rb  = _intBufGetDataPtr(buf);
@@ -324,7 +324,7 @@ _aaxAudioFrameMix3D(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
        * be used without the need to delete this one now and 
        * create a new ringbuffer later on.
        */
-      _intBufPushNormal(ringbuffers, _AAX_RINGBUFFER, buf, AAX_TRUE);
+      _intBufPushNormal(ringbuffers, _AAX_RINGBUFFER, buf, true);
    }
 
    _intBufReleaseNum(ringbuffers, _AAX_RINGBUFFER);
@@ -338,10 +338,10 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                      const _aaxDriverBackend *be, void *be_handle, char batched)
 {
    _aaxDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
-   char indoor = _PROP3D_INDOOR_IS_DEFINED(fdp3d_m) ? AAX_TRUE : AAX_FALSE;
-   char mono = _PROP3D_MONO_IS_DEFINED(fdp3d_m) ? AAX_TRUE : AAX_FALSE;
-   char process = AAX_FALSE;
-   char res = AAX_FALSE;
+   bool indoor = _PROP3D_INDOOR_IS_DEFINED(fdp3d_m) ? true : false;
+   bool mono = _PROP3D_MONO_IS_DEFINED(fdp3d_m) ? true : false;
+   bool process = false;
+   bool res = false;
    _intBufferData *dptr;
    _aax2dProps sfp2d;
 
@@ -393,17 +393,17 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
       /* if the subframe actually did render something, mix the data */
       if (res)
       {
-         char dde = AAX_FALSE;
+         bool dde = false;
 
          if (_EFFECT_GET2D_DATA(sfmixer, DELAY_EFFECT) ||
              _EFFECT_GET2D_DATA(sfmixer, DELAY_LINE_EFFECT) || 
              _EFFECT_GET3D_DATA(sfmixer, REVERB_EFFECT))
          {
-            dde = AAX_TRUE;
+            dde = true;
          }
          fmixer->ringbuffer = _aaxAudioFrameSwapBuffers(frame_rb,
                                              sfmixer->frame_ringbuffers, dde);
-         process = AAX_TRUE;
+         process = true;
       }
    }
 
@@ -439,7 +439,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
          }
 
          sfmixer->capturing++;
-         process = AAX_TRUE;
+         process = true;
       }
    }
 
@@ -455,7 +455,7 @@ _aaxAudioFrameSwapBuffers(void *rbuf, _intBuffers *ringbuffers, char dde)
 
    _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
 
-   buf = _intBufPopNormal(ringbuffers, _AAX_RINGBUFFER, AAX_TRUE);
+   buf = _intBufPopNormal(ringbuffers, _AAX_RINGBUFFER, true);
    if (buf)
    {
       nrb = _intBufSetDataPtr(buf, rb);
@@ -465,12 +465,12 @@ _aaxAudioFrameSwapBuffers(void *rbuf, _intBuffers *ringbuffers, char dde)
          nrb->copy_effectsdata(nrb, rb);
       }
 
-      _intBufPushNormal(ringbuffers, _AAX_RINGBUFFER, buf, AAX_TRUE);
+      _intBufPushNormal(ringbuffers, _AAX_RINGBUFFER, buf, true);
    }
    else
    {
-      nrb = rb->duplicate(rb, AAX_TRUE, AAX_TRUE);
-      _intBufAddDataNormal(ringbuffers, _AAX_RINGBUFFER, rb, AAX_TRUE);
+      nrb = rb->duplicate(rb, true, true);
+      _intBufAddDataNormal(ringbuffers, _AAX_RINGBUFFER, rb, true);
    }
 
    rb = nrb; 

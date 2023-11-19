@@ -24,10 +24,10 @@
 #define STB_VORBIS_NO_PULLDATA_API		1
 #define STB_VORBIS_MAX_CHANNELS			_AAX_MAX_SPEAKERS
 #ifndef TRUE
-# define TRUE					AAX_TRUE
+# define TRUE					true
 #endif
 #ifndef FALSE
-# define FALSE					AAX_FALSE
+# define FALSE					false
 #endif
 #ifdef alloca
 # undef alloca

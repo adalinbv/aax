@@ -136,13 +136,13 @@ static void _detect_mp3_song_info(_driver_t*);
 static void _aax_lame_log(const char*, va_list);
 #endif
 
-static int _aax_mp3_init = AAX_FALSE;
+static int _aax_mp3_init = false;
 static void *audio = NULL;
 
 int
 _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (mode == 0) /* read */
    {
@@ -170,7 +170,7 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
          pmp3_getformat = (mp3_getformat_proc)pdmp3_getformat;
          pmp3_meta_check = (mp3_meta_check_proc)pdmp3_meta_check;
          pmp3_id3 = (mp3_id3_proc)pdmp3_id3;
-         rv = AAX_TRUE;
+         rv = true;
       }
       else /* libmpg123 was found */
       {
@@ -223,7 +223,7 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
                pmp3_meta_check = pmpg123_meta_check;
                pmp3_id3 = pmpg123_id3;
                pmp3_plain_strerror = pmpg123_plain_strerror;
-               rv = AAX_TRUE;
+               rv = true;
             }
          }
       }
@@ -276,7 +276,7 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
 
             error = _aaxGetSymError(0);
             if (!error) {
-               rv = AAX_TRUE;
+               rv = true;
             }
          }
       }
@@ -302,7 +302,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
          handle->file_size = fsize;
          handle->capturing = (mode == 0) ? 1 : 0;
          handle->blocksize = sizeof(int16_t);
-         handle->internal = audio ? AAX_FALSE : AAX_TRUE;
+         handle->internal = audio ? false : true;
       }
       else {
          _AAX_FILEDRVLOG("MP3: Insufficient memory");
@@ -345,7 +345,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             if (!_aax_mp3_init)
             {
                pmp3_init();
-               _aax_mp3_init = AAX_TRUE;
+               _aax_mp3_init = true;
             }
 
             handle->id = pmp3_new(NULL, NULL);
@@ -390,7 +390,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
                   if (_aax_mp3_init)
                   {
                      pmp3_exit();
-                     _aax_mp3_init = AAX_FALSE;
+                     _aax_mp3_init = false;
                   }
                }
             }
@@ -556,7 +556,7 @@ _mp3_close(_fmt_t *fmt)
          if (_aax_mp3_init && pmp3_exit)
          {
             pmp3_exit();
-            _aax_mp3_init = AAX_FALSE;
+            _aax_mp3_init = false;
          }
       }
       else {
@@ -594,7 +594,7 @@ _mp3_setup(_fmt_t *fmt, UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_f
       plame_init_params(handle->id);
    }
 
-   return AAX_TRUE;
+   return true;
 }
 
 size_t
@@ -825,59 +825,59 @@ int
 _mp3_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
 {
    _driver_t *handle = fmt->id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    switch(param)
    {
    case __F_ARTIST:
       handle->meta.artist = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_TITLE:
       handle->meta.title = (char*)desc;
       pid3tag_set_title(handle->id, handle->meta.title);
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_GENRE:
       handle->meta.genre = (char*)desc;
       pid3tag_set_genre(handle->id, handle->meta.genre);
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_TRACKNO:
       handle->meta.trackno = (char*)desc;
       pid3tag_set_track(handle->id, handle->meta.trackno);
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_ALBUM:
       handle->meta.album = (char*)desc;
       pid3tag_set_album(handle->id, handle->meta.album);
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_DATE:
       handle->meta.date = (char*)desc;
       pid3tag_set_year(handle->id, handle->meta.date);
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_COMPOSER:
       handle->meta.composer = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_COMMENT:
       handle->meta.comments = (char*)desc;
       pid3tag_set_comment(handle->id, handle->meta.comments);
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_COPYRIGHT:
       handle->meta.copyright = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_ORIGINAL:
       handle->meta.original = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_WEBSITE:
       handle->meta.website = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    default:
       break;
@@ -966,7 +966,7 @@ _mp3_get(_fmt_t *fmt, int type)
       break;
    case __F_POSITION:
       if (pmp3_feedseek) {
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    default:
@@ -1011,7 +1011,7 @@ _mp3_set(_fmt_t *fmt, int type, float value)
        handle->info.bitrate = rv = value;
       break;
    case __F_IS_STREAM:
-      handle->streaming = AAX_TRUE;
+      handle->streaming = true;
       break;
    case __F_POSITION:
       if (pmp3_feedseek)
@@ -1077,7 +1077,7 @@ static void
 _detect_mp3_song_info(_driver_t *handle)
 {
    if (!pmp3_meta_check || !pmp3_id3) {
-      handle->id3_found = AAX_TRUE;
+      handle->id3_found = true;
    }
 
    if (!handle->id3_found)
@@ -1185,7 +1185,7 @@ _detect_mp3_song_info(_driver_t *handle)
                if (v2->picture[i].data != NULL) {};
             }
 #endif
-            handle->meta.id3_found = AAX_TRUE;
+            handle->meta.id3_found = true;
          }
          else if (v1)
          {
@@ -1203,7 +1203,7 @@ _detect_mp3_song_info(_driver_t *handle)
                handle->meta.genre = strdup(g);
                xmlFree(g);
             }
-            handle->meta.id3_found = AAX_TRUE;
+            handle->meta.id3_found = true;
          }
          if (xid)
          {

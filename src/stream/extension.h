@@ -57,7 +57,7 @@ struct _ext_st;
 // requested extension in the requested mode. For example  whether a
 // particular library is installed.
 //
-// Returns AAX_TRUE if the extension-type is supported, AAX_FALSE otherwise.
+// Returns true if the extension-type is supported, false otherwise.
 typedef int (_ext_detect_fn)(struct _ext_st *handle, int mode);
 
 // Set up the extension in the requested format.
@@ -72,7 +72,7 @@ typedef int (_ext_detect_fn)(struct _ext_st *handle, int mode);
 // no_samples: the number of samples of one rendering period
 // bitrate: the requested bit-rate of the audio stream
 // 
-// Returns AAX_TRUE on success, AAX_FALSE otherwise.
+// Returns true on success, false otherwise.
 typedef int (_ext_new_handle_fn)(struct _ext_st *handle, int mode, size_t *bufsize, int rate, int channels, int format, size_t no_samples, int bitrate);
 
 // Open the extension for business. This is where the stream is accessed
@@ -95,7 +95,7 @@ typedef void* (_ext_open_fn)(struct _ext_st *handle, void_ptr buf, ssize_t *bufs
 //
 // handle must have been created using _ext_create(type);
 //
-// Returns AAX_TRUE
+// Returns true
 typedef int (_ext_close_fn)(struct _ext_st *handle);
 
 // Updates the extension (and format) internals before converting it to PCM
@@ -104,7 +104,7 @@ typedef int (_ext_close_fn)(struct _ext_st *handle);
 // handle must have been created using _ext_create(type);
 // *offset: returns the number of bytes which are unprocessed, or 0
 // *size: returns the header size in bytes, or 0
-// close: AAX_TRUE of this is the final call when closing the stream,
+// close: true of this is the final call when closing the stream,
 //        AAX_FLASE otherwise
 //
 // Returns a non-NULL pointer to a buffer containg the header if the header

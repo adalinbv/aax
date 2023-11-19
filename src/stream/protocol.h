@@ -55,7 +55,7 @@ struct _prot_st
    size_t meta_interval;
    size_t meta_offset;
 
-   char metadata_changed;
+   bool metadata_changed;
    struct _meta_t meta;
 };
 typedef struct _prot_st _prot_t;

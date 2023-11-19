@@ -50,7 +50,7 @@ _lfo_destroy(void *data)
    _aaxLFOData *lfo = data;
    if (lfo)
    {
-      lfo->envelope = AAX_FALSE;
+      lfo->envelope = false;
       _aax_aligned_free(lfo);
    }
 }
@@ -59,14 +59,14 @@ void
 _lfo_setup(_aaxLFOData *lfo, void *i, int state)
 {
    _aaxMixerInfo *info = (_aaxMixerInfo*)i;
-   int exponential = (state & AAX_LFO_EXPONENTIAL) ? AAX_TRUE : AAX_FALSE;
-   int stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
+   int exponential = (state & AAX_LFO_EXPONENTIAL) ? true : false;
+   int stereo = (state & AAX_LFO_STEREO) ? true : false;
 
    lfo->fs = info->frequency;
    lfo->period_rate = info->period_rate;
    lfo->convert = (exponential) ? _exponential : _linear;
    lfo->state = state & ~(AAX_LFO_STEREO|AAX_LFO_EXPONENTIAL|AAX_EFFECT_ORDER_MASK);
-   lfo->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+   lfo->inverse = (state & AAX_INVERSE) ? true : false;
    lfo->stereo_link = !stereo;
    lfo->depth = 1.0f;
    lfo->offset = 0.0f;
@@ -119,7 +119,7 @@ _lfo_reset(_aaxLFOData *lfo)
 int
 _lfo_set_function(_aaxLFOData *lfo, int constant)
 {
-   int rv = AAX_TRUE;
+   int rv = true;
    if (!constant)
    {
       enum aaxSourceType wave;
@@ -127,7 +127,7 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
       wave = lfo->state & (AAX_SOURCE_MASK & ~AAX_PURE_WAVEFORM);
       switch (wave)
       {
-      case AAX_CONSTANT: /* equals to AAX_TRUE */
+      case AAX_CONSTANT: /* equals to true */
          lfo->get = _aaxLFOGetFixedValue;
          break;
       case AAX_SAWTOOTH:
@@ -154,7 +154,7 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
          break;
       case AAX_ENVELOPE_FOLLOW:
          lfo->get = _aaxLFOGetGainFollow;
-         lfo->envelope = AAX_TRUE;
+         lfo->envelope = true;
          break;
       case AAX_TIMED_TRANSITION:
          lfo->get = _aaxLFOGetTimed;
@@ -162,7 +162,7 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
       default:
          /* reaching here is actually a bug but prevent a segmentation fault */
          lfo->get = _aaxLFOGetFixedValue;
-         rv = AAX_FALSE;
+         rv = false;
          break;
       }
    }
@@ -191,7 +191,7 @@ _lfo_set_timing(_aaxLFOData *lfo)
 
    lfo->min = fs*(lfo->min_sec + lfo->offset*range);
    lfo->max = lfo->min + fs*(lfo->depth*range);
-   constant = ((lfo->max - lfo->min) > 0.01f) ? AAX_FALSE : AAX_TRUE;
+   constant = ((lfo->max - lfo->min) > 0.01f) ? false : true;
 #if 0
  printf("offset: %f, range: %f, min: %f, fs: %f\n", offset, range, min, fs);
  printf("lfo min: %f, max: %f\n", lfo->min, lfo->max);
@@ -586,7 +586,7 @@ _aaxLFOGetRandomness(void* data, UNUSED(void *env), UNUSED(const void *ptr), uns
       rv = lfo->value[0];
 
       /* In stereo-link mode the left track (0) provides the data */
-      if (track == 0 || lfo->stereo_link == AAX_FALSE)
+      if (track == 0 || lfo->stereo_link == false)
       {
          float alpha = lfo->step[track];
          float olvl = lfo->value[track];
@@ -647,7 +647,7 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
       float olvl = lfo->value[0];
 
       /* In stereo-link mode the left track (0) provides the data */
-      if (track == 0 || lfo->stereo_link == AAX_FALSE)
+      if (track == 0 || lfo->stereo_link == false)
       {
          float fact = lfo->step[track];
          float lvl;
@@ -701,7 +701,7 @@ _aaxLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned tr
       /* just to make sure those aren't still producing sound and hence  */
       /* are amplified to extreme values.                                */
       gf = _MIN(powf(oavg/lfo->gate_threshold, 10.0f), 1.0f);
-      if (track == 0 || lfo->stereo_link == AAX_FALSE)
+      if (track == 0 || lfo->stereo_link == false)
       {
          float lvl, fact = 1.0f;
          float rms, peak;
@@ -726,7 +726,7 @@ _aaxLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned tr
 
       l.min = 0.0f;
       l.max = 1.0f;
-      l.inverse = AAX_FALSE;
+      l.inverse = false;
       rv = lfo->convert(rv, &l);
 
       assert(rv);

@@ -290,7 +290,7 @@ memcpy(dptr+dest_pos, dst+dest_pos, dno_samples*sizeof(MIX_T));
                DBG_TESTZERO(dst, dno_samples);
                srbi->effects(srbi->sample, dptr, dst, scratch0,
                              dest_pos, dend, dno_samples, ddesamps, t,
-                             p2d, ctr, AAX_FALSE);
+                             p2d, ctr, false);
 #endif
                DBG_TESTNAN(dptr-ddesamps+dest_pos, dno_samples+ddesamps);
             }

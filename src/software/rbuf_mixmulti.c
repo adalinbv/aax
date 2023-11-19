@@ -198,7 +198,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
    gain *= buffer_gain; // bring gain to a normalized level
    gain = _square(gain)*ep2d->final.gain;
    gain *= gain_emitter;
-   ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? 0 : 1;
+   ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? false : true;
 
 // if (!ep2d->final.silence)
    {

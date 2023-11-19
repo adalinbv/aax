@@ -28,7 +28,7 @@ aaxScenerySetMatrix64(aaxConfig config, aaxMtx4d mtx64)
       if (!mtx64 || detect_nan_mtx4d(mtx64)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -50,7 +50,7 @@ aaxSceneryGetMatrix64(aaxConfig config, aaxMtx4d mtx64)
       if (!mtx64) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -72,7 +72,7 @@ aaxScenerySetDimensions(aaxConfig config, aaxVec3f dimensions)
       if (!dimensions || detect_nan_vec3(dimensions)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -104,7 +104,7 @@ aaxSceneryGetDimensions(aaxConfig config, aaxVec3f dimensions)
       if (!dimensions) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -119,14 +119,14 @@ aaxSceneryGetDimensions(aaxConfig config, aaxVec3f dimensions)
 AAX_API int AAX_APIENTRY
 aaxScenerySetSetup(UNUSED(aaxConfig config), UNUSED(enum aaxSetupType type), UNUSED(int64_t setup))
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    return rv;
 }
 
 AAX_API int64_t AAX_APIENTRY
 aaxSceneryGetSetup(UNUSED(const aaxConfig config), UNUSED(enum aaxSetupType type))
 {
-   int64_t rv = AAX_FALSE;
+   int64_t rv = false;
    return rv;
 }
 
@@ -134,7 +134,7 @@ AAX_API int AAX_APIENTRY
 aaxScenerySetFilter(aaxConfig config, aaxFilter f)
 {
    _handle_t* handle = get_handle(config, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle)
    {
       _filter_t* filter = get_filter(f);
@@ -153,11 +153,11 @@ aaxScenerySetFilter(aaxConfig config, aaxFilter f)
             {
             case AAX_FREQUENCY_FILTER:
                _FILTER_SWAP_SLOT(p2d, type, filter, 0);
-               rv = AAX_TRUE;
+               rv = true;
                break;
             case AAX_DISTANCE_FILTER:
                _FILTER_SWAP_SLOT(p3d, type, filter, 0);
-               if (_EFFECT_GET_UPDATED(p3d, VELOCITY_EFFECT) == AAX_FALSE)
+               if (_EFFECT_GET_UPDATED(p3d, VELOCITY_EFFECT) == false)
                {
                   _aaxRingBufferDistanceData *data;
                   data = _FILTER_GET_DATA(p3d, DISTANCE_FILTER);
@@ -170,7 +170,7 @@ aaxScenerySetFilter(aaxConfig config, aaxFilter f)
                      }
                   }
                }
-               rv = AAX_TRUE;
+               rv = true;
                break;
             default:
                _aaxErrorSet(AAX_INVALID_ENUM);
@@ -189,7 +189,7 @@ AAX_API aaxFilter AAX_APIENTRY
 aaxSceneryGetFilter(aaxConfig config, enum aaxFilterType type)
 {
    _handle_t* handle = get_handle(config, __func__);
-   aaxFilter rv = AAX_FALSE;
+   aaxFilter rv = false;
    if (handle)
    {
       const _intBufferData* dptr;
@@ -218,7 +218,7 @@ AAX_API int AAX_APIENTRY
 aaxScenerySetEffect(aaxConfig config, aaxEffect e)
 {
    _handle_t* handle = get_handle(config, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle)
    {
       _effect_t* effect = get_effect(e);
@@ -250,7 +250,7 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
                   handle->info->unit_m = unit_m;
                   _EFFECT_SET(p3d, type, AAX_LIGHT_VELOCITY, c_mps*unit_m);
                }
-               rv = AAX_TRUE;
+               rv = true;
                break;
             }
             default:
@@ -270,7 +270,7 @@ AAX_API aaxEffect AAX_APIENTRY
 aaxSceneryGetEffect(aaxConfig config, enum aaxEffectType type)
 {
    _handle_t* handle = get_handle(config, __func__);
-   aaxEffect rv = AAX_FALSE;
+   aaxEffect rv = false;
    if (handle)
    {
       const _intBufferData* dptr;

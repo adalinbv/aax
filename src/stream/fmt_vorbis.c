@@ -98,7 +98,7 @@ static void *audio = NULL;
 int
 _vorbis_detect(UNUSED(_fmt_t *fmt), int mode)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (mode)
    {
@@ -132,12 +132,12 @@ _vorbis_detect(UNUSED(_fmt_t *fmt), int mode)
             TIE_FUNCTION(vorbis_dsp_clear);
 
             error = _aaxGetSymError(0);
-            if (!error) rv = AAX_TRUE;
+            if (!error) rv = true;
          }
       }
    }
    else {
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -353,7 +353,7 @@ _vorbis_close(_fmt_t *fmt)
 int
 _vorbis_setup(UNUSED(_fmt_t *fmt), UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_fmt))
 {
-   return AAX_TRUE;
+   return true;
 }
 
 size_t
@@ -595,53 +595,53 @@ int
 _vorbis_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
 {
    _driver_t *handle = fmt->id;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    switch(param)
    {
    case __F_ARTIST:
       handle->meta.artist = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_TITLE:
       handle->meta.title = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_GENRE:
       handle->meta.genre = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_TRACKNO:
       handle->meta.trackno = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_ALBUM:
       handle->meta.album = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_DATE:
       handle->meta.date = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_COMPOSER:
       handle->meta.composer = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_COMMENT:
       handle->meta.comments = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_COPYRIGHT:
       handle->meta.copyright = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_ORIGINAL:
       handle->meta.original = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    case __F_WEBSITE:
       handle->meta.website = (char*)desc;
-      rv = AAX_TRUE;
+      rv = true;
       break;
    default:
       break;

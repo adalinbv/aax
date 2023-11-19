@@ -110,7 +110,7 @@ static void *audio = NULL;
 static int
 _aaxCoreAudioDriverDetect(UNUSED(int mode))
 {
-   static int rv = AAX_FALSE;
+   static int rv = false;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -136,7 +136,7 @@ _aaxCoreAudioDriverDetect(UNUSED(int mode))
       error = _aaxGetSymError(0);
       if (!error) {
       {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -168,7 +168,7 @@ _aaxCodeAudioDriverFreeHandle(UNUSED(void *id))
    _aaxCloseLibrary(audio);
    audio = NULL;
 
-   return AAX_TRUE;
+   return true;
 }
 
 static void *
@@ -289,7 +289,7 @@ _aaxCoreAudioDriverDisconnect(void *id)
    {
    }
 
-   return AAX_TRUE;
+   return true;
 }
 
 static int
@@ -307,7 +307,7 @@ _aaxCoreAudioDriverSetup(const void *id, UNUSED(float *refresh_rate), int *fmt,
 
    assert (id != 0);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static ssize_t
@@ -320,11 +320,11 @@ _aaxCoreAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t 
 
    *offset = 0;
    if ((handle->mode != 0) || (frames == 0) || (data == 0)) {
-     return AAX_FALSE;
+     return false;
    }
 
    if (nframes == 0) {
-      return AAX_TRUE;
+      return true;
    }
 
    *frames = 0;
@@ -332,7 +332,7 @@ _aaxCoreAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t 
 
 
    *frames = nframes;
-   return AAX_TRUE;
+   return true;
 }
 
 static size_t
@@ -387,7 +387,7 @@ static int
 _aaxCoreAudioDriverSetName(const void *id, int type, const char *name)
 {
    _driver_t *handle = (_driver_t *)id;
-   int ret = AAX_FALSE;
+   int ret = false;
    if (handle)
    {
       switch (type)
@@ -425,7 +425,7 @@ static int
 _aaxCoreAudioDriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
+   int rv = false;
    unsigned int i;
    ALpv params;
 
@@ -438,20 +438,20 @@ _aaxCoreAudioDriverState(const void *id, enum _aaxDriverState state)
    case DRIVER_PAUSE:
       if (handle)
       {
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    case DRIVER_RESUME:
       if (handle)
       {
-         rv = AAX_TRUE;
+         rv = true;
       }
       break;
    case DRIVER_AVAILABLE:
    case DRIVER_SHARED_MIXER:
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
-      rv = AAX_TRUE;
+      rv = true;
       break; 
    case DRIVER_NEED_REINIT:
    default:
@@ -512,7 +512,7 @@ _aaxCoreAudioDriverParam(const void *id, enum _aaxDriverParam param)
 
 		/* boolean */
       case DRIVER_TIMER_MODE:
-         rv = (float)AAX_TRUE;
+         rv = (float)true;
          break;
       case DRIVER_BATCHED_MODE:
       case DRIVER_SHARED_MODE:

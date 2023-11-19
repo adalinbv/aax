@@ -26,7 +26,7 @@ extern "C" {
 #include "ringbuffer.h"
 #include "objects.h"
 
-#define USE_SPATIAL_FOR_SURROUND	AAX_TRUE
+#define USE_SPATIAL_FOR_SURROUND	true
 #define	FADEDBAD			0xfadedbad
 
 #if _WIN32
@@ -36,19 +36,19 @@ extern "C" {
 # endif
 #endif
 
-#define TEST_FOR_TRUE(x)	(x != AAX_FALSE)
-#define TEST_FOR_FALSE(x)	(x == AAX_FALSE)
+#define TEST_FOR_TRUE(x)	(x != false)
+#define TEST_FOR_FALSE(x)	(x == false)
 
 #define INFO_ID			0xFEDCBA98
 //#define EBF_VALID(a)		((a)->info && ((a)->info)->id == INFO_ID)
 #define EBF_VALID(a)		((a)->info && VALID_HANDLE((_handle_t*)((a)->info)->backend))
 
 
-#define _READ			AAX_FALSE
-#define _WRITE			AAX_TRUE
+#define _READ			false
+#define _WRITE			true
 
-#define _NOLOCK			AAX_FALSE
-#define _LOCK			AAX_TRUE
+#define _NOLOCK			false
+#define _LOCK			true
 
 /* --- Error support -- */
 #define _aaxErrorSet(a)		__aaxDriverErrorSet(handle,(a),__func__)
@@ -79,8 +79,8 @@ typedef struct
  */
 #define HANDLE_ID	0xFF2701E0
 
-#define VALID_HANDLE(h)		((h) && ((h)->valid & ~AAX_TRUE) == HANDLE_ID)
-#define VALID_MIXER(h)		(VALID_HANDLE(h) && ((h)->valid & AAX_TRUE))
+#define VALID_HANDLE(h)		((h) && ((h)->valid & ~true) == HANDLE_ID)
+#define VALID_MIXER(h)		(VALID_HANDLE(h) && ((h)->valid & true))
 #define INTERVAL(a)		(rintf((a)/64)*64)
 
 extern int __release_mode;
@@ -98,16 +98,16 @@ struct threat_t
 {
    void *ptr;
    _aaxSignal signal;
-   char started;
-   char initialized;
+   bool started;
+   bool initialized;
 };
 
 struct _meta_t
 {
-   char id3_found;
+   bool id3_found;
 
-   char artist_changed;
-   char title_changed;
+   bool artist_changed;
+   bool title_changed;
 
    char *artist;
    char *original;
@@ -195,8 +195,8 @@ typedef struct aax_frame_t
 
    _aaxAudioFrame *submix;
 
-   char registered_at_mixer;
-   char mtx_set;
+   bool registered_at_mixer;
+   bool mtx_set;
 
    /* parametric and graphic equalizer **/
    void *mutex;
@@ -250,9 +250,9 @@ typedef struct
    } tremolo, vibrato;
 
    float volume_envelope[2*_MAX_ENVELOPE_STAGES];
-   char envelope_sustain;
-   char sampled_release;
-   char fast_release;
+   bool envelope_sustain;
+   bool sampled_release;
+   bool fast_release;
 
    char no_patches;
 
@@ -273,8 +273,8 @@ typedef struct aax_buffer_t
    float pressure_factor;
 
    enum aaxCapabilities midi_mode;
-   char to_mixer;
-   char mipmap;
+   bool to_mixer;
+   bool mipmap;
 
    char pressure_mode;
    char mip_levels;
@@ -316,8 +316,8 @@ typedef struct aax_emitter_t
    unsigned int mixer_pos;	/* rigsitered emitter position            */
    unsigned char track;		/* which track to use from the buffer     */
    signed char looping;
-   char sampled_release;
-   char mtx_set;
+   bool sampled_release;
+   bool mtx_set;
 
    _aaxEmitter *source;
 

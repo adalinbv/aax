@@ -45,7 +45,7 @@ static aaxBuffer _aaxCreateBufferFromAAXS(aaxConfig, _buffer_t*, char*);
 AAX_API int AAX_APIENTRY
 aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (config == NULL)
    {
@@ -55,11 +55,11 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
          setup *= 2;
          // intentional fallthrough
       case AAX_MONO_EMITTERS:
-         rv = (setup <= _aaxGetNoEmitters(NULL)) ? AAX_TRUE : AAX_FALSE;
+         rv = (setup <= _aaxGetNoEmitters(NULL)) ? true : false;
          break;
       case AAX_RELEASE_MODE:
          __release_mode = setup;
-         rv = AAX_TRUE;
+         rv = true;
          break;
       default:
          break;
@@ -75,14 +75,14 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
          {
          case AAX_BALANCE:
              info->balance = ((float)setup-64.0f)/64.0f;
-             rv = AAX_TRUE;
+             rv = true;
              break;
          case AAX_STEREO_EMITTERS:
             setup *= 2;
             // intentional fallthrough
          case AAX_MONO_EMITTERS:
             info->max_emitters = setup;
-            rv = AAX_TRUE;
+            rv = true;
             break;
          case AAX_FREQUENCY:
             if ((setup > 1000) && (setup <= _AAX_MAX_MIXER_FREQUENCY))
@@ -92,7 +92,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
                info->frequency = (float)setup;
                info->refresh_rate = iv;
                info->period_rate = iv;
-               rv = AAX_TRUE;
+               rv = true;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
@@ -110,7 +110,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
                info->period_rate = iv;
 
                info->update_rate = (uint8_t)rintf(iv/update_hz);
-               rv = AAX_TRUE;
+               rv = true;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
@@ -119,7 +119,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
                          && (handle->valid & HANDLE_ID)))
             {
                info->update_rate = (uint8_t)rintf(info->refresh_rate/setup);
-               rv = AAX_TRUE;
+               rv = true;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
@@ -132,14 +132,14 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
                iv = fq / INTERVAL(fq / iv);
                info->refresh_rate = iv;
                info->period_rate = iv;
-               rv = AAX_TRUE;
+               rv = true;
             }
             break;
          case AAX_BIT_RATE:
             if (setup > 0)
             {
                 info->bitrate = setup;
-                rv = AAX_TRUE;
+                rv = true;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
@@ -147,7 +147,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
             if (setup < AAX_FORMAT_MAX)
             {
                info->format = setup;
-               rv = AAX_TRUE;
+               rv = true;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
@@ -155,7 +155,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
             if (setup < _AAX_MAX_SPEAKERS)
             {
                info->no_tracks = setup;
-               rv = AAX_TRUE;
+               rv = true;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
@@ -167,13 +167,13 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
                if (setup != AAX_TRACK_ALL) {
                   info->no_tracks = 1;
                }
-               rv = AAX_TRUE;
+               rv = true;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
          case AAX_RELEASE_MODE:
             __release_mode = setup;
-            rv = AAX_TRUE;
+            rv = true;
             break;
          case AAX_CAPABILITIES:
             switch(setup)
@@ -181,17 +181,17 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
             case AAX_RENDER_NORMAL:
                info->midi_mode = AAX_RENDER_NORMAL;
                _aaxMixerSetRendering(handle);
-               rv = AAX_TRUE;
+               rv = true;
                break;
             case AAX_RENDER_SYNTHESIZER:
                info->midi_mode = AAX_RENDER_SYNTHESIZER;
                _aaxMixerSetRendering(handle);
-               rv = AAX_TRUE;
+               rv = true;
                break;
             case AAX_RENDER_ARCADE:
                info->midi_mode = AAX_RENDER_ARCADE;
                _aaxMixerSetRendering(handle);
-               rv = AAX_TRUE;
+               rv = true;
                break;
             default:
                _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -216,7 +216,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
                if (setup != AAX_TRACK_ALL) {
                   info->no_tracks = 1;
                }
-               rv = AAX_TRUE;
+               rv = true;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
@@ -224,7 +224,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
             if (setup > 0)
             {
                 info->bitrate = setup;
-                rv = AAX_TRUE;
+                rv = true;
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
@@ -240,7 +240,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
 AAX_API int64_t AAX_APIENTRY
 aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
 {
-   int64_t rv = AAX_FALSE;
+   int64_t rv = false;
 
    if (type == AAX_CAPABILITIES) {
          return _aaxGetCapabilities(config);
@@ -373,19 +373,19 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                   break;
                case AAX_SHARED_MODE:
                   f = be->param(handle->backend.handle, DRIVER_SHARED_MODE);
-                  rv = f ? AAX_TRUE : AAX_FALSE;
+                  rv = f ? true : false;
                   break;
                case AAX_TIMER_MODE:
                   f = be->param(handle->backend.handle, DRIVER_TIMER_MODE);
-                  rv = f ? AAX_TRUE : AAX_FALSE;
+                  rv = f ? true : false;
                   break;
                case AAX_BATCHED_MODE:
                   f = be->param(handle->backend.handle, DRIVER_BATCHED_MODE);
-                  rv = f ? AAX_TRUE : AAX_FALSE;
+                  rv = f ? true : false;
                   break;
                case AAX_SEEKABLE_SUPPORT:
                   f = be->param(handle->backend.handle,DRIVER_SEEKABLE_SUPPORT);
-                  rv = f ? AAX_TRUE : AAX_FALSE;
+                  rv = f ? true : false;
                   break;
                case AAX_TRACKS_MIN:
                   f = be->param(handle->backend.handle, DRIVER_MIN_TRACKS);
@@ -507,7 +507,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                   if (lfo && (state & AAX_SOURCE_MASK) == AAX_ENVELOPE_FOLLOW)
                   {
                      if (lfo->average[track] <= lfo->gate_threshold) {
-                        rv = AAX_TRUE;
+                        rv = true;
                      }
                   }
 
@@ -526,7 +526,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
 AAX_API int AAX_APIENTRY
 aaxMixerSetMode(UNUSED(aaxConfig config), UNUSED(enum aaxModeType type), UNUSED(int mode))
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    return rv;
 }
 
@@ -551,7 +551,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
       if (!filter) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -599,14 +599,14 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
             break;
          default:
             _aaxErrorSet(AAX_INVALID_ENUM);
-            rv = AAX_FALSE;
+            rv = false;
          }
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
       else
       {
          _aaxErrorSet(AAX_INVALID_STATE);
-         rv = AAX_FALSE;
+         rv = false;
       }
    }
 
@@ -617,7 +617,7 @@ AAX_API aaxFilter AAX_APIENTRY
 aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
 {
    _handle_t* handle = get_handle(config, __func__);
-   aaxFilter rv = AAX_FALSE;
+   aaxFilter rv = false;
    if (handle)
    {
       const _intBufferData* dptr;
@@ -660,7 +660,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
       if (!effect) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -695,12 +695,12 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
          else
          {
             _aaxErrorSet(AAX_INVALID_STATE);
-            rv = AAX_FALSE;
+            rv = false;
          }
          break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
-         rv = AAX_FALSE;
+         rv = false;
       }
    }
    return rv;
@@ -710,7 +710,7 @@ AAX_API aaxEffect AAX_APIENTRY
 aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
 {
    _handle_t* handle = get_handle(config, __func__);
-   aaxEffect rv = AAX_FALSE;
+   aaxEffect rv = false;
    if (handle)
    {
       const _intBufferData* dptr;
@@ -745,7 +745,7 @@ aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
 AAX_API int AAX_APIENTRY
 aaxMixerSetState(aaxConfig config, enum aaxState state)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    _handle_t* handle;
 
    if (state == AAX_INITIALIZED) {
@@ -763,11 +763,11 @@ aaxMixerSetState(aaxConfig config, enum aaxState state)
          break;
       case AAX_SUSPENDED:
          _SET_PAUSED(handle);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_STANDBY:
          _SET_STANDBY(handle);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case AAX_INITIALIZED:
          rv = _aaxMixerInit(handle);
@@ -820,7 +820,7 @@ aaxMixerAddBuffer(aaxConfig config, aaxBuffer buf)
       else if (!buffer->aaxs) {
          _aaxErrorSet(AAX_INVALID_STATE);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -846,7 +846,7 @@ AAX_API int AAX_APIENTRY
 aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
 {
    _handle_t* handle = get_write_handle(config, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle && (VALID_MIXER(handle) || handle->registered_sensors <= 1))
    {
       _handle_t* sframe = get_read_handle(s, __func__);
@@ -923,7 +923,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      info->period_rate = mixer->info->period_rate;
                      info->refresh_rate = mixer->info->refresh_rate;
                      info->unit_m = mixer->info->unit_m;
-                     if (_FILTER_GET_STATE(sp3d, DISTANCE_FILTER) == AAX_FALSE)
+                     if (_FILTER_GET_STATE(sp3d, DISTANCE_FILTER) == false)
                      {
                         _FILTER_COPY_STATE(sp3d, mp3d, DISTANCE_FILTER);
 //                      _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
@@ -965,7 +965,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                         float delay_sec = 1.0f / info->period_rate;
                         float duration;
 
-                        rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
+                        rb->set_format(rb, AAX_PCM24S, true);
                         rb->set_paramf(rb, RB_FREQUENCY, info->frequency);
                         rb->set_parami(rb, RB_NO_TRACKS, info->no_tracks);
 
@@ -978,7 +978,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                          * final ringbuffer setup is know
                          */
                         if (duration > 0.0f) {
-                           rb->init(rb, AAX_TRUE);
+                           rb->init(rb, true);
                         }
 
                         /*
@@ -991,7 +991,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      }
 
                      _intBufReleaseData(dptr_sframe, _AAX_SENSOR);
-                     rv = AAX_TRUE;
+                     rv = true;
                   }
                }
             }
@@ -1039,7 +1039,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
             handle->file.driver = (char*)sframe;
             handle->file.handle = sframe->backend.handle;
             handle->file.ptr = sframe->backend.ptr;
-            rv = AAX_TRUE;
+            rv = true;
          }
          else {
             _aaxErrorSet(AAX_INVALID_STATE);
@@ -1056,7 +1056,7 @@ AAX_API int AAX_APIENTRY
 aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
 {
    _handle_t* handle = get_write_handle(config, __func__);
-   int rv = AAX_FALSE;
+   int rv = false;
    if (handle)
    {
       _handle_t* sframe = get_read_handle(s, __func__);
@@ -1072,7 +1072,7 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
             _intBuffers *hs = mixer->devices;
             _intBufferData *dptr_sframe;
 
-            _intBufRemove(hs, _AAX_DEVICE, sframe->mixer_pos, AAX_FALSE);
+            _intBufRemove(hs, _AAX_DEVICE, sframe->mixer_pos, false);
             mixer->no_registered--;
             handle->registered_sensors--;
             _intBufReleaseData(dptr, _AAX_SENSOR);
@@ -1087,7 +1087,7 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
             sframe->root = NULL;
             sframe->parent = NULL;
             sframe->mixer_pos = UINT_MAX;
-            rv = AAX_TRUE;
+            rv = true;
          }
       }
       else if (handle->file.ptr != NULL)
@@ -1100,7 +1100,7 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
             handle->file.handle = NULL;
             sframe->parent = NULL;
             sframe->root = NULL;
-            rv = AAX_TRUE;
+            rv = true;
          }
          else {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -1130,7 +1130,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
       } else if (emitter->parent || emitter->mixer_pos < UINT_MAX) {
           _aaxErrorSet(AAX_INVALID_STATE+1);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -1228,7 +1228,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
             if (positional)
             {
                mp3d = mixer->props3d;
-               if (_FILTER_GET_STATE(ep3d, DISTANCE_FILTER) == AAX_FALSE)
+               if (_FILTER_GET_STATE(ep3d, DISTANCE_FILTER) == false)
                {
                   _FILTER_COPY_STATE(ep3d, mp3d, DISTANCE_FILTER);
 //                _FILTER_COPY_DATA(ep3d, mp3d, DISTANCE_FILTER);
@@ -1248,7 +1248,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
             }
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
    return rv;
@@ -1270,7 +1270,7 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
       } else if (emitter->mixer_pos == UINT_MAX || emitter->parent != handle) {
          _aaxErrorSet(AAX_INVALID_STATE+1);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -1279,7 +1279,7 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
       _aaxEmitter *src = emitter->source;
       _intBufferData *dptr;
 
-      rv = AAX_FALSE;
+      rv = false;
       dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
       if (dptr)
       {
@@ -1302,7 +1302,7 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
          if (_intBufGetNumNoLock(he, _AAX_EMITTER))
          {
             _intBufRelease(he, _AAX_EMITTER, emitter->mixer_pos);
-            ptr = _intBufRemove(he, _AAX_EMITTER, emitter->mixer_pos, AAX_FALSE);
+            ptr = _intBufRemove(he, _AAX_EMITTER, emitter->mixer_pos, false);
             if (ptr)
             {
                const _aaxDriverBackend *be = handle->backend.ptr;
@@ -1311,7 +1311,7 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
                emitter->root = NULL;
                emitter->parent = NULL;
                emitter->mixer_pos = UINT_MAX;
-               rv = AAX_TRUE;
+               rv = true;
             }
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
@@ -1329,7 +1329,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 {
    _handle_t* handle = get_write_handle(config, __func__);
    _frame_t* frame = get_frame(f, _LOCK, __func__);
-   char put = (frame && frame->parent[0]) ? AAX_TRUE : AAX_FALSE;
+   char put = (frame && frame->parent[0]) ? true : false;
    int rv = __release_mode;
 
    if (!rv)
@@ -1343,7 +1343,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
       } else if (frame->parent[0]) {
          _aaxErrorSet(AAX_INVALID_STATE+1);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -1415,7 +1415,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
             fmixer->info->refresh_rate = smixer->info->refresh_rate;
             fmixer->info->update_rate = smixer->info->update_rate;
             fmixer->info->unit_m = smixer->info->unit_m;
-            if (_FILTER_GET_STATE(fp3d, DISTANCE_FILTER) == AAX_FALSE)
+            if (_FILTER_GET_STATE(fp3d, DISTANCE_FILTER) == false)
             {
                _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
 //             _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
@@ -1433,7 +1433,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
             }
             _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
             _intBufReleaseData(dptr, _AAX_SENSOR);
-            rv = AAX_TRUE;
+            rv = true;
 
             fmixer->refctr++;
             frame->root = handle->root;
@@ -1463,7 +1463,7 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
       } else if (frame->mixer_pos[0] == UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_STATE+1);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -1482,14 +1482,14 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
          {
             _aaxAudioFrame *submix = frame->submix;
             _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos[0]);
-            _intBufRemove(hf, _AAX_FRAME, frame->mixer_pos[0], AAX_FALSE);
+            _intBufRemove(hf, _AAX_FRAME, frame->mixer_pos[0], false);
             mixer->no_registered--;
 
             submix->refctr--;
             frame->root = NULL;
             frame->parent[0] = NULL;
             frame->mixer_pos[0] = UINT_MAX;
-            rv = AAX_TRUE;
+            rv = true;
          }
          else {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -1543,7 +1543,7 @@ _aaxGetCapabilities(const aaxConfig config)
 static int
 _aaxMixerInit(_handle_t *handle)
 {
-   int res = AAX_FALSE;
+   int res = false;
    _aaxMixerInfo* info = handle->info;
    float refrate = info->refresh_rate;
    float ms = rintf(1000.0f/refrate);
@@ -1559,7 +1559,7 @@ _aaxMixerInit(_handle_t *handle)
    }
    _aaxThreadSetPriority(NULL, AAX_NORMAL_PRIORITY);
 
-   if ((handle->valid & AAX_TRUE) == 0)
+   if ((handle->valid & true) == 0)
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
       void *be_handle = handle->backend.handle;
@@ -1573,7 +1573,7 @@ _aaxMixerInit(_handle_t *handle)
       assert(be != 0);
 
       /* is this a registered sensor? */
-      rssr = (handle->parent) ? AAX_TRUE : AAX_FALSE;
+      rssr = (handle->parent) ? true : false;
       res = be->setup(be_handle, &refrate, &fmt, &ch, &freq, &brate,
                       rssr, periodrate);
 
@@ -1585,7 +1585,7 @@ _aaxMixerInit(_handle_t *handle)
             const _intBufferData* dptr;
             float old_rate, periods;
 
-            handle->valid |= AAX_TRUE;
+            handle->valid |= true;
             info->bitrate = brate;
             info->frequency = freq;
             info->no_tracks = ch;
@@ -1670,7 +1670,7 @@ _aaxMixerInit(_handle_t *handle)
 static int
 _aaxMixerStart(_handle_t *handle)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
 
    if (handle && TEST_FOR_FALSE(handle->thread.started)
        && !handle->parent)
@@ -1685,7 +1685,7 @@ _aaxMixerStart(_handle_t *handle)
       assert(handle->thread.signal.condition != 0);
       assert(handle->thread.signal.mutex != 0);
 
-      handle->thread.started = AAX_TRUE;
+      handle->thread.started = true;
       ms = rintf(1000/handle->info->period_rate);
       r = _aaxThreadStart(handle->thread.ptr, handle->backend.ptr->thread,
                           handle, ms, "aaxMixer");
@@ -1712,7 +1712,7 @@ _aaxMixerStart(_handle_t *handle)
          if (r == 0)
          {
             _aaxErrorSet(AAX_TIMEOUT);
-            handle->thread.started = AAX_FALSE;
+            handle->thread.started = false;
          }
          else
          {
@@ -1723,7 +1723,7 @@ _aaxMixerStart(_handle_t *handle)
             } else {
                _aaxThreadSetPriority(handle->thread.ptr, AAX_NORMAL_PRIORITY);
             }
-            rv = AAX_TRUE;
+            rv = true;
          }
       }
       else {
@@ -1731,7 +1731,7 @@ _aaxMixerStart(_handle_t *handle)
       }
    }
    else if (_IS_PAUSED(handle) || _IS_STANDBY(handle) || handle->parent) {
-      rv = AAX_TRUE;
+      rv = true;
    }
    return rv;
 }
@@ -1739,10 +1739,10 @@ _aaxMixerStart(_handle_t *handle)
 static int
 _aaxMixerStop(_handle_t *handle)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    if (!handle->parent && TEST_FOR_TRUE(handle->thread.started))
    {
-      handle->thread.started = AAX_FALSE;
+      handle->thread.started = false;
 
       _aaxSignalTrigger(&handle->thread.signal);
       _aaxThreadJoin(handle->thread.ptr);
@@ -1756,10 +1756,10 @@ _aaxMixerStop(_handle_t *handle)
          handle->finished = NULL;
       }
 
-      rv = AAX_TRUE;
+      rv = true;
    }
    else if (handle->parent) {
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -1768,7 +1768,7 @@ _aaxMixerStop(_handle_t *handle)
 static int
 _aaxMixerUpdate(_handle_t *handle)
 {
-   int rv = AAX_FALSE;
+   int rv = false;
    if (!handle->parent && TEST_FOR_TRUE(handle->thread.started))
    {
       int playing = _IS_PLAYING(handle);
@@ -1784,10 +1784,10 @@ _aaxMixerUpdate(_handle_t *handle)
       if (!playing) {
          _SET_PAUSED(handle);
       }
-      rv = AAX_TRUE;
+      rv = true;
    }
    else if (handle->parent) {
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -1803,7 +1803,7 @@ _aaxMixerSetRendering(_handle_t *handle)
       if (flt)
       {
          aaxFilterSetSlot(flt, 0, AAX_LINEAR, 4400.0f, 1.0f, 0.3f, 1.0f);
-         aaxFilterSetState(flt, AAX_TRUE);
+         aaxFilterSetState(flt, true);
          aaxScenerySetFilter(handle, flt);
          aaxFilterDestroy(flt);
       }
@@ -1827,7 +1827,7 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
 {
    _handle_t *handle = get_handle(config, __func__);
    const char *aaxs = buffer->aaxs;
-   int rv = AAX_TRUE;
+   int rv = true;
    xmlId *xid;
 
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
@@ -1838,7 +1838,7 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
       if (xmid)
       {
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
-         int clear = AAX_FALSE;
+         int clear = false;
          xmlId *xeid, *xfid;
 
          if (xmlAttributeExists(xmid, "mode")) {
@@ -1923,7 +1923,7 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
    else
    {
       _aaxErrorSet(AAX_INVALID_STATE);
-      rv = AAX_FALSE;
+      rv = false;
    }
    return rv;
 }
@@ -1953,7 +1953,7 @@ _aaxCreateBufferFromAAXS(aaxConfig config, _buffer_t *buffer, char *file)
 
           aaxBufferSetSetup(rv, AAX_FREQUENCY, info.rate);
           aaxBufferSetSetup(rv, AAX_BLOCK_ALIGNMENT, info.blocksize);
-          if ((aaxBufferSetData(rv, ptr[0])) == AAX_FALSE) {
+          if ((aaxBufferSetData(rv, ptr[0])) == false) {
              aaxBufferDestroy(rv);
              rv  = NULL;
           }

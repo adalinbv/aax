@@ -54,7 +54,7 @@ _aaxBitCrusherFilterDestroy(_filter_t* filter)
    }
    free(filter);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static int
@@ -67,7 +67,7 @@ _bitcrusher_reset(void *data)
       _lfo_reset(&bitcrush->env);
    }
 
-   return AAX_TRUE;
+   return true;
 }
 
 void
@@ -103,16 +103,16 @@ static aaxFilter
 _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
-   aaxFilter rv = AAX_FALSE;
+   aaxFilter rv = false;
    int stereo;
 
    assert(filter->info);
 
-   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
+   stereo = (state & AAX_LFO_STEREO) ? true : false;
    state &= ~AAX_LFO_STEREO;
 
    if ((state & AAX_SOURCE_MASK) == 0) {
-      state |= AAX_TRUE;
+      state |= true;
    }
 
    filter->state = state;
@@ -188,7 +188,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          bitcrush->lfo.depth = 1.0f;
          bitcrush->lfo.offset = 0.0f;
          bitcrush->lfo.f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
-         bitcrush->lfo.inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         bitcrush->lfo.inverse = (state & AAX_INVERSE) ? true : false;
 
          if ((bitcrush->lfo.offset + bitcrush->lfo.depth) > 1.0f) {
             bitcrush->lfo.depth = 1.0f - bitcrush->lfo.offset;
@@ -196,7 +196,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
 
          constant = _lfo_set_timing(&bitcrush->lfo);
 
-         bitcrush->lfo.envelope = AAX_FALSE;
+         bitcrush->lfo.envelope = false;
          if (!_lfo_set_function(&bitcrush->lfo, constant)) {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
@@ -221,7 +221,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          bitcrush->env.depth = 1.0f;
          bitcrush->env.offset = 0.0f;
          bitcrush->env.f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
-         bitcrush->env.inverse = (state & AAX_INVERSE) ? AAX_FALSE : AAX_TRUE;
+         bitcrush->env.inverse = (state & AAX_INVERSE) ? false : true;
 
          if ((bitcrush->env.offset + bitcrush->env.depth) > 1.0f) {
             bitcrush->env.depth = 1.0f - bitcrush->env.offset;
@@ -229,7 +229,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
 
          constant = _lfo_set_timing(&bitcrush->env);
 
-         bitcrush->env.envelope = AAX_FALSE;
+         bitcrush->env.envelope = false;
          if (!_lfo_set_function(&bitcrush->env, constant)) {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
@@ -240,7 +240,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // inetnional fall-through
-   case AAX_FALSE:
+   case false:
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
@@ -322,7 +322,7 @@ _aaxBitCrusherFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxBitCrusherFilter =
 {
-   AAX_TRUE,
+   true,
    "AAX_bitcrusher_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxBitCrusherFilterCreate,
    (_aaxFilterDestroy*)&_aaxBitCrusherFilterDestroy,
@@ -339,7 +339,7 @@ _bitcrusher_run(MIX_PTR_T s, size_t end, size_t no_samples,
                     void *data, void *env, unsigned int track)
 {
    _aaxRingBufferBitCrusherData *bitcrush = data;
-   int rv = AAX_FALSE;
+   int rv = false;
    float level;
 
    /* sample rate decimation */
@@ -381,7 +381,7 @@ _bitcrusher_run(MIX_PTR_T s, size_t end, size_t no_samples,
       _batch_fmul_value(s, s, bps, no_samples, 1.0f/level);
       _batch_roundps(s, s, no_samples);
       _batch_fmul_value(s, s, bps, no_samples, level);
-      rv = AAX_TRUE;
+      rv = true;
    }
    return rv;
 }
@@ -391,7 +391,7 @@ _bitcrusher_add_noise(MIX_PTR_T s, size_t end, size_t no_samples,
                     void *data, void *env, unsigned int track)
 {
    _aaxRingBufferBitCrusherData *bitcrush = data;
-   int rv = AAX_FALSE;
+   int rv = false;
    float ratio;
 
    ratio = bitcrush->env.get(&bitcrush->env, env, s, track, end);
@@ -473,7 +473,7 @@ _bitcrusher_add_noise(MIX_PTR_T s, size_t end, size_t no_samples,
          while (i > 0);
       }
 
-      rv = AAX_TRUE;
+      rv = true;
    }
    return rv;
 }

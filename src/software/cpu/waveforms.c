@@ -549,7 +549,7 @@ _aax_pinknoise_filter(float32_ptr data, size_t no_samples, float fs)
       v2 = powf(0.90f, q);
       filter.high_gain = v1-v2;
       filter.low_gain = 0.0f;
-      filter.state = AAX_TRUE;
+      filter.state = true;
       filter.k = 1.0f;
 
       freqfilter.history[0][0] = 0.0f;

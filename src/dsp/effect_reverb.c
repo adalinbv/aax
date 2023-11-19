@@ -86,35 +86,35 @@ _aaxReverbEffectDestroy(_effect_t* effect)
    }
    free(effect);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxEffect
 _aaxReverbEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
-   aaxEffect rv = AAX_FALSE;
+   aaxEffect rv = false;
    int rstate;
 
    rstate = state;
-   if (rstate == AAX_INVERSE || rstate == AAX_TRUE ||
-       rstate == (AAX_INVERSE|AAX_TRUE))
+   if (rstate == AAX_INVERSE || rstate == true ||
+       rstate == (AAX_INVERSE|true))
    {
       rstate = (AAX_EFFECT_1ST_ORDER | AAX_EFFECT_2ND_ORDER);
    }
 
    switch (state)
    {
-   case AAX_TRUE:
+   case true:
    case AAX_INVERSE:
-   case (AAX_INVERSE|AAX_TRUE):
+   case (AAX_INVERSE|true):
    case AAX_EFFECT_1ST_ORDER:
    case (AAX_EFFECT_1ST_ORDER|AAX_INVERSE):
    case AAX_EFFECT_2ND_ORDER:
    case (AAX_EFFECT_2ND_ORDER|AAX_INVERSE):
    {
-      char reflections = (rstate & AAX_EFFECT_1ST_ORDER) ? AAX_TRUE : AAX_FALSE;
-      char loopbacks = (rstate & AAX_EFFECT_2ND_ORDER) ? AAX_TRUE : AAX_FALSE;
+      char reflections = (rstate & AAX_EFFECT_1ST_ORDER) ? true : false;
+      char loopbacks = (rstate & AAX_EFFECT_2ND_ORDER) ? true : false;
       _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
       unsigned int no_tracks = effect->info->no_tracks;
       float lb_depth, rate = 23.0f;
@@ -278,11 +278,11 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
                   lfo->depth = 1.0f;
                   lfo->offset = 0.0f;
                   lfo->f = 1.0f;
-                  lfo->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+                  lfo->inverse = (state & AAX_INVERSE) ? true : false;
                   lfo->stereo_link = !(state & AAX_LFO_STEREO);
 
                   constant = _lfo_set_timing(lfo);
-                  lfo->envelope = AAX_FALSE;
+                  lfo->envelope = false;
 
                   if (!_lfo_set_function(lfo, constant)) {
                      _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -302,7 +302,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // inetnional fall-through
-   case AAX_FALSE:
+   case false:
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
@@ -376,7 +376,7 @@ _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxReverbEffect =
 {
-   AAX_TRUE,
+   true,
    "AAX_reverb_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxReverbEffectCreate,
    (_aaxEffectDestroy*)&_aaxReverbEffectDestroy,
@@ -697,7 +697,7 @@ _reflections_run(const _aaxRingBufferReflectionData *reflections,
                  float dst, unsigned char mono, int state)
 {
    unsigned int snum, tracks;
-   int rv = AAX_FALSE;
+   int rv = false;
    float volume;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -747,7 +747,7 @@ _reflections_run(const _aaxRingBufferReflectionData *reflections,
          }
       }
 
-      rv = AAX_TRUE;
+      rv = true;
    }
 
    return rv;
@@ -756,7 +756,7 @@ _reflections_run(const _aaxRingBufferReflectionData *reflections,
 static int
 _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, MIX_PTR_T scratch, size_t no_samples, size_t ds, unsigned int track, unsigned int no_tracks, float dst, int state)
 {
-   int snum, rv = AAX_FALSE;
+   int snum, rv = false;
 
    /* loopbacks (2nd order reflections) */
    snum = loopbacks->no_loopbacks;
@@ -778,7 +778,7 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, 
             if (offs && offs < (ssize_t)ds)
             {
                rbd->add(dptr, dptr-offs, no_samples, volume, 0.0f);
-               rv = AAX_TRUE;
+               rv = true;
             }
          }
       }
@@ -896,5 +896,5 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
       memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
    }
 
-   return AAX_TRUE;
+   return true;
 }

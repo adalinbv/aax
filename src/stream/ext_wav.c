@@ -153,14 +153,14 @@ static void _wav_cvt_msadpcm_to_ima4(_driver_t*, int32_ptr, ssize_t*);
 int
 _wav_detect(UNUSED(_ext_t *ext), UNUSED(int mode))
 {
-   return AAX_TRUE;
+   return true;
 }
 
 int
 _wav_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int format, size_t no_samples, int bitrate)
 {
    int bits_sample = aaxGetBitsPerSample(format);
-   int rv = AAX_FALSE;
+   int rv = false;
 
    assert(ext != NULL);
    assert(ext->id == NULL);
@@ -196,7 +196,7 @@ _wav_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
             *bufsize = 0;
          }
          ext->id = handle;
-         rv = AAX_TRUE;
+         rv = true;
       }
       else {
          _AAX_FILEDRVLOG("WAV: Insufficient memory");
@@ -218,20 +218,20 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
    {
       if (!handle->capturing)	/* write */
       {
-         char extensible = AAX_FALSE;
-         char fact = AAX_FALSE;
+         bool extensible = false;
+         bool fact = false;
          _fmt_type_t fmt;
          size_t size;
 
          // Extensible headers should be used by any PCM format that has more
          // than 2 channels or more than 48,000 samples per second
          if (handle->info.no_tracks > 2 || handle->info.rate > 48000) {
-            extensible = AAX_TRUE;
+            extensible = true;
          }
 
          // Fact chunks exist in all wave files that are compressed
          if (handle->bits_sample < 8) {
-            fact = AAX_TRUE;
+            fact = true;
          }
 
          fmt = _getFmtFromWAVFormat(handle->wav_format);
@@ -503,7 +503,7 @@ int
 _wav_close(_ext_t *ext)
 {
    _driver_t *handle = ext->id;
-   int res = AAX_TRUE;
+   int res = true;
 
    if (handle)
    {
@@ -529,7 +529,7 @@ _wav_flush(_ext_t *ext)
    _driver_t *handle = ext->id;
    void *header =  _aaxDataGetData(handle->wavBuffer, 0);
    size_t size = _aaxDataGetSize(handle->wavBuffer);
-   int res, rv = AAX_TRUE;
+   int res, rv = true;
 
    rv = handle->fmt->copy(handle->fmt, header, -1, &size);
    if (size)
@@ -650,47 +650,47 @@ _wav_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
       {
       case __F_ARTIST:
          handle->meta.artist = strreplace(handle->meta.artist, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_TITLE:
          handle->meta.title = strreplace(handle->meta.title, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_GENRE:
          handle->meta.genre = strreplace(handle->meta.genre, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_TRACKNO:
          handle->meta.trackno = strreplace(handle->meta.trackno, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_ALBUM:
          handle->meta.album = strreplace(handle->meta.album, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_DATE:
          handle->meta.date = strreplace(handle->meta.date, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_COMMENT:
          handle->meta.comments = strreplace(handle->meta.comments, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_COPYRIGHT:
          handle->meta.copyright = strreplace(handle->meta.copyright, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_COMPOSER:
          handle->meta.composer = strreplace(handle->meta.composer, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_ORIGINAL:
          handle->meta.original = strreplace(handle->meta.original, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_WEBSITE:
          handle->meta.website = strreplace(handle->meta.website, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       default:
          break;
@@ -1589,7 +1589,7 @@ _aaxFormatDriverReadID3Header(pdmp3_handle *id, struct _meta_t *handle)
             if (v2->picture[i].data != NULL) {};
          }
 #endif
-         handle->id3_found = AAX_TRUE;
+         handle->id3_found = true;
       }
 
       if (xid)

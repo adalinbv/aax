@@ -40,7 +40,7 @@
  * Threaded emitter rendering code using a thread pool with worker threads,
  * one thread for every physical CPU core.
  */
-char
+bool
 _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
                     float ssv, float sdf,
                     _aax2dProps *fp2d, _aax3dProps *fp3d,
@@ -75,7 +75,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
 {
    _emitter_t *emitter;
    _aaxEmitter *src;
-   int rv = AAX_FALSE;
+   int rv = false;
 
    drb->set_state(drb, RB_REWINDED);
 
@@ -87,11 +87,11 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
       unsigned int nbuf;
       int streaming;
 
-      rv = AAX_TRUE;
+      rv = true;
       nbuf = _intBufGetNum(src->buffers, _AAX_EMITTER_BUFFER);
       assert(nbuf > 0);
 
-      streaming = (nbuf > 1) ? AAX_TRUE : AAX_FALSE;
+      streaming = (nbuf > 1) ? true : false;
       dptr_sbuf = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER,
                                            src->buffer_pos);
       if (dptr_sbuf)
@@ -143,11 +143,11 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
             {
                assert(_IS_POSITIONAL(src->props3d));
 
-               res = AAX_FALSE;
+               res = false;
                if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec) {
                   res = drb->mix3d(drb, srb, ep2d, data, emitter->track, ctr,
                                              buffer_gain, src->history);
-//                if (ep2d->final.silence) rv = AAX_FALSE;
+//                if (ep2d->final.silence) rv = false;
                }
             }
             else

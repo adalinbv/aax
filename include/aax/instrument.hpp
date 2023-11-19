@@ -130,7 +130,7 @@ public:
            aax::dsp dsp = Emitter::get(AAX_PITCH_EFFECT);
            dsp.set(AAX_PITCH_START, start_pitch);
            dsp.set(AAX_PITCH_RATE, time);
-           dsp.set(AAX_TRUE|AAX_ENVELOPE_FOLLOW);
+           dsp.set(true|AAX_ENVELOPE_FOLLOW);
            Emitter::set(dsp);
         }
         Emitter::set(AAX_INITIALIZED);
@@ -436,7 +436,7 @@ public:
                     vibrato_state = tremolo_state = AAX_SINE;
                 }
             } else if (vibrato_state) {
-                vibrato_state = tremolo_state = AAX_FALSE;
+                vibrato_state = tremolo_state = false;
             }
         }
     }
@@ -487,8 +487,8 @@ public:
     inline float get_chorus_level() { return chorus_level; }
     void set_chorus_level(float lvl) {
         if ((chorus_level = lvl) > 0) {
-            if (!chorus_state) chorus_state = AAX_TRUE;
-        } else if (chorus_state) chorus_state = AAX_FALSE;
+            if (!chorus_state) chorus_state = true;
+        } else if (chorus_state) chorus_state = false;
     }
 
     inline void set_chorus_depth(float depth) { chorus_depth = depth; }
@@ -503,7 +503,7 @@ public:
     void set_delay_level(float lvl) {
         if ((delay_level = lvl) > 0) {
             if (!delay_state) delay_state = AAX_EFFECT_1ST_ORDER;
-        } else if (delay_state) delay_state = AAX_FALSE;
+        } else if (delay_state) delay_state = false;
     }
 
     inline void set_delay_depth(float depth) { delay_depth = depth; }
@@ -521,7 +521,7 @@ public:
         if (lvl > 1e-5f) {
             reverb_level = lvl*reverb_decay_level;
             if (!reverb_state) reverb_state = AAX_EFFECT_1ST_ORDER;
-        } else if (reverb_state) reverb_state = AAX_FALSE;
+        } else if (reverb_state) reverb_state = false;
     }
     inline void set_reverb_cutoff(float fc) { reverb_cutoff = fc; }
     inline void set_reverb_delay_depth(float v) { reverb_delay_depth = v; }
@@ -533,12 +533,12 @@ public:
 
     void set_filter_cutoff(float dfc) {
         cutoff = dfc; set_filter_cutoff();
-        if (!freqfilter_state) freqfilter_state = AAX_TRUE;
+        if (!freqfilter_state) freqfilter_state = true;
     }
 
     inline void set_filter_resonance(float dQ) {
         freqfilter_resonance = Q + dQ;
-        if (!freqfilter_state) freqfilter_state = AAX_TRUE;
+        if (!freqfilter_state) freqfilter_state = true;
     }
 
     inline void set_spread(float s = 1.0f) { pan.spread = s; }
@@ -569,37 +569,37 @@ private:
 
     Param vibrato_freq = 5.0f;
     Param vibrato_depth = 0.0f;
-    Status vibrato_state = AAX_FALSE;
+    Status vibrato_state = false;
 
     Param tremolo_freq = 5.0f;
     Param tremolo_depth = 0.0f;
     Param tremolo_offset = 1.0f;
-    Status tremolo_state = AAX_FALSE;
+    Status tremolo_state = false;
 
     Param freqfilter_cutoff = 2048.0f;
     Param freqfilter_resonance = 1.0f;
-    Param freqfilter_state = AAX_FALSE;
+    Param freqfilter_state = false;
 
     Param chorus_rate = 0.0f;
     Param chorus_level = 0.0f;
     Param chorus_feedback = 0.0f;
     Param chorus_cutoff = 22050.0f;
     Param chorus_depth = Param(1900.0f, AAX_MICROSECONDS);
-    Status chorus_state = AAX_FALSE;
+    Status chorus_state = false;
 
     Param delay_rate = 0.0f;
     Param delay_level = 0.0f;
     Param delay_feedback = 0.0f;
     Param delay_cutoff = 22050.0f;
     Param delay_depth = Param(1900.0f, AAX_MICROSECONDS);
-    Status delay_state = AAX_FALSE;
+    Status delay_state = false;
 
     Param reverb_level = 40.0f/127.0f;
     Param reverb_delay_depth = 0.035f;
     Param reverb_decay_level = 0.0f;
     Param reverb_decay_depth = 0.0f;
     Param reverb_cutoff = 22000.0f;
-    Status reverb_state = AAX_FALSE;
+    Status reverb_state = false;
 
     unsigned attack_time = 64;
     unsigned release_time = 64;

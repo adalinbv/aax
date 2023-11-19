@@ -54,7 +54,7 @@ _aaxPitchEffectDestroy(_effect_t* effect)
    }
    free(effect);
 
-   return AAX_TRUE;
+   return true;
 }
 
 static aaxEffect
@@ -85,7 +85,7 @@ _aaxPitchEffectSetState(_effect_t* effect, int state)
          value /= nextval;
          nextval /= nextval;
 
-         env->sustain = AAX_TRUE;
+         env->sustain = true;
          env->value0 = env->value = 1.0f;
          env->value = value;
          env->max_stages = 1;
@@ -161,7 +161,7 @@ _aaxPitchEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxPitchEffect =
 {
-   AAX_TRUE,
+   true,
    "AAX_pitch_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxPitchEffectDestroy,

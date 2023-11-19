@@ -106,14 +106,14 @@ static void* _aaxFormatDriverUpdateHeader(_driver_t*, ssize_t *);
 int
 _aiff_detect(UNUSED(_ext_t *ext), UNUSED(int mode))
 {
-   return AAX_TRUE;
+   return true;
 }
 
 int
 _aiff_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int format, size_t no_samples, int bitrate)
 {
    int bits_sample = aaxGetBitsPerSample(format);
-   int rv = AAX_FALSE;
+   int rv = false;
 
    assert(ext != NULL);
    assert(ext->id == NULL);
@@ -151,7 +151,7 @@ _aiff_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int fo
             *bufsize = 0;
          }
          ext->id = handle;
-         rv = AAX_TRUE;
+         rv = true;
       }
       else {
          _AAX_FILEDRVLOG("AIFF: Insufficient memory");
@@ -173,13 +173,13 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
    {
       if (!handle->capturing)	/* write */
       {
-         char fact = AAX_FALSE;
+         bool fact = false;
          _fmt_type_t fmt;
          size_t size;
 
          // Fact chunks exist in all aiffe files that are compressed
          if (handle->bits_sample < 8) {
-            fact = AAX_TRUE;
+            fact = true;
          }
 
          fmt = _getFmtFromAIFFFormat(handle->aiff_format);
@@ -435,7 +435,7 @@ int
 _aiff_close(_ext_t *ext)
 {
    _driver_t *handle = ext->id;
-   int res = AAX_TRUE;
+   int res = true;
 
    if (handle)
    {
@@ -459,7 +459,7 @@ _aiff_flush(_ext_t *ext)
    _driver_t *handle = ext->id;
    void *header =  _aaxDataGetData(handle->aiffBuffer, 0);
    size_t size = _aaxDataGetSize(handle->aiffBuffer);
-   int res, rv = AAX_TRUE;
+   int res, rv = true;
 
    rv = handle->fmt->copy(handle->fmt, header, -1, &size);
    if (size)
@@ -575,47 +575,47 @@ _aiff_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
       {
       case __F_ARTIST:
          handle->meta.artist = strreplace(handle->meta.artist, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_TITLE:
          handle->meta.title = strreplace(handle->meta.title, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_GENRE:
          handle->meta.genre = strreplace(handle->meta.genre, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_TRACKNO:
          handle->meta.trackno = strreplace(handle->meta.trackno, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_ALBUM:
          handle->meta.album = strreplace(handle->meta.album, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_DATE:
          handle->meta.date = strreplace(handle->meta.date, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_COMMENT:
          handle->meta.comments = strreplace(handle->meta.comments, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_COPYRIGHT:
          handle->meta.copyright = strreplace(handle->meta.copyright, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_COMPOSER:
          handle->meta.composer = strreplace(handle->meta.composer, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_ORIGINAL:
          handle->meta.original = strreplace(handle->meta.original, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       case __F_WEBSITE:
          handle->meta.website = strreplace(handle->meta.website, desc);
-         rv = AAX_TRUE;
+         rv = true;
          break;
       default:
          break;
