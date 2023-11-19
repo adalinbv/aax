@@ -2195,8 +2195,7 @@ _aaxPipeWireAudioStreamConnect(_driver_t *handle, enum pw_stream_flags flags, co
    {
       char thread_name[PW_THREAD_NAME_BUFFER_LENGTH];
 
-      snprintf(thread_name, sizeof(thread_name),
-               "AAXAudio%c%ld", (m) ? 'C' : 'P', (long)handle->id);
+      snprintf(thread_name, sizeof(thread_name), "aaxBackend");
       handle->ml = ppw_thread_loop_new(thread_name, NULL);
    }
 
