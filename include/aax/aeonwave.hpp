@@ -250,8 +250,8 @@ template <typename T>
 class Obj
 {
 public:
-    typedef int stop_fn(T, enum aaxState);
-    typedef int close_fn(T);
+    using stop_fn = std::function<bool(T, enum aaxState)>;
+    using close_fn = std::function<bool(T)>;
 
     Obj() = default;
 
@@ -260,9 +260,9 @@ public:
         if (!!closefn) closefn(ptr);
     }
 
-    Obj(T p, close_fn* c) : ptr(p), closefn(c) {}
+    Obj(T p, close_fn c) : ptr(p), closefn(c) {}
 
-    Obj(T p, stop_fn* s, close_fn* c) : ptr(p), stopfn(s), closefn(c) {}
+    Obj(T p, stop_fn s, close_fn c) : ptr(p), stopfn(s), closefn(c) {}
 
     Obj(const Obj&) = delete;
     Obj(Obj&&) = default;
