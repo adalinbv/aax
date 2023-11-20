@@ -5,6 +5,7 @@
  * Package Name: AeonWave Audio eXtentions library.
  *
  * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only
+ *                          WITH Universal-FOSS-exception-1.0
  */
 
 #ifndef AEONWAVE_INSTRUMENT_HPP
