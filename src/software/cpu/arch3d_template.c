@@ -172,7 +172,7 @@ FN(vec3fMatrix3,A)(vec3f_ptr d, const vec3f_ptr v, const mtx3f_ptr m)
 }
 
 void
-FN(mtx4fSetAbsolute,A)(mtx4f_ptr d, char absolute)
+FN(mtx4fSetAbsolute,A)(mtx4f_ptr d, bool absolute)
 {
    d->m4[3][3] = absolute ? 1.0f : 0.0f;
 }

@@ -47,7 +47,7 @@ typedef struct
 {
    unsigned int id;
    int pos;
-   int state;
+   uint64_t state;
    enum aaxFilterType type;
    _aaxFilterInfo* slot[_MAX_FE_SLOTS];
    _aaxMixerInfo* info;

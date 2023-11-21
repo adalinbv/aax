@@ -139,7 +139,7 @@ extern _batch_cvt_to_intl_proc _batch_cvtps_intl_24;
 extern _batch_cvt_to_intl_proc _batch_cvtpd_intl_24;
 
 unsigned int _aaxGetNoCores();
-int _aaxGetCapabilities(const aaxConfig);
+int64_t _aaxGetCapabilities(const aaxConfig);
 
 uint32_t _aaxGetSIMDSupportLevel();
 const char* _aaxGetSIMDSupportString();

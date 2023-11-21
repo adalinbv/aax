@@ -83,7 +83,7 @@ typedef struct
 #define VALID_MIXER(h)		(VALID_HANDLE(h) && ((h)->valid & true))
 #define INTERVAL(a)		(rintf((a)/64)*64)
 
-extern int __release_mode;
+extern bool __release_mode;
 extern _aaxMixerInfo* _info;
 extern _aaxMixerInfo __info;
 
@@ -206,7 +206,6 @@ typedef struct aax_frame_t
 _frame_t* get_frame(aaxFrame, int, const char*);
 void put_frame(aaxFrame);
 _handle_t *get_driver_handle(const void*);
-int _aaxAudioFrameStop(_frame_t*);
 void _aaxAudioFrameResetDistDelay(_aaxAudioFrame*, _aaxAudioFrame*);
 void _aaxAudioFrameFree(void*);
 

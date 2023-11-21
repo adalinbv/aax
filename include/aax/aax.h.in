@@ -15,6 +15,7 @@
 extern "C" {
 #endif
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -711,13 +712,13 @@ typedef double aaxMtx4d[4][4];
 /*
  * Version and Support information
  */
-AAX_API int AAX_APIENTRY aaxPlaySoundLogo(const char*);
+AAX_API bool AAX_APIENTRY aaxPlaySoundLogo(const char*);
 AAX_API void AAX_APIENTRY aaxFree(void*);
 
 AAX_API int64_t AAX_APIENTRY aaxGetSetup(enum aaxSetupType);
 
 AAX_API unsigned int AAX_APIENTRY aaxGetByType(enum aaxSetupType);
-AAX_API int AAX_APIENTRY aaxGetByName(const char*, enum aaxTypeName);
+AAX_API int64_t AAX_APIENTRY aaxGetByName(const char*, enum aaxTypeName);
 AAX_API char* AAX_APIENTRY aaxGetStringByType(int, enum aaxTypeName);
 
 AAX_API const char* AAX_APIENTRY aaxGetString(enum aaxSetupType);
@@ -730,10 +731,10 @@ AAX_API enum aaxErrorType AAX_APIENTRY aaxGetErrorNo(void);
 AAX_API const char* AAX_APIENTRY aaxGetErrorString(enum aaxErrorType);
 
 AAX_API unsigned AAX_APIENTRY aaxGetNoCores(aaxConfig);
-AAX_API int AAX_APIENTRY aaxIsValid(const void*, enum aaxHandleType);
+AAX_API bool AAX_APIENTRY aaxIsValid(const void*, enum aaxHandleType);
 
-AAX_API int AAX_APIENTRY aaxIsFilterSupported(aaxConfig, const char*);
-AAX_API int AAX_APIENTRY aaxIsEffectSupported(aaxConfig, const char*);
+AAX_API bool AAX_APIENTRY aaxIsFilterSupported(aaxConfig, const char*);
+AAX_API bool AAX_APIENTRY aaxIsEffectSupported(aaxConfig, const char*);
 
 
 /*
@@ -742,15 +743,15 @@ AAX_API int AAX_APIENTRY aaxIsEffectSupported(aaxConfig, const char*);
 AAX_API aaxConfig AAX_APIENTRY aaxDriverGetByName(const char*, enum aaxRenderMode);
 AAX_API unsigned AAX_APIENTRY aaxDriverGetCount(enum aaxRenderMode);
 AAX_API aaxConfig AAX_APIENTRY aaxDriverGetByPos(unsigned, enum aaxRenderMode);
-AAX_API int AAX_APIENTRY aaxDriverDestroy(aaxConfig);
+AAX_API bool AAX_APIENTRY aaxDriverDestroy(aaxConfig);
 
 AAX_API unsigned AAX_APIENTRY aaxDriverGetDeviceCount(const aaxConfig, enum aaxRenderMode);
 AAX_API const char* AAX_APIENTRY aaxDriverGetDeviceNameByPos(const aaxConfig, unsigned, enum aaxRenderMode);
 AAX_API unsigned AAX_APIENTRY aaxDriverGetInterfaceCount(const aaxConfig, const char*, enum aaxRenderMode);
 AAX_API const char* AAX_APIENTRY aaxDriverGetInterfaceNameByPos(const aaxConfig, const char*, unsigned, enum aaxRenderMode);
 AAX_API const char* AAX_APIENTRY aaxDriverGetSetup(const aaxConfig, enum aaxSetupType);
-AAX_API int AAX_APIENTRY aaxDriverSetSetup(const aaxConfig, enum aaxSetupType,  const char*);
-AAX_API int AAX_APIENTRY aaxDriverGetSupport(const aaxConfig, enum aaxRenderMode);
+AAX_API bool AAX_APIENTRY aaxDriverSetSetup(const aaxConfig, enum aaxSetupType,  const char*);
+AAX_API bool AAX_APIENTRY aaxDriverGetSupport(const aaxConfig, enum aaxRenderMode);
 AAX_API enum aaxErrorType AAX_APIENTRY aaxDriverGetErrorNo(aaxConfig);
 
 
@@ -760,127 +761,127 @@ AAX_API enum aaxErrorType AAX_APIENTRY aaxDriverGetErrorNo(aaxConfig);
 AAX_API aaxConfig AAX_APIENTRY aaxDriverOpenDefault(enum aaxRenderMode);
 AAX_API aaxConfig AAX_APIENTRY aaxDriverOpenByName(const char*, enum aaxRenderMode);
 AAX_API aaxConfig AAX_APIENTRY aaxDriverOpen(aaxConfig);
-AAX_API int AAX_APIENTRY aaxDriverClose(aaxConfig);
+AAX_API bool AAX_APIENTRY aaxDriverClose(aaxConfig);
 
 
 /*
  * Mixer/Playback setup
  */
-AAX_API int AAX_APIENTRY aaxMixerSetState(aaxConfig, enum aaxState);
+AAX_API bool AAX_APIENTRY aaxMixerSetState(aaxConfig, enum aaxState);
 AAX_API enum aaxState AAX_APIENTRY aaxMixerGetState(const aaxConfig);
 
-AAX_API int AAX_APIENTRY aaxMixerSetMode(aaxConfig, enum aaxModeType, int);
+AAX_API bool AAX_APIENTRY aaxMixerSetMode(aaxConfig, enum aaxModeType, int);
 AAX_API int AAX_APIENTRY aaxMixerGetMode(const aaxConfig, enum aaxModeType);
 
-AAX_API int AAX_APIENTRY aaxMixerSetSetup(aaxConfig, enum aaxSetupType, int64_t);
+AAX_API bool AAX_APIENTRY aaxMixerSetSetup(aaxConfig, enum aaxSetupType, int64_t);
 AAX_API int64_t AAX_APIENTRY aaxMixerGetSetup(const aaxConfig, enum aaxSetupType);
 
-AAX_API int AAX_APIENTRY aaxMixerAddBuffer(aaxConfig, aaxBuffer);
+AAX_API bool AAX_APIENTRY aaxMixerAddBuffer(aaxConfig, aaxBuffer);
 
-AAX_API int AAX_APIENTRY aaxMixerSetFilter(aaxConfig, aaxFilter);
+AAX_API bool AAX_APIENTRY aaxMixerSetFilter(aaxConfig, aaxFilter);
 AAX_API aaxFilter AAX_APIENTRY aaxMixerGetFilter(const aaxConfig, enum aaxFilterType);
 
-AAX_API int AAX_APIENTRY aaxMixerSetEffect(aaxConfig, aaxEffect);
+AAX_API bool AAX_APIENTRY aaxMixerSetEffect(aaxConfig, aaxEffect);
 AAX_API aaxEffect AAX_APIENTRY aaxMixerGetEffect(const aaxConfig, enum aaxEffectType);
 
-AAX_API int AAX_APIENTRY aaxMixerRegisterSensor(const aaxConfig, const aaxConfig);
-AAX_API int AAX_APIENTRY aaxMixerDeregisterSensor(const aaxConfig, const aaxConfig);
-AAX_API int AAX_APIENTRY aaxMixerRegisterEmitter(const aaxConfig, const aaxEmitter);
-AAX_API int AAX_APIENTRY aaxMixerDeregisterEmitter(const aaxConfig, const aaxEmitter);
-AAX_API int AAX_APIENTRY aaxMixerRegisterAudioFrame(const aaxConfig, const aaxFrame);
-AAX_API int AAX_APIENTRY aaxMixerDeregisterAudioFrame(const aaxConfig, const aaxFrame);
+AAX_API bool AAX_APIENTRY aaxMixerRegisterSensor(const aaxConfig, const aaxConfig);
+AAX_API bool AAX_APIENTRY aaxMixerDeregisterSensor(const aaxConfig, const aaxConfig);
+AAX_API bool AAX_APIENTRY aaxMixerRegisterEmitter(const aaxConfig, const aaxEmitter);
+AAX_API bool AAX_APIENTRY aaxMixerDeregisterEmitter(const aaxConfig, const aaxEmitter);
+AAX_API bool AAX_APIENTRY aaxMixerRegisterAudioFrame(const aaxConfig, const aaxFrame);
+AAX_API bool AAX_APIENTRY aaxMixerDeregisterAudioFrame(const aaxConfig, const aaxFrame);
 
 
 /*
  * Scenery setup
  */
-AAX_API int AAX_APIENTRY aaxScenerySetSetup(aaxConfig, enum aaxSetupType, int64_t);
+AAX_API bool AAX_APIENTRY aaxScenerySetSetup(aaxConfig, enum aaxSetupType, int64_t);
 AAX_API int64_t AAX_APIENTRY aaxSceneryGetSetup(const aaxConfig, enum aaxSetupType);
 
-AAX_API int AAX_APIENTRY aaxScenerySetFilter(aaxConfig, aaxFilter);
+AAX_API bool AAX_APIENTRY aaxScenerySetFilter(aaxConfig, aaxFilter);
 AAX_API aaxFilter AAX_APIENTRY aaxSceneryGetFilter(const aaxConfig, enum aaxFilterType);
 
-AAX_API int AAX_APIENTRY aaxScenerySetEffect(aaxConfig, aaxEffect);
+AAX_API bool AAX_APIENTRY aaxScenerySetEffect(aaxConfig, aaxEffect);
 AAX_API aaxEffect AAX_APIENTRY aaxSceneryGetEffect(const aaxConfig, enum aaxEffectType);
 
 /*
  * Sound buffer related
  */
 AAX_API aaxBuffer AAX_APIENTRY aaxBufferCreate(aaxConfig, unsigned int, unsigned, enum aaxFormat);
-AAX_API int AAX_APIENTRY aaxBufferDestroy(aaxBuffer);
+AAX_API bool AAX_APIENTRY aaxBufferDestroy(aaxBuffer);
 
-AAX_API int AAX_APIENTRY aaxBufferSetSetup(aaxBuffer, enum aaxSetupType, int64_t);
+AAX_API bool AAX_APIENTRY aaxBufferSetSetup(aaxBuffer, enum aaxSetupType, int64_t);
 AAX_API int64_t AAX_APIENTRY aaxBufferGetSetup(const aaxBuffer, enum aaxSetupType);
 
-AAX_API int AAX_APIENTRY aaxBufferSetData(aaxBuffer, const void*);
+AAX_API bool AAX_APIENTRY aaxBufferSetData(aaxBuffer, const void*);
 AAX_API void** AAX_APIENTRY aaxBufferGetData(const aaxBuffer);
 AAX_API aaxBuffer AAX_APIENTRY aaxBufferReadFromStream(aaxConfig, const char*);
-AAX_API int AAX_APIENTRY aaxBufferWriteToFile(aaxBuffer, const char*, enum aaxProcessingType);
+AAX_API bool AAX_APIENTRY aaxBufferWriteToFile(aaxBuffer, const char*, enum aaxProcessingType);
 
 /*
  * Source/Emitter manipulation
  */
 AAX_API aaxEmitter AAX_APIENTRY aaxEmitterCreate(void);
-AAX_API int AAX_APIENTRY aaxEmitterDestroy(aaxEmitter);
+AAX_API bool AAX_APIENTRY aaxEmitterDestroy(aaxEmitter);
 
-AAX_API int AAX_APIENTRY aaxEmitterSetMode(aaxEmitter, enum aaxModeType, int);
+AAX_API bool AAX_APIENTRY aaxEmitterSetMode(aaxEmitter, enum aaxModeType, int);
 AAX_API int AAX_APIENTRY aaxEmitterGetMode(const aaxEmitter, enum aaxModeType);
 
-AAX_API int AAX_APIENTRY aaxEmitterSetState(aaxEmitter, enum aaxState);
-AAX_API int AAX_APIENTRY aaxEmitterGetState(const aaxEmitter);
+AAX_API bool AAX_APIENTRY aaxEmitterSetState(aaxEmitter, enum aaxState);
+AAX_API enum aaxState AAX_APIENTRY aaxEmitterGetState(const aaxEmitter);
 
-AAX_API int AAX_APIENTRY aaxEmitterSetSetup(aaxEmitter, enum aaxSetupType, int64_t);
+AAX_API bool AAX_APIENTRY aaxEmitterSetSetup(aaxEmitter, enum aaxSetupType, int64_t);
 AAX_API int64_t AAX_APIENTRY aaxEmitterGetSetup(const aaxEmitter, enum aaxSetupType);
 
-AAX_API int AAX_APIENTRY aaxEmitterSetMatrix64(aaxEmitter, aaxMtx4d);
-AAX_API int AAX_APIENTRY aaxEmitterGetMatrix64(aaxEmitter, aaxMtx4d);
+AAX_API bool AAX_APIENTRY aaxEmitterSetMatrix64(aaxEmitter, aaxMtx4d);
+AAX_API bool AAX_APIENTRY aaxEmitterGetMatrix64(aaxEmitter, aaxMtx4d);
 
-AAX_API int AAX_APIENTRY aaxEmitterSetVelocity(aaxEmitter, aaxVec3f);
-AAX_API int AAX_APIENTRY aaxEmitterGetVelocity(const aaxEmitter, aaxVec3f);
+AAX_API bool AAX_APIENTRY aaxEmitterSetVelocity(aaxEmitter, aaxVec3f);
+AAX_API bool AAX_APIENTRY aaxEmitterGetVelocity(const aaxEmitter, aaxVec3f);
 
-AAX_API int AAX_APIENTRY aaxEmitterSetFilter(aaxEmitter, aaxFilter);
+AAX_API bool AAX_APIENTRY aaxEmitterSetFilter(aaxEmitter, aaxFilter);
 AAX_API aaxFilter AAX_APIENTRY aaxEmitterGetFilter(const aaxEmitter, enum aaxFilterType);
 
-AAX_API int AAX_APIENTRY aaxEmitterSetEffect(aaxEmitter, aaxEffect);
+AAX_API bool AAX_APIENTRY aaxEmitterSetEffect(aaxEmitter, aaxEffect);
 AAX_API aaxEffect AAX_APIENTRY aaxEmitterGetEffect(const aaxEmitter, enum aaxEffectType);
 
-AAX_API int AAX_APIENTRY aaxEmitterAddBuffer(aaxEmitter, aaxBuffer);
-AAX_API int AAX_APIENTRY aaxEmitterRemoveBuffer(aaxEmitter);
+AAX_API bool AAX_APIENTRY aaxEmitterAddBuffer(aaxEmitter, aaxBuffer);
+AAX_API bool AAX_APIENTRY aaxEmitterRemoveBuffer(aaxEmitter);
 
 AAX_API unsigned int AAX_APIENTRY aaxEmitterGetNoBuffers(const aaxEmitter, enum aaxState);
 AAX_API aaxBuffer AAX_APIENTRY aaxEmitterGetBufferByPos(const aaxEmitter, unsigned int, int);
 
-AAX_API int AAX_APIENTRY aaxEmitterSetOffset(aaxEmitter, unsigned long, enum aaxType);
-AAX_API unsigned long AAX_APIENTRY aaxEmitterGetOffset(const aaxEmitter, enum aaxType);
+AAX_API bool AAX_APIENTRY aaxEmitterSetOffset(aaxEmitter, size_t, enum aaxType);
+AAX_API size_t AAX_APIENTRY aaxEmitterGetOffset(const aaxEmitter, enum aaxType);
 
-AAX_API int AAX_APIENTRY aaxEmitterSetOffsetSec(aaxEmitter, float);
+AAX_API bool AAX_APIENTRY aaxEmitterSetOffsetSec(aaxEmitter, float);
 AAX_API float AAX_APIENTRY aaxEmitterGetOffsetSec(const aaxEmitter);
 
 
 /*
  * Listener/Sensor manipulation
  */
-AAX_API int AAX_APIENTRY aaxSensorSetState(aaxConfig, enum aaxState);
+AAX_API bool AAX_APIENTRY aaxSensorSetState(aaxConfig, enum aaxState);
 AAX_API enum aaxState AAX_APIENTRY aaxSensorGetState(const aaxConfig);
 
-AAX_API int AAX_APIENTRY aaxSensorSetMode(aaxConfig, enum aaxModeType, int);
+AAX_API bool AAX_APIENTRY aaxSensorSetMode(aaxConfig, enum aaxModeType, int);
 AAX_API int AAX_APIENTRY aaxSensorGetMode(const aaxConfig, enum aaxModeType);
 
-AAX_API int AAX_APIENTRY aaxSensorSetSetup(aaxConfig, enum aaxSetupType, int64_t);
+AAX_API bool AAX_APIENTRY aaxSensorSetSetup(aaxConfig, enum aaxSetupType, int64_t);
 AAX_API int64_t AAX_APIENTRY aaxSensorGetSetup(const aaxConfig, enum aaxSetupType);
 
-AAX_API int AAX_APIENTRY aaxSensorSetMatrix64(aaxConfig, aaxMtx4d);
-AAX_API int AAX_APIENTRY aaxSensorGetMatrix64(const aaxConfig, aaxMtx4d);
+AAX_API bool AAX_APIENTRY aaxSensorSetMatrix64(aaxConfig, aaxMtx4d);
+AAX_API bool AAX_APIENTRY aaxSensorGetMatrix64(const aaxConfig, aaxMtx4d);
 
-AAX_API int AAX_APIENTRY aaxSensorSetVelocity(aaxConfig, aaxVec3f);
-AAX_API int AAX_APIENTRY aaxSensorGetVelocity(const aaxConfig, aaxVec3f);
+AAX_API bool AAX_APIENTRY aaxSensorSetVelocity(aaxConfig, aaxVec3f);
+AAX_API bool AAX_APIENTRY aaxSensorGetVelocity(const aaxConfig, aaxVec3f);
 
-AAX_API int AAX_APIENTRY aaxSensorWaitForBuffer(const aaxConfig, float);
+AAX_API bool AAX_APIENTRY aaxSensorWaitForBuffer(const aaxConfig, float);
 AAX_API aaxBuffer AAX_APIENTRY aaxSensorGetBuffer(const aaxConfig);
 
-AAX_API unsigned long AAX_APIENTRY aaxSensorGetOffset(const aaxConfig, enum aaxType);
-AAX_API int AAX_APIENTRY aaxSensorSetOffset(aaxConfig, unsigned long, enum aaxType);
-AAX_API int AAX_APIENTRY aaxSensorSetOffsetSec(aaxConfig, float);
+AAX_API size_t AAX_APIENTRY aaxSensorGetOffset(const aaxConfig, enum aaxType);
+AAX_API bool AAX_APIENTRY aaxSensorSetOffset(aaxConfig, size_t, enum aaxType);
+AAX_API bool AAX_APIENTRY aaxSensorSetOffsetSec(aaxConfig, float);
 
 
 
@@ -888,98 +889,98 @@ AAX_API int AAX_APIENTRY aaxSensorSetOffsetSec(aaxConfig, float);
  * Filter support
  */
 AAX_API aaxFilter AAX_APIENTRY aaxFilterCreate(aaxDSP, enum aaxFilterType);
-AAX_API int AAX_APIENTRY aaxFilterDestroy(aaxFilter);
+AAX_API bool AAX_APIENTRY aaxFilterDestroy(aaxFilter);
 AAX_API const char* AAX_APIENTRY aaxFilterGetNameByType(aaxConfig, enum aaxFilterType);
-AAX_API int AAX_APIENTRY aaxFilterSetParam(aaxFilter, int, int, float);
-AAX_API int AAX_APIENTRY aaxFilterSetSlotParams(aaxFilter, unsigned, int, aaxVec4f);
-AAX_API int AAX_APIENTRY aaxFilterSetSlot(aaxFilter, unsigned, int, float, float, float, float);
-AAX_API int AAX_APIENTRY aaxFilterSetState(aaxFilter, int);
-AAX_API int AAX_APIENTRY aaxFilterAddBuffer(aaxFilter, aaxBuffer);
+AAX_API bool AAX_APIENTRY aaxFilterSetParam(aaxFilter, int, int, float);
+AAX_API bool AAX_APIENTRY aaxFilterSetSlotParams(aaxFilter, unsigned, int, aaxVec4f);
+AAX_API bool AAX_APIENTRY aaxFilterSetSlot(aaxFilter, unsigned, int, float, float, float, float);
+AAX_API bool AAX_APIENTRY aaxFilterAddBuffer(aaxFilter, aaxBuffer);
 AAX_API float AAX_APIENTRY aaxFilterGetParam(const aaxFilter, int, int);
-AAX_API int AAX_APIENTRY aaxFilterGetSlotParams(const aaxFilter, unsigned, int, aaxVec4f);
-AAX_API int AAX_APIENTRY aaxFilterGetSlot(const aaxFilter, unsigned, int, float*, float*, float*, float*);
-AAX_API int AAX_APIENTRY aaxFilterGetState(aaxFilter);
+AAX_API bool AAX_APIENTRY aaxFilterGetSlotParams(const aaxFilter, unsigned, int, aaxVec4f);
+AAX_API bool AAX_APIENTRY aaxFilterGetSlot(const aaxFilter, unsigned, int, float*, float*, float*, float*);
+AAX_API bool AAX_APIENTRY aaxFilterSetState(aaxFilter, uint64_t);
+AAX_API uint64_t AAX_APIENTRY aaxFilterGetState(aaxFilter);
 
 
 /*
  * Effect support
  */
 AAX_API aaxEffect AAX_APIENTRY aaxEffectCreate(aaxDSP, enum aaxEffectType);
-AAX_API int AAX_APIENTRY aaxEffectDestroy(aaxEffect);
+AAX_API bool AAX_APIENTRY aaxEffectDestroy(aaxEffect);
 AAX_API const char* AAX_APIENTRY aaxEffectGetNameByType(aaxConfig, enum aaxEffectType);
-AAX_API int AAX_APIENTRY aaxEffectSetParam(aaxEffect, int, int, float);
-AAX_API int AAX_APIENTRY aaxEffectSetSlotParams(aaxEffect, unsigned, int, aaxVec4f);
-AAX_API int AAX_APIENTRY aaxEffectSetSlot(aaxEffect, unsigned, int, float, float, float, float);
-AAX_API int AAX_APIENTRY aaxEffectSetState(aaxEffect, int);
-AAX_API int AAX_APIENTRY aaxEffectAddBuffer(aaxEffect, aaxBuffer);
+AAX_API bool AAX_APIENTRY aaxEffectSetParam(aaxEffect, int, int, float);
+AAX_API bool AAX_APIENTRY aaxEffectSetSlotParams(aaxEffect, unsigned, int, aaxVec4f);
+AAX_API bool AAX_APIENTRY aaxEffectSetSlot(aaxEffect, unsigned, int, float, float, float, float);
+AAX_API bool AAX_APIENTRY aaxEffectAddBuffer(aaxEffect, aaxBuffer);
 AAX_API float AAX_APIENTRY aaxEffectGetParam(const aaxEffect, int , int);
-AAX_API int AAX_APIENTRY aaxEffectGetSlotParams(const aaxEffect, unsigned, int, aaxVec4f);
-AAX_API int AAX_APIENTRY aaxEffectGetSlot(const aaxEffect, unsigned, int, float*, float*, float*, float*);
-AAX_API int AAX_APIENTRY aaxEffectGetState(aaxEffect);
+AAX_API bool AAX_APIENTRY aaxEffectGetSlotParams(const aaxEffect, unsigned, int, aaxVec4f);
+AAX_API bool AAX_APIENTRY aaxEffectGetSlot(const aaxEffect, unsigned, int, float*, float*, float*, float*);
+AAX_API bool AAX_APIENTRY aaxEffectSetState(aaxEffect, uint64_t);
+AAX_API uint64_t AAX_APIENTRY aaxEffectGetState(aaxEffect);
 
 
 /*
  * Matrix operations
  * Default iid 64-bit matrices (aaxMtx4d)
  */
-AAX_API int AAX_APIENTRY aaxMatrix64CopyMatrix64(aaxMtx4d, aaxMtx4d);
-AAX_API int AAX_APIENTRY aaxMatrix64SetIdentityMatrix(aaxMtx4d);
-AAX_API int AAX_APIENTRY aaxMatrix64Translate(aaxMtx4d, double, double, double);
-AAX_API int AAX_APIENTRY aaxMatrix64Rotate(aaxMtx4d, double, double, double, double);
-AAX_API int AAX_APIENTRY aaxMatrix64Multiply(aaxMtx4d, aaxMtx4d);
-AAX_API int AAX_APIENTRY aaxMatrix64Inverse(aaxMtx4d);
-AAX_API int AAX_APIENTRY aaxMatrix64SetDirection(aaxMtx4d, aaxVec3d, aaxVec3f);
-AAX_API int AAX_APIENTRY aaxMatrix64SetOrientation(aaxMtx4d, aaxVec3d, aaxVec3f, aaxVec3f);
-AAX_API int AAX_APIENTRY aaxMatrix64GetOrientation(aaxMtx4d, aaxVec3d, aaxVec3f, aaxVec3f);
+AAX_API bool AAX_APIENTRY aaxMatrix64CopyMatrix64(aaxMtx4d, aaxMtx4d);
+AAX_API bool AAX_APIENTRY aaxMatrix64SetIdentityMatrix(aaxMtx4d);
+AAX_API bool AAX_APIENTRY aaxMatrix64Translate(aaxMtx4d, double, double, double);
+AAX_API bool AAX_APIENTRY aaxMatrix64Rotate(aaxMtx4d, double, double, double, double);
+AAX_API bool AAX_APIENTRY aaxMatrix64Multiply(aaxMtx4d, aaxMtx4d);
+AAX_API bool AAX_APIENTRY aaxMatrix64Inverse(aaxMtx4d);
+AAX_API bool AAX_APIENTRY aaxMatrix64SetDirection(aaxMtx4d, aaxVec3d, aaxVec3f);
+AAX_API bool AAX_APIENTRY aaxMatrix64SetOrientation(aaxMtx4d, aaxVec3d, aaxVec3f, aaxVec3f);
+AAX_API bool AAX_APIENTRY aaxMatrix64GetOrientation(aaxMtx4d, aaxVec3d, aaxVec3f, aaxVec3f);
 
-AAX_API int AAX_APIENTRY aaxMatrixCopyMatrix(aaxMtx4f, aaxMtx4f);
-AAX_API int AAX_APIENTRY aaxMatrixSetIdentityMatrix(aaxMtx4f);
-AAX_API int AAX_APIENTRY aaxMatrixTranslate(aaxMtx4f, float, float, float);
-AAX_API int AAX_APIENTRY aaxMatrixRotate(aaxMtx4f, float, float, float, float);
-AAX_API int AAX_APIENTRY aaxMatrixMultiply(aaxMtx4f, aaxMtx4f);
-AAX_API int AAX_APIENTRY aaxMatrixInverse(aaxMtx4f);
-AAX_API int AAX_APIENTRY aaxMatrixToMatrix64(aaxMtx4d, aaxMtx4f);
+AAX_API bool AAX_APIENTRY aaxMatrixCopyMatrix(aaxMtx4f, aaxMtx4f);
+AAX_API bool AAX_APIENTRY aaxMatrixSetIdentityMatrix(aaxMtx4f);
+AAX_API bool AAX_APIENTRY aaxMatrixTranslate(aaxMtx4f, float, float, float);
+AAX_API bool AAX_APIENTRY aaxMatrixRotate(aaxMtx4f, float, float, float, float);
+AAX_API bool AAX_APIENTRY aaxMatrixMultiply(aaxMtx4f, aaxMtx4f);
+AAX_API bool AAX_APIENTRY aaxMatrixInverse(aaxMtx4f);
+AAX_API bool AAX_APIENTRY aaxMatrixToMatrix64(aaxMtx4d, aaxMtx4f);
 
 
 /*
  * AudioFrame support (version 2.0 and later)
  */
 AAX_API aaxFrame AAX_APIENTRY aaxAudioFrameCreate(aaxConfig);
-AAX_API int AAX_APIENTRY aaxAudioFrameDestroy(aaxFrame);
+AAX_API bool AAX_APIENTRY aaxAudioFrameDestroy(aaxFrame);
 
-AAX_API int AAX_APIENTRY aaxAudioFrameSetState(aaxFrame, enum aaxState);
-AAX_API int AAX_APIENTRY aaxAudioFrameGetState(const aaxFrame);
+AAX_API bool AAX_APIENTRY aaxAudioFrameSetState(aaxFrame, enum aaxState);
+AAX_API enum aaxState AAX_APIENTRY aaxAudioFrameGetState(const aaxFrame);
 
-AAX_API int AAX_APIENTRY aaxAudioFrameSetMode(aaxFrame, enum aaxModeType, int);
+AAX_API bool AAX_APIENTRY aaxAudioFrameSetMode(aaxFrame, enum aaxModeType, int);
 AAX_API int AAX_APIENTRY aaxAudioFrameGetMode(const aaxFrame, enum aaxModeType);
 
-AAX_API int AAX_APIENTRY aaxAudioFrameSetSetup(aaxFrame, enum aaxSetupType, int64_t);
+AAX_API bool AAX_APIENTRY aaxAudioFrameSetSetup(aaxFrame, enum aaxSetupType, int64_t);
 AAX_API int64_t aaxAudioFrameGetSetup(const aaxFrame, enum aaxSetupType);
 
-AAX_API int AAX_APIENTRY aaxAudioFrameSetMatrix64(aaxFrame, aaxMtx4d);
-AAX_API int AAX_APIENTRY aaxAudioFrameGetMatrix64(aaxFrame, aaxMtx4d);
+AAX_API bool AAX_APIENTRY aaxAudioFrameSetMatrix64(aaxFrame, aaxMtx4d);
+AAX_API bool AAX_APIENTRY aaxAudioFrameGetMatrix64(aaxFrame, aaxMtx4d);
 
-AAX_API int AAX_APIENTRY aaxAudioFrameSetVelocity(aaxFrame, aaxVec3f);
-AAX_API int AAX_APIENTRY aaxAudioFrameGetVelocity(aaxFrame, aaxVec3f);
+AAX_API bool AAX_APIENTRY aaxAudioFrameSetVelocity(aaxFrame, aaxVec3f);
+AAX_API bool AAX_APIENTRY aaxAudioFrameGetVelocity(aaxFrame, aaxVec3f);
 
-AAX_API int AAX_APIENTRY aaxAudioFrameSetFilter(aaxFrame, aaxFilter);
+AAX_API bool AAX_APIENTRY aaxAudioFrameSetFilter(aaxFrame, aaxFilter);
 AAX_API aaxFilter AAX_APIENTRY aaxAudioFrameGetFilter(const aaxFrame, enum aaxFilterType);
 
-AAX_API int AAX_APIENTRY aaxAudioFrameSetEffect(aaxFrame, aaxEffect);
+AAX_API bool AAX_APIENTRY aaxAudioFrameSetEffect(aaxFrame, aaxEffect);
 AAX_API aaxEffect AAX_APIENTRY aaxAudioFrameGetEffect(const aaxFrame, enum aaxEffectType);
 
-AAX_API int AAX_APIENTRY aaxAudioFrameAddBuffer(aaxFrame, aaxBuffer);
-AAX_API int AAX_APIENTRY aaxAudioFrameWaitForBuffer(aaxFrame, float);
+AAX_API bool AAX_APIENTRY aaxAudioFrameAddBuffer(aaxFrame, aaxBuffer);
+AAX_API bool AAX_APIENTRY aaxAudioFrameWaitForBuffer(aaxFrame, float);
 AAX_API aaxBuffer AAX_APIENTRY aaxAudioFrameGetBuffer(const aaxFrame);
 
-AAX_API int AAX_APIENTRY aaxAudioFrameRegisterSensor(const aaxFrame, const aaxConfig);
-AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterSensor(const aaxFrame, const aaxConfig);
+AAX_API bool AAX_APIENTRY aaxAudioFrameRegisterSensor(const aaxFrame, const aaxConfig);
+AAX_API bool AAX_APIENTRY aaxAudioFrameDeregisterSensor(const aaxFrame, const aaxConfig);
 
-AAX_API int AAX_APIENTRY aaxAudioFrameRegisterEmitter(const aaxFrame, const aaxEmitter);
-AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterEmitter(const aaxFrame, const aaxEmitter);
+AAX_API bool AAX_APIENTRY aaxAudioFrameRegisterEmitter(const aaxFrame, const aaxEmitter);
+AAX_API bool AAX_APIENTRY aaxAudioFrameDeregisterEmitter(const aaxFrame, const aaxEmitter);
 
-AAX_API int AAX_APIENTRY aaxAudioFrameRegisterAudioFrame(const aaxFrame, const aaxFrame);
-AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterAudioFrame(const aaxFrame, const aaxFrame);
+AAX_API bool AAX_APIENTRY aaxAudioFrameRegisterAudioFrame(const aaxFrame, const aaxFrame);
+AAX_API bool AAX_APIENTRY aaxAudioFrameDeregisterAudioFrame(const aaxFrame, const aaxFrame);
 
 #if defined(TARGET_OS_MAC) && TARGET_OS_MAC
 # pragma export off

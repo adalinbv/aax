@@ -35,17 +35,17 @@
 #include "stream/device.h"
 #include "ringbuffer.h"
 
-static int _aaxMixerInit(_handle_t*);
-static int _aaxMixerStart(_handle_t*);
-static int _aaxMixerStop(_handle_t*);
-static int _aaxMixerUpdate(_handle_t*);
-static int _mixerCreateEFFromAAXS(aaxConfig, _buffer_t*);
+static bool _aaxMixerInit(_handle_t*);
+static bool _aaxMixerStart(_handle_t*);
+static bool _aaxMixerStop(_handle_t*);
+static bool _aaxMixerUpdate(_handle_t*);
+static bool _mixerCreateEFFromAAXS(aaxConfig, _buffer_t*);
 static aaxBuffer _aaxCreateBufferFromAAXS(aaxConfig, _buffer_t*, char*);
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
 {
-   int rv = false;
+   bool rv = false;
 
    if (config == NULL)
    {
@@ -523,10 +523,10 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMixerSetMode(UNUSED(aaxConfig config), UNUSED(enum aaxModeType type), UNUSED(int mode))
 {
-   int rv = false;
+   bool rv = false;
    return rv;
 }
 
@@ -539,12 +539,12 @@ aaxMixerGetMode(const aaxConfig config, UNUSED(enum aaxModeType type))
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMixerSetFilter(aaxConfig config, aaxFilter f)
 {
    _handle_t* handle = get_handle(config, __func__);
    _filter_t* filter = get_filter(f);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -648,12 +648,12 @@ aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
 }
 
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMixerSetEffect(aaxConfig config, aaxEffect e)
 {
    _handle_t* handle = get_handle(config, __func__);
    _effect_t* effect = get_effect(e);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -742,10 +742,10 @@ aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMixerSetState(aaxConfig config, enum aaxState state)
 {
-   int rv = false;
+   bool rv = false;
    _handle_t* handle;
 
    if (state == AAX_INITIALIZED) {
@@ -805,12 +805,12 @@ aaxMixerGetState(aaxConfig config)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMixerAddBuffer(aaxConfig config, aaxBuffer buf)
 {
    _handle_t* handle = get_valid_handle(config, __func__);
    _buffer_t* buffer = get_buffer(buf, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv && handle)
    {
@@ -842,11 +842,11 @@ aaxMixerAddBuffer(aaxConfig config, aaxBuffer buf)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
 {
    _handle_t* handle = get_write_handle(config, __func__);
-   int rv = false;
+   bool rv = false;
    if (handle && (VALID_MIXER(handle) || handle->registered_sensors <= 1))
    {
       _handle_t* sframe = get_read_handle(s, __func__);
@@ -1052,11 +1052,11 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
 {
    _handle_t* handle = get_write_handle(config, __func__);
-   int rv = false;
+   bool rv = false;
    if (handle)
    {
       _handle_t* sframe = get_read_handle(s, __func__);
@@ -1114,12 +1114,12 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
 }
 
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
 {
    _emitter_t* emitter = get_emitter_unregistered(em, __func__);
    _handle_t* handle = get_write_handle(config, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -1254,12 +1254,12 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
 {
    _emitter_t* emitter = get_emitter(em, _LOCK, __func__);
    _handle_t* handle = get_write_handle(config, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -1324,13 +1324,13 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 {
    _handle_t* handle = get_write_handle(config, __func__);
    _frame_t* frame = get_frame(f, _LOCK, __func__);
    char put = (frame && frame->parent[0]) ? true : false;
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -1447,12 +1447,12 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
 {
    _handle_t* handle = get_write_handle(config, __func__);
    _frame_t* frame = get_frame(f, _LOCK, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -1505,10 +1505,10 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
 
 /* -------------------------------------------------------------------------- */
 
-int
+int64_t
 _aaxGetCapabilities(const aaxConfig config)
 {
-   static int rv = -1;
+   static int64_t rv = -1;
 
    if (rv < 0)
    {
@@ -1540,10 +1540,10 @@ _aaxGetCapabilities(const aaxConfig config)
    return rv;
 }
 
-static int
+static bool
 _aaxMixerInit(_handle_t *handle)
 {
-   int res = false;
+   bool res = false;
    _aaxMixerInfo* info = handle->info;
    float refrate = info->refresh_rate;
    float ms = rintf(1000.0f/refrate);
@@ -1667,10 +1667,10 @@ _aaxMixerInit(_handle_t *handle)
    return res;
 }
 
-static int
+static bool 
 _aaxMixerStart(_handle_t *handle)
 {
-   int rv = false;
+   bool rv = false;
 
    if (handle && TEST_FOR_FALSE(handle->thread.started)
        && !handle->parent)
@@ -1736,10 +1736,10 @@ _aaxMixerStart(_handle_t *handle)
    return rv;
 }
 
-static int
+static bool
 _aaxMixerStop(_handle_t *handle)
 {
-   int rv = false;
+   bool rv = false;
    if (!handle->parent && TEST_FOR_TRUE(handle->thread.started))
    {
       handle->thread.started = false;
@@ -1765,10 +1765,10 @@ _aaxMixerStop(_handle_t *handle)
    return rv;
 }
 
-static int
+static bool
 _aaxMixerUpdate(_handle_t *handle)
 {
-   int rv = false;
+   bool rv = false;
    if (!handle->parent && TEST_FOR_TRUE(handle->thread.started))
    {
       int playing = _IS_PLAYING(handle);
@@ -1822,12 +1822,12 @@ _aaxMixerSetRendering(_handle_t *handle)
    }
 }
 
-static int
+static bool
 _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
 {
    _handle_t *handle = get_handle(config, __func__);
    const char *aaxs = buffer->aaxs;
-   int rv = true;
+   bool rv = true;
    xmlId *xid;
 
    xid = xmlInitBuffer(aaxs, strlen(aaxs));

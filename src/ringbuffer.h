@@ -413,7 +413,7 @@ _aaxRingBufferFree(void*);
  * @param add_scratchbuf set to something other than 0 to add scratchbuffers
  */
 typedef void
-_aaxRingBufferInitFn(struct _aaxRingBuffer_t*, char);
+_aaxRingBufferInitFn(struct _aaxRingBuffer_t*, bool);
 
 
 /**
@@ -437,7 +437,7 @@ _aaxRingBufferReferenceFn(struct _aaxRingBuffer_t*);
  * returns the newly created ringbuffer
  */
 typedef struct _aaxRingBuffer_t*
-_aaxRingBufferDuplicateFn(struct _aaxRingBuffer_t*, char, char);
+_aaxRingBufferDuplicateFn(struct _aaxRingBuffer_t*, bool, bool);
 
 
 /**
@@ -719,7 +719,7 @@ _aaxRingBufferDataMixWaveformFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxSour
  * returns true if successful, false otherwise.
  */
 typedef int
-_aaxRingBufferDataMixNoiseFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxSourceType, int, float, float, float, uint64_t, char, unsigned char, unsigned char);
+_aaxRingBufferDataMixNoiseFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxSourceType, int, float, float, float, uint64_t, bool, bool, int);
 
 /**
  * Limit the audio data in the ringbuffer

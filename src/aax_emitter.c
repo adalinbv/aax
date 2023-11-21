@@ -35,8 +35,8 @@
 
 
 static void _aaxFreeEmitterBuffer(void *);
-static int _emitterSetFilter(_emitter_t*, _filter_t*);
-static int _emitterSetEffect(_emitter_t*, _effect_t*);
+static bool _emitterSetFilter(_emitter_t*, _filter_t*);
+static bool _emitterSetEffect(_emitter_t*, _effect_t*);
 static void _emitterSetPitch(const _aaxEmitter*, _aax2dProps *);
 
 AAX_API aaxEmitter AAX_APIENTRY
@@ -104,11 +104,11 @@ aaxEmitterCreate()
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxEmitterDestroy(aaxEmitter emitter)
 {
    _emitter_t *handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = false;
+   bool rv = false;
    if (handle)
    {
 //    _aaxRingBufferDelayEffectData* data;
@@ -153,12 +153,12 @@ aaxEmitterDestroy(aaxEmitter emitter)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    _buffer_t* buffer = get_buffer(buf, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -264,11 +264,11 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxEmitterRemoveBuffer(aaxEmitter emitter)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv && handle)
    {
@@ -374,11 +374,11 @@ aaxEmitterGetNoBuffers(const aaxEmitter emitter, enum aaxState state)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = false;
+   bool rv = false;
    if (handle)
    {
       _aaxEmitter *src = handle->source;
@@ -503,11 +503,11 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = false;
+   bool rv = false;
    if (handle)
    {
       _filter_t* filter = get_filter(f);
@@ -556,11 +556,11 @@ aaxEmitterGetFilter(const aaxEmitter emitter, enum aaxFilterType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = false;
+   bool rv = false;
    if (handle)
    {
       _effect_t* effect = get_effect(e);
@@ -610,11 +610,11 @@ aaxEmitterGetEffect(const aaxEmitter emitter, enum aaxEffectType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = false;
+   bool rv = false;
    if (handle)
    {
       _aaxEmitter *src = handle->source;
@@ -679,11 +679,11 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
 {
    _emitter_t *handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -717,11 +717,11 @@ aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxEmitterGetMatrix64(const aaxEmitter emitter, aaxMtx4d mtx64)
 {
    _emitter_t *handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -744,11 +744,11 @@ aaxEmitterGetMatrix64(const aaxEmitter emitter, aaxMtx4d mtx64)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxEmitterSetVelocity(aaxEmitter emitter, aaxVec3f velocity)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -782,11 +782,11 @@ aaxEmitterSetVelocity(aaxEmitter emitter, aaxVec3f velocity)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxEmitterGetVelocity(const aaxEmitter emitter, aaxVec3f velocity)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -807,11 +807,11 @@ aaxEmitterGetVelocity(const aaxEmitter emitter, aaxVec3f velocity)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = false;
+   bool rv = false;
    if (handle)
    {
       _aaxEmitter *src = handle->source;
@@ -892,11 +892,11 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -1006,7 +1006,7 @@ aaxEmitterGetMode(const aaxEmitter emitter, enum aaxModeType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API enum aaxState AAX_APIENTRY
 aaxEmitterGetState(const aaxEmitter emitter)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
@@ -1101,12 +1101,12 @@ aaxEmitterGetOffsetSec(const aaxEmitter emitter)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, int64_t setup)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    _aax2dProps *p2d = handle->source->props2d;
-   int rv = false;
+   bool rv = false;
    switch(type)
    {
    case AAX_MIDI_RELEASE_FACTOR:
@@ -1376,14 +1376,14 @@ _aaxFreeEmitterBuffer(void *sbuf)
    }
 }
 
-static int
+static bool
 _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
 {
    _aaxEmitter *src = handle->source;
    _aax2dProps *p2d = src->props2d;
    _aax3dProps *p3d = src->props3d;
    int type = filter->pos;
-   int rv = true;
+   bool rv = true;
 
    switch (filter->type)
    {
@@ -1456,14 +1456,14 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
    return rv;
 }
 
-static int
+static bool 
 _emitterSetEffect(_emitter_t *handle, _effect_t *effect)
 {
    _aaxEmitter *src = handle->source;
    _aax2dProps *p2d = src->props2d;
    _aax3dProps *p3d = src->props3d;
    int type = effect->pos;
-   int rv = true;
+   bool rv = true;
 
    switch (effect->type)
    {
@@ -1557,7 +1557,7 @@ int
 _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
 {
    aaxConfig config = handle->root;
-   int rv = false;
+   bool rv = false;
 
    if (config)
    {
@@ -1640,7 +1640,7 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
    return rv;
 }
 
-static int
+static bool
 _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmid)
 {
    _aax2dProps *ep2d = handle->source->props2d;
@@ -1753,11 +1753,11 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
    return true;
 }
 
-int
+bool
 _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aaxs)
 {
    aaxConfig config = handle->root;
-   int rv = true;
+   bool rv = true;
    xmlId *xid;
 
    if (!config) {

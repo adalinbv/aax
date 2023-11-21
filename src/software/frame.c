@@ -32,8 +32,8 @@
 #include "audio.h"
 
 /* processes one single audio-frame */
-static char _aaxAudioFrameRender(_aaxRingBuffer*, _aaxAudioFrame*, _aax2dProps*, _aax3dProps*, _intBuffers*, unsigned int, float, float, const _aaxDriverBackend*,  void*, char);
-static void* _aaxAudioFrameSwapBuffers(void*, _intBuffers*, char);
+static bool _aaxAudioFrameRender(_aaxRingBuffer*, _aaxAudioFrame*, _aax2dProps*, _aax3dProps*, _intBuffers*, unsigned int, float, float, const _aaxDriverBackend*,  void*, bool);
+static void* _aaxAudioFrameSwapBuffers(void*, _intBuffers*, bool);
 
 
 /**
@@ -52,7 +52,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
                      float ssv, float sdf, _aax2dProps *fp2d, _aax3dProps *fp3d,
                      _aaxDelayed3dProps *fdp3d,
                      const _aaxDriverBackend *be, void *be_handle,
-                     char batched, char mono)
+                     bool batched, bool mono)
 {
    _aaxDelayed3dProps *sdp3d_m = fp3d->root->m_dprops3d;
    _aaxDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
@@ -179,7 +179,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
          cnt = _intBufGetNumNoLock(hf, _AAX_FRAME);
          for (i=0; i<max; i++)
          {
-            char res = _aaxAudioFrameRender(dest_rb, fmixer,fp2d, fp3d, hf, i,
+            bool res = _aaxAudioFrameRender(dest_rb, fmixer,fp2d, fp3d, hf, i,
                                             ssv, sdf, be, be_handle, batched);
             process |= res;
             if (res && --cnt == 0) break;
@@ -258,7 +258,7 @@ _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *frame)
 
 static void
 _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
-                  _aax2dProps *fp2d, char mono)
+                  _aax2dProps *fp2d, bool mono)
 {
    _intBufferData *buf;
 
@@ -331,11 +331,11 @@ _aaxAudioFrameMix3D(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
 }
 
 /* process one single audio-frame, no emitters, no sensors */
-static char
+static bool
 _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                      _aax2dProps *fp2d, _aax3dProps *fp3d,
                      _intBuffers *hf, unsigned int pos, float ssv, float sdf,
-                     const _aaxDriverBackend *be, void *be_handle, char batched)
+                     const _aaxDriverBackend *be, void *be_handle, bool batched)
 {
    _aaxDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
    bool indoor = _PROP3D_INDOOR_IS_DEFINED(fdp3d_m) ? true : false;
@@ -438,7 +438,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                               &sfp2d, mono);
          }
 
-         sfmixer->capturing++;
+         sfmixer->capturing = true; // sfmixer->capturing++
          process = true;
       }
    }
@@ -447,7 +447,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
 }
 
 static void *
-_aaxAudioFrameSwapBuffers(void *rbuf, _intBuffers *ringbuffers, char dde)
+_aaxAudioFrameSwapBuffers(void *rbuf, _intBuffers *ringbuffers, bool dde)
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer*)rbuf;
    _aaxRingBuffer *nrb;

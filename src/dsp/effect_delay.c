@@ -42,7 +42,7 @@
 #define VERSION		1.15
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
-static void* _delay_create(void*, void*, char, int, float);
+static void* _delay_create(void*, void*, bool, int, float);
 static void _delay_swap(void*, void*);
 static void _delay_destroy(void*);
 static void _delay_reset(void*);
@@ -111,7 +111,7 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
    case AAX_TIMED_TRANSITION:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
-      char fbhist = (feedback_gain > LEVEL_32DB) ? true : false;
+      bool fbhist = (feedback_gain > LEVEL_32DB) ? true : false;
 
       data = _delay_create(data, effect->info, fbhist, state, max_delay);
 
@@ -670,7 +670,7 @@ _eff_function_tbl _aaxFlangingEffect =
  * effects.
  */
 static void*
-_delay_create(void *d, void *i, char feedback, int state, float delay_time)
+_delay_create(void *d, void *i, bool feedback, int state, float delay_time)
 {
    _aaxRingBufferDelayEffectData *data = d;
    _aaxMixerInfo *info = i;

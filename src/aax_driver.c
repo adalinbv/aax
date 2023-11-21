@@ -157,11 +157,11 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
    return (const char*)rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxDriverSetSetup(const aaxConfig config, enum aaxSetupType type, const char *setup)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = false;
+   bool rv = false;
    if (handle)
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
@@ -377,11 +377,11 @@ aaxDriverGetByName(const char* devname, enum aaxRenderMode mode)
    return handle;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxDriverGetSupport(const aaxConfig config, enum aaxRenderMode mode)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = false;
+   bool rv = false;
 
    if (handle)
    {
@@ -511,11 +511,11 @@ aaxDriverOpenDefault(enum aaxRenderMode mode)
    return aaxDriverOpenByName(NULL, mode);
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxDriverDestroy(aaxConfig config)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = false;
+   bool rv = false;
 
    aaxMixerSetState(handle, AAX_STOPPED);
    aaxSensorSetState(handle, AAX_STOPPED);
@@ -583,11 +583,11 @@ aaxDriverDestroy(aaxConfig config)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxDriverClose(aaxConfig config)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = false;
+   bool rv = false;
 
    if (handle)
    {
@@ -773,7 +773,7 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
 static const char* _aax_default_devname = "None";
 
 time_t _tvnow = 0;
-int __release_mode = false;
+bool __release_mode = false;
 _aaxMixerInfo* _info = NULL;
 _aaxMixerInfo __info;
 

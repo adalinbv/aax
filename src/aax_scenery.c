@@ -16,110 +16,10 @@
 
 #include "api.h"
 
-#if 0
-AAX_API int AAX_APIENTRY
-aaxScenerySetMatrix64(aaxConfig config, aaxMtx4d mtx64)
-{
-   _handle_t *handle = get_handle(config, __func__);
-   int rv = __release_mode;
-
-   if (!rv)
-   {
-      if (!mtx64 || detect_nan_mtx4d(mtx64)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      } else {
-         rv = true;
-      }
-   }
-
-   if (rv) {
-      mtx4dFill(handle->info->matrix.m4, mtx64);
-   }
-
-   return rv;
-}
-
-AAX_API int AAX_APIENTRY
-aaxSceneryGetMatrix64(aaxConfig config, aaxMtx4d mtx64)
-{
-   _handle_t *handle = get_handle(config, __func__);
-   int rv = __release_mode;
-
-   if (!rv)
-   {
-      if (!mtx64) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      } else {
-         rv = true;
-      }
-   }
-
-   if (rv) {
-      mtx4dFill(mtx64, handle->info->matrix.m4);
-   }
-
-   return rv;
-}
-
-AAX_API int AAX_APIENTRY
-aaxScenerySetDimensions(aaxConfig config, aaxVec3f dimensions)
-{
-   _handle_t *handle = get_handle(config, __func__);
-   int rv = __release_mode;
-
-   if (!rv)
-   {
-      if (!dimensions || detect_nan_vec3(dimensions)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      } else {
-         rv = true;
-      }
-   }
-
-   if (rv)
-   {
-      float radius;
-
-      vec3fFill(handle->info->bounding.box.v3, dimensions);
-
-      radius = fmaxf(dimensions[0], fmaxf(dimensions[1], dimensions[2]));
-      handle->info->bounding.radius_sq = radius*radius;
-
-      // Scenery does not set the dimensions property on purpose.
-      // This tells the emitter to apply directional cues.
-      // _PROP_DIMENSIONS_SET_DEFINED(p3d);
-   }
-
-   return rv;
-}
-
-AAX_API int AAX_APIENTRY
-aaxSceneryGetDimensions(aaxConfig config, aaxVec3f dimensions)
-{
-   _handle_t *handle = get_handle(config, __func__);
-   int rv = __release_mode;
-
-   if (!rv)
-   {
-      if (!dimensions) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      } else {
-         rv = true;
-      }
-   }
-
-   if (rv) {
-      vec3fFill(dimensions, handle->info->bounding.box.v3);
-   }
-
-   return rv;
-}
-#endif
-
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxScenerySetSetup(UNUSED(aaxConfig config), UNUSED(enum aaxSetupType type), UNUSED(int64_t setup))
 {
-   int rv = false;
+   bool rv = false;
    return rv;
 }
 
@@ -130,11 +30,11 @@ aaxSceneryGetSetup(UNUSED(const aaxConfig config), UNUSED(enum aaxSetupType type
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxScenerySetFilter(aaxConfig config, aaxFilter f)
 {
    _handle_t* handle = get_handle(config, __func__);
-   int rv = false;
+   bool rv = false;
    if (handle)
    {
       _filter_t* filter = get_filter(f);
@@ -214,11 +114,11 @@ aaxSceneryGetFilter(aaxConfig config, enum aaxFilterType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxScenerySetEffect(aaxConfig config, aaxEffect e)
 {
    _handle_t* handle = get_handle(config, __func__);
-   int rv = false;
+   bool rv = false;
    if (handle)
    {
       _effect_t* effect = get_effect(e);

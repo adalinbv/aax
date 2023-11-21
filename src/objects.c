@@ -345,7 +345,7 @@ _aaxDecreaseEmitterCounter(const _aaxDriverBackend *be) {
    return be->getset_sources(0, -1);
 }
 
-static int
+static bool
 _aaxSetFilterSlotState(const aaxFilter f, int slot, int state)
 {
    _filter_t* filter = get_filter(f);
@@ -355,7 +355,7 @@ _aaxSetFilterSlotState(const aaxFilter f, int slot, int state)
    return true;
 }
 
-static int
+static bool
 _aaxSetEffectSlotState(const aaxEffect e, int slot, int state)
 {
    _effect_t* effect = get_effect(e);
@@ -366,7 +366,7 @@ _aaxSetEffectSlotState(const aaxEffect e, int slot, int state)
 }
 
 static int
-_aaxSetSlotFromAAXS(const xmlId *xid, int (*setStateFn)(void*, int, int), int (*setParamFn)(void*, int, int, float), void *id, float freq, float min, float max, _midi_t *midi)
+_aaxSetSlotFromAAXS(const xmlId *xid, bool (*setStateFn)(void*, int, int), bool (*setParamFn)(void*, int, int, float), void *id, float freq, float min, float max, _midi_t *midi)
 {
    unsigned int s, snum = xmlNodeGetNum(xid, "slot");
    int rv = false;

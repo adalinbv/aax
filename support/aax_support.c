@@ -165,10 +165,10 @@ aaxGetFormatString(enum aaxFormat format)
    return rv;
 }
 
-int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxPlaySoundLogo(const char *devname)
 {
-   int rv = AAX_FALSE;
+   bool rv = false;
    aaxConfig config;
 
    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_SPATIAL);
@@ -186,7 +186,7 @@ aaxPlaySoundLogo(const char *devname)
        {
            rv = aaxBufferSetSetup(buffer, AAX_FREQUENCY, frequency);
            if (rv) rv = aaxBufferSetSetup(buffer, AAX_BLOCK_ALIGNMENT, 1);
-           if (aaxBufferSetData(buffer, __aax_sound_logo) == AAX_FALSE)
+           if (aaxBufferSetData(buffer, __aax_sound_logo) == false)
            {
               rv = aaxBufferDestroy(buffer);
               buffer = NULL;
@@ -233,7 +233,7 @@ aaxPlaySoundLogo(const char *devname)
            }
            if (emitter) aaxEmitterDestroy(emitter);
        }
-       else rv = AAX_FALSE;
+       else rv = false;
 
        aaxMixerSetState(config, AAX_STOPPED);
        aaxBufferDestroy(buffer);
@@ -245,11 +245,11 @@ aaxPlaySoundLogo(const char *devname)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxIsFilterSupported(aaxConfig cfg, const char *filter)
 {
    _handle_t* handle = (_handle_t*)cfg;
-   int rv = AAX_FALSE;
+   bool rv = false;
    if (handle)
    {
       if (filter)
@@ -266,7 +266,7 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
                if (v >= 0 && v < 1)
                {
                   if (_aaxFilters[i]->lite || VALID_HANDLE(handle)) {
-                     rv = AAX_TRUE;
+                     rv = true;
                   }
                }
                break;
@@ -274,7 +274,7 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
             else if (!strncasecmp(filter, _aaxFilters[i]->name, strlen(filter)))
             {
                if (_aaxFilters[i]->lite || VALID_HANDLE(handle)) {
-                  rv = AAX_TRUE;
+                  rv = true;
                }
                break;
             }
@@ -290,11 +290,11 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxIsEffectSupported(aaxConfig cfg, const char *effect)
 {
    _handle_t* handle = (_handle_t*)cfg;
-   int rv = AAX_FALSE;
+   bool rv = false;
    if (handle)
    {
       if (effect)
@@ -311,7 +311,7 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
                if (v >= 0 && v < 1)
                {
                   if (_aaxEffects[i]->lite || VALID_HANDLE(handle)) {
-                     rv = AAX_TRUE;
+                     rv = true;
                   }
                }
                break;
@@ -319,7 +319,7 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
             else if (!strncasecmp(effect, _aaxEffects[i]->name, strlen(effect)))
             {
                if (_aaxEffects[i]->lite || VALID_HANDLE(handle)) {
-                  rv = AAX_TRUE;
+                  rv = true;
                }
                break;
             }
@@ -450,10 +450,10 @@ aaxGetBitsPerSample(enum aaxFormat format)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxIsValid(const void* handle, enum aaxHandleType type)
 {
-   enum aaxErrorType rv = AAX_FALSE;
+   bool rv = false;
    if (handle)
    {
       switch(type)
@@ -461,37 +461,37 @@ aaxIsValid(const void* handle, enum aaxHandleType type)
       case AAX_CONFIG:
       {
           const _handle_t* ptr = (const _handle_t*)handle;
-          if (ptr->id == HANDLE_ID && VALID_HANDLE(ptr)) rv = AAX_TRUE;
+          if (ptr->id == HANDLE_ID && VALID_HANDLE(ptr)) rv = true;
          break;
       }
       case AAX_BUFFER:
       {
          const _buffer_t* ptr = (const _buffer_t*)handle;
-         if (ptr->id == BUFFER_ID) rv = AAX_TRUE;
+         if (ptr->id == BUFFER_ID) rv = true;
          break;
       }
       case AAX_EMITTER:
       {
          const _emitter_t* ptr = (const _emitter_t*)handle;
-         if (ptr->id == EMITTER_ID) rv = AAX_TRUE;
+         if (ptr->id == EMITTER_ID) rv = true;
          break;
       }
       case AAX_AUDIOFRAME:
       {
          const _frame_t* ptr = (const _frame_t*)handle;
-         if (ptr->id == AUDIOFRAME_ID) rv = AAX_TRUE;
+         if (ptr->id == AUDIOFRAME_ID) rv = true;
          break;
       }
       case AAX_FILTER:
       {
          const _filter_t* ptr = (const _filter_t*)handle;
-         if (ptr->id == FILTER_ID) rv = AAX_TRUE;
+         if (ptr->id == FILTER_ID) rv = true;
          break;
       }
       case AAX_EFFECT:
       {
          const _filter_t* ptr = (const _filter_t*)handle;
-         if (ptr->id == EFFECT_ID) rv = AAX_TRUE;
+         if (ptr->id == EFFECT_ID) rv = true;
          break;
       }
       default:
@@ -768,7 +768,7 @@ aaxGetSourceTypeByName(const char *wave)
 }
 
 static char*
-aaxGetSourceNameByType(enum aaxSourceType type, char freqfilter, char delay)
+aaxGetSourceNameByType(enum aaxSourceType type, bool freqfilter, bool delay)
 {
    enum aaxSourceType ntype = type & AAX_NOISE_MASK;
    enum aaxSourceType stype = type & AAX_SOURCE_MASK;
@@ -1146,10 +1146,10 @@ aaxEffectGetByName(const char *name)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API int64_t AAX_APIENTRY
 aaxGetByName(const char* name, enum aaxTypeName type)
 {
-   int rv = AAX_NONE;
+   int64_t rv = AAX_NONE;
    switch (type)
    {
    case AAX_ALL:
@@ -1190,13 +1190,13 @@ aaxGetStringByType(int type, enum aaxTypeName name)
    switch(name)
    {
    case AAX_SOURCE_NAME:
-      rv = aaxGetSourceNameByType(type, AAX_FALSE, AAX_FALSE);
+      rv = aaxGetSourceNameByType(type, false, false);
       break;
    case AAX_FREQUENCY_FILTER_NAME:
-      rv = aaxGetSourceNameByType(type, AAX_TRUE, AAX_FALSE);
+      rv = aaxGetSourceNameByType(type, true, false);
       break;
    case AAX_DELAY_EFFECT_NAME:
-      rv = aaxGetSourceNameByType(type, AAX_FALSE, AAX_TRUE);
+      rv = aaxGetSourceNameByType(type, false, true);
       break;
    case AAX_FILTER_NAME:
       switch (type)

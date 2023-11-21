@@ -145,7 +145,7 @@ _bufferGenerateWaveform(float32_ptr rv, size_t no_samples, float freq, float pha
 }
 
 void
-_bufferMixWaveform(int32_t* data, _data_t *scratch, enum aaxSourceType wtype, float freq, char bps, size_t no_samples, float gain, float phase, unsigned char modulate, limitType limiter)
+_bufferMixWaveform(int32_t* data, _data_t *scratch, enum aaxSourceType wtype, float freq, char bps, size_t no_samples, float gain, float phase, bool modulate, limitType limiter)
 {
    int wave = wtype & ~AAX_PURE_WAVEFORM;
    gain *= _gains[wave-AAX_1ST_WAVE];
@@ -163,7 +163,7 @@ _bufferMixWaveform(int32_t* data, _data_t *scratch, enum aaxSourceType wtype, fl
 }
 
 void
-_bufferMixWhiteNoise(int32_t* data, _data_t *scratch, size_t no_samples, char bps, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixWhiteNoise(int32_t* data, _data_t *scratch, size_t no_samples, char bps, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, bool modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain && no_samples*sizeof(int32_t) < _aaxDataGetSize(scratch))
@@ -185,7 +185,7 @@ _bufferMixWhiteNoise(int32_t* data, _data_t *scratch, size_t no_samples, char bp
 }
 
 void
-_bufferMixPinkNoise(int32_t* data, _data_t *scratch, size_t no_samples, char bps, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixPinkNoise(int32_t* data, _data_t *scratch, size_t no_samples, char bps, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, bool modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain && no_samples*sizeof(int32_t) < _aaxDataGetSize(scratch))
@@ -214,7 +214,7 @@ _bufferMixPinkNoise(int32_t* data, _data_t *scratch, size_t no_samples, char bps
 }
 
 void
-_bufferMixBrownianNoise(int32_t* data, _data_t *scratch, size_t no_samples, char bps, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixBrownianNoise(int32_t* data, _data_t *scratch, size_t no_samples, char bps, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, bool modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain && no_samples*sizeof(int32_t) < _aaxDataGetSize(scratch))

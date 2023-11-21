@@ -106,7 +106,7 @@ void _vec3fCrossProduct_vfpv3(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v
 float _vec3fNormalize_vfpv3(vec3f_ptr d, const vec3f_ptr v);
 double _vec3dNormalize_vfpv3(vec3d_ptr d, const vec3d_ptr v);
 //void _vec3fMatrix3_vfpv3(vec3f_ptr d, const vec3f_ptr v, mtx3 m);
-void _mtx4fSetAbsolute_vfpv3(mtx4f_ptr d, char absolute);
+void _mtx4fSetAbsolute_vfpv3(mtx4f_ptr d, bool absolute);
 void _mtx4fMul_vfpv3(mtx4f_ptr dst, const mtx4f_ptr mtx1, const mtx4f_ptr mtx2);
 void _mtx4dMul_vfpv3(mtx4d_ptr dst, const mtx4d_ptr mtx1, const mtx4d_ptr mtx2);
 void _mtx4fMulVec4_vfpv3(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
@@ -133,7 +133,7 @@ void _vec3fCrossProduct_vfpv4(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v
 float _vec3fNormalize_vfpv4(vec3f_ptr d, const vec3f_ptr v);
 double _vec3dNormalize_vfpv4(vec3d_ptr d, const vec3d_ptr v);
 //void _vec3fMatrix3_vfpv4(vec3f_ptr d, const vec3f_ptr v, mtx3 m);
-void _mtx4fSetAbsolute_vfpv4(mtx4f_ptr d, char absolute);
+void _mtx4fSetAbsolute_vfpv4(mtx4f_ptr d, bool absolute);
 void _mtx4fMul_vfpv4(mtx4f_ptr dst, const mtx4f_ptr mtx1, const mtx4f_ptr mtx2);
 void _mtx4dMul_vfpv4(mtx4d_ptr dst, const mtx4d_ptr mtx1, const mtx4d_ptr mtx2);
 void _mtx4fMulVec4_vfpv4(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);

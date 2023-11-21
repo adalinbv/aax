@@ -27,7 +27,7 @@
 
 bool
 _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
-                   _aax2dProps *props2d, int dest_track, char batched)
+                   _aax2dProps *props2d, int dest_track, bool batched)
 {
    _intBuffers *hd = (_intBuffers *)devices;
    bool rv = false;
@@ -54,13 +54,13 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
 }
 
 bool
-_aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int dest_track, char batched)
+_aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int dest_track, bool batched)
 {
    _handle_t* device = (_handle_t*)id;
    const _intBufferData *dptr_sensor = NULL;
    _aax2dProps *props2d = p2d;
    const _aaxDriverBackend *be;
-   char unregistered_ssr;
+   bool unregistered_ssr;
    void *be_handle;
    bool rv = false;
 
@@ -255,7 +255,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
 }
 
 void*
-_aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_handle, float *delay, float agc_rr, unsigned int dest_track, UNUSED(float pos_sec), float gain, ssize_t *nsamps, char batched)
+_aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_handle, float *delay, float agc_rr, unsigned int dest_track, UNUSED(float pos_sec), float gain, ssize_t *nsamps, bool batched)
 {
    void *rv = drb;
    int32_t **scratch;

@@ -63,7 +63,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
 {
    _handle_t* handle = (_handle_t*)config;
    unsigned int native_fmt = format & AAX_FORMAT_NATIVE;
-   int rv = __release_mode;
+   bool rv = __release_mode;
    _buffer_t *buf = NULL;
 
    if (!rv)
@@ -137,11 +137,11 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
    return (aaxBuffer)buf;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv && handle)
    {
@@ -488,11 +488,11 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxBufferSetData(aaxBuffer buffer, const void* d)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv && handle)
    {
@@ -634,7 +634,7 @@ aaxBufferGetData(const aaxBuffer buffer)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
    enum aaxFormat user_format;
-   int rv = __release_mode;
+   bool rv = __release_mode;
    void** data = NULL;
 
    if (!rv && handle)
@@ -815,11 +815,11 @@ aaxBufferGetData(const aaxBuffer buffer)
    return data;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxBufferDestroy(aaxBuffer buffer)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
-   int rv = false;
+   bool rv = false;
    if (handle) {
      rv = free_buffer(handle);
    }
@@ -833,7 +833,7 @@ AAX_API aaxBuffer AAX_APIENTRY
 aaxBufferReadFromStream(aaxConfig config, const char *url)
 {
    _handle_t *handle = (_handle_t*)config;
-   int rv = __release_mode;
+   bool rv = __release_mode;
    _buffer_t* buf = NULL;
 
    if (!rv && handle) {
@@ -935,10 +935,10 @@ _aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, ptr, no_samples, freq, track
    return buf;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType type)
 {
-   int rv = false;
+   bool rv = false;
    if (aaxIsValid(buffer, AAX_BUFFER))
    {
       enum aaxFormat format = aaxBufferGetSetup(buffer, AAX_FORMAT);
@@ -1026,7 +1026,7 @@ get_buffer(aaxBuffer buffer, const char *func)
 int
 free_buffer(_buffer_t* handle)
 {
-   int rv = false;
+   bool rv = false;
    if (handle)
    {
       if (--handle->ref_counter == 0)
@@ -1657,7 +1657,7 @@ static int
 _bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fsize)
 {
    _buffer_t* handle = aax_buf->parent;
-   int rv = false;
+   bool rv = false;
    FILE *infile;
 
    infile = fopen(fname, "r");
@@ -1976,7 +1976,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
    float low_frequency = 0.0f;
    float high_frequency = 0.0f;
    int midi_mode;
-   int rv = false;
+   bool rv = false;
    xmlId *xaid, *xiid;
    xmlId *xsid;
 
@@ -2182,7 +2182,7 @@ _bufAAXSThread(void *d)
    _buffer_aax_t *aax_buf = (_buffer_aax_t*)d;
    _buffer_t* handle = aax_buf->parent;
    const void *aaxs =  aax_buf->aaxs;
-   int rv = false;
+   bool rv = false;
    xmlId *xid, *xiid;
 
    assert(handle);
@@ -2291,7 +2291,7 @@ _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
 {
    _handle_t *handle = buffer->root;
    _buffer_aax_t data;
-   int rv = false;
+   bool rv = false;
 
    memset(&data, 0, sizeof(_buffer_aax_t));
 
@@ -2357,7 +2357,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
 {
    enum aaxSourceType wave = wtype & (AAX_ALL_SOURCE_MASK & ~AAX_PURE_WAVEFORM);
    _buffer_t* handle = get_buffer(buffer, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {

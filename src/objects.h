@@ -440,7 +440,7 @@ extern float _aaxDefaultHRTFDelay[_AAX_MAX_SPEAKERS][4];
 void _aaxFreeSource(void*);
 void _aaxProcessSource(void*, _aaxEmitter*, unsigned int);
 int _emitterCreateEFFromRingbuffer(struct aax_emitter_t*, struct aax_embuffer_t*);
-int _emitterCreateEFFromAAXS(struct aax_emitter_t*, struct aax_embuffer_t*, const char*);
+bool _emitterCreateEFFromAAXS(struct aax_emitter_t*, struct aax_embuffer_t*, const char*);
 
 void _aaxSetDefaultInfo(_aaxMixerInfo**, void*);
 

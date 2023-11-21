@@ -739,7 +739,7 @@ _aaxLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned tr
 }
 
 float
-_aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelopeData *penv)
+_aaxEnvelopeGet(_aaxEnvelopeData *env, bool stopped, float *velocity, _aaxEnvelopeData *penv)
 {
    float rv = 1.0f;
    if (env)

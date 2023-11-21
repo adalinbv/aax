@@ -45,7 +45,7 @@ _aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *rendere
    _aaxRingBufferOcclusionData *occlusion;
    _aaxRingBufferReverbData *reverb;
    int bps, dist_state, ringmodulator;
-   char mono = data->mono;
+   bool mono = data->mono;
    float maxgain, gain;
 
    assert(rb != 0);
@@ -134,7 +134,7 @@ _aaxFrameProcessEqualizer(_aaxRingBuffer *rb, _sensor_t *sensor, _aaxAudioFrame 
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
-   char parametric, graphic;
+   bool parametric, graphic;
 
    rbi = rb->handle;
    rbd = rbi->sample;
@@ -219,7 +219,7 @@ _aaxSensorPostProcess(const _aaxRendererData *data)
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
    _aaxLFOData *compressor;
-   char crossover;
+   bool crossover;
 
    assert(rb != 0);
    assert(rb->handle != 0);
@@ -353,7 +353,7 @@ _aaxSensorPostProcess(const _aaxRendererData *data)
 
 // Send the rendered audio to the backend driver.
 int
-_aaxSoftwareMixerPlay(void* rb, UNUSED(const void* devices), const void* ringbuffers, UNUSED(const void* frames), void* props2d, char capturing, UNUSED(const void* sensor), const void* backend, const void* be_handle, const void* fbackend, const void* fbe_handle, char batched)
+_aaxSoftwareMixerPlay(void* rb, UNUSED(const void* devices), const void* ringbuffers, UNUSED(const void* frames), void* props2d, bool capturing, UNUSED(const void* sensor), const void* backend, const void* be_handle, const void* fbackend, const void* fbe_handle, bool batched)
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    const _aaxDriverBackend* fbe = (const _aaxDriverBackend*)fbackend;
@@ -396,7 +396,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
    _handle_t *handle = (_handle_t *)config;
    const _aaxDriverBackend *be, *fbe = NULL;
    _intBufferData *dptr_sensor;
-   char batched;
+   bool batched;
    int res = 0;
 
    assert(handle);

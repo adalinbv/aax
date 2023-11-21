@@ -30,22 +30,26 @@
 
 #include "api.h"
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrixCopyMatrix(aaxMtx4f dmtx, aaxMtx4f smtx)
 {
-   int rv = AAX_FALSE;
-   if (dmtx && smtx) {
+   bool rv = false;
+   if (dmtx && smtx)
+   {
         mtx4fFill(dmtx, smtx);
+        rv = true;
    }
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrix64CopyMatrix64(aaxMtx4d dmtx, aaxMtx4d smtx)
 {
-   int rv = AAX_FALSE;
-   if (dmtx && smtx) {
+   bool rv = false;
+   if (dmtx && smtx)
+   {
         mtx4dFill(dmtx, smtx);
+        rv = true;
    }
    return rv;
 }
@@ -53,14 +57,14 @@ aaxMatrix64CopyMatrix64(aaxMtx4d dmtx, aaxMtx4d smtx)
 
 // AAX_API aaxMtx4f aaxIdentityMatrix;
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrixSetIdentityMatrix(aaxMtx4f mtx)
 {
-   int rv = AAX_FALSE;
+   bool rv = false;
    if (mtx)
    {
       mtx4fSetIdentity(mtx);
-      rv = AAX_TRUE;
+      rv = true;
    }
    else {
       __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
@@ -68,14 +72,14 @@ aaxMatrixSetIdentityMatrix(aaxMtx4f mtx)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrix64SetIdentityMatrix(aaxMtx4d mtx)
 {
-   int rv = AAX_FALSE;
+   bool rv = false;
    if (mtx)
    {
       mtx4dSetIdentity(mtx);
-      rv = AAX_TRUE;
+      rv = true;
    }
    else {
       __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
@@ -83,10 +87,10 @@ aaxMatrix64SetIdentityMatrix(aaxMtx4d mtx)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrixTranslate(aaxMtx4f mtx, float dx, float dy, float dz)
 {
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -99,7 +103,7 @@ aaxMatrixTranslate(aaxMtx4f mtx, float dx, float dy, float dz)
       } else if (is_nan(dz)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 3, __func__);
       } else {
-         rv  = AAX_TRUE;
+         rv  = true;
       }
    }
 
@@ -115,10 +119,10 @@ aaxMatrixTranslate(aaxMtx4f mtx, float dx, float dy, float dz)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrix64Translate(aaxMtx4d mtx, double dx, double dy, double dz)
 {
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -131,7 +135,7 @@ aaxMatrix64Translate(aaxMtx4d mtx, double dx, double dy, double dz)
       } else if (is_nan64(dz)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 3, __func__);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -147,10 +151,10 @@ aaxMatrix64Translate(aaxMtx4d mtx, double dx, double dy, double dz)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrixRotate(aaxMtx4f mtx, float angle_rad, float x, float y, float z)
 {
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -165,7 +169,7 @@ aaxMatrixRotate(aaxMtx4f mtx, float angle_rad, float x, float y, float z)
       } else if (is_nan(z)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 4, __func__);
       } else {
-         rv  = AAX_TRUE;
+         rv  = true;
       }
    }
 
@@ -181,10 +185,10 @@ aaxMatrixRotate(aaxMtx4f mtx, float angle_rad, float x, float y, float z)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrix64Rotate(aaxMtx4d mtx, double angle_rad, double x, double y, double z)
 {
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -199,7 +203,7 @@ aaxMatrix64Rotate(aaxMtx4d mtx, double angle_rad, double x, double y, double z)
       } else if (is_nan64(z)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 4, __func__);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -216,10 +220,10 @@ aaxMatrix64Rotate(aaxMtx4d mtx, double angle_rad, double x, double y, double z)
 }
 
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrixMultiply(aaxMtx4f mtx1, aaxMtx4f mtx2)
 {
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -243,10 +247,10 @@ aaxMatrixMultiply(aaxMtx4f mtx1, aaxMtx4f mtx2)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrix64Multiply(aaxMtx4d mtx1, aaxMtx4d mtx2)
 {
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -255,7 +259,7 @@ aaxMatrix64Multiply(aaxMtx4d mtx1, aaxMtx4d mtx2)
       } else if (!mtx2 || detect_nan_mtx4d(mtx2)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -272,17 +276,17 @@ aaxMatrix64Multiply(aaxMtx4d mtx1, aaxMtx4d mtx2)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrixInverse(aaxMtx4f mtx)
 {
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
       if (!mtx || detect_nan_mtx4(mtx)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -297,17 +301,17 @@ aaxMatrixInverse(aaxMtx4f mtx)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrix64Inverse(aaxMtx4d mtx)
 {
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
       if (!mtx || detect_nan_mtx4d(mtx)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -322,10 +326,10 @@ aaxMatrix64Inverse(aaxMtx4d mtx)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrix64SetDirection(aaxMtx4d mtx64, aaxVec3d pos, aaxVec3f at)
 {
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -336,7 +340,7 @@ aaxMatrix64SetDirection(aaxMtx4d mtx64, aaxVec3d pos, aaxVec3f at)
       } else if (!at || detect_nan_vec3(at)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 2, __func__);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -383,11 +387,11 @@ aaxMatrix64SetDirection(aaxMtx4d mtx64, aaxVec3d pos, aaxVec3f at)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrix64SetOrientation(aaxMtx4d mtx64, aaxVec3d pos, aaxVec3f at,
                                                         aaxVec3f up)
 {
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -400,7 +404,7 @@ aaxMatrix64SetOrientation(aaxMtx4d mtx64, aaxVec3d pos, aaxVec3f at,
       } else if (!up || detect_nan_vec3(up)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 3, __func__);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -436,17 +440,17 @@ aaxMatrix64SetOrientation(aaxMtx4d mtx64, aaxVec3d pos, aaxVec3f at,
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrix64GetOrientation(aaxMtx4d mtx, aaxVec3d pos, aaxVec3f at, aaxVec3f up)
 {
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
       if (!mtx) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 
@@ -466,10 +470,10 @@ aaxMatrix64GetOrientation(aaxMtx4d mtx, aaxVec3d pos, aaxVec3f at, aaxVec3f up)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxMatrixToMatrix64(aaxMtx4d mtx64, aaxMtx4f mtx)
 {
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -478,7 +482,7 @@ aaxMatrixToMatrix64(aaxMtx4d mtx64, aaxMtx4f mtx)
       } else if (!mtx || detect_nan_mtx4(mtx)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else {
-         rv = AAX_TRUE;
+         rv = true;
       }
    }
 

@@ -45,7 +45,7 @@
 
 float _aax_cubic_threshold = 0.25f;
 
-static int _aaxRingBufferClear(_aaxRingBufferData*, int, char);
+static int _aaxRingBufferClear(_aaxRingBufferData*, int, bool);
 static void _aaxRingBufferInitFunctions(_aaxRingBuffer*);
 
 static _aaxFormat_t _aaxRingBufferFormat[AAX_FORMAT_MAX];
@@ -322,7 +322,7 @@ _aaxRingBufferCreateScratch(_aaxRingBuffer *rb)
 }
 
 void
-_aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
+_aaxRingBufferInit(_aaxRingBuffer *rb, bool add_scratchbuf)
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
@@ -384,7 +384,7 @@ _aaxRingBufferReference(_aaxRingBuffer *ringbuffer)
 }
 
 _aaxRingBuffer *
-_aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
+_aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, bool copy, bool dde)
 {
    _aaxRingBuffer *srb = ringbuffer;
    _aaxRingBufferData *srbi;
@@ -1318,7 +1318,7 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSour
 }
 
 int
-_aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceType type, int track, float fs, float rate, float ratio, uint64_t seed, char skip, unsigned char modulate, unsigned char limiter)
+_aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceType type, int track, float fs, float rate, float ratio, uint64_t seed, bool skip, bool modulate, int limiter)
 {
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
@@ -1564,7 +1564,7 @@ _aaxRingBufferMixStereoFn _aaxRingBufferMixMulti16;
 _aaxRingBufferMixMonoFn _aaxRingBufferMixMono16;
 
 static int
-_aaxRingBufferClear(_aaxRingBufferData *rbi, int t, char dde)
+_aaxRingBufferClear(_aaxRingBufferData *rbi, int t, bool dde)
 {
    _aaxRingBufferSample *rbd;
    size_t size, dde_bytes;

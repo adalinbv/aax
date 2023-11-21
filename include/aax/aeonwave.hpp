@@ -158,10 +158,10 @@ public:
     operator const T*() const { return &val; }
     operator T() { return val; }
 
-    typedef int set_filter(void*, aaxFilter);
-    typedef int set_effect(void*, aaxEffect);
-    typedef aaxFilter get_filter(void*, aaxFilterType);
-    typedef aaxEffect get_effect(void*, aaxEffectType);
+    using set_filter = bool(void*, aaxFilter);
+    using set_effect = bool(void*, aaxEffect);
+    using get_filter = aaxFilter(void*, aaxFilterType);
+    using get_effect = aaxEffect(void*, aaxEffectType);
 
     bool tie(set_filter sfn, get_filter gfn, void* o, aaxFilterType f, int p) {
         if (!tied) {
@@ -204,7 +204,7 @@ protected:
                     set.effect(obj, handle.effect);
                 }
             }
-        } else if (std::is_same<T,int>::value) {
+        } else if (std::is_same<T,uint64_t>::value) {
             if (filter) {
                 if (aaxFilterSetState(handle.filter, val)) {
                     set.filter(obj, handle.filter);
@@ -243,7 +243,7 @@ private:
     union dsptype dsptype;
 };
 using Param = Tieable<float>;
-using Status = Tieable<int>;
+using Status = Tieable<uint64_t>;
 
 
 template <typename T>
@@ -427,7 +427,7 @@ public:
         return (filter) ? aaxFilterAddBuffer(ptr,b) : aaxEffectAddBuffer(ptr,b);
     }
 
-    bool set(int s) {
+    bool set(uint64_t s) {
         return (filter) ? aaxFilterSetState(ptr,s) : aaxEffectSetState(ptr,s);
     }
 
@@ -582,13 +582,13 @@ public:
         return aaxEmitterGetOffsetSec(ptr);
     }
 private:
-    static int set_filter(void* c, aaxFilter f) {
+    static bool set_filter(void* c, aaxFilter f) {
         return aaxEmitterSetFilter((aaxEmitter)c, f);
     }
     static aaxFilter get_filter(void* c, enum aaxFilterType f) {
        return aaxEmitterGetFilter((aaxEmitter)c, f);
     }
-    static int set_effect(void* c, aaxEffect e) {
+    static bool set_effect(void* c, aaxEffect e) {
         return aaxEmitterSetEffect((aaxEmitter)c, e);
     }
     static aaxEffect get_effect(void* c, enum aaxEffectType e) {
@@ -948,13 +948,13 @@ public:
     }
 
 private:
-    static int set_filter(void* c, aaxFilter f) {
+    static bool set_filter(void* c, aaxFilter f) {
         return aaxAudioFrameSetFilter((aaxFrame)c, f);
     }
     static aaxFilter get_filter(void* c, enum aaxFilterType f) {
        return aaxAudioFrameGetFilter((aaxFrame)c, f);
     }
-    static int set_effect(void* c, aaxEffect e) {
+    static bool set_effect(void* c, aaxEffect e) {
         return aaxAudioFrameSetEffect((aaxFrame)c, e);
     }
     static aaxEffect get_effect(void* c, enum aaxEffectType e) {

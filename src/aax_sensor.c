@@ -28,11 +28,11 @@ static int _aaxSensorCreateRingBuffer(_handle_t *);
 static int _aaxSensorCaptureStart(_handle_t *);
 static int _aaxSensorCaptureStop(_handle_t *);
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxSensorSetMatrix64(aaxConfig config, aaxMtx4d mtx64)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -70,11 +70,11 @@ aaxSensorSetMatrix64(aaxConfig config, aaxMtx4d mtx64)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxSensorGetMatrix64(const aaxConfig config, aaxMtx4d mtx64)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -109,11 +109,11 @@ aaxSensorGetMatrix64(const aaxConfig config, aaxMtx4d mtx64)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxSensorSetVelocity(aaxConfig config, aaxVec3f velocity)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -154,11 +154,11 @@ aaxSensorSetVelocity(aaxConfig config, aaxVec3f velocity)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxSensorGetVelocity(const aaxConfig config, aaxVec3f velocity)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -240,11 +240,11 @@ aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxSensorSetOffset(aaxConfig config, unsigned long offs, enum aaxType type)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = false;
+   bool rv = false;
 
    if (handle)
    {
@@ -291,11 +291,11 @@ aaxSensorSetOffset(aaxConfig config, unsigned long offs, enum aaxType type)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxSensorSetOffsetSec(aaxConfig config, float offs)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = __release_mode;
+   bool rv = __release_mode;
 
    if (!rv)
    {
@@ -388,11 +388,11 @@ aaxSensorGetBuffer(const aaxConfig config)
    return buffer;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxSensorWaitForBuffer(aaxConfig config, float timeout)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = false;
+   bool rv = false;
    if (handle)
    {
       const _intBufferData* dptr;
@@ -409,11 +409,14 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
 
       if (!rv)
       {
-         rv = _aaxSignalWaitTimed(&handle->buffer_ready, timeout);
-         if (rv == AAX_TIMEOUT)
+         int res = _aaxSignalWaitTimed(&handle->buffer_ready, timeout);
+         if (res == AAX_TIMEOUT)
          {
             rv = false;
             _aaxErrorSet(AAX_TIMEOUT);
+         }
+         else {
+            rv = true;
          }
       }
    }
@@ -421,11 +424,11 @@ aaxSensorWaitForBuffer(aaxConfig config, float timeout)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxSensorSetState(aaxConfig config, enum aaxState state)
 {
    _handle_t *handle = get_valid_handle(config, __func__);
-   int rv = false;
+   bool rv = false;
    if (handle)
    {
       switch(state)
@@ -501,10 +504,10 @@ aaxSensorGetState(UNUSED(const aaxConfig config))
    return ret;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxSensorSetMode(UNUSED(aaxConfig config), UNUSED(enum aaxModeType type), UNUSED(int mode))
 {
-   int rv = false;
+   bool rv = false;
    return rv;
 }
 
@@ -515,10 +518,10 @@ aaxSensorGetMode(UNUSED(const aaxConfig config), UNUSED(enum aaxModeType type))
    return rv;
 }
 
-AAX_API int AAX_APIENTRY
+AAX_API bool AAX_APIENTRY
 aaxSensorSetSetup(UNUSED(aaxConfig config), UNUSED(enum aaxSetupType type), UNUSED(int64_t setup))
 {
-   int rv = false;
+   bool rv = false;
    return rv;
 }
 
