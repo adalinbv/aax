@@ -44,7 +44,7 @@
 static void _bufInitInfo(_buffer_info_t*);
 static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*, unsigned char);
 static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*, unsigned char);
-static int _bufProcessWaveform(aaxBuffer, int, float, float, float, float, float, unsigned char, int, float, enum aaxSourceType, float, enum aaxProcessingType, limitType);
+static bool _bufProcessWaveform(aaxBuffer, int, float, float, float, float, float, unsigned char, int, float, enum aaxSourceType, float, enum aaxProcessingType, limitType);
 static _aaxRingBuffer* _bufSetDataInterleaved(_buffer_t*, _aaxRingBuffer*, const void*, unsigned);
 static _aaxRingBuffer* _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer*);
 static void** _bufGetDataPitchLevels(_buffer_t*);
@@ -1389,7 +1389,7 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
    return rv;
 }
 
-static int
+static bool
 _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, float ratio_factor, float pitch_factor, float freq, unsigned int pitch_level, int voices, float spread, limitType limiter)
 {
    enum aaxProcessingType ptype = AAX_OVERWRITE;
@@ -1742,7 +1742,7 @@ _bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fs
 }
 #endif
 
-static int
+static bool
 _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid)
 {
    float high_frequency = handle->info.high_frequency;
@@ -1756,7 +1756,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid)
    int midi_mode;
    xmlId *xlid;
    char *env;
-   int rv = 0;
+   bool rv = false;
 
    limiter = WAVEFORM_LIMIT_NORMAL;
    env = getenv("AAX_INSTRUMENT_MODE");
@@ -1969,7 +1969,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid)
    return rv;
 }
 
-static int
+static bool
 _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
 {
    _buffer_t* handle = aax_buf->parent;
@@ -2352,7 +2352,7 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int samples)
 }
 #endif
 
-static int
+static bool
 _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float pitch, float staticity, float random, unsigned char pitch_level, int voices, float spread, enum aaxSourceType wtype, float ratio, enum aaxProcessingType ptype, limitType limiter)
 {
    enum aaxSourceType wave = wtype & (AAX_ALL_SOURCE_MASK & ~AAX_PURE_WAVEFORM);
@@ -2382,7 +2382,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
       int no_samples;
       int q, hvoices;
       uint64_t seed;
-      unsigned skip;
+      unsigned char skip;
       char modulate;
       char phasing;
 
@@ -2398,7 +2398,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
       seed = (FNMINMAX((double)random, 0.0, 1.0) * (double)UINT64_MAX);
 
       staticity = _MINMAX(staticity*fs/fs_mixer, 0.0f, 1.0f);
-      skip = (unsigned)(1.0f + 99.0f*staticity);
+      skip = (unsigned char)(1.0f + 99.0f*staticity);
 
       phase *= GMATH_PI;
 //    if (ratio < 0.0f) phase = GMATH_PI - phase;

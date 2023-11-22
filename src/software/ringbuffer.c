@@ -498,7 +498,7 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
    return rv;
 }
 
-int
+bool
 _aaxRingBufferReleaseTracksPtr(_aaxRingBuffer *rb)
 {
    _aaxRingBufferData *rbi;
@@ -659,12 +659,12 @@ _aaxRingBufferGetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
    return rv;
 }
 
-int
+bool
 _aaxRingBufferSetParamd(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, FLOAT fval)
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
-   int rv = true;
+   bool rv = true;
 
    assert(rb != NULL);
 
@@ -721,12 +721,12 @@ _aaxRingBufferSetParamd(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, FLOA
    return rv;
 }
 
-int
+bool
 _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, float fval)
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
-   int rv = true;
+   bool rv = true;
 
    assert(rb != NULL);
 
@@ -1147,7 +1147,7 @@ _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
    return rv;
 }
 
-unsigned int
+size_t
 _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param)
 {
    _aaxRingBufferSample *rbd;
@@ -1244,12 +1244,12 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
    return rv;
 }
 
-int
+bool
 _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format, int mixer)
 {
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
-   int rv = true;
+   bool rv = true;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -1279,13 +1279,13 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format, int mixer)
    return rv;
 }
 
-int
+bool
 _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceType type, int track, float f, float ratio, float phase, unsigned char modulate, unsigned char limiter)
 {
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
    int no_tracks = rbd->no_tracks;
-   int rv = false;
+   bool rv = false;
 
    if (track < no_tracks)
    {
@@ -1317,13 +1317,13 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSour
    return rv;
 }
 
-int
-_aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceType type, int track, float fs, float rate, float ratio, uint64_t seed, bool skip, bool modulate, int limiter)
+bool
+_aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceType type, int track, float fs, float rate, float ratio, uint64_t seed, unsigned char skip, bool modulate, int limiter)
 {
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
    int no_tracks = rbd->no_tracks;
-   int rv = false;
+   bool rv = false;
 
    if (track < no_tracks)
    {

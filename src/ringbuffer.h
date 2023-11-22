@@ -479,7 +479,7 @@ _aaxRingBufferGetTracksPtrFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferMode);
  * 
  * returns true on success or false otherwise.
  */
-typedef int
+typedef bool
 _aaxRingBufferReleaseTracksPtrFn(struct _aaxRingBuffer_t*);
 
 
@@ -600,7 +600,7 @@ _aaxRingBufferGetStateFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferState);
  * Note: the format can be retrieved by calling _aaxRingBufferGetParami with
  *       param set to RB_FORMAT
  */
-typedef int
+typedef bool
 _aaxRingBufferSetFormatFn(struct _aaxRingBuffer_t*, enum aaxFormat, int);
 
 /**
@@ -624,10 +624,10 @@ _aaxRingBufferSetParamiFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferParam, un
  *
  * returns true if successful, false otherwise.
  */
-typedef int
+typedef bool
 _aaxRingBufferSetParamfFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferParam, float);
 
-typedef int
+typedef bool
 _aaxRingBufferSetParamdFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferParam, FLOAT);
 
 /**
@@ -638,7 +638,7 @@ _aaxRingBufferSetParamdFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferParam, FL
  *
  * returns the value of the parameter.
  */
-typedef unsigned int
+typedef size_t
 _aaxRingBufferGetParamiFn(const struct _aaxRingBuffer_t*, enum _aaxRingBufferParam);
 
 /**
@@ -703,7 +703,7 @@ _aaxRingBufferDataMultiplyFn(struct _aaxRingBuffer_t*, size_t, size_t, float);
  *
  * returns true if successful, false otherwise.
  */
-typedef int
+typedef bool
 _aaxRingBufferDataMixWaveformFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxSourceType, int, float, float, float, unsigned char, unsigned char);
 
 /**
@@ -718,8 +718,8 @@ _aaxRingBufferDataMixWaveformFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxSour
  *
  * returns true if successful, false otherwise.
  */
-typedef int
-_aaxRingBufferDataMixNoiseFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxSourceType, int, float, float, float, uint64_t, bool, bool, int);
+typedef bool
+_aaxRingBufferDataMixNoiseFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxSourceType, int, float, float, float, uint64_t, unsigned char, bool, int);
 
 /**
  * Limit the audio data in the ringbuffer
