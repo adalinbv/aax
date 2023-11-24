@@ -61,12 +61,9 @@ _aax_atanf(float v) {
    return fast_atanf( _MINMAX(v*GMATH_1_PI_2, -1.94139795f, 1.94139795f) );
 }
 
-static inline float // http://rrrola.wz.cz/inv_sqrt.html
-fast_inv_sqrt(float x)
-{
-  union { float f; uint32_t u; } y = { .f = x };
-  y.u = 0x5f1ffff9 - (y.u >> 1);
-  return 0.703952253f * y.f * (2.38924456f - x * y.f * y.f);
+static inline float
+_aax_cycloid(float x) {
+   return sqrtf(1.0f - x*x);
 }
 
 static void
@@ -122,7 +119,7 @@ _bufferGenerateWaveform(float32_ptr rv, size_t no_samples, float freq, float pha
       case AAX_CYCLOID:
          do
          {
-            *ptr++ = ngain/fast_inv_sqrt(1.0f - s*s);
+            *ptr++ = ngain*_aax_cycloid(s);
             if ((s += dt) >= 1.0f) s -= 2.0f;
          }
          while (--i);
