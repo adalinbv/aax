@@ -567,6 +567,36 @@ aaxGetTypeByName(const char *name)
    return rv;
 }
 
+static enum aaxProcessingType
+aaxGetProcessingType(const char *type)
+{  
+   enum aaxProcessingType rv = AAX_PROCESSING_NONE;
+
+   if (type)
+   {
+      char *name = (char *)type;
+      size_t len = strlen(name);
+
+      if (len > 4 && !strncasecmp(name, "AAX_", 4)) {
+         name += 4;
+      }
+
+      if (!strcasecmp(name, "overwrite")) {
+        rv = AAX_OVERWRITE;
+      } else if (!strcasecmp(name, "add")) {
+        rv = AAX_ADD;
+      } else if (!strcasecmp(name, "mix")) {
+        rv = AAX_MIX;
+      } else if (!strcasecmp(name, "modulate")) {
+        rv = AAX_RINGMODULATE;
+      } else if (!strcasecmp(name, "append")) {
+        rv = AAX_APPEND;
+      }
+   }
+
+   return rv;
+}
+
 static enum aaxSourceType
 aaxGetSourceTypeByName(const char *wave)
 {
@@ -583,7 +613,8 @@ aaxGetSourceTypeByName(const char *wave)
 
       do
       {
-         if (!strncasecmp(name, "AAX_", 4)) {
+         len = last - name;
+         if (len > 4 && !strncasecmp(name, "AAX_", 4)) {
             name += 4;
          }
 
@@ -969,9 +1000,9 @@ aaxGetDistanceModelByName(const char *name)
          if (type[i] == '-') type[i] = '_';
       }
 
-      if (!strncasecmp(name, "AAX_AL_", 7)) {
+      if (len > 7 && !strncasecmp(name, "AAX_AL_", 7)) {
          name += 7;
-      } else if (!strncasecmp(name, "AAX_", 4)) {
+      } else if (len > 4 && !strncasecmp(name, "AAX_", 4)) {
          name += 4;
       }
       len = strlen(name);
@@ -1008,7 +1039,8 @@ aaxFilterGetByName(const char *name)
    int i, slen;
    char *end;
 
-   if (!strncasecmp(name, "AAX_", 4)) {
+   slen = strlen(name);
+   if (slen > 4 && !strncasecmp(name, "AAX_", 4)) {
       name += 4;
    }
 
@@ -1079,7 +1111,8 @@ aaxEffectGetByName(const char *name)
    int i, slen;
    char *end;
 
-   if (!strncasecmp(name, "AAX_", 4)) {
+   slen = strlen(name);
+   if (slen > 4 && !strncasecmp(name, "AAX_", 4)) {
       name += 4;
    }
 
@@ -1154,6 +1187,7 @@ aaxGetByName(const char* name, enum aaxTypeName type)
    {
    case AAX_ALL:
       rv = aaxGetSourceTypeByName(name);
+      if (!rv) rv = aaxGetProcessingType(name);
       if (!rv) rv = aaxFilterGetByName(name);
       if (!rv) rv = aaxEffectGetByName(name);
       if (!rv) rv = aaxGetTypeByName(name);
@@ -1162,6 +1196,9 @@ aaxGetByName(const char* name, enum aaxTypeName type)
    case AAX_SOURCE_NAME:
    case AAX_FREQUENCY_FILTER_NAME:
       rv = aaxGetSourceTypeByName(name);
+      break;
+   case AAX_PROCESSING_NAME:
+      rv = aaxGetProcessingType(name);
       break;
    case AAX_FILTER_NAME:
       rv = aaxFilterGetByName(name);
@@ -1383,7 +1420,7 @@ aaxGetStringByType(int type, enum aaxTypeName name)
       case AAX_MILLISECONDS:
          rv = "msec";
          break;
-      case AAX_SECONDS: 
+      case AAX_SECONDS:
          rv = "sec";
          break;
       case AAX_TYPE_MAX:
