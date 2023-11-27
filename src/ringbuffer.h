@@ -704,7 +704,7 @@ _aaxRingBufferDataMultiplyFn(struct _aaxRingBuffer_t*, size_t, size_t, float);
  * returns true if successful, false otherwise.
  */
 typedef bool
-_aaxRingBufferDataMixWaveformFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxSourceType, int, float, float, float, unsigned char, unsigned char);
+_aaxRingBufferDataMixWaveformFn(struct _aaxRingBuffer_t*, _data_t*, enum aaxSourceType, int, float, float, float, bool, bool, unsigned char);
 
 /**
  * Mix a noise type from the waveform generator with existing data

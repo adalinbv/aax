@@ -1280,7 +1280,7 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format, int mixer)
 }
 
 bool
-_aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceType type, int track, float f, float ratio, float phase, unsigned char modulate, unsigned char limiter)
+_aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceType type, int track, float f, float ratio, float phase, bool modulate, bool v0, unsigned char limiter)
 {
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
@@ -1305,7 +1305,7 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSour
       case AAX_CYCLOID:
       case AAX_IMPULSE:
          _bufferMixWaveform(ptr, scratch, type, f, bps, no_samples,
-                            ratio, phase, modulate, limiter);
+                            ratio, phase, modulate, v0, limiter);
          rv = true;
          break;
       default:
