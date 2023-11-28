@@ -10,8 +10,10 @@
 #ifndef WAVEFORMS_H
 #define WAVEFORMS_H 1
 
+#include <ringbuffer.h>
+
 // must be a multiple of 4 because of SIMD optimizations
-#define MAX_HARMONICS           16
+#define MAX_HARMONICS           _AAX_SYNTH_MAX_HARMONICS
 
 extern float ALIGN _harmonic_phases[AAX_MAX_WAVE][2*MAX_HARMONICS];
 extern float ALIGN _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS];
