@@ -262,12 +262,12 @@ static float _gains_v0[AAX_MAX_WAVE][2] = {
 
 // Volume matched gains for AAXS info block version >= 0.1
 static float _gains[AAX_MAX_WAVE][2] = {
-  { 0.2f,  0.2f  }, // AAX_SAWTOOTH, AAX_PURE_SAWTOOTH
-  { 0.25f, 0.15f }, // AAX_SQUARE,   AAX_PURE_SQUARE
-  { 1.0f,  1.0f  }, // AAX_TRIANGLE, AAX_PURE_TRIANGLE
-  { 1.0f,  1.1f  }, // AAX_SINE,     AAX_PURE_SINE
-  { 0.5f,  0.5f  }, // AAX_CYCLOID,  AAX_PURE_CYCLOID
-  { 0.5f,  2.0f  }  // AAX_IMPULSE,  AAX_PURE_IMPULSE
+  { 0.5f,  0.4f }, // AAX_SAWTOOTH, AAX_PURE_SAWTOOTH
+  { 0.5f,  0.4f }, // AAX_SQUARE,   AAX_PURE_SQUARE
+  { 1.1f,  1.2f }, // AAX_TRIANGLE, AAX_PURE_TRIANGLE
+  { 1.0f,  1.1f }, // AAX_SINE,     AAX_PURE_SINE
+  { 0.95f, 0.9f }, // AAX_CYCLOID,  AAX_PURE_CYCLOID
+  { 1.0f,  5.2f }  // AAX_IMPULSE,  AAX_PURE_IMPULSE
 };
 
 ALIGN float _harmonic_phases[AAX_MAX_WAVE][2*MAX_HARMONICS] =
