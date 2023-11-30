@@ -63,7 +63,7 @@ aaxAudioFrameCreate(aaxConfig config)
          frame->root = handle->root;
          frame->mixer_pos[0] = UINT_MAX;
          frame->max_emitters = UINT_MAX;
-         if (handle->info->midi_mode)
+         if (!RENDER_NORMAL(handle->info->midi_mode))
          {
             if (handle->info->midi_mode == AAX_RENDER_ARCADE) {
                frame->max_emitters = 4;
@@ -1461,7 +1461,7 @@ aaxAudioFrameAddBuffer(aaxFrame frame, aaxBuffer buf)
    if (rv)
    {
       _aaxAudioFrame* fmixer = handle->submix;
-      if (!fmixer->info->midi_mode) {
+      if (RENDER_NORMAL(fmixer->info->midi_mode)) {
          rv = _frameCreateEFFromAAXS(handle, buffer);
       }
       if (!buffer->root) {
@@ -1770,7 +1770,7 @@ _frameCreateBodyFromAAXS(aaxFrame frame, _frame_t* handle, _buffer_t *buffer, xm
    }
 
    // No filters and effects for audio-frames if not normal rendering
-   if (fmixer->info->midi_mode == AAX_RENDER_NORMAL)
+   if (RENDER_NORMAL(fmixer->info->midi_mode))
    {
       xfid = xmlMarkId(xmid);
       num = xmlNodeGetNum(xmid, "filter");

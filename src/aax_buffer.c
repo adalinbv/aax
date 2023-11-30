@@ -281,13 +281,10 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
          switch(setup)
          {
          case AAX_RENDER_NORMAL:
-            handle->midi_mode = AAX_RENDER_NORMAL;
-            break;
          case AAX_RENDER_SYNTHESIZER:
-            handle->midi_mode = AAX_RENDER_SYNTHESIZER;
-            break;
          case AAX_RENDER_ARCADE:
-            handle->midi_mode = AAX_RENDER_ARCADE;
+         case AAX_RENDER_DEFAULT:
+            handle->midi_mode = setup;
             break;
          default:
             _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -1402,7 +1399,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
    int midi_mode;
 
    midi_mode = handle->midi_mode;
-   if (midi_mode == AAX_RENDER_NORMAL)
+   if (RENDER_NORMAL(midi_mode))
    {
       if (xmlAttributeExists(xwid, "voices"))
       {
@@ -1423,7 +1420,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
    if (xmlAttributeExists(xwid, "phase")) {
       phase = xmlAttributeGetDouble(xwid, "phase");
    }
-   if (midi_mode == AAX_RENDER_NORMAL && xmlAttributeExists(xwid, "staticity")){
+   if (RENDER_NORMAL(midi_mode) && xmlAttributeExists(xwid, "staticity")) {
       staticity = xmlAttributeGetDouble(xwid, "staticity");
    }
    if (xmlAttributeExists(xwid, "random")) {
@@ -1449,17 +1446,17 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
    else if (!xmlAttributeCompareString(xwid, "src","white-noise"))
    {
       wtype = AAX_WHITE_NOISE;
-      if (midi_mode != AAX_RENDER_NORMAL) pitch = 1.0f;
+      if (!RENDER_NORMAL(midi_mode)) pitch = 1.0f;
    }
    else if (!xmlAttributeCompareString(xwid, "src","pink-noise"))
    {
       wtype = AAX_PINK_NOISE;
-      if (midi_mode != AAX_RENDER_NORMAL) pitch = 1.0f;
+      if (!RENDER_NORMAL(midi_mode)) pitch = 1.0f;
    }
    else if (!xmlAttributeCompareString(xwid, "src", "brownian-noise"))
    {
       wtype = AAX_BROWNIAN_NOISE;
-      if (midi_mode != AAX_RENDER_NORMAL) pitch = 1.0f;
+      if (!RENDER_NORMAL(midi_mode)) pitch = 1.0f;
    }
    else if (!xmlAttributeCompareString(xwid, "src", "pure-sawtooth")) {
       wtype = AAX_PURE_SAWTOOTH;
@@ -1807,13 +1804,12 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
       if (bits != 16) bits = 24;
    }
 
-   if (!env && handle->midi_mode != AAX_RENDER_ARCADE &&
-              handle->midi_mode != AAX_RENDER_SYNTHESIZER ) {
+   midi_mode = handle->midi_mode;
+   if (!env && RENDER_NORMAL(handle->midi_mode)) {
       limiter = xmlAttributeGetInt(xsid, "mode");
    }
 
-   midi_mode = handle->midi_mode;
-   if (midi_mode == AAX_RENDER_NORMAL)
+   if (RENDER_NORMAL(midi_mode))
    {
       if (xmlAttributeExists(xsid, "voices")) {
          voices = _MINMAX(xmlAttributeGetInt(xsid, "voices"), 1, 11);
@@ -1834,7 +1830,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
       no_layers = 1;
       xlid = xsid;
    }
-   if (midi_mode != AAX_RENDER_NORMAL) {
+   if (!RENDER_NORMAL(midi_mode)) {
       no_layers = 1;
    }
    handle->info.no_tracks = no_layers;
@@ -1936,6 +1932,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
                gain *= 0.6f;
                break;
             case AAX_RENDER_NORMAL:
+            case AAX_RENDER_DEFAULT:
             default:
                break;
             }
@@ -1990,7 +1987,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
    }
 
    xsid = NULL;
-   if (midi_mode != AAX_RENDER_NORMAL && xmlNodeGet(xaid, "fm")) {
+   if (!RENDER_NORMAL(midi_mode) && xmlNodeGet(xaid, "fm")) {
       xsid = xmlNodeGet(xaid, "fm");
    }
    if (!xsid)

@@ -179,17 +179,10 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
             switch(setup)
             {
             case AAX_RENDER_NORMAL:
-               info->midi_mode = AAX_RENDER_NORMAL;
-               _aaxMixerSetRendering(handle);
-               rv = true;
-               break;
             case AAX_RENDER_SYNTHESIZER:
-               info->midi_mode = AAX_RENDER_SYNTHESIZER;
-               _aaxMixerSetRendering(handle);
-               rv = true;
-               break;
             case AAX_RENDER_ARCADE:
-               info->midi_mode = AAX_RENDER_ARCADE;
+            case AAX_RENDER_DEFAULT:
+               info->midi_mode = setup;
                _aaxMixerSetRendering(handle);
                rv = true;
                break;
