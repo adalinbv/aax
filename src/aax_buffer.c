@@ -1975,7 +1975,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
    _buffer_t* handle = aax_buf->parent;
    float low_frequency = 0.0f;
    float high_frequency = 0.0f;
-   float version = 0.0f;
+   float sound_version = 1.0f;
    int midi_mode;
    bool rv = false;
    xmlId *xaid, *xiid;
@@ -2014,7 +2014,14 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
        * 0.0: First implementation, AeonWave prior to version 4.0
        * 0.1: Use the volume matched gains table when generating waveforms.
        */
-      version = xmlAttributeGetDouble(xiid, "version");
+      xnid = xmlNodeGet(xiid, "sound");
+      if (xnid)
+      {
+         if (xmlAttributeExists(xnid, "version")) {
+            sound_version = xmlAttributeGetDouble(xnid, "version");
+         }
+         xmlFree(xnid);
+      }
 
       do
       {
@@ -2127,7 +2134,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
                }
                if (xasid)
                {
-                  rv = _bufCreateResonatorFromAAXS(handle, xasid, version);
+                  rv =_bufCreateResonatorFromAAXS(handle, xasid, sound_version);
                   xmlFree(xasid);
                }
                xmlClose(xid);
@@ -2172,10 +2179,10 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
       }
 
       handle->mip_levels = 0;
-      rv = _bufCreateResonatorFromAAXS(handle, xsid, version);
+      rv = _bufCreateResonatorFromAAXS(handle, xsid, sound_version);
    }
    else {
-      rv = _bufCreateResonatorFromAAXS(handle, xsid, version);
+      rv = _bufCreateResonatorFromAAXS(handle, xsid, sound_version);
    }
 
    xmlFree(xsid);
@@ -2459,7 +2466,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
          enum aaxSourceType noise = wtype & AAX_NOISE_MASK;
          if (wave >= AAX_1ST_WAVE && wave <= AAX_LAST_WAVE)
          {
-            bool v0 = (version < 0.1f) ? true : false;
+            bool v1 = (version <= 1.0f) ? true : false;
             for (q=0; q<voices; ++q)
             {
                float ffact, nfw, nphase, nratio;
@@ -2472,7 +2479,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
                nphase = phase + q*GMATH_2PI/voices;
                nratio = (q == hvoices) ? 0.8f*ratio : 0.6f*ratio;
                rv = rb->data_mix_waveform(rb, scratch, wtype, track, nfw,
-                                         nratio, nphase, modulate, v0, limiter);
+                                         nratio, nphase, modulate, v1, limiter);
             }
          }
 
