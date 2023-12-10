@@ -317,7 +317,8 @@ protected:
 class Buffer : public Obj<aaxBuffer>
 {
 public:
-    Buffer() = default;
+    Buffer() : Obj(aaxBufferCreate(NULL, 1, 1, AAX_PCM16S), aaxBufferDestroy) {
+    }
 
     virtual ~Buffer() = default;
 
@@ -389,6 +390,7 @@ private:
     }
 };
 
+using BufferPtr = std::shared_ptr<Buffer>;
 
 class dsp : public Obj<aaxDSP>
 {
@@ -1141,7 +1143,7 @@ private:
     std::vector<aaxFrame> frames;
     std::vector<aaxConfig> sensors;
     std::vector<aaxEmitter> emitters;
-    std::unordered_map<std::string,std::pair<size_t,std::shared_ptr<Buffer>>> buffers;
+    std::unordered_map<std::string,std::pair<size_t,BufferPtr>> buffers;
     Buffer nullBuffer;
 
     // background music stream

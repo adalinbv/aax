@@ -26,8 +26,17 @@ namespace aax
 #define PAN_LEVELS			128.0f
 #define LEVEL_60DB			0.001f
 
+constexpr float inv_e = 1.0f/expf(1.0f);
+inline float ln(float v) { return powf(v, inv_e); }
 inline float lin2log(float v) { return log10f(v); }
 inline float log2lin(float v) { return powf(10.0f,v); }
+inline float note2freq(uint32_t v) {
+    return 440.0f*powf(2.0f, (float(v)-69.0f)/12.0f);
+}
+inline float freq2note(float v) {
+   return rintf(12*(logf(v/220.0f)/log(2))+57);
+}
+
 
 class Panning
 {
