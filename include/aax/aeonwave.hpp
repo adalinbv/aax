@@ -28,6 +28,16 @@
 namespace aax
 {
 
+namespace math
+{
+float db2lin(float v) { return powf(10.0f,v/20.0f); }
+
+static float level_60dB = db2lin(-60.0f);
+static float level_96dB = db2lin(-96.0f);
+static float level_128dB = db2lin(-128.0f);
+
+}; // namespace math
+
 inline unsigned major_version() {
     return aaxGetByType(AAX_VERSION_MAJOR);
 }
