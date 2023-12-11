@@ -30,7 +30,14 @@ namespace aax
 
 namespace math
 {
-float db2lin(float v) { return powf(10.0f,v/20.0f); }
+constexpr float e1 = expf(1.0f);
+constexpr float inv_e = 1.0f/e1;
+
+inline float ln(float v) { return powf(v, inv_e); }
+inline float lin2log(float v) { return log10f(v); }
+inline float log2lin(float v) { return powf(10.0f,v); }
+inline float db2lin(float v) { return powf(10.0f,v/20.0f); }
+inline float lin2db(float v) { return 20.0f*log10f(std::max(v, 1e-9f)); }
 
 static float level_60dB = db2lin(-60.0f);
 static float level_96dB = db2lin(-96.0f);
