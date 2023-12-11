@@ -449,7 +449,9 @@ private:
     }
 };
 
-static Matrix64 identity;
+namespace mtx {
+    static Matrix64 identity;
+};
 
 } // namespace aax
 
