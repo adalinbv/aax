@@ -264,10 +264,10 @@ public:
 
     Obj(T p, stop_fn s, close_fn c) : ptr(p), stopfn(s), closefn(c) {}
 
-    Obj(const Obj&) = delete;
+    Obj(const Obj&) = default;
     Obj(Obj&&) = default;
 
-    Obj& operator=(const Obj&) = delete;
+    Obj& operator=(const Obj&) = default;
     Obj& operator=(Obj&&) = default;
 
     bool close() {
