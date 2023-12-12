@@ -21,21 +21,23 @@
 namespace aax
 {
 
-#define GAIN_FACTOR			0.5f
-#define INSTRUMENT_DISTANCE		1.0f
-#define PAN_LEVELS			128.0f
-#define LEVEL_60DB			0.001f
+namespace note
+{
+static float volume = 0.5f;
+static float pan_levels = 128.0f;
+static float distance = 1.0f;
+}; // namespace aax
 
-constexpr float inv_e = 1.0f/expf(1.0f);
-inline float ln(float v) { return powf(v, inv_e); }
-inline float lin2log(float v) { return log10f(v); }
-inline float log2lin(float v) { return powf(10.0f,v); }
-inline float note2freq(uint32_t v) {
+namespace math
+{
+inline float note2freq(int v) {
     return 440.0f*powf(2.0f, (float(v)-69.0f)/12.0f);
 }
-inline float freq2note(float v) {
+inline int freq2note(float v) {
    return rintf(12*(logf(v/220.0f)/log(2))+57);
 }
+
+}; // namespace math
 
 
 class Panning
@@ -60,7 +62,7 @@ public:
         }
         if (p != 0.0f) {
             p *= spread;
-            int pos = floorf(p*PAN_LEVELS);
+            int pos = floorf(p*note::pan_levels);
             auto it = matrices.find(pos);
             if (it != matrices.end()) {
                 mtx = it->second;
@@ -80,7 +82,7 @@ public:
     std::map<int,Matrix64> matrices;
     Vector at = Vector(0.0f, 0.0f, -1.0f);
     Vector up = Vector(0.0f, 1.0f, 0.0f);
-    Vector64 pos = Vector64(0.0, 1.0, -INSTRUMENT_DISTANCE);
+    Vector64 pos = Vector64(0.0, 1.0, -note::distance);
     Matrix64 mtx_init = Matrix64(pos, at, up);
     Matrix64 mtx = mtx_init;
     float spread = 1.0f;
@@ -103,8 +105,9 @@ public:
         if (pan.wide) {
             // pitch*frequency ranges from: 8 - 12544 Hz,
             // log(20) = 1.3, log(12544) = 4.1
-            float p = (lin2log(pitch*frequency) - 1.3f)/2.8f; // 0.0f .. 1.0f
-            p = floorf(-2.0f*(p-0.5f)*PAN_LEVELS)/PAN_LEVELS;
+            // p = 0.0f .. 1.0f
+            float p = (math::lin2log(pitch*frequency) - 1.3f)/2.8f;
+            p = floorf(-2.0f*(p-0.5f)*note::pan_levels)/note::pan_levels;
             if (p != pan_prev) {
                 pan.set(p, true);
                 Emitter::matrix(pan.mtx);
@@ -214,7 +217,7 @@ private:
     bool playing = false;
     bool hold = true;
 
-    Param volume_param = GAIN_FACTOR;
+    Param volume_param = note::volume;
 
     Param pitch_param = 1.0f;
     float pitch_bend = 1.0f;
@@ -407,7 +410,7 @@ public:
     }
 
     void set_pan(float p) {
-        p = floorf(p*PAN_LEVELS)/PAN_LEVELS;
+        p = floorf(p*note::pan_levels)/note::pan_levels;
         if (p != pan_prev) {
             pan.set(p);
             if (!is_drum_channel && !pan.wide) {
@@ -538,7 +541,7 @@ public:
     inline void set_reverb_decay_level(float v) { reverb_decay_level = v; }
     inline void set_reverb_decay_depth(float v) { reverb_decay_depth = v; }
     inline void set_reverb_time_rt60(float v) {
-        reverb_decay_level = powf(LEVEL_60DB, 0.5f*reverb_decay_depth/v);
+        reverb_decay_level = powf(math::level_60dB, 0.5f*reverb_decay_depth/v);
     }
 
     void set_filter_cutoff(float dfc) {
@@ -565,7 +568,7 @@ private:
         return 440.0f*powf(2.0f, (float(d)-69.0f)/12.0f);
     }
     inline void set_filter_cutoff() {
-        freqfilter_cutoff = soft*log2lin(cutoff*fc);
+        freqfilter_cutoff = soft * math::log2lin(cutoff*fc);
     }
     inline void set_volume() {
         volume = gain*expression;
@@ -619,7 +622,7 @@ private:
     float mrange = 1.0f;
 
     float cutoff = 1.0f;
-    float fc = lin2log(float(freqfilter_cutoff));
+    float fc = math::lin2log(float(freqfilter_cutoff));
     float Q = float(freqfilter_resonance);
 
     float soft = 1.0f;
