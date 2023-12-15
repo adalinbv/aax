@@ -8,8 +8,7 @@
  *                          WITH Universal-FOSS-exception-1.0
  */
 
-#ifndef AEONWAVE_MATRIX_HPP
-#define AEONWAVE_MATRIX_HPP 1
+#pragma once
 
 #include <cmath>
 #include <iostream>
@@ -65,22 +64,22 @@ public:
     }
     virtual ~VecBase() = default;
 
-    inline void set(T x, T y, T z) {
+    void set(T x, T y, T z) {
         _v[0] = x; _v[1] = y; _v[2] = z; _v[3] = 0; _v4 = false;
     }
 
-    inline void set(T w, T x, T y, T z) {
+    void set(T w, T x, T y, T z) {
         _v[0] = w; _v[1] = x; _v[2] = y; _v[3] = z; _v4 = true;
     }
 
-    inline void set(T f)  {
+    void set(T f)  {
         std::fill(_v, _v+4, f); _v4 = true;
     }
 
-    inline T magnitude2() {
+    T magnitude2() {
         return dot_product(*this);
     }
-    inline T magnitude() {
+    T magnitude() {
         return std::sqrt(dot_product(*this));
     }
     T normalize() {
@@ -233,7 +232,7 @@ public:
     operator T*() {
         return _v;
     }
-    inline bool is_v4() const {
+    bool is_v4() const {
         return _v4;
     }
 
@@ -256,16 +255,16 @@ public:
     virtual ~MtxBase() = default;
 
     // ** support ******
-    inline bool operator==(MtxBase<T>& m) {
+    bool operator==(MtxBase<T>& m) {
         return mtxcmp(m);
     }
-    inline bool operator==(const MT& m) {
+    bool operator==(const MT& m) {
         return mtxcmp(m);
     }
-    inline bool operator!=(MtxBase<T>& m) {
+    bool operator!=(MtxBase<T>& m) {
         return ~mtxcmp(m);
     }
-    inline bool operator!=(const MT& m) {
+    bool operator!=(const MT& m) {
         return ~mtxcmp(m);
     }
     operator const MT&() const {
@@ -336,37 +335,37 @@ public:
     }
     virtual ~Matrix64() = default;
 
-    inline bool set(Vector64& p, Vector& a) {
+    bool set(Vector64& p, Vector& a) {
         return aaxMatrix64SetDirection(_m,p,a);
     }
-    inline bool set(aaxVec3d& p, aaxVec3f& a) {
+    bool set(aaxVec3d& p, aaxVec3f& a) {
         return aaxMatrix64SetDirection(_m,p,a);
     }
-    inline bool set(Vector64& p, Vector& a, Vector& u) {
+    bool set(Vector64& p, Vector& a, Vector& u) {
         return aaxMatrix64SetOrientation(_m,p,a,u);
     }
-    inline bool set(aaxVec3d& p, aaxVec3f& a, aaxVec3f& u) {
+    bool set(aaxVec3d& p, aaxVec3f& a, aaxVec3f& u) {
         return aaxMatrix64SetOrientation(_m,p,a,u);
     }
-    inline bool get(aaxVec3d& p, aaxVec3f& a, aaxVec3f& u) {
+    bool get(aaxVec3d& p, aaxVec3f& a, aaxVec3f& u) {
         return aaxMatrix64GetOrientation(_m,p,a,u);
     }
-    inline bool translate(double dx, double dy, double dz) {
+    bool translate(double dx, double dy, double dz) {
         return aaxMatrix64Translate(_m,dx,dy,dz);
     }
-    inline bool translate(Vector64& t) {
+    bool translate(Vector64& t) {
         return aaxMatrix64Translate(_m,t[0],t[1],t[2]);
     }
-    inline bool translate(aaxVec3d& t) {
+    bool translate(aaxVec3d& t) {
         return aaxMatrix64Translate(_m,t[0],t[1],t[2]);
     }
-    inline bool rotate(double a, double x, double y, double z) {
+    bool rotate(double a, double x, double y, double z) {
         return aaxMatrix64Rotate(_m,a,x,y,z);
     }
-    inline bool multiply(MtxBase<double>& m) {
+    bool multiply(MtxBase<double>& m) {
         return aaxMatrix64Multiply(_m,m);
     }
-    inline bool inverse() {
+    bool inverse() {
         return aaxMatrix64Inverse(_m);
     }
 
@@ -454,6 +453,4 @@ namespace mtx {
 };
 
 } // namespace aax
-
-#endif
 

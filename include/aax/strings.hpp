@@ -8,8 +8,7 @@
  *                          WITH Universal-FOSS-exception-1.0
  */
 
-#ifndef AAX_STRINGS_HPP
-#define AAX_STRINGS_HPP 1
+#pragma once
 
 #include <string>
 #include <aax/aax.h>
@@ -433,6 +432,4 @@ static inline std::string to_string(enum aaxCapabilities type)
 }
 
 } // namespace aax
-
-#endif
 
