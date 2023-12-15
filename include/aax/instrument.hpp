@@ -390,7 +390,7 @@ public:
         }
     }
 
-    virtual float get_gain() { return gain; }
+    float get_gain() { return gain; }
     virtual void set_gain(float v) {
         gain = v; set_volume();
     }
@@ -479,7 +479,6 @@ public:
     virtual void set_vibrato_delay(float d) {}
 
     virtual void set_tremolo_depth(float d) {}
-    virtual void set_phaser_depth(float d) {}
 
     virtual void set_attack_time(unsigned t) {
         if (!is_drum_channel) { attack_time = t;
@@ -499,13 +498,13 @@ public:
 
     virtual void set_legato(bool l) { legato = l; }
 
-    virtual float get_spread(void) { return pan.spread; }
+    float get_spread(void) { return pan.spread; }
     virtual void set_spread(float s = 1.0f) { pan.spread = s; }
 
-    virtual int get_wide(void) { return pan.wide; }
+    int get_wide(void) { return pan.wide; }
     virtual void set_wide(int s = 1) { pan.wide = s; }
 
-    virtual bool is_drums() { return is_drum_channel; }
+    bool is_drums() { return is_drum_channel; }
     virtual void set_drums(bool d = true) { is_drum_channel = d; }
 
     // The whole device must have one chorus effect and one reverb effect.
@@ -514,59 +513,61 @@ public:
     virtual void set_chorus(Buffer& buf) {
         Mixer::add(buf);
     }
-    virtual float get_chorus_level() { return chorus_level; }
-    virtual void set_chorus_level(float lvl) {
+    float get_chorus_level() { return chorus_level; }
+    void set_chorus_level(float lvl) {
         if ((chorus_level = lvl) > 0) {
             if (!chorus_state) chorus_state = true;
         } else if (chorus_state) chorus_state = false;
     }
 
-    virtual void set_chorus_depth(float depth) { chorus_depth = depth; }
-    virtual void set_chorus_rate(float rate) { chorus_rate = rate; }
-    virtual void set_chorus_feedback(float fb) { chorus_feedback = fb; }
-    virtual void set_chorus_cutoff(float fc) { chorus_cutoff = fc; }
+    void set_chorus_depth(float depth) { chorus_depth = depth; }
+    void set_chorus_rate(float rate) { chorus_rate = rate; }
+    void set_chorus_feedback(float fb) { chorus_feedback = fb; }
+    void set_chorus_cutoff(float fc) { chorus_cutoff = fc; }
 
-    virtual void set_delay(Buffer& buf) {
+    void set_phaser_depth(float d) {}
+
+    void set_delay(Buffer& buf) {
         Mixer::add(buf);
     }
-    virtual float get_delay_level() { return delay_level; }
-    virtual void set_delay_level(float lvl) {
+    float get_delay_level() { return delay_level; }
+    void set_delay_level(float lvl) {
         if ((delay_level = lvl) > 0) {
             if (!delay_state) delay_state = AAX_EFFECT_1ST_ORDER;
         } else if (delay_state) delay_state = false;
     }
 
-    virtual void set_delay_depth(float depth) { delay_depth = depth; }
-    virtual void set_delay_rate(float rate) { delay_rate = rate; }
-    virtual void set_delay_feedback(float fb) { delay_feedback = fb; }
-    virtual void set_delay_cutoff(float fc) { delay_cutoff = fc; }
+    void set_delay_depth(float depth) { delay_depth = depth; }
+    void set_delay_rate(float rate) { delay_rate = rate; }
+    void set_delay_feedback(float fb) { delay_feedback = fb; }
+    void set_delay_cutoff(float fc) { delay_cutoff = fc; }
 
-    virtual void set_reverb(Buffer& buf) {
+    void set_reverb(Buffer& buf) {
         Mixer::add(buf);
         aax::dsp dsp = Mixer::get(AAX_REVERB_EFFECT);
         reverb_decay_level = dsp.get(AAX_DECAY_LEVEL);
     }
-    virtual float get_reverb_level() { return reverb_level/reverb_decay_level; }
-    virtual void set_reverb_level(float lvl) {
+    float get_reverb_level() { return reverb_level/reverb_decay_level; }
+    void set_reverb_level(float lvl) {
         if (lvl > 1e-5f) {
             reverb_level = lvl*reverb_decay_level;
             if (!reverb_state) reverb_state = AAX_EFFECT_1ST_ORDER;
         } else if (reverb_state) reverb_state = false;
     }
-    virtual void set_reverb_cutoff(float fc) { reverb_cutoff = fc; }
-    virtual void set_reverb_delay_depth(float v) { reverb_delay_depth = v; }
-    virtual void set_reverb_decay_level(float v) { reverb_decay_level = v; }
-    virtual void set_reverb_decay_depth(float v) { reverb_decay_depth = v; }
-    virtual void set_reverb_time_rt60(float v) {
+    void set_reverb_cutoff(float fc) { reverb_cutoff = fc; }
+    void set_reverb_delay_depth(float v) { reverb_delay_depth = v; }
+    void set_reverb_decay_level(float v) { reverb_decay_level = v; }
+    void set_reverb_decay_depth(float v) { reverb_decay_depth = v; }
+    void set_reverb_time_rt60(float v) {
         reverb_decay_level = powf(math::level_60dB, 0.5f*reverb_decay_depth/v);
     }
 
-    virtual void set_filter_cutoff(float dfc) {
+    void set_filter_cutoff(float dfc) {
         cutoff = dfc; set_filter_cutoff();
         if (!freqfilter_state) freqfilter_state = true;
     }
 
-    virtual void set_filter_resonance(float dQ) {
+    void set_filter_resonance(float dQ) {
         freqfilter_resonance = Q + dQ;
         if (!freqfilter_state) freqfilter_state = true;
     }
