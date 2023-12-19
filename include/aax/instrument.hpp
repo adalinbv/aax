@@ -292,25 +292,175 @@ public:
     Instrument& operator=(const Instrument&) = delete;
     Instrument& operator=(Instrument&&) = delete;
 
-    virtual void finish(void) {
+    void finish(void) { notes_finish(); }
+    bool finished(void) { return notes_finished(); }
+
+    // It's tempting to store the instrument buffer as a class parameter
+    // but drums require a different buffer for every key_no
+    void play(uint32_t key_no, float velocity, float pitch=1.0f) {
+        notes_play(key_no, velocity, buffer, pitch);
+    }
+
+    // So support both
+    void play(uint32_t key_no, float velocity, Buffer& buffer, float pitch=1.f)
+    {
+        notes_play(key_no, velocity, buffer, pitch);
+    }
+
+    void stop(uint32_t key_no, float velocity = 0) {
+        notes_stop(key_no, velocity);
+    }
+
+    void set_pitch(float pitch) {
+        notes_set_pitch(pitch);
+    }
+    void set_pitch(uint32_t key_no, float pitch) {
+        notes_set_pitch(key_no, pitch);
+    }
+
+    void set_pressure(float p) { notes_set_pressure(p); }
+    void set_pressure(uint32_t key_no, float p) {
+        notes_set_pressure(key_no, p);
+    }
+
+    void set_soft(float s) { notes_set_soft(s); }
+    void set_pan(float p) { notes_set_pan(p); }
+    void set_hold(bool h) { notes_set_hold(h); }
+    void set_hold(uint32_t key_no, bool h) { notes_set_hold(key_no, h); }
+    void set_sustain(bool s) { notes_set_sustain(s); }
+    void set_attack_time(unsigned t) { notes_set_attack_time(t); }
+    void set_release_time(unsigned t) { notes_set_release_time(t); }
+    void set_decay_time(unsigned t) { notes_set_decay_time(t); }
+
+    void set_key_finish(bool finish) { key_finish = finish; }
+    void set_monophonic(bool m) { if (!is_drum_channel) monophonic = m; }
+    void set_detune(float level) { detune = level; }
+    void set_gain(float v) {
+        gain = v; set_volume();
+    }
+    void set_expression(float e) {
+        expression = e; set_volume();
+    }
+    void set_modulation(float m) {
+        if (!is_drum_channel) {
+            bool enabled = (m != 0.0f);
+            vibrato_depth = m; tremolo_depth = m; tremolo_offset - 1.0f - m;
+            if (enabled)
+            {
+                if (!vibrato_state) {
+                    vibrato_state = tremolo_state = AAX_SINE;
+                }
+            } else if (vibrato_state) {
+                vibrato_state = tremolo_state = false;
+            }
+        }
+    }
+
+    void set_pitch_start(float p) {
+        if (!is_drum_channel) { pitch_start = p; }
+    }
+    void set_pitch_slide_state(bool s) {
+        if (!is_drum_channel) { slide_state = s; }
+    }
+    void set_pitch_transition_time(float t) {
+        if (!is_drum_channel) { transition_time = t; }
+    }
+
+    void set_vibrato_rate(float r) {}
+    void set_vibrato_depth(float d) {}
+    void set_vibrato_delay(float d) {}
+
+    void set_tremolo_depth(float d) {}
+    void set_legato(bool l) { legato = l; }
+
+    void set_spread(float s = 1.0f) { pan.spread = s; }
+    void set_wide(int s = 1) { pan.wide = s; }
+    void set_drums(bool d = true) { is_drum_channel = d; }
+
+    // The whole device must have one chorus effect and one reverb effect.
+    // Each Channel must have its own adjustable send levels to the chorus
+    // and the reverb. A connection from chorus to reverb must be provided.
+    void set_chorus(Buffer& buf) {
+        Mixer::add(buf);
+    }
+    void set_chorus_level(float lvl) {
+        if ((chorus_level = lvl) > 0) {
+            if (!chorus_state) chorus_state = true;
+        } else if (chorus_state) chorus_state = false;
+    }
+
+    void set_chorus_depth(float depth) { chorus_depth = depth; }
+    void set_chorus_rate(float rate) { chorus_rate = rate; }
+    void set_chorus_feedback(float fb) { chorus_feedback = fb; }
+    void set_chorus_cutoff(float fc) { chorus_cutoff = fc; }
+    void set_phaser_depth(float d) {}
+
+    void set_delay(Buffer& buf) {
+        Mixer::add(buf);
+    }
+    void set_delay_level(float lvl) {
+        if ((delay_level = lvl) > 0) {
+            if (!delay_state) delay_state = AAX_EFFECT_1ST_ORDER;
+        } else if (delay_state) delay_state = false;
+    }
+
+    void set_delay_depth(float depth) { delay_depth = depth; }
+    void set_delay_rate(float rate) { delay_rate = rate; }
+    void set_delay_feedback(float fb) { delay_feedback = fb; }
+    void set_delay_cutoff(float fc) { delay_cutoff = fc; }
+
+    void set_reverb(Buffer& buf) {
+        Mixer::add(buf);
+        aax::dsp dsp = Mixer::get(AAX_REVERB_EFFECT);
+        reverb_decay_level = dsp.get(AAX_DECAY_LEVEL);
+    }
+    void set_reverb_level(float lvl) {
+        if (lvl > 1e-5f) {
+            reverb_level = lvl*reverb_decay_level;
+            if (!reverb_state) reverb_state = AAX_EFFECT_1ST_ORDER;
+        } else if (reverb_state) reverb_state = false;
+    }
+    void set_reverb_cutoff(float fc) { reverb_cutoff = fc; }
+    void set_reverb_delay_depth(float v) { reverb_delay_depth = v; }
+    void set_reverb_decay_level(float v) { reverb_decay_level = v; }
+    void set_reverb_decay_depth(float v) { reverb_decay_depth = v; }
+    void set_reverb_time_rt60(float v) {
+        reverb_decay_level = powf(math::level_60dB, 0.5f*reverb_decay_depth/v);
+    }
+
+    void set_filter_cutoff(float dfc) {
+        cutoff = dfc; set_filter_cutoff();
+        if (!freqfilter_state) freqfilter_state = true;
+    }
+
+    void set_filter_resonance(float dQ) {
+        freqfilter_resonance = Q + dQ;
+        if (!freqfilter_state) freqfilter_state = true;
+    }
+
+    float get_detune() { return detune; }
+    float get_gain() { return gain; }
+    float get_spread(void) { return pan.spread; }
+    int get_wide(void) { return pan.wide; }
+    bool is_drums() { return is_drum_channel; }
+
+    float get_chorus_level() { return chorus_level; }
+    float get_delay_level() { return delay_level; }
+    float get_reverb_level() { return reverb_level/reverb_decay_level; }
+
+protected:
+    virtual void notes_finish(void) {
         for (auto& it : key) it.second->stop();
     }
 
-    virtual bool finished(void) {
+    virtual bool notes_finished(void) {
         for (auto& it : key) {
             if (!it.second->finished()) return false;
         }
         return true;
     }
 
-    // It's tempting to store the instrument buffer as a class parameter
-    // but drums require a different buffer for every key_no
-    virtual void play(uint32_t key_no, float velocity, float pitch=1.0f) {
-        play(key_no, velocity, buffer, pitch);
-    }
-
-    // So allow both options
-    virtual void play(uint32_t key_no, float velocity, Buffer &buffer, float pitch=1.0f)
+    virtual void notes_play(uint32_t key_no, float velocity, Buffer &buffer, float pitch)
     {
         float frequency = buffer.get(AAX_BASE_FREQUENCY);
         if (!is_drum_channel) {
@@ -363,7 +513,7 @@ public:
         }
     }
 
-    virtual void stop(uint32_t key_no, float velocity = 0) {
+    virtual void notes_stop(uint32_t key_no, float velocity = 0) {
         if (!legato) {
             auto it = key.find(key_no);
             if (it != key.end()) {
@@ -372,52 +522,36 @@ public:
         }
     }
 
-    virtual void set_key_finish(bool finish) { key_finish = finish; }
-
-    virtual void set_monophonic(bool m) { if (!is_drum_channel) monophonic = m; }
-
-    float get_detune() { return detune; }
-    virtual void set_detune(float level) { detune = level; }
-
-    virtual void set_pitch(float pitch) {
+    virtual void notes_set_pitch(float pitch) {
         for (auto& it : key) it.second->set_pitch(pitch);
     }
 
-    virtual void set_pitch(uint32_t key_no, float pitch) {
+    virtual void notes_set_pitch(uint32_t key_no, float pitch) {
         auto it = key.find(key_no);
         if (it != key.end()) {
             it->second->set_pitch(pitch);
         }
     }
 
-    float get_gain() { return gain; }
-    virtual void set_gain(float v) {
-        gain = v; set_volume();
-    }
-
-    virtual void set_expression(float e) {
-        expression = e; set_volume();
-    }
-
-    virtual void set_soft(float s) {
+    virtual void notes_set_soft(float s) {
         // sitch between 1.0f (non-soft) and 0.707f (soft)
         soft = (!is_drum_channel) ? 1.0f - 0.293f*s : 1.0f;
         set_filter_cutoff();
         for (auto& it : key) it.second->set_soft(soft);
     }
 
-    virtual void set_pressure(float p) {
+    virtual void notes_set_pressure(float p) {
         for (auto& it : key) it.second->set_pressure(p);
     }
 
-    virtual void set_pressure(uint32_t key_no, float p) {
+    virtual void notes_set_pressure(uint32_t key_no, float p) {
         auto it = key.find(key_no);
         if (it != key.end()) {
             it->second->set_pressure(p);
         }
     }
 
-    virtual void set_pan(float p) {
+    virtual void notes_set_pan(float p) {
         p = floorf(p * note::pan_levels)/note::pan_levels;
         if (p != pan_prev) {
             pan.set(p);
@@ -430,146 +564,37 @@ public:
         }
     }
 
-    virtual void set_hold(uint32_t key_no, bool h) {
+    virtual void notes_set_hold(uint32_t key_no, bool h) {
        auto it = key.find(key_no);
        if (it != key.end()) {
             it->second->set_hold(h);
         }
     }
 
-    virtual void set_hold(bool h) {
+    virtual void notes_set_hold(bool h) {
         for (auto& it : key) it.second->set_hold(h);
     }
 
-    virtual void set_sustain(bool s) {
+    virtual void notes_set_sustain(bool s) {
         if (!is_drum_channel) {
             for (auto& it : key) it.second->set_sustain(s);
         }
     }
 
-    virtual void set_modulation(float m) {
-        if (!is_drum_channel) {
-            bool enabled = (m != 0.0f);
-            vibrato_depth = m; tremolo_depth = m; tremolo_offset - 1.0f - m;
-            if (enabled)
-            {
-                if (!vibrato_state) {
-                    vibrato_state = tremolo_state = AAX_SINE;
-                }
-            } else if (vibrato_state) {
-                vibrato_state = tremolo_state = false;
-            }
-        }
-    }
-
-    // set_pitch_rate(bool) is deprecated in favor of set_pitch_slide_state
-    // set_pitch_rate(float) is deprecated in favor of set_pitch_transition_time
-    virtual void set_pitch_start(float p) {
-        if (!is_drum_channel) { pitch_start = p; }
-    }
-    virtual void set_pitch_slide_state(bool s) {
-        if (!is_drum_channel) { slide_state = s; }
-    }
-    virtual void set_pitch_transition_time(float t) {
-        if (!is_drum_channel) { transition_time = t; }
-    }
-
-    virtual void set_vibrato_rate(float r) {}
-    virtual void set_vibrato_depth(float d) {}
-    virtual void set_vibrato_delay(float d) {}
-
-    virtual void set_tremolo_depth(float d) {}
-
-    virtual void set_attack_time(unsigned t) {
+    virtual void notes_set_attack_time(unsigned t) {
         if (!is_drum_channel) { attack_time = t;
             for (auto& it : key) it.second->set_attack_time(t);
         }
     }
-    virtual void set_release_time(unsigned t) {
+    virtual void notes_set_release_time(unsigned t) {
         if (!is_drum_channel) { release_time = t;
             for (auto& it : key) it.second->set_release_time(t);
         }
     }
-    virtual void set_decay_time(unsigned t) {
+    virtual void notes_set_decay_time(unsigned t) {
         if (!is_drum_channel) { decay_time = t;
             for (auto& it : key) it.second->set_decay_time(t);
         }
-    }
-
-    virtual void set_legato(bool l) { legato = l; }
-
-    float get_spread(void) { return pan.spread; }
-    virtual void set_spread(float s = 1.0f) { pan.spread = s; }
-
-    int get_wide(void) { return pan.wide; }
-    virtual void set_wide(int s = 1) { pan.wide = s; }
-
-    bool is_drums() { return is_drum_channel; }
-    virtual void set_drums(bool d = true) { is_drum_channel = d; }
-
-    // The whole device must have one chorus effect and one reverb effect.
-    // Each Channel must have its own adjustable send levels to the chorus
-    // and the reverb. A connection from chorus to reverb must be provided.
-    virtual void set_chorus(Buffer& buf) {
-        Mixer::add(buf);
-    }
-    float get_chorus_level() { return chorus_level; }
-    void set_chorus_level(float lvl) {
-        if ((chorus_level = lvl) > 0) {
-            if (!chorus_state) chorus_state = true;
-        } else if (chorus_state) chorus_state = false;
-    }
-
-    void set_chorus_depth(float depth) { chorus_depth = depth; }
-    void set_chorus_rate(float rate) { chorus_rate = rate; }
-    void set_chorus_feedback(float fb) { chorus_feedback = fb; }
-    void set_chorus_cutoff(float fc) { chorus_cutoff = fc; }
-
-    void set_phaser_depth(float d) {}
-
-    void set_delay(Buffer& buf) {
-        Mixer::add(buf);
-    }
-    float get_delay_level() { return delay_level; }
-    void set_delay_level(float lvl) {
-        if ((delay_level = lvl) > 0) {
-            if (!delay_state) delay_state = AAX_EFFECT_1ST_ORDER;
-        } else if (delay_state) delay_state = false;
-    }
-
-    void set_delay_depth(float depth) { delay_depth = depth; }
-    void set_delay_rate(float rate) { delay_rate = rate; }
-    void set_delay_feedback(float fb) { delay_feedback = fb; }
-    void set_delay_cutoff(float fc) { delay_cutoff = fc; }
-
-    void set_reverb(Buffer& buf) {
-        Mixer::add(buf);
-        aax::dsp dsp = Mixer::get(AAX_REVERB_EFFECT);
-        reverb_decay_level = dsp.get(AAX_DECAY_LEVEL);
-    }
-    float get_reverb_level() { return reverb_level/reverb_decay_level; }
-    void set_reverb_level(float lvl) {
-        if (lvl > 1e-5f) {
-            reverb_level = lvl*reverb_decay_level;
-            if (!reverb_state) reverb_state = AAX_EFFECT_1ST_ORDER;
-        } else if (reverb_state) reverb_state = false;
-    }
-    void set_reverb_cutoff(float fc) { reverb_cutoff = fc; }
-    void set_reverb_delay_depth(float v) { reverb_delay_depth = v; }
-    void set_reverb_decay_level(float v) { reverb_decay_level = v; }
-    void set_reverb_decay_depth(float v) { reverb_decay_depth = v; }
-    void set_reverb_time_rt60(float v) {
-        reverb_decay_level = powf(math::level_60dB, 0.5f*reverb_decay_depth/v);
-    }
-
-    void set_filter_cutoff(float dfc) {
-        cutoff = dfc; set_filter_cutoff();
-        if (!freqfilter_state) freqfilter_state = true;
-    }
-
-    void set_filter_resonance(float dQ) {
-        freqfilter_resonance = Q + dQ;
-        if (!freqfilter_state) freqfilter_state = true;
     }
 
 private:
