@@ -14,180 +14,180 @@
  
 <aeonwave rate="45" polyphony="64">
 
- <midi name="UltraSynth default" version="@AAX_VERSION@">
-  <bank n="0">
-   <drum n="26" name="Finger Snap" file="effects/humans/snap-finger"/>
-   <drum n="27" name="High Q" file="drums/high-q"/>
-   <drum n="28" name="Slap" file="drums/slap"/>
-   <drum n="29" name="Scratch Push" file="drums/scratch-push"/>
-   <drum n="30" name="Scratch Pull" file="drums/scratch-pull"/>
-   <drum n="31" name="Sticks" file="drums/sticks"/>
-   <drum n="32" name="Square Click" file="drums/click-square"/>
-   <drum n="33" name="Metronome Click" file="drums/click-metronome"/>
-   <drum n="34" name="Metronome Bell" file="drums/bell-metronome"/>
-   <drum n="35" name="Acoustic Bass Drum" file="drums/drum-bass-acoustic"/>
-   <drum n="36" name="Bass Drum 1" file="drums/drum-kick"/>
-   <drum n="37" name="Side Stick" file="drums/stick-side"/>
-   <drum n="38" name="Acoustic Snare" file="drums/drum-snare-acoustic"/>
-   <drum n="39" name="Hand Clap" file="effects/humans/clap-hand"/>
-   <drum n="40" name="Electric Snare" file="drums/drum-snare-electric"/>
-   <drum n="41" name="Low Floor Tom" file="drums/tom-floor-low"/>
-   <drum n="42" name="Closed Hi-Hat" file="drums/hi-hat-closed"/>
-   <drum n="43" name="High Floor Tom" file="drums/tom-floor-high"/>
-   <drum n="44" name="Pedal Hi-Hat" file="drums/hi-hat-pedal"/>
-   <drum n="45" name="Low Tom" file="drums/tom-low"/>
-   <drum n="46" name="Open Hi-Hat" file="drums/hi-hat-open"/>
-   <drum n="47" name="Low Mid-Tom" file="drums/tom-mid-low"/>
-   <drum n="48" name="Hi Mid-Tom" file="drums/tom-mid-high"/>
-   <drum n="49" name="Crash Cymbal" file="drums/cymbal-crash"/>
-   <drum n="50" name="High Tom" file="drums/tom-high"/>
-   <drum n="51" name="Ride Cymbal 1" file="drums/cymbal-ride"/>
-   <drum n="52" name="Chinese Cymbal" file="drums/cymbal-chinese"/>
-   <drum n="53" name="Ride Bell" file="drums/bell-ride"/>
-   <drum n="54" name="Tambourine" file="drums/tambourine"/>
-   <drum n="55" name="Splash Cymbal" file="drums/cymbal-splash"/>
-   <drum n="56" name="Cowbell" file="drums/cowbell"/>
-   <drum n="57" name="Crash Cymbal 2" file="drums/cymbal-crash2"/>
-   <drum n="58" name="Vibraslap" file="drums/vibraslap"/>
-   <drum n="59" name="Ride Cymbal 2" file="drums/cymbal-ride2"/>
-   <drum n="60" name="Hi Bongo" file="drums/bongo-high"/>
-   <drum n="61" name="Low Bongo" file="drums/bongo-low"/>
-   <drum n="62" name="Mute Hi Conga" file="drums/conga-high-muted"/>
-   <drum n="63" name="Open Hi Conga" file="drums/conga-high"/>
-   <drum n="64" name="Low Conga" file="drums/conga-low"/>
-   <drum n="65" name="High Timbale" file="drums/timbale-high"/>
-   <drum n="66" name="Low Timbale" file="drums/timbale-low"/>
-   <drum n="67" name="High Agogo" file="drums/agogo-high"/>
-   <drum n="68" name="Low Agogo" file="drums/agogo-low"/>
-   <drum n="69" name="Cabasa" file="drums/cabasa"/>
-   <drum n="70" name="Maracas" file="drums/maracas"/>
-   <drum n="71" name="Short Whistle" file="drums/whistle-short"/>
-   <drum n="72" name="Long Whistle" file="drums/whistle-long"/>
-   <drum n="73" name="Short Guiro" file="drums/guiro-short"/>
-   <drum n="74" name="Long Guiro" file="drums/guiro-long"/>
-   <drum n="75" name="Claves" file="drums/claves"/>
-   <drum n="76" name="Hi Wood Block" file="drums/wood-block-high"/>
-   <drum n="77" name="Low  Wood Block" file="drums/wood-block-low"/>
-   <drum n="78" name="Mute Cuica" file="drums/cuica-muted"/>
-   <drum n="79" name="Open Cuica" file="drums/cuica-open"/>
-   <drum n="80" name="Mute Triangle" file="drums/triangle-muted"/>
-   <drum n="81" name="Open Triangle" file="drums/triangle-open"/>
-   <drum n="82" name="Shaker" file="drums/shaker"/>
-   <drum n="83" name="Jingle Bell" file="drums/bell-jingle"/>
-   <drum n="84" name="Bell Tree" file="drums/bell-tree"/>
-   <drum n="85" name="Castanets" file="drums/castanets"/>
-   <drum n="86" name="Mute Surdo" file="drums/surdo-muted"/>
-   <drum n="87" name="Open Surdo" file="drums/surdo-open"/>
-   <drum n="88" name="Slap High Conga" file="drums/conga-high-slap"/>
-   <drum n="89" name="Small Gong" file="drums/gong-small"/>
-   <drum n="90" name="Big Gong" file="drums/gong-big"/>
-   <drum n="91" name="Mute Pandiero" file="drums/pandeiro-muted"/>
-   <drum n="92" name="Open Pandiero" file="drums/pandeiro-open"/>
-   <drum n="93" name="Tambourin" file="drums/tambourine"/>
-   <drum n="94" name="Tree Chime" file="drums/chime-tree"/>
-   <drum n="95" name="Caxixi" file="drums/caxixi"/>
-  </bank>
+ <set name="UltraSynth default" version="@AAX_VERSION@">
+  <layer n="0">
+   <patch n="26" name="Finger Snap" file="effects/humans/snap-finger"/>
+   <patch n="27" name="High Q" file="drums/high-q"/>
+   <patch n="28" name="Slap" file="drums/slap"/>
+   <patch n="29" name="Scratch Push" file="drums/scratch-push"/>
+   <patch n="30" name="Scratch Pull" file="drums/scratch-pull"/>
+   <patch n="31" name="Sticks" file="drums/sticks"/>
+   <patch n="32" name="Square Click" file="drums/click-square"/>
+   <patch n="33" name="Metronome Click" file="drums/click-metronome"/>
+   <patch n="34" name="Metronome Bell" file="drums/bell-metronome"/>
+   <patch n="35" name="Acoustic Bass Drum" file="drums/drum-bass-acoustic"/>
+   <patch n="36" name="Bass Drum 1" file="drums/drum-kick"/>
+   <patch n="37" name="Side Stick" file="drums/stick-side"/>
+   <patch n="38" name="Acoustic Snare" file="drums/drum-snare-acoustic"/>
+   <patch n="39" name="Hand Clap" file="effects/humans/clap-hand"/>
+   <patch n="40" name="Electric Snare" file="drums/drum-snare-electric"/>
+   <patch n="41" name="Low Floor Tom" file="drums/tom-floor-low"/>
+   <patch n="42" name="Closed Hi-Hat" file="drums/hi-hat-closed"/>
+   <patch n="43" name="High Floor Tom" file="drums/tom-floor-high"/>
+   <patch n="44" name="Pedal Hi-Hat" file="drums/hi-hat-pedal"/>
+   <patch n="45" name="Low Tom" file="drums/tom-low"/>
+   <patch n="46" name="Open Hi-Hat" file="drums/hi-hat-open"/>
+   <patch n="47" name="Low Mid-Tom" file="drums/tom-mid-low"/>
+   <patch n="48" name="Hi Mid-Tom" file="drums/tom-mid-high"/>
+   <patch n="49" name="Crash Cymbal" file="drums/cymbal-crash"/>
+   <patch n="50" name="High Tom" file="drums/tom-high"/>
+   <patch n="51" name="Ride Cymbal 1" file="drums/cymbal-ride"/>
+   <patch n="52" name="Chinese Cymbal" file="drums/cymbal-chinese"/>
+   <patch n="53" name="Ride Bell" file="drums/bell-ride"/>
+   <patch n="54" name="Tambourine" file="drums/tambourine"/>
+   <patch n="55" name="Splash Cymbal" file="drums/cymbal-splash"/>
+   <patch n="56" name="Cowbell" file="drums/cowbell"/>
+   <patch n="57" name="Crash Cymbal 2" file="drums/cymbal-crash2"/>
+   <patch n="58" name="Vibraslap" file="drums/vibraslap"/>
+   <patch n="59" name="Ride Cymbal 2" file="drums/cymbal-ride2"/>
+   <patch n="60" name="Hi Bongo" file="drums/bongo-high"/>
+   <patch n="61" name="Low Bongo" file="drums/bongo-low"/>
+   <patch n="62" name="Mute Hi Conga" file="drums/conga-high-muted"/>
+   <patch n="63" name="Open Hi Conga" file="drums/conga-high"/>
+   <patch n="64" name="Low Conga" file="drums/conga-low"/>
+   <patch n="65" name="High Timbale" file="drums/timbale-high"/>
+   <patch n="66" name="Low Timbale" file="drums/timbale-low"/>
+   <patch n="67" name="High Agogo" file="drums/agogo-high"/>
+   <patch n="68" name="Low Agogo" file="drums/agogo-low"/>
+   <patch n="69" name="Cabasa" file="drums/cabasa"/>
+   <patch n="70" name="Maracas" file="drums/maracas"/>
+   <patch n="71" name="Short Whistle" file="drums/whistle-short"/>
+   <patch n="72" name="Long Whistle" file="drums/whistle-long"/>
+   <patch n="73" name="Short Guiro" file="drums/guiro-short"/>
+   <patch n="74" name="Long Guiro" file="drums/guiro-long"/>
+   <patch n="75" name="Claves" file="drums/claves"/>
+   <patch n="76" name="Hi Wood Block" file="drums/wood-block-high"/>
+   <patch n="77" name="Low  Wood Block" file="drums/wood-block-low"/>
+   <patch n="78" name="Mute Cuica" file="drums/cuica-muted"/>
+   <patch n="79" name="Open Cuica" file="drums/cuica-open"/>
+   <patch n="80" name="Mute Triangle" file="drums/triangle-muted"/>
+   <patch n="81" name="Open Triangle" file="drums/triangle-open"/>
+   <patch n="82" name="Shaker" file="drums/shaker"/>
+   <patch n="83" name="Jingle Bell" file="drums/bell-jingle"/>
+   <patch n="84" name="Bell Tree" file="drums/bell-tree"/>
+   <patch n="85" name="Castanets" file="drums/castanets"/>
+   <patch n="86" name="Mute Surdo" file="drums/surdo-muted"/>
+   <patch n="87" name="Open Surdo" file="drums/surdo-open"/>
+   <patch n="88" name="Slap High Conga" file="drums/conga-high-slap"/>
+   <patch n="89" name="Small Gong" file="drums/gong-small"/>
+   <patch n="90" name="Big Gong" file="drums/gong-big"/>
+   <patch n="91" name="Mute Pandiero" file="drums/pandeiro-muted"/>
+   <patch n="92" name="Open Pandiero" file="drums/pandeiro-open"/>
+   <patch n="93" name="Tambourin" file="drums/tambourine"/>
+   <patch n="94" name="Tree Chime" file="drums/chime-tree"/>
+   <patch n="95" name="Caxixi" file="drums/caxixi"/>
+  </layer>
 
-  <bank n="8">
-   <drum n="41" name="Low Floor Tom" file="drums/room/tom-floor-low"/>
-   <drum n="43" name="High Floor Tom" file="drums/room/tom-floor-high"/>
-   <drum n="45" name="Low Tom" file="drums/room/tom-low"/>
-   <drum n="47" name="Low Mid-Tom" file="drums/room/tom-mid-low"/>
-   <drum n="48" name="Hi Mid-Tom" file="drums/room/tom-mid-high"/>
-   <drum n="50" name="High Tom" file="drums/room/tom-high"/>
-  </bank>
+  <layer n="8">
+   <patch n="41" name="Low Floor Tom" file="drums/room/tom-floor-low"/>
+   <patch n="43" name="High Floor Tom" file="drums/room/tom-floor-high"/>
+   <patch n="45" name="Low Tom" file="drums/room/tom-low"/>
+   <patch n="47" name="Low Mid-Tom" file="drums/room/tom-mid-low"/>
+   <patch n="48" name="Hi Mid-Tom" file="drums/room/tom-mid-high"/>
+   <patch n="50" name="High Tom" file="drums/room/tom-high"/>
+  </layer>
 
-  <bank n="16">
-   <drum n="36" name="Bass Drum 1" file="drums/power/drum-kick"/>
-   <drum n="38" name="Acoustic Snare" file="drums/power/drum-snare-acoustic"/>
-   <drum n="40" name="Electric Snare" file="drums/power/drum-snare-electric"/>
-   <drum n="41" name="Low Floor Tom" file="drums/power/tom-floor-low"/>
-   <drum n="43" name="High Floor Tom" file="drums/power/tom-floor-high"/>
-   <drum n="45" name="Low Tom" file="drums/power/tom-low"/>
-   <drum n="47" name="Low Mid-Tom" file="drums/power/tom-mid-low"/>
-   <drum n="48" name="Hi Mid-Tom" file="drums/power/tom-mid-high"/>
-   <drum n="50" name="High Tom" file="drums/power/tom-high"/>
-  </bank>
+  <layer n="16">
+   <patch n="36" name="Bass Drum 1" file="drums/power/drum-kick"/>
+   <patch n="38" name="Acoustic Snare" file="drums/power/drum-snare-acoustic"/>
+   <patch n="40" name="Electric Snare" file="drums/power/drum-snare-electric"/>
+   <patch n="41" name="Low Floor Tom" file="drums/power/tom-floor-low"/>
+   <patch n="43" name="High Floor Tom" file="drums/power/tom-floor-high"/>
+   <patch n="45" name="Low Tom" file="drums/power/tom-low"/>
+   <patch n="47" name="Low Mid-Tom" file="drums/power/tom-mid-low"/>
+   <patch n="48" name="Hi Mid-Tom" file="drums/power/tom-mid-high"/>
+   <patch n="50" name="High Tom" file="drums/power/tom-high"/>
+  </layer>
 
-  <bank n="24">
-   <drum n="36" name="Bass Drum 1" file="drums/electronic/drum-kick"/>
-   <drum n="38" name="Acoustic Snare" file="drums/electronic/drum-snare-electronic1"/>
-   <drum n="40" name="Acoustic Snare" file="drums/electronic/drum-snare-electronic1"/>
-   <drum n="41" name="Low Floor Tom" file="drums/electronic/tom-floor-low"/>
-   <drum n="43" name="High Floor Tom" file="drums/electronic/tom-floor-high"/>
-   <drum n="45" name="Low Tom" file="drums/electronic/tom-low"/>
-   <drum n="47" name="Low Mid-Tom" file="drums/electronic/tom-mid-low"/>
-   <drum n="48" name="Hi Mid-Tom" file="drums/electronic/tom-mid-high"/>
-   <drum n="50" name="High Tom" file="drums/electronic/tom-high"/>
-   <drum n="52" name="Reverse Cymbal" file="instruments/cymbal-reverse"/>
-  </bank>
+  <layer n="24">
+   <patch n="36" name="Bass Drum 1" file="drums/electronic/drum-kick"/>
+   <patch n="38" name="Acoustic Snare" file="drums/electronic/drum-snare-electronic1"/>
+   <patch n="40" name="Acoustic Snare" file="drums/electronic/drum-snare-electronic1"/>
+   <patch n="41" name="Low Floor Tom" file="drums/electronic/tom-floor-low"/>
+   <patch n="43" name="High Floor Tom" file="drums/electronic/tom-floor-high"/>
+   <patch n="45" name="Low Tom" file="drums/electronic/tom-low"/>
+   <patch n="47" name="Low Mid-Tom" file="drums/electronic/tom-mid-low"/>
+   <patch n="48" name="Hi Mid-Tom" file="drums/electronic/tom-mid-high"/>
+   <patch n="50" name="High Tom" file="drums/electronic/tom-high"/>
+   <patch n="52" name="Reverse Cymbal" file="instruments/cymbal-reverse"/>
+  </layer>
 
-  <bank n="25">
-   <drum n="36" name="Bass Drum 1" file="drums/tr-808/drum-kick"/>
-   <drum n="37" name="Rim Shot" file="drums/tr-808/rim-shot"/>
-   <drum n="38" name="Acoustic Snare" file="drums/tr-808/drum-snare-acoustic"/>
-   <drum n="40" name="Electric Snare" file="drums/tr-808/drum-snare-electric"/>
-   <drum n="41" name="Low Floor Tom" file="drums/tr-808/tom-floor-low"/>
-   <drum n="42" name="Closed Hi-Hat" file="drums/tr-808/hi-hat-closed"/>
-   <drum n="43" name="High Floor Tom" file="drums/tr-808/tom-floor-high"/>
-   <drum n="44" name="Pedal Hi-Hat" file="drums/tr-808/hi-hat-pedal"/>
-   <drum n="45" name="Low Tom" file="drums/tr-808/tom-low"/>
-   <drum n="46" name="Open Hi-Hat" file="drums/tr-808/hi-hat-open"/>
-   <drum n="47" name="Low Mid-Tom" file="drums/tr-808/tom-mid-low"/>
-   <drum n="48" name="Hi Mid-Tom" file="drums/tr-808/tom-mid-high"/>
-   <drum n="49" name="Crash Cymbal" file="drums/tr-808/cymbal-crash"/>
-   <drum n="50" name="High Tom" file="drums/tr-808/tom-high"/>
-   <drum n="56" name="Cowbell" file="drums/tr-808/cowbell"/>
-   <drum n="62" name="High Conga" file="drums/tr-808/conga-high"/>
-   <drum n="63" name="Mid Conga" file="drums/tr-808/conga-mid"/>
-   <drum n="64" name="Low Conga" file="drums/tr-808/conga-low"/>
-   <drum n="70" name="Maracas" file="drums/tr-808/maracas"/>
-   <drum n="75" name="Claves" file="drums/tr-808/claves"/>
-  </bank>
+  <layer n="25">
+   <patch n="36" name="Bass Drum 1" file="drums/tr-808/drum-kick"/>
+   <patch n="37" name="Rim Shot" file="drums/tr-808/rim-shot"/>
+   <patch n="38" name="Acoustic Snare" file="drums/tr-808/drum-snare-acoustic"/>
+   <patch n="40" name="Electric Snare" file="drums/tr-808/drum-snare-electric"/>
+   <patch n="41" name="Low Floor Tom" file="drums/tr-808/tom-floor-low"/>
+   <patch n="42" name="Closed Hi-Hat" file="drums/tr-808/hi-hat-closed"/>
+   <patch n="43" name="High Floor Tom" file="drums/tr-808/tom-floor-high"/>
+   <patch n="44" name="Pedal Hi-Hat" file="drums/tr-808/hi-hat-pedal"/>
+   <patch n="45" name="Low Tom" file="drums/tr-808/tom-low"/>
+   <patch n="46" name="Open Hi-Hat" file="drums/tr-808/hi-hat-open"/>
+   <patch n="47" name="Low Mid-Tom" file="drums/tr-808/tom-mid-low"/>
+   <patch n="48" name="Hi Mid-Tom" file="drums/tr-808/tom-mid-high"/>
+   <patch n="49" name="Crash Cymbal" file="drums/tr-808/cymbal-crash"/>
+   <patch n="50" name="High Tom" file="drums/tr-808/tom-high"/>
+   <patch n="56" name="Cowbell" file="drums/tr-808/cowbell"/>
+   <patch n="62" name="High Conga" file="drums/tr-808/conga-high"/>
+   <patch n="63" name="Mid Conga" file="drums/tr-808/conga-mid"/>
+   <patch n="64" name="Low Conga" file="drums/tr-808/conga-low"/>
+   <patch n="70" name="Maracas" file="drums/tr-808/maracas"/>
+   <patch n="75" name="Claves" file="drums/tr-808/claves"/>
+  </layer>
 
-  <bank n="32">
-   <drum n="35" name="Acoustic Bass Drum" file="drums/jazz/drum-bass-acoustic"/>
-   <drum n="36" name="Bass Drum 1" file="drums/jazz/drum-kick"/>
-  </bank>
+  <layer n="32">
+   <patch n="35" name="Acoustic Bass Drum" file="drums/jazz/drum-bass-acoustic"/>
+   <patch n="36" name="Bass Drum 1" file="drums/jazz/drum-kick"/>
+  </layer>
 
-  <bank n="40">
-   <drum n="24" name="Snare Brush Tap" file="drums/brush/drum-brush-tap"/>
-   <drum n="25" name="Snare Brush Swirl" file="drums/brush/drum-brush-swirl"/>
-   <drum n="35" name="Acoustic Bass Drum" file="drums/brush/drum-bass-acoustic"/>
-   <drum n="36" name="Bass Drum 1" file="drums/brush/drum-kick"/>
-   <drum n="38" name="Snare Brush Tap" file="drums/brush/drum-brush-tap"/>
-   <drum n="39" name="Snare Brush Slap" file="drums/brush/drum-brush-slap"/>
-   <drum n="40" name="Snare Brush Swirl" file="drums/brush/drum-brush-swirl"/>
-  </bank>
+  <layer n="40">
+   <patch n="24" name="Snare Brush Tap" file="drums/brush/drum-brush-tap"/>
+   <patch n="25" name="Snare Brush Swirl" file="drums/brush/drum-brush-swirl"/>
+   <patch n="35" name="Acoustic Bass Drum" file="drums/brush/drum-bass-acoustic"/>
+   <patch n="36" name="Bass Drum 1" file="drums/brush/drum-kick"/>
+   <patch n="38" name="Snare Brush Tap" file="drums/brush/drum-brush-tap"/>
+   <patch n="39" name="Snare Brush Slap" file="drums/brush/drum-brush-slap"/>
+   <patch n="40" name="Snare Brush Swirl" file="drums/brush/drum-brush-swirl"/>
+  </layer>
 
-  <bank n="48">
-   <drum n="27" name="Closed Hi-Hat" file="drums/orchestra/hi-hat-closed"/>
-   <drum n="28" name="Pedal Hi-Hat" file="drums/orchestra/hi-hat-pedal"/>
-   <drum n="29" name="Open Hi-Hat" file="drums/orchestra/hi-hat-open"/>
-   <drum n="30" name="Ride Cymbal" file="drums/orchestra/cymbal-ride"/>
-   <drum n="35" name="Concert Bass Drum 2" file="drums/orchestra/drum-bass-acoustic"/>
-   <drum n="36" name="Concert Bass Drum 1" file="drums/orchestra/drum-kick"/>
-   <drum n="38" name="Concert Snare" file="drums/orchestra/drum-snare-acoustic"/>
-   <drum n="39" name="Castanets" file="drums/castanets"/>
-   <drum n="40" name="Concert Snare 2" file="drums/orchestra/drum-snare-electric"/>
-   <drum n="41" name="Timpani F1" file="drums/orchestra/timpani-f1"/>
-   <drum n="42" name="Timpani F1#" file="drums/orchestra/timpani-f1sharp"/>
-   <drum n="43" name="Timpani G1" file="drums/orchestra/timpani-g1"/>
-   <drum n="44" name="Timpani G1#" file="drums/orchestra/timpani-g1sharp"/>
-   <drum n="45" name="Timpani A1" file="drums/orchestra/timpani-a1"/>
-   <drum n="46" name="Timpani A1#" file="drums/orchestra/timpani-a1sharp"/>
-   <drum n="47" name="Timpani B1" file="drums/orchestra/timpani-b1"/>
-   <drum n="48" name="Timpani C2" file="drums/orchestra/timpani-c2"/>
-   <drum n="49" name="Timpani C2#" file="drums/orchestra/timpani-c2sharp"/>
-   <drum n="50" name="Timpani D2" file="drums/orchestra/timpani-d2"/>
-   <drum n="51" name="Timpani D2#" file="drums/orchestra/timpani-d2sharp"/>
-   <drum n="52" name="Timpani E2" file="drums/orchestra/timpani-e2"/>
-   <drum n="53" name="Timpani F2" file="drums/orchestra/timpani-f2"/>
-   <drum n="57" name="Concert Cymbal 2" file="drums/orchestra/cymbal-crash2"/>
-   <drum n="59" name="Concert Cymbal" file="drums/orchestra/cymbal-crash"/>
-   <drum n="88" name="Applause" file="effects/humans/applause"/>
-  </bank>
- </midi>
+  <layer n="48">
+   <patch n="27" name="Closed Hi-Hat" file="drums/orchestra/hi-hat-closed"/>
+   <patch n="28" name="Pedal Hi-Hat" file="drums/orchestra/hi-hat-pedal"/>
+   <patch n="29" name="Open Hi-Hat" file="drums/orchestra/hi-hat-open"/>
+   <patch n="30" name="Ride Cymbal" file="drums/orchestra/cymbal-ride"/>
+   <patch n="35" name="Concert Bass Drum 2" file="drums/orchestra/drum-bass-acoustic"/>
+   <patch n="36" name="Concert Bass Drum 1" file="drums/orchestra/drum-kick"/>
+   <patch n="38" name="Concert Snare" file="drums/orchestra/drum-snare-acoustic"/>
+   <patch n="39" name="Castanets" file="drums/castanets"/>
+   <patch n="40" name="Concert Snare 2" file="drums/orchestra/drum-snare-electric"/>
+   <patch n="41" name="Timpani F1" file="drums/orchestra/timpani-f1"/>
+   <patch n="42" name="Timpani F1#" file="drums/orchestra/timpani-f1sharp"/>
+   <patch n="43" name="Timpani G1" file="drums/orchestra/timpani-g1"/>
+   <patch n="44" name="Timpani G1#" file="drums/orchestra/timpani-g1sharp"/>
+   <patch n="45" name="Timpani A1" file="drums/orchestra/timpani-a1"/>
+   <patch n="46" name="Timpani A1#" file="drums/orchestra/timpani-a1sharp"/>
+   <patch n="47" name="Timpani B1" file="drums/orchestra/timpani-b1"/>
+   <patch n="48" name="Timpani C2" file="drums/orchestra/timpani-c2"/>
+   <patch n="49" name="Timpani C2#" file="drums/orchestra/timpani-c2sharp"/>
+   <patch n="50" name="Timpani D2" file="drums/orchestra/timpani-d2"/>
+   <patch n="51" name="Timpani D2#" file="drums/orchestra/timpani-d2sharp"/>
+   <patch n="52" name="Timpani E2" file="drums/orchestra/timpani-e2"/>
+   <patch n="53" name="Timpani F2" file="drums/orchestra/timpani-f2"/>
+   <patch n="57" name="Concert Cymbal 2" file="drums/orchestra/cymbal-crash2"/>
+   <patch n="59" name="Concert Cymbal" file="drums/orchestra/cymbal-crash"/>
+   <patch n="88" name="Applause" file="effects/humans/applause"/>
+  </layer>
+ </set>
 
 </aeonwave>
 

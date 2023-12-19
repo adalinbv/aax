@@ -39,9 +39,9 @@
 
 <aeonwave rate="45" polyphony="64">
 
- <midi name="UltraSynth default" version="@AAX_VERSION@">
+ <set name="UltraSynth default" version="@AAX_VERSION@">
   <!-- GM -->
-  <bank n="0">
+  <layer n="0">
    <instrument n="0" name="Acoustic Grand Piano" file="instruments/piano-concert"/>
    <instrument n="1" name="Bright Acoustic Piano" file="instruments/piano-bright"/>
    <instrument n="2" name="Electric Grand Piano" file="instruments/piano-electric"/>
@@ -170,10 +170,10 @@
    <instrument n="125" name="Helicopter" file="instruments/helicopter"/>
    <instrument n="126" name="Applause" file="effects/humans/applause"/>
    <instrument n="127" name="Gunshot" file="effects/weapons/gun-pistol"/>
-  </bank>
+  </layer>
 
   <!-- XG -->
-  <bank n="0" l="1">
+  <layer n="0" l="1">
    <instrument n="0" name="Grand Piano Wide" file="instruments/piano-concert" wide="true" spread="0.25"/>
    <instrument n="1" name="Bright Piano Wide" file="instruments/piano-bright" wide="true" spread="0.25"/>
    <instrument n="2" name="Electric Grand Piano Wide" file="instruments/piano-electric" wide="true" spread="0.25"/>
@@ -184,244 +184,244 @@
    <instrument n="7" name="Clavinet Wide" file="instruments/clavinet" wide="true" spread="0.25"/>
    <instrument n="11" name="Vibraphone Wide" file="instruments/vibraphone" wide="true" spread="0.25"/>
    <instrument n="12" name="Marimba Wide" file="instruments/marimba" wide="true" spread="0.25"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="3">
+  <layer n="0" l="3">
    <instrument n="48" name="Strings Wide" file="instruments/string-ensemble1" wide="true"/>
    <instrument n="49" name="Slow Strings Wide" file="instruments/string-ensemble2" wide="true"/>
    <instrument n="52" name="Choir Wide" file="instruments/choir-aahs" wide="true" spread="0.4"/>
    <instrument n="61" name="Brass Section Wide" file="instruments/brass-section" wide="true" spread="0.3"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="6">
+  <layer n="0" l="6">
    <instrument n="39" name="Mellow Synth Bass" file="instruments/bass-synth4"/>
    <instrument n="60" name="French Horn Solo" file="instruments/horn-french"/>
    <instrument n="80" name="Square Lead 2" file="instruments/lead-square-wave"/>
    <instrument n="81" name="Sawtooth Lead 2" file="instruments/lead-saw-wave"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="8">
+  <layer n="0" l="8">
    <instrument n="80" name="LM Square" file="instruments/lead-square-wave"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="14">
+  <layer n="0" l="14">
    <instrument n="98" name="Popcorn" file="effects/domestic/bottle-uncork"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="17">
+  <layer n="0" l="17">
    <instrument n="56" name="Bright Trumpet" file="instruments/trumpet-bright"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="18">
+  <layer n="0" l="18">
    <instrument n="98" name="Tiny Bells" file="drums/bell-metronome"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="24">
+  <layer n="0" l="24">
    <instrument n="38" name="Acid Bass" file="instruments/bass-synth3"/>
    <instrument n="48" name="Arco Strings" file="instruments/strings-arco" wide="-5"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="27">
+  <layer n="0" l="27">
    <instrument n="7" name="Clavinet Wah" file="instruments/clavinet-wah"/>
    <instrument n="62" name="Synth Brass 3" file="instruments/brass-synth3"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="32">
+  <layer n="0" l="32">
    <instrument n="16" name="Detuned Drawbar Organ" file="instruments/organ-drawbar-detuned"/>
    <instrument n="21" name="Accordion Italian" file="instruments/accordion-italian"/>
    <instrument n="60" name="French Horn 2" file="instruments/horn-french-warm"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="34">
+  <layer n="0" l="34">
    <instrument n="5" name="DX Legend" file="instruments/piano-fm"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="35">
+  <layer n="0" l="35">
    <instrument n="19" name="Church Organ 2" file="instruments/organ-church-diapason" wide="true" spread="0.6"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="40">
+  <layer n="0" l="40">
    <instrument n="61" name="Brass Section 2" file="instruments/brass-section2" wide="-4" spread="0.3"/>
    <instrument n="63" name="Synth Brass 4" file="instruments/brass-synth4"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="45">
+  <layer n="0" l="45">
    <instrument n="48" name="Velocity Strings" file="instruments/strings-velocity"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="64">
+  <layer n="0" l="64">
    <instrument n="7" name="Pulse Clavinet" file="instruments/clavinet-pulse"/>
    <instrument n="98" name="Synth Mallet" file="instruments/synth-mallet"/>
    <instrument n="118" name="Analog Tom" file="drums/tr-808/tom-low"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="65">
+  <layer n="0" l="65">
    <instrument n="84" name="Wire Lead" file="instruments/lead-wire"/>
    <instrument n="127" name="Phone Call" file="effects/domestic/telephone-buzz"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="66">
+  <layer n="0" l="66">
    <instrument n="16" name="Cheezy Organ" file="instruments/organ-cheese"/>
    <instrument n="102" name="Synth Piano" file="instruments/piano-fm"/>
    <instrument n="127" name="Door Squeak" file="effects/domestic/door-creaking"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="67">
+  <layer n="0" l="67">
    <instrument n="39" name="Metal Bass" file="instruments/bass-synth2"/>
    <instrument n="98" name="Christmas Bells" file="drums/bell-jingle"/>
    <instrument n="127" name="Door Slam" file="effects/domestic/door-slamming"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="68">
+  <layer n="0" l="68">
    <instrument n="127" name="Scratch Cut" file="instruments/scratch"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="70">
+  <layer n="0" l="70">
    <instrument n="127" name="Wind Chime" file="effects/domestic/chime-wind"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="71">
+  <layer n="0" l="71">
    <instrument n="127" name="Telephone Ring 2" file="effects/domestic/telephone-buzz"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="81">
+  <layer n="0" l="81">
    <instrument n="127" name="Car Engine Ignition" file="effects/transport/car-engine-bigblock"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="82">
+  <layer n="0" l="82">
    <instrument n="127" name="Car Tires Squeal" file="effects/transport/skid-tire"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="83">
+  <layer n="0" l="83">
    <instrument n="127" name="Car Passing" file="instruments/car-pass"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="84">
+  <layer n="0" l="84">
    <instrument n="127" name="Car Crash" file="effects/transport/car-crash"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="85">
+  <layer n="0" l="85">
    <instrument n="127" name="Siren" file="effects/transport/siren"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="86">
+  <layer n="0" l="86">
    <instrument n="127" name="Train" file="effects/transport/train"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="87">
+  <layer n="0" l="87">
    <instrument n="127" name="Jet Plane" file="effects/transport/turbine-exhaust"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="88">
+  <layer n="0" l="88">
    <instrument n="127" name="Star Ship" file="effects/scifi/spaceship"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="89">
+  <layer n="0" l="89">
    <instrument n="127" name="Burst" file="effects/industrial/air-pressure-release"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="90">
+  <layer n="0" l="90">
    <instrument n="127" name="Coaster" file="effects/transport/roller-coaster"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="91">
+  <layer n="0" l="91">
    <instrument n="127" name="Submarine" file="effects/device/sonar"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="96">
+  <layer n="0" l="96">
    <instrument n="14" name="Church Bells" file="effects/domestic/bell-church"/>
    <instrument n="115" name="Castanets" file="drums/castanets"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="97">
+  <layer n="0" l="97">
    <instrument n="14" name="Carillon" file="effects/domestic/carillon"/>
    <instrument n="35" name="Smooth Fretless Bass" file="instruments/bass-fretless-smooth"/>
    <instrument n="127" name="Laugh" file="effects/humans/human-laughing"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="98">
+  <layer n="0" l="98">
    <instrument n="127" name="Scream" file="effects/humans/scream-woman"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="99">
+  <layer n="0" l="99">
    <instrument n="127" name="Punch" file="effects/humans/punch-body"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="100">
+  <layer n="0" l="100">
    <instrument n="127" name="Heartbeat" file="effects/humans/human-heartbeat"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="101">
+  <layer n="0" l="101">
    <instrument n="127" name="Footstep" file="effects/humans/human-footstep-concrete"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="113">
+  <layer n="0" l="113">
    <instrument n="127" name="Machine Gun" file="effects/weapons/gun-machine"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="114">
+  <layer n="0" l="114">
    <instrument n="127" name="Laser Gun" file="effects/weapons/gun-laser"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="115">
+  <layer n="0" l="115">
    <instrument n="127" name="Explosion" file="effects/weapons/explosion"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="116">
+  <layer n="0" l="116">
    <instrument n="127" name="Fireworks" file="effects/domestic/firework"/>
-  </bank>
+  </layer>
 
   <!-- GS -->
-  <bank n="1">
+  <layer n="1">
    <instrument n="66" name="Stereo Tenor Sax" file="instruments/saxophone-tenor" stereo="true"/>
    <instrument n="118" name="Elec Perc" file="drums/electronic/drum-snare-electronic2"/>
    <instrument n="124" name="Tape Rewind" file="effects/domestic/tape-rewind"/>
    <instrument n="125" name="Burst Noise" file="effects/industrial/air-pressure-release"/>
-  </bank>
+  </layer>
 
-  <bank n="10">
+  <layer n="10">
    <instrument n="49" name="Key-Off Stereo Slow Strings" file="instruments/string-ensemble2" stereo="true"/>
    <instrument n="124" name="Phono Noise" file="effects/domestic/phono-noise"/>
-  </bank>
+  </layer>
 
-  <bank n="14">
+  <layer n="14">
    <instrument n="101" name="UFO FX" file="effects/scifi/spaceship-early"/>
-  </bank>
+  </layer>
 
-  <bank n="16">
+  <layer n="16">
    <instrument n="1" name="Dance Piano" file="instruments/piano-upright"/>
    <instrument n="4" name="FM+SA Electric Piano" file="instruments/piano-electric1"/>
    <instrument n="5" name="Stereo FM Electric Piano" file="instruments/piano-electric2" stereo="true" spread="0.25"/>
    <instrument n="6" name="Harpsichord Wide" file="instruments/harpsichord" wide="true" spread="0.25"/>
    <instrument n="113" name="Tambourine" file="drums/tambourine"/>
-  </bank>
+  </layer>
 
-  <bank n="18">
+  <layer n="18">
    <instrument n="27" name="TC Clean Ff" file="instruments/guitar-clean-singlecoil"/>
-  </bank>
+  </layer>
 
-  <bank n="24">
+  <layer n="24">
    <instrument n="4" name="Wurly" file="instruments/piano-electric"/>
    <instrument n="15" name="Dulcimer" file="instruments/dulcimer"/>
    <instrument n="16" name="Cheese Organ" file="instruments/organ-cheese"/>
    <instrument n="48" name="Velocity Strings" file="instruments/strings-velocity"/>
    <instrument n="115" name="Finger Snaps" file="effects/humans/snap-finger"/>
-  </bank>
+  </layer>
 
-  <bank n="27">
+  <layer n="27">
    <instrument n="81" name="OB Sawtooth 2" file="instruments/lead-saw-wave"/>
-  </bank>
+  </layer>
 
-  <bank n="32">
+  <layer n="32">
    <instrument n="17" name="Percussion Organ" file="instruments/organ-percussive"/>
-  </bank>
+  </layer>
 
-  <bank n="41">
+  <layer n="41">
    <instrument n="81" name="Sequence Sawtooth 2" file="instruments/lead-analog"/>
-  </bank>
+  </layer>
 
   <!-- XG -->
-  <bank n="64">
+  <layer n="64">
    <instrument n="32" name="Wind" file="effects/nature/weather-rain"/>
    <instrument n="33" name="Thunder" file="effects/nature/weather-thunder"/>
    <instrument n="35" name="Stream" file="effects/nature/water-stream"/>
@@ -456,10 +456,10 @@
    <instrument n="113" name="Laser Gun" file="effects/weapons/gun-laser"/>
    <instrument n="114" name="Explosion" file="effects/weapons/explosion"/>
    <instrument n="115" name="Fireworks" file="effects/domestic/firework"/>
-  </bank>
+  </layer>
 
   <!-- GM2 -->
-  <bank n="121">
+  <layer n="121">
    <instrument n="0" name="Acoustic Grand Piano" file="instruments/piano-concert"/>
    <instrument n="1" name="Bright Acoustic Piano" file="instruments/piano-bright"/>
    <instrument n="2" name="Electric Grand Piano" file="instruments/piano-electric"/>
@@ -588,9 +588,9 @@
    <instrument n="125" name="Helicopter" file="instruments/helicopter"/>
    <instrument n="126" name="Applause" file="effects/humans/applause"/>
    <instrument n="127" name="Gunshot" file="effects/weapons/gun-pistol"/>
-  </bank>
+  </layer>
 
-  <bank n="121" l="1">
+  <layer n="121" l="1">
    <instrument n="0" name="Acoustic Grand Piano Wide" file="instruments/piano-concert" wide="true" spread="0.25"/>
    <instrument n="1" name="Bright Acoustic Piano Wide" file="instruments/piano-bright" wide="true" spread="0.25"/>
    <instrument n="2" name="Electric Grand Piano Wide" file="instruments/piano-electric" wide="true" spread="0.25"/>
@@ -623,9 +623,9 @@
    <instrument n="125" name="Car Engine" file="effects/transport/car-engine-bigblock"/>
    <instrument n="126" name="Laughing" file="effects/humans/human-laughing"/>
    <instrument n="127" name="Machine Gun" file="effects/weapons/gun-machine"/>
-  </bank>
+  </layer>
 
-  <bank n="121" l="2">
+  <layer n="121" l="2">
    <instrument n="6" name="Harpsichord Wide" file="instruments/harpsichord" wide="true" spread="0.25"/>
    <instrument n="14" name="Carillon" file="effects/domestic/carillon"/>
    <instrument n="57" name="Bright Trombone" file="instruments/trumpet-bright"/>
@@ -635,9 +635,9 @@
    <instrument n="125" name="Car Stop" file="effects/transport/skid-tire"/>
    <instrument n="126" name="Screaming" file="effects/humans/scream-woman"/>
    <instrument n="127" name="Lasergun" file="effects/weapons/gun-laser"/>
-  </bank>
+  </layer>
 
-  <bank n="121" l="3">
+  <layer n="121" l="3">
    <instrument n="5" name="EP Legend" file="instruments/piano-electric"/>
    <instrument n="28" name="Jazz Man" file="instruments/guitar-jazz"/>
    <instrument n="122" name="Wind" file="effects/nature/weather-wind"/>
@@ -646,41 +646,41 @@
    <instrument n="125" name="Car Pass" file="instruments/car-pass"/>
    <instrument n="126" name="Punch" file="effects/humans/punch-body"/>
    <instrument n="127" name="Explosion" file="effects/weapons/explosion"/>
-  </bank>
+  </layer>
 
-  <bank n="121" l="4">
+  <layer n="121" l="4">
    <instrument n="81" name="Lead 2d - Sequenced Analog" file="instruments/lead-analog"/>
    <instrument n="122" name="Stream" file="effects/nature/water-stream"/>
    <instrument n="124" name="Scratch" file="instruments/scratch"/>
    <instrument n="125" name="Car Crash" file="effects/transport/car-crash"/>
    <instrument n="126" name="Heart Beat" file="effects/humans/human-heartbeat"/>
-  </bank>
+  </layer>
 
-  <bank n="121" l="5">
+  <layer n="121" l="5">
    <instrument n="122" name="Bubble" file="effects/nature/water-bubbles"/>
    <instrument n="124" name="Wind Chime" file="effects/domestic/chime-wind"/>
    <instrument n="125" name="Siren" file="effects/transport/siren"/>
    <instrument n="126" name="Footsteps" file="effects/humans/human-footstep-concrete"/>
-  </bank>
+  </layer>
 
-  <bank n="121" l="6">
+  <layer n="121" l="6">
    <instrument n="125" name="Train" file="effects/transport/train"/>
-  </bank>
+  </layer>
 
-  <bank n="121" l="8">
+  <layer n="121" l="8">
    <instrument n="125" name="Starship" file="effects/scifi/spaceship"/>
-  </bank>
+  </layer>
 
-  <bank n="121" l="9">
+  <layer n="121" l="9">
    <instrument n="125" name="Burst Noise" file="effects/industrial/air-pressure-release"/>
-  </bank>
+  </layer>
 
-  <bank n="0" l="64">
+  <layer n="0" l="64">
    <instrument n="88" name="Fantasy" file="instruments/fantasy"/>
-  </bank>
+  </layer>
 
   <!-- MT32 -->
-  <bank n="127">
+  <layer n="127">
    <instrument n="0" name="Acou Piano 1" file="instruments/piano-bright"/>
    <instrument n="1" name="Acou Piano 2" file="instruments/piano-concert"/>
    <instrument n="2" name="Acou Piano 3" file="instruments/piano-upright"/>
@@ -806,7 +806,7 @@
    <instrument n="123" name="Telephone" file="effects/domestic/telephone-bell"/>
    <instrument n="124" name="Bird Tweet" file="effects/nature/birds"/>
    <instrument n="126" name="Water Bell" file="effects/domestic/carillon"/>
-  </bank>
- </midi>
+  </layer>
+ </set>
 
 </aeonwave>
