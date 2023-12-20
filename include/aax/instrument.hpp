@@ -644,7 +644,7 @@ private:
     Param reverb_cutoff = 22000.0f;
     Status reverb_state = false;
 
-public:
+protected:
     AeonWave& aax;
     Buffer& buffer;
 
@@ -682,6 +682,129 @@ public:
     bool key_finish = false;
     std::map<uint32_t,std::shared_ptr<Note>> key_stopped;
     std::map<uint32_t,std::shared_ptr<Note>> key;
+};
+
+class Ensemble : public Instrument
+{
+public:
+    Ensemble(AeonWave& ptr, Buffer& buf, bool druns = false, int wide = 0)
+        : Instrument(ptr, buf, druns, wide)
+    {
+    }
+
+    Ensemble() = delete;
+
+    virtual ~Ensemble() = default;
+
+    Ensemble(const Ensemble&) = delete;
+    Ensemble(Ensemble&&) = delete;
+
+    Ensemble& operator=(const Ensemble&) = delete;
+    Ensemble& operator=(Ensemble&&) = delete;
+
+
+    void add_instrument(Buffer& buf) {
+        inst.emplace_back(new Instrument(aax, buf, is_drum_channel, pan.wide));
+    }
+
+private:
+    std::vector<std::unique_ptr<Instrument>> inst;
+
+    virtual void notes_finish(void) {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->finish();
+        }
+    }
+
+    virtual bool notes_finished(void) {
+        for(int i=0; i<inst.size(); ++i) {
+            if (!inst[i]->finished()) return false;
+        }
+        return true;
+    }
+
+    virtual void notes_play(uint32_t key_no, float velocity, Buffer &buffer, float pitch)
+    {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->play(key_no, velocity, buffer, pitch);
+        }
+    }
+
+    virtual void notes_stop(uint32_t key_no, float velocity = 0) {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->stop(key_no, velocity);
+        }
+    }
+
+    virtual void notes_set_pitch(float pitch) {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->set_pitch(pitch);
+        }
+    }
+
+    virtual void notes_set_pitch(uint32_t key_no, float pitch) {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->set_pitch(key_no, pitch);
+        }
+    }
+
+    virtual void notes_set_soft(float s) {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->set_soft(s);
+        }
+    }
+
+    virtual void notes_set_pressure(float p) {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->set_pressure(p);
+        }
+    }
+
+    virtual void notes_set_pressure(uint32_t key_no, float p) {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->set_pressure(key_no, p);
+        }
+    }
+
+    virtual void notes_set_pan(float p) {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->set_pan(p);
+        }
+    }
+
+    virtual void notes_set_hold(uint32_t key_no, bool h) {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->set_hold(key_no, h);
+        }
+    }
+
+    virtual void notes_set_hold(bool h) {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->set_hold(h);
+        }
+    }
+
+    virtual void notes_set_sustain(bool s) {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->set_sustain(s);
+        }
+    }
+
+    virtual void notes_set_attack_time(unsigned t) {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->set_attack_time(t);
+        }
+    }
+    virtual void notes_set_release_time(unsigned t) {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->set_release_time(t);
+        }
+    }
+    virtual void notes_set_decay_time(unsigned t) {
+        for(int i=0; i<inst.size(); ++i) {
+            inst[i]->set_decay_time(t);
+        }
+    }
 };
 
 } // namespace aax
