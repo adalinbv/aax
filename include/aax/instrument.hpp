@@ -228,6 +228,9 @@ private:
 
 class Instrument : public Mixer
 {
+private:
+    using note_t = std::shared_ptr<Note>;
+
 public:
     Instrument(AeonWave& ptr, Buffer& buf, bool drums = false, int wide = 0)
         : Mixer(ptr), aax(ptr), buffer(buf), is_drum_channel(drums)
@@ -284,6 +287,7 @@ public:
         for (auto it : key) {
             Mixer::remove(*it.second);
         }
+        key.clear();
     }
 
     Instrument(const Instrument&) = delete;
@@ -297,13 +301,12 @@ public:
 
     // It's tempting to store the instrument buffer as a class parameter
     // but drums require a different buffer for every key_no
-    void play(uint32_t key_no, float velocity, float pitch=1.0f) {
-        notes_play(key_no, velocity, buffer, pitch);
+    void play(uint32_t key, float velocity, Buffer& buffer, float pitch=1.0f) {
+        notes_play(key, velocity, buffer, pitch);
     }
 
     // So support both
-    void play(uint32_t key_no, float velocity, Buffer& buffer, float pitch=1.f)
-    {
+    void play(uint32_t key_no, float velocity, float pitch=1.0f) {
         notes_play(key_no, velocity, buffer, pitch);
     }
 
@@ -474,7 +477,7 @@ protected:
             if (it != key.end()) it->second->stop();
             key_prev = key_no;
         }
-        std::shared_ptr<Note> note;
+        note_t note;
         auto it = key.find(key_no);
         if (it != key.end()) {
             note = it->second;
@@ -486,7 +489,7 @@ protected:
             }
         }
         if (it == key.end()) {
-            auto ret = key.insert({key_no, std::shared_ptr<Note>{new Note(frequency,pitch,pan)}});
+            auto ret = key.insert({key_no, note_t{new Note(frequency,pitch,pan)}});
             note = ret.first->second;
             if (!playing && !is_drum_channel) {
                 Mixer::add(buffer);
@@ -680,12 +683,25 @@ protected:
     bool legato = false;
 
     bool key_finish = false;
-    std::map<uint32_t,std::shared_ptr<Note>> key_stopped;
-    std::map<uint32_t,std::shared_ptr<Note>> key;
+    std::map<uint32_t,note_t> key_stopped;
+    std::map<uint32_t,note_t> key;
 };
 
+
+/*
+ * An Essemble represents a group of instruments playing in unison.
+ * This could be, for example, a string quartet or a brass section.
+ *
+ * The audio-frame related filters and effects like the volume, chorus, delay,
+ * frequency filter, and reverb, as well as panning, are handled by this class
+ * instead of being handled by every instrument individually.
+ */
 class Ensemble : public Instrument
 {
+private:
+    Ensemble(const Ensemble&) = delete;
+    Ensemble& operator=(const Ensemble&) = delete;
+
 public:
     Ensemble(AeonWave& ptr, Buffer& buf, bool druns = false, int wide = 0)
         : Instrument(ptr, buf, druns, wide)
@@ -694,115 +710,129 @@ public:
 
     Ensemble() = delete;
 
-    virtual ~Ensemble() = default;
+    virtual ~Ensemble() {
+        for (int i=0; i<inst.size(); ++i) {
+            auto instrument = inst[inst.size()-1].get();
+            Mixer::remove(*instrument);
+        }
+        inst.clear();
+    }
 
-    Ensemble(const Ensemble&) = delete;
-    Ensemble(Ensemble&&) = delete;
-
-    Ensemble& operator=(const Ensemble&) = delete;
-    Ensemble& operator=(Ensemble&&) = delete;
-
+    Ensemble(Ensemble&&) = default;
+    Ensemble& operator=(Ensemble&&) = default;
 
     void add_instrument(Buffer& buf) {
         inst.emplace_back(new Instrument(aax, buf, is_drum_channel, pan.wide));
+        auto& instrument = inst[inst.size()-1];
+        Mixer::add(*instrument);
     }
 
 private:
     std::vector<std::unique_ptr<Instrument>> inst;
 
-    virtual void notes_finish(void) {
+    void notes_finish(void) {
         for(int i=0; i<inst.size(); ++i) {
             inst[i]->finish();
         }
     }
 
-    virtual bool notes_finished(void) {
+    bool notes_finished(void) {
         for(int i=0; i<inst.size(); ++i) {
             if (!inst[i]->finished()) return false;
         }
         return true;
     }
 
-    virtual void notes_play(uint32_t key_no, float velocity, Buffer &buffer, float pitch)
+    void notes_play(uint32_t key, float velocity, Buffer &buffer, float pitch)
     {
         for(int i=0; i<inst.size(); ++i) {
-            inst[i]->play(key_no, velocity, buffer, pitch);
+            inst[i]->play(key, velocity, pitch);
         }
     }
 
-    virtual void notes_stop(uint32_t key_no, float velocity = 0) {
+    void notes_stop(uint32_t key_no, float velocity = 0) {
         for(int i=0; i<inst.size(); ++i) {
             inst[i]->stop(key_no, velocity);
         }
     }
 
-    virtual void notes_set_pitch(float pitch) {
+    void notes_set_pitch(float pitch) {
         for(int i=0; i<inst.size(); ++i) {
             inst[i]->set_pitch(pitch);
         }
     }
 
-    virtual void notes_set_pitch(uint32_t key_no, float pitch) {
+    void notes_set_pitch(uint32_t key_no, float pitch) {
         for(int i=0; i<inst.size(); ++i) {
             inst[i]->set_pitch(key_no, pitch);
         }
     }
 
-    virtual void notes_set_soft(float s) {
+    void notes_set_soft(float s) {
+        // sitch between 1.0f (non-soft) and 0.707f (soft)
+        soft = (!is_drum_channel) ? 1.0f - 0.293f*s : 1.0f;
         for(int i=0; i<inst.size(); ++i) {
             inst[i]->set_soft(s);
         }
     }
 
-    virtual void notes_set_pressure(float p) {
+    void notes_set_pressure(float p) {
         for(int i=0; i<inst.size(); ++i) {
             inst[i]->set_pressure(p);
         }
     }
 
-    virtual void notes_set_pressure(uint32_t key_no, float p) {
+    void notes_set_pressure(uint32_t key_no, float p) {
         for(int i=0; i<inst.size(); ++i) {
             inst[i]->set_pressure(key_no, p);
         }
     }
 
-    virtual void notes_set_pan(float p) {
+    void notes_set_pan(float p) {
+        p = floorf(p * note::pan_levels)/note::pan_levels;
+        pan.set(p);
         for(int i=0; i<inst.size(); ++i) {
             inst[i]->set_pan(p);
         }
     }
 
-    virtual void notes_set_hold(uint32_t key_no, bool h) {
+    void notes_set_hold(uint32_t key_no, bool h) {
         for(int i=0; i<inst.size(); ++i) {
             inst[i]->set_hold(key_no, h);
         }
     }
 
-    virtual void notes_set_hold(bool h) {
+    void notes_set_hold(bool h) {
         for(int i=0; i<inst.size(); ++i) {
             inst[i]->set_hold(h);
         }
     }
 
-    virtual void notes_set_sustain(bool s) {
+    void notes_set_sustain(bool s) {
         for(int i=0; i<inst.size(); ++i) {
             inst[i]->set_sustain(s);
         }
     }
 
-    virtual void notes_set_attack_time(unsigned t) {
-        for(int i=0; i<inst.size(); ++i) {
-            inst[i]->set_attack_time(t);
+    void notes_set_attack_time(unsigned t) {
+        if (!is_drum_channel) { attack_time = t;
+            for(int i=0; i<inst.size(); ++i) {
+                inst[i]->set_attack_time(t);
+            }
         }
     }
-    virtual void notes_set_release_time(unsigned t) {
-        for(int i=0; i<inst.size(); ++i) {
-            inst[i]->set_release_time(t);
+    void notes_set_release_time(unsigned t) {
+        if (!is_drum_channel) { release_time = t;
+            for(int i=0; i<inst.size(); ++i) {
+                inst[i]->set_release_time(t);
+            }
         }
     }
-    virtual void notes_set_decay_time(unsigned t) {
-        for(int i=0; i<inst.size(); ++i) {
-            inst[i]->set_decay_time(t);
+    void notes_set_decay_time(unsigned t) {
+        if (!is_drum_channel) { decay_time = t;
+            for(int i=0; i<inst.size(); ++i) {
+                inst[i]->set_decay_time(t);
+            }
         }
     }
 };
