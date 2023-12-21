@@ -12,6 +12,7 @@
 
 #include <map>
 #include <cmath>
+#include <random>
 #include <memory>
 #include <utility>
 #include <algorithm>
@@ -705,7 +706,7 @@ private:
 
 public:
     Ensemble(AeonWave& ptr, Buffer& buf, bool druns = false, int wide = 0)
-        : Instrument(ptr, buf, druns, wide)
+        : Instrument(ptr, buf, druns, wide), m_mt((std::random_device())())
     {
     }
 
@@ -728,6 +729,7 @@ public:
 
 private:
     std::vector<destroy_unique_ptr<Instrument>> inst;
+    std::mt19937 m_mt;
 
     void notes_finish(void) {
         for(int i=0; i<inst.size(); ++i) {
@@ -744,8 +746,10 @@ private:
 
     void notes_play(uint32_t key, float velocity, Buffer &buffer, float pitch)
     {
+        std::uniform_int_distribution<std::mt19937::result_type> dist6(1,6);
+        std::uniform_real_distribution<> dis(0.993f, 1.0f);
         for(int i=0; i<inst.size(); ++i) {
-            inst[i]->play(key, velocity, pitch);
+            inst[i]->play(key, velocity, pitch*dis(m_mt));
         }
     }
 
