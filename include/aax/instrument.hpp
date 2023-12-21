@@ -283,12 +283,7 @@ public:
 
     Instrument() = delete;
 
-    virtual ~Instrument() {
-        for (auto it : key) {
-            Mixer::remove(*it.second);
-        }
-        key.clear();
-    }
+    virtual ~Instrument() = default;
 
     Instrument(const Instrument&) = delete;
     Instrument(Instrument&&) = delete;
@@ -489,7 +484,10 @@ protected:
             }
         }
         if (it == key.end()) {
-            auto ret = key.insert({key_no, note_t{new Note(frequency,pitch,pan)}});
+            auto ret = key.insert({key_no,
+                                   note_t(new Note(frequency,pitch,pan),
+                                         [this](Note *n) { Mixer::remove(*n); })
+                                  });
             note = ret.first->second;
             if (!playing && !is_drum_channel) {
                 Mixer::add(buffer);
@@ -699,6 +697,9 @@ protected:
 class Ensemble : public Instrument
 {
 private:
+    template<typename T>
+    using destroy_unique_ptr = std::unique_ptr<T,std::function<void(T*)>>;
+
     Ensemble(const Ensemble&) = delete;
     Ensemble& operator=(const Ensemble&) = delete;
 
@@ -710,25 +711,23 @@ public:
 
     Ensemble() = delete;
 
-    virtual ~Ensemble() {
-        for (int i=0; i<inst.size(); ++i) {
-            auto instrument = inst[inst.size()-1].get();
-            Mixer::remove(*instrument);
-        }
-        inst.clear();
-    }
+    virtual ~Ensemble() = default;
 
     Ensemble(Ensemble&&) = default;
     Ensemble& operator=(Ensemble&&) = default;
 
     void add_instrument(Buffer& buf) {
-        inst.emplace_back(new Instrument(aax, buf, is_drum_channel, pan.wide));
+        destroy_unique_ptr<Instrument> i(
+                           new Instrument(aax, buf, is_drum_channel, pan.wide),
+                           [this](Instrument *i) { Mixer::remove(*i); });
+
+        inst.emplace_back(std::move(i));
         auto& instrument = inst[inst.size()-1];
         Mixer::add(*instrument);
     }
 
 private:
-    std::vector<std::unique_ptr<Instrument>> inst;
+    std::vector<destroy_unique_ptr<Instrument>> inst;
 
     void notes_finish(void) {
         for(int i=0; i<inst.size(); ++i) {
