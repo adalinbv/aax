@@ -746,8 +746,7 @@ private:
 
     void notes_play(uint32_t key, float velocity, Buffer &buffer, float pitch)
     {
-        std::uniform_int_distribution<std::mt19937::result_type> dist6(1,6);
-        std::uniform_real_distribution<> dis(0.993f, 1.0f);
+        std::uniform_real_distribution<> dis(0.995f, 1.0f);
         for(int i=0; i<inst.size(); ++i) {
             inst[i]->play(key, velocity, pitch*dis(m_mt));
         }
