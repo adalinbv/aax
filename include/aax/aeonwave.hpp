@@ -407,6 +407,7 @@ private:
 };
 
 using BufferPtr = std::shared_ptr<Buffer>;
+static Buffer nullBuffer;
 
 class dsp : public Obj<aaxDSP>
 {
@@ -1109,7 +1110,7 @@ public:
                 auto ret = buffers.insert({name,{0,b}});
                 it = ret.first;
             } else {
-                return nullBuffer;
+                return aax::nullBuffer;
             }
         }
         it->second.first++;
@@ -1160,7 +1161,6 @@ private:
     std::vector<aaxConfig> sensors;
     std::vector<aaxEmitter> emitters;
     std::unordered_map<std::string,std::pair<size_t,BufferPtr>> buffers;
-    Buffer nullBuffer;
 
     // background music stream
     Sensor play;
