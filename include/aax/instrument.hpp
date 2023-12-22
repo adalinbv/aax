@@ -720,10 +720,13 @@ private:
     Ensemble& operator=(const Ensemble&) = delete;
 
 public:
-    Ensemble(AeonWave& ptr, Buffer& buf, bool druns = false, int wide = 0)
-        : Instrument(ptr, buf, druns, wide), m_mt((std::random_device())())
-    {
-    }
+    Ensemble(AeonWave& ptr, Buffer& buf, bool drums = false, int wide = 0)
+        : Instrument(ptr, buf, drums, wide), m_mt((std::random_device())())
+    {}
+
+    Ensemble(AeonWave& ptr, bool drums = false, int wide = 0) :
+        Ensemble(ptr, aax::nullBuffer, drums, wide)
+    {}
 
     Ensemble() = delete;
 
