@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <unordered_map>
+#include <map>
 #include <type_traits>
 #include <functional>
 #include <algorithm>
@@ -18,6 +18,7 @@
 #include <utility>
 #include <memory>
 #include <vector>
+#include <mutex>
 #include <cstring>	// strstr
 
 #include <aax/matrix.hpp>
@@ -406,7 +407,7 @@ private:
     }
 };
 
-using BufferPtr = std::shared_ptr<Buffer>;
+using SharedBufferPtr = std::shared_ptr<Buffer>;
 static Buffer nullBuffer;
 
 class dsp : public Obj<aaxDSP>
@@ -989,6 +990,18 @@ using Mixer = Frame;
 
 class AeonWave : public Sensor
 {
+private:
+    struct buffer_t {
+        buffer_t() = delete;
+        buffer_t(SharedBufferPtr b) : buffer(b) {}
+        ~buffer_t() {
+            if (!--refctr) aaxBufferDestroy(*buffer);
+        }
+
+        int refctr = 1;
+        SharedBufferPtr buffer;
+    };
+
 public:
    AeonWave() = default;
 
@@ -1002,9 +1015,9 @@ public:
         for (size_t i=0; i<emitters.size(); ++i) {
              aaxMixerDeregisterEmitter(ptr,emitters[i]);
         }
-        for(auto it=buffers.begin(); it!=buffers.end(); ++it) {
-            aaxBufferDestroy(*it->second.second); it->second.first = 0;
-        }
+        buffers_mutex.lock();
+        buffers.clear();
+        buffers_mutex.unlock();
     }
 
    explicit AeonWave(aaxConfig c)
@@ -1103,33 +1116,39 @@ public:
     // In the case of an URL or a path the data is read automatically,
     // otherwise the application should add the audio-data itself.
     virtual Buffer& buffer(std::string name, bool strict=false) {
+        buffers_mutex.lock();
         auto it = buffers.find(name);
         if (it == buffers.end()) {
             std::shared_ptr<Buffer> b(new Buffer(ptr,name,false,strict));
-            if (b) {
-                auto ret = buffers.insert({name,{0,b}});
-                it = ret.first;
-            } else {
+            if (!b) {
+                buffers_mutex.unlock();
                 return aax::nullBuffer;
             }
+            buffer_t *buf = new buffer_t(b);
+            auto ret = buffers.insert({name,std::unique_ptr<buffer_t>(buf)});
+            it = ret.first;
+        } else {
+            it->second->refctr++;
         }
-        it->second.first++;
-        return *it->second.second;
+        buffers_mutex.unlock();
+        return *it->second->buffer;
     }
     virtual void destroy(Buffer& b) {
-        for(auto it=buffers.begin(); it!=buffers.end(); ++it)
-        {
-            if ((it->second.second.get() == &b) && it->second.first &&
-                 !(--it->second.first)) {
-                aaxBufferDestroy(*it->second.second);
+        buffers_mutex.lock();
+        for(auto it=buffers.begin(); it!=buffers.end(); ++it) {
+            if (it->second->buffer.get() == &b) {
                 buffers.erase(it); break;
             }
         }
+        buffers_mutex.unlock();
     }
     virtual bool buffer_avail(std::string &name) {
+        bool rv = false;
+        buffers_mutex.lock();
         auto it = buffers.find(name);
-        if (it == buffers.end()) return false;
-        return true;
+        if (it != buffers.end()) rv = true;
+        buffers_mutex.unlock();
+        return rv;
     }
 
     bool playback() {
@@ -1160,7 +1179,9 @@ private:
     std::vector<aaxFrame> frames;
     std::vector<aaxConfig> sensors;
     std::vector<aaxEmitter> emitters;
-    std::unordered_map<std::string,std::pair<size_t,BufferPtr>> buffers;
+
+    mutable std::mutex buffers_mutex;
+    std::map<std::string,std::unique_ptr<buffer_t>> buffers;
 
     // background music stream
     Sensor play;
