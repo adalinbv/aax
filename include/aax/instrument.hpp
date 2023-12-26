@@ -825,9 +825,16 @@ private:
 
     void notes_set_pan(float p) {
         p = floorf(p * note::pan_levels)/note::pan_levels;
-        pan.set(p);
-        for(int i=0; i<member.size(); ++i) {
-            member[i]->instrument->set_pan(p);
+        if (p != pan_prev) {
+            pan.set(p);
+            if (!is_drum_channel && !pan.wide) {
+                Mixer::matrix(pan.mtx);
+            } else {
+                for(int i=0; i<member.size(); ++i) {
+                    member[i]->instrument->set_pan(p);
+                }
+            }
+            pan_prev = p;
         }
     }
 
