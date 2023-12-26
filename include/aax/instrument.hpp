@@ -735,7 +735,7 @@ public:
     Ensemble(Ensemble&&) = default;
     Ensemble& operator=(Ensemble&&) = default;
 
-    void add_instrument(Buffer& buf, float pitch, float gain, int min, int max)
+    void add_member(Buffer& buf, float pitch, float gain, int min, int max)
     {
         std::uniform_real_distribution<> dis(0.995f, 1.0f);
         pitch *= dis(m_mt);
@@ -746,15 +746,17 @@ public:
         Mixer::add(*mi->instrument);
     }
 
-    void add_instrument(Buffer& buf, float pitch, float gain) {
-        add_instrument(buf, pitch, gain, 0, 128);
+    void add_member(Buffer& buf, float pitch, float gain) {
+        add_member(buf, pitch, gain, 0, 128);
     }
-    void add_instrument(Buffer& buf, float pitch, int min=0, int max=128) {
-        add_instrument(buf, pitch, 1.0f, min, max);
+    void add_member(Buffer& buf, float pitch, int min=0, int max=128) {
+        add_member(buf, pitch, 1.0f, min, max);
     }
-    void add_instrument(Buffer& buf, int min=0, int max=128) {
-        add_instrument(buf, 1.0f, 1.0f, min, max);
+    void add_member(Buffer& buf, int min=0, int max=128) {
+        add_member(buf, 1.0f, 1.0f, min, max);
     }
+
+    int no_members() { return member.size(); }
 
 private:
     std::vector<std::unique_ptr<member_t>> member;
