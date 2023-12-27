@@ -600,15 +600,16 @@ protected:
         }
     }
 
-private:
-    float note2freq(uint32_t d) {
-        return 440.0f*powf(2.0f, (float(d)-69.0f)/12.0f);
-    }
     void set_filter_cutoff() {
         freqfilter_cutoff = soft * math::log2lin(cutoff*fc);
     }
     void set_volume() {
         volume = gain*expression;
+    }
+
+private:
+    float note2freq(uint32_t d) {
+        return 440.0f*powf(2.0f, (float(d)-69.0f)/12.0f);
     }
 
     Param volume = 1.0f;
@@ -702,14 +703,17 @@ private:
     struct member_t {
         member_t(Ensemble* e, Instrument *i, float p, float g, int n=0, int m=128)
           : ensemble(e), instrument(std::unique_ptr<Instrument>(i)),
-            min_key(n), max_key(m), pitch(p), gain(g) {}
+            min_key(n), max_key(m), pitch(p), gain(g)
+        {
+            ensemble->add(*instrument);
+        }
 
         ~member_t() {
             ensemble->remove(*instrument);
         }
 
-        std::unique_ptr<Instrument> instrument;
         Ensemble* ensemble;
+        std::unique_ptr<Instrument> instrument;
         int min_key;
         int max_key;
         float pitch;
@@ -737,13 +741,11 @@ public:
 
     void add_member(Buffer& buf, float pitch, float gain, int min, int max)
     {
-        std::uniform_real_distribution<> dis(0.995f, 1.0f);
-        pitch *= dis(m_mt);
+        std::uniform_real_distribution<> dis(0.995f*pitch, pitch);
+        if (member.size()) pitch = dis(m_mt);
         Instrument *i = new Instrument(aax, buf, is_drum_channel, pan.wide);
         member_t *m = new member_t(this, i, pitch, gain, min, max);
         member.emplace_back(m);
-        auto& mi = member[member.size()-1];
-        Mixer::add(*mi->instrument);
     }
 
     void add_member(Buffer& buf, float pitch, float gain) {
@@ -786,8 +788,10 @@ private:
     }
 
     void notes_stop(int key_no, float velocity = 0) {
-        for(int i=0; i<member.size(); ++i) {
-            member[i]->instrument->stop(key_no, velocity);
+        if (!legato) {
+            for(int i=0; i<member.size(); ++i) {
+                member[i]->instrument->stop(key_no, velocity);
+            }
         }
     }
 
@@ -806,6 +810,7 @@ private:
     void notes_set_soft(float s) {
         // sitch between 1.0f (non-soft) and 0.707f (soft)
         soft = (!is_drum_channel) ? 1.0f - 0.293f*s : 1.0f;
+        set_filter_cutoff();
         for(int i=0; i<member.size(); ++i) {
             member[i]->instrument->set_soft(s);
         }
@@ -851,8 +856,10 @@ private:
     }
 
     void notes_set_sustain(bool s) {
-        for(int i=0; i<member.size(); ++i) {
-            member[i]->instrument->set_sustain(s);
+        if (!is_drum_channel) {
+            for(int i=0; i<member.size(); ++i) {
+                member[i]->instrument->set_sustain(s);
+            }
         }
     }
 
