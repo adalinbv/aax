@@ -27,7 +27,7 @@
    <waveform src="white-noise" processing="add" pitch="0.075" random="0.185"/>
   </layer>
   <layer n="1">
-   <waveform src="white-noise" processing="add" pitch="0.075" random="0.185"/>
+   <waveform src="white-noise" pitch="0.075" random="0.185"/>
   </layer>
  </sound>
 
