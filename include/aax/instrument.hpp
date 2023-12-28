@@ -150,7 +150,7 @@ public:
         }
         Emitter::set(AAX_INITIALIZED);
         Emitter::set(AAX_MIDI_ATTACK_VELOCITY_FACTOR, 127.0f*velocity);
-        if (!playing) playing = Emitter::set(AAX_PLAYING);
+        playing = Emitter::set(AAX_PLAYING);
         return playing;
     }
 
@@ -303,7 +303,7 @@ public:
 
     // So support both
     void play(int key_no, float velocity, float pitch=1.0f) {
-        notes_play(key_no, velocity, buffer, pitch);
+        notes_play(key_no, velocity, pitch);
     }
 
     void stop(int key_no, float velocity = 0) {
@@ -514,6 +514,10 @@ protected:
                 key_stopped.erase(it);
             }
         }
+    }
+
+    virtual void notes_play(int key_no, float velocity, float pitch) {
+        notes_play(key_no, velocity, buffer, pitch);
     }
 
     virtual void notes_stop(int key_no, float velocity = 0) {
@@ -777,7 +781,7 @@ private:
         return true;
     }
 
-    void notes_play(int key_no, float velocity, Buffer &buffer, float pitch)
+    void notes_play(int key_no, float velocity, float pitch)
     {
         for(int i=0; i<member.size(); ++i) {
             auto& m = member[i];
