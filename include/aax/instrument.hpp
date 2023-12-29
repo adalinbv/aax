@@ -139,7 +139,7 @@ public:
         Emitter::matrix(m);
     }
 
-    bool play(float velocity, float start_pitch = 1.0f, float time = 0.0f) {
+    bool play(float velocity, float start_pitch=1.0f, float time=0.0f) {
         hold = false;
         if (time > 0.0f && start_pitch != pitch) {
            aax::dsp dsp = Emitter::get(AAX_PITCH_EFFECT);
@@ -150,11 +150,11 @@ public:
         }
         Emitter::set(AAX_INITIALIZED);
         Emitter::set(AAX_MIDI_ATTACK_VELOCITY_FACTOR, 127.0f*velocity);
-        playing = Emitter::set(AAX_PLAYING);
+        if (!playing) playing = Emitter::set(AAX_PLAYING);
         return playing;
     }
 
-    bool stop(float velocity = 1.0f) {
+    bool stop(float velocity=1.0f) {
         playing = false;
         Emitter::set(AAX_MIDI_RELEASE_VELOCITY_FACTOR, 127.0f*velocity);
         return hold ? true : Emitter::set(AAX_STOPPED);
@@ -233,7 +233,7 @@ private:
     using note_t = std::shared_ptr<Note>;
 
 public:
-    Instrument(AeonWave& ptr, Buffer& buf, bool drums = false, int wide = 0)
+    Instrument(AeonWave& ptr, Buffer& buf, bool drums=false, int wide=0)
         : Mixer(ptr), aax(ptr), buffer(buf), is_drum_channel(drums)
     {
         pan.wide = wide;
@@ -306,8 +306,13 @@ public:
         notes_play(key_no, velocity, pitch);
     }
 
-    void stop(int key_no, float velocity = 0) {
-        notes_stop(key_no, velocity);
+    virtual void stop(int key_no, float velocity=0) {
+        if (!legato) {
+            auto it = key.find(key_no);
+            if (it != key.end()) {
+                it->second->stop(velocity);
+            }
+        }
     }
 
     void set_pitch(float pitch) {
@@ -520,15 +525,6 @@ protected:
         notes_play(key_no, velocity, buffer, pitch);
     }
 
-    virtual void notes_stop(int key_no, float velocity = 0) {
-        if (!legato) {
-            auto it = key.find(key_no);
-            if (it != key.end()) {
-                it->second->stop(velocity);
-            }
-        }
-    }
-
     virtual void notes_set_pitch(float pitch) {
         for (auto& it : key) it.second->set_pitch(pitch);
     }
@@ -728,11 +724,11 @@ private:
     Ensemble& operator=(const Ensemble&) = delete;
 
 public:
-    Ensemble(AeonWave& ptr, Buffer& buf, bool drums = false, int wide = 0)
+    Ensemble(AeonWave& ptr, Buffer& buf, bool drums=false, int wide=0)
         : Instrument(ptr, buf, drums, wide), m_mt((std::random_device())())
     {}
 
-    Ensemble(AeonWave& ptr, bool drums = false, int wide = 0) :
+    Ensemble(AeonWave& ptr, bool drums=false, int wide=0) :
         Ensemble(ptr, aax::nullBuffer, drums, wide)
     {}
 
@@ -764,6 +760,14 @@ public:
 
     int no_members() { return member.size(); }
 
+    void stop(int key_no, float velocity=0) {
+        if (!legato) {
+            for(int i=0; i<member.size(); ++i) {
+                member[i]->instrument->stop(key_no, velocity);
+            }
+        }
+    }
+
 private:
     std::vector<std::unique_ptr<member_t>> member;
     std::mt19937 m_mt;
@@ -787,14 +791,6 @@ private:
             auto& m = member[i];
             if (key_no >= m->min_key && key_no < m->max_key) {
                 m->instrument->play(key_no, velocity, pitch*m->pitch);
-            }
-        }
-    }
-
-    void notes_stop(int key_no, float velocity = 0) {
-        if (!legato) {
-            for(int i=0; i<member.size(); ++i) {
-                member[i]->instrument->stop(key_no, velocity);
             }
         }
     }
