@@ -298,7 +298,59 @@ public:
     // It's tempting to store the instrument buffer as a class parameter
     // but drums require a different buffer for every key_no
     void play(int key_no, float velocity, Buffer& buffer, float pitch=1.0f) {
-        notes_play(key_no, velocity, buffer, pitch);
+        float frequency = buffer.get(AAX_BASE_FREQUENCY);
+        if (!is_drum_channel) {
+            float fraction = buffer.getf(AAX_PITCH_FRACTION);
+            float f = note2freq(key_no);
+            f = (f - frequency)*fraction + frequency;
+            pitch *= f/frequency;
+        }
+        if (monophonic || legato) {
+            auto it = key.find(key_prev);
+            if (it != key.end()) it->second->stop();
+            key_prev = key_no;
+        }
+        note_t note;
+        auto it = key.find(key_no);
+        if (it != key.end()) {
+            note = it->second;
+            if (key_finish && !note->finished()) {
+                note->finish();
+                key_stopped[key_no] = std::move(key.at(key_no));
+                key.erase(key_no);
+                it = key.end();
+            }
+        }
+        if (it == key.end()) {
+            Note *n = new Note(frequency,pitch,pan);
+            auto ret = key.insert({key_no,
+                               note_t(n, [this](Note *n) { Mixer::remove(*n); })
+                                  });
+            note = ret.first->second;
+            if (!playing && !is_drum_channel) {
+                Mixer::add(buffer);
+                playing = true;
+            }
+            if (is_drum_channel && !pan.panned) note->matrix(pan.mtx_init);
+            else if (pan.panned && abs(pan.wide) > 1) note->matrix(pan.mtx);
+            note->buffer(buffer);
+        }
+
+        Mixer::add(*note);
+        note->set_soft(soft);
+        note->set_attack_time(attack_time);
+        note->set_release_time(release_time);
+        note->set_decay_time(decay_time);
+        note->play(velocity, pitch_start, slide_state ? transition_time : 0.0f);
+        pitch_start = pitch;
+        for (auto it = key_stopped.begin(), next = it; it != key_stopped.end();
+             it = next)
+        {
+            ++next;
+            if (it->second->finished()) {
+                key_stopped.erase(it);
+            }
+        }
     }
 
     // So support both
@@ -464,65 +516,8 @@ protected:
         return true;
     }
 
-    virtual void notes_play(int key_no, float velocity, Buffer &buffer, float pitch)
-    {
-        float frequency = buffer.get(AAX_BASE_FREQUENCY);
-        if (!is_drum_channel) {
-            float fraction = buffer.getf(AAX_PITCH_FRACTION);
-            float f = note2freq(key_no);
-            f = (f - frequency)*fraction + frequency;
-            pitch *= f/frequency;
-        }
-        if (monophonic || legato) {
-            auto it = key.find(key_prev);
-            if (it != key.end()) it->second->stop();
-            key_prev = key_no;
-        }
-        note_t note;
-        auto it = key.find(key_no);
-        if (it != key.end()) {
-            note = it->second;
-            if (key_finish && !note->finished()) {
-                note->finish();
-                key_stopped[key_no] = std::move(key.at(key_no));
-                key.erase(key_no);
-                it = key.end();
-            }
-        }
-        if (it == key.end()) {
-            Note *n = new Note(frequency,pitch,pan);
-            auto ret = key.insert({key_no,
-                               note_t(n, [this](Note *n) { Mixer::remove(*n); })
-                                  });
-            note = ret.first->second;
-            if (!playing && !is_drum_channel) {
-                Mixer::add(buffer);
-                playing = true;
-            }
-            if (is_drum_channel && !pan.panned) note->matrix(pan.mtx_init);
-            else if (pan.panned && abs(pan.wide) > 1) note->matrix(pan.mtx);
-            note->buffer(buffer);
-        }
-
-        Mixer::add(*note);
-        note->set_soft(soft);
-        note->set_attack_time(attack_time);
-        note->set_release_time(release_time);
-        note->set_decay_time(decay_time);
-        note->play(velocity, pitch_start, slide_state ? transition_time : 0.0f);
-        pitch_start = pitch;
-        for (auto it = key_stopped.begin(), next = it; it != key_stopped.end();
-             it = next)
-        {
-            ++next;
-            if (it->second->finished()) {
-                key_stopped.erase(it);
-            }
-        }
-    }
-
     virtual void notes_play(int key_no, float velocity, float pitch) {
-        notes_play(key_no, velocity, buffer, pitch);
+        play(key_no, velocity, buffer, pitch);
     }
 
     virtual void notes_set_pitch(float pitch) {
