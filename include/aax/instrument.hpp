@@ -26,7 +26,7 @@ namespace note
 {
 static float volume = 0.5f;
 static float pan_levels = 128.0f;
-static float distance = 1.0f;
+static float distance = 2.0f;
 }; // namespace aax
 
 namespace math
@@ -64,15 +64,15 @@ public:
         }
         if (p != 0.0f) {
             p *= spread;
-            int pos = floorf(p * note::pan_levels);
-            auto it = matrices.find(pos);
+            int idx = floorf(p * note::pan_levels);
+            auto it = matrices.find(idx);
             if (it != matrices.end()) {
                 mtx = it->second;
             } else {
                 Matrix64 m;
                 m.rotate(-1.57*p, 0.0, 1.0, 0.0);
                 m.multiply(mtx_init);
-                matrices[pos] = m;
+                matrices[idx] = m;
                 mtx = m;
             }
         } else {
@@ -86,7 +86,7 @@ public:
     Vector up = Vector(0.0f, 1.0f, 0.0f);
     Vector64 pos = Vector64(0.0, 1.0, -note::distance);
     Matrix64 mtx_init = Matrix64(pos, at, up);
-    Matrix64 mtx = mtx_init;
+    Matrix64 mtx = mtx::identity;
     float spread = 1.0f;
     float pan = 0.0f;
     int wide = 0;
@@ -376,6 +376,7 @@ public:
 
     void set_soft(float s) { notes_set_soft(s); }
     void set_pan(float p) { notes_set_pan(p); }
+    void set_pan(Matrix64& m) { notes_set_pan(m); }
     void set_hold(bool h) { notes_set_hold(h); }
     void set_hold(int key_no, bool h) { notes_set_hold(key_no, h); }
     void set_sustain(bool s) { notes_set_sustain(s); }
@@ -521,7 +522,7 @@ protected:
             if (it != key.end()) {
                 it->second->stop(velocity);
             }
-        }   
+        }
     }
 
     virtual void notes_set_pitch(float pitch) {
@@ -557,12 +558,17 @@ protected:
         p = floorf(p * note::pan_levels)/note::pan_levels;
         if (p != pan_prev) {
             pan.set(p);
-            if (!is_drum_channel && !pan.wide) {
-                Mixer::matrix(pan.mtx);
-            } else {
-                for (auto& it : key) it.second->matrix(pan.mtx);
-            }
+            notes_set_pan(pan.mtx);
             pan_prev = p;
+        }
+    }
+
+    virtual void notes_set_pan(Matrix64& m) {
+        pan.mtx = m;
+        if (!is_drum_channel && !pan.wide) {
+            Mixer::matrix(pan.mtx);
+        } else {
+            for (auto& it : key) it.second->matrix(pan.mtx);
         }
     }
 
@@ -743,6 +749,7 @@ public:
         std::uniform_real_distribution<> dis(0.995f*pitch, pitch);
         if (member.size()) pitch = dis(m_mt);
         Instrument *i = new Instrument(aax, buf, is_drum_channel, pan.wide);
+        i->set_pan(mtx::identity);
         member_t *m = new member_t(this, i, pitch, gain, min, max);
         member.emplace_back(m);
     }
@@ -780,7 +787,7 @@ private:
             for(int i=0; i<member.size(); ++i) {
                 member[i]->instrument->stop(key_no, velocity);
             }
-        }   
+        }
     }
 
     void notes_finish(void) {
@@ -789,13 +796,13 @@ private:
         } else for(int i=0; i<member.size(); ++i) {
             member[i]->instrument->finish();
         }
-    }       
-     
+    }
+
     bool notes_finished(void) {
         if (!member.size()) {
             return Instrument::notes_finished();
         }
-        for(int i=0; i<member.size(); ++i) { 
+        for(int i=0; i<member.size(); ++i) {
             if (!member[i]->instrument->finished()) return false;
         }
         return true;
@@ -857,7 +864,7 @@ private:
                     Mixer::matrix(pan.mtx);
                 } else {
                     for(int i=0; i<member.size(); ++i) {
-                        member[i]->instrument->set_pan(p);
+                        member[i]->instrument->set_pan(pan.mtx);
                     }
                 }
                 pan_prev = p;
