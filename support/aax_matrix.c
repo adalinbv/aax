@@ -31,18 +31,6 @@
 #include "api.h"
 
 AAX_API bool AAX_APIENTRY
-aaxMatrixCopyMatrix(aaxMtx4f dmtx, aaxMtx4f smtx)
-{
-   bool rv = false;
-   if (dmtx && smtx)
-   {
-        mtx4fFill(dmtx, smtx);
-        rv = true;
-   }
-   return rv;
-}
-
-AAX_API bool AAX_APIENTRY
 aaxMatrix64CopyMatrix64(aaxMtx4d dmtx, aaxMtx4d smtx)
 {
    bool rv = false;
@@ -54,23 +42,6 @@ aaxMatrix64CopyMatrix64(aaxMtx4d dmtx, aaxMtx4d smtx)
    return rv;
 }
 
-
-// AAX_API aaxMtx4f aaxIdentityMatrix;
-
-AAX_API bool AAX_APIENTRY
-aaxMatrixSetIdentityMatrix(aaxMtx4f mtx)
-{
-   bool rv = false;
-   if (mtx)
-   {
-      mtx4fSetIdentity(mtx);
-      rv = true;
-   }
-   else {
-      __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
-   }
-   return rv;
-}
 
 AAX_API bool AAX_APIENTRY
 aaxMatrix64SetIdentityMatrix(aaxMtx4d mtx)
@@ -84,38 +55,6 @@ aaxMatrix64SetIdentityMatrix(aaxMtx4d mtx)
    else {
       __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
    }
-   return rv;
-}
-
-AAX_API bool AAX_APIENTRY
-aaxMatrixTranslate(aaxMtx4f mtx, float dx, float dy, float dz)
-{
-   bool rv = __release_mode;
-
-   if (!rv)
-   {
-      if (!mtx || detect_nan_mtx4(mtx)) {
-         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
-      } else if (is_nan(dx)) {
-         __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
-      } else if (is_nan(dy)) {
-         __aaxErrorSet(AAX_INVALID_PARAMETER + 2, __func__);
-      } else if (is_nan(dz)) {
-         __aaxErrorSet(AAX_INVALID_PARAMETER + 3, __func__);
-      } else {
-         rv  = true;
-      }
-   }
-
-   if (rv)
-   {
-      mtx4f_t m;
-
-      mtx4fFill(m.m4, mtx);
-      mtx4fTranslate(&m, dx, dy, dz);
-      mtx4fFill(mtx, m.m4);
-   }
-
    return rv;
 }
 
@@ -146,40 +85,6 @@ aaxMatrix64Translate(aaxMtx4d mtx, double dx, double dy, double dz)
       mtx4dFill(m.m4, mtx);
       mtx4dTranslate(&m, dx, dy, dz);
       mtx4dFill(mtx, m.m4);
-   }
-
-   return rv;
-}
-
-AAX_API bool AAX_APIENTRY
-aaxMatrixRotate(aaxMtx4f mtx, float angle_rad, float x, float y, float z)
-{
-   bool rv = __release_mode;
-
-   if (!rv)
-   {
-      if (!mtx || detect_nan_mtx4(mtx)) {
-         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
-      } else if (is_nan(angle_rad)) {
-         __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
-      } else if (is_nan(x)) {
-         __aaxErrorSet(AAX_INVALID_PARAMETER + 2, __func__);
-      } else if (is_nan(y)) {
-         __aaxErrorSet(AAX_INVALID_PARAMETER + 3, __func__);
-      } else if (is_nan(z)) {
-         __aaxErrorSet(AAX_INVALID_PARAMETER + 4, __func__);
-      } else {
-         rv  = true;
-      }
-   }
-
-   if (rv)
-   {
-      mtx4f_t m;
-
-      mtx4fFill(m.m4, mtx);
-      mtx4fRotate(&m, angle_rad, x, y, z);
-      mtx4fFill(mtx, m.m4);
    }
 
    return rv;
@@ -219,34 +124,6 @@ aaxMatrix64Rotate(aaxMtx4d mtx, double angle_rad, double x, double y, double z)
    return rv;
 }
 
-
-AAX_API bool AAX_APIENTRY
-aaxMatrixMultiply(aaxMtx4f mtx1, aaxMtx4f mtx2)
-{
-   bool rv = __release_mode;
-
-   if (!rv)
-   {
-      if (!mtx1 || detect_nan_mtx4(mtx1)) {
-         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
-      } else if (!mtx2 || detect_nan_mtx4(mtx2)) {
-         __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
-      }
-   }
-
-   if (rv)
-   {
-      mtx4f_t m1, m2, m3;
-
-      mtx4fFill(m1.m4, mtx1);
-      mtx4fFill(m2.m4, mtx2);
-      mtx4fMul(&m3, &m1, &m2);
-      mtx4fFill(mtx1, m3.m4);
-   }
-
-   return rv;
-}
-
 AAX_API bool AAX_APIENTRY
 aaxMatrix64Multiply(aaxMtx4d mtx1, aaxMtx4d mtx2)
 {
@@ -271,31 +148,6 @@ aaxMatrix64Multiply(aaxMtx4d mtx1, aaxMtx4d mtx2)
       mtx4dFill(m2.m4, mtx2);
       mtx4dMul(&m3, &m1, &m2);
       mtx4dFill(mtx1, m3.m4);
-   }
-
-   return rv;
-}
-
-AAX_API bool AAX_APIENTRY
-aaxMatrixInverse(aaxMtx4f mtx)
-{
-   bool rv = __release_mode;
-
-   if (!rv)
-   {
-      if (!mtx || detect_nan_mtx4(mtx)) {
-         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
-      } else {
-         rv = true;
-      }
-   }
-
-   if (rv)
-   {
-      mtx4f_t m1, m2;
-      mtx4fFill(m1.m4, mtx);
-      mtx4fInverseSimple(&m2, &m1);
-      mtx4fFill(mtx, m2.m4);
    }
 
    return rv;
@@ -470,41 +322,3 @@ aaxMatrix64GetOrientation(aaxMtx4d mtx, aaxVec3d pos, aaxVec3f at, aaxVec3f up)
    return rv;
 }
 
-AAX_API bool AAX_APIENTRY
-aaxMatrixToMatrix64(aaxMtx4d mtx64, aaxMtx4f mtx)
-{
-   bool rv = __release_mode;
-
-   if (!rv)
-   {
-      if (!mtx64) {
-         __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
-      } else if (!mtx || detect_nan_mtx4(mtx)) {
-         __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
-      } else {
-         rv = true;
-      }
-   }
-
-   if (rv)
-   {
-      int i, j;
-      i = 4;
-      do
-      {
-         i--;
-         j = 4;
-         do
-         {
-            j--;
-            mtx64[i][j] = (double)mtx[i][j];
-         }
-         while(j);
-      }
-      while(i);
-
-   }
-
-   return rv;
-}
- 

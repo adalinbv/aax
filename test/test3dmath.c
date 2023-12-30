@@ -248,7 +248,6 @@ int main()
         mtx4dMul_proc m4dMul = _mtx4dMul_cpu;
 
         mtx4dSetIdentity(m64.m4);
-        aaxMatrixToMatrix64(n64.m4, n.m4);
 
         t = clock();
         for (i=0; i<MAXNUM; ++i) {
