@@ -302,12 +302,8 @@ public:
     // It's tempting to store the instrument buffer as a class parameter
     // but drums require a different buffer for every key_no
     void play(int key_no, float velocity, Buffer& buffer, float pitch=1.0f) {
-        float frequency = buffer.get(AAX_BASE_FREQUENCY);
         if (!is_drum_channel) {
-            float fraction = buffer.getf(AAX_PITCH_FRACTION);
-            float f = note2freq(key_no);
-            f = (f - frequency)*fraction + frequency;
-            pitch *= f/frequency;
+            pitch *= buffer.get_pitch(aax::math::note2freq(key_no));
         }
         if (monophonic || legato) {
             auto it = key.find(key_prev);
@@ -326,7 +322,8 @@ public:
             }
         }
         if (it == key.end()) {
-            Note *n = new Note(frequency,pitch,pan);
+            float buffer_frequency = buffer.get(AAX_BASE_FREQUENCY);
+            Note *n = new Note(buffer_frequency,pitch,pan);
             auto ret = key.insert({key_no,
                                note_t(n, [this](Note *n) { Mixer::remove(*n); })
                                   });
@@ -617,10 +614,6 @@ protected:
     }
 
 private:
-    float note2freq(uint32_t d) {
-        return 440.0f*powf(2.0f, (float(d)-69.0f)/12.0f);
-    }
-
     Param volume = 1.0f;
 
     Param vibrato_freq = 5.0f;
