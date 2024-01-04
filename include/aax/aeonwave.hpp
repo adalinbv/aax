@@ -393,6 +393,14 @@ public:
         return aaxBufferGetData(ptr);
     }
 
+    // get the pitch of a given frequency against the buffer base frequency
+    float get_pitch(float freq) {
+        float frequency = get(AAX_BASE_FREQUENCY);
+        float fraction = getf(AAX_PITCH_FRACTION);
+        freq = (freq - frequency)*fraction + frequency;
+        return freq/frequency;
+    }
+
 private:
     std::string preset_file(aaxConfig c, const char* name) {
         std::string rv = aaxDriverGetSetup(c, AAX_SHARED_DATA_DIR);
