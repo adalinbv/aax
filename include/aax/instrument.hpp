@@ -71,12 +71,12 @@ public:
             } else {
                 Matrix64 m;
                 m.rotate(-1.57*p, 0.0, 1.0, 0.0);
-                m.multiply(mtx_init);
+                m.multiply(mtx_panned);
                 matrices[idx] = m;
                 mtx = m;
             }
         } else {
-            mtx = mtx_init;
+            mtx = mtx_panned;
         }
     }
 
@@ -85,7 +85,7 @@ public:
     Vector at = Vector(0.0f, 0.0f, -1.0f);
     Vector up = Vector(0.0f, 1.0f, 0.0f);
     Vector64 pos = Vector64(0.0, 1.0, -note::distance);
-    Matrix64 mtx_init = Matrix64(pos, at, up);
+    Matrix64 mtx_panned = Matrix64(pos, at, up);
     Matrix64 mtx = mtx::identity;
     float spread = 1.0f;
     float pan = 0.0f;
@@ -233,7 +233,7 @@ private:
     using note_t = std::shared_ptr<Note>;
 
 public:
-    Instrument(AeonWave& ptr, Buffer& buf, bool drums=false, int wide=0)
+    Instrument(AeonWave& ptr, Buffer& buf, bool drums=false, int wide=0, bool panned=true)
         : Mixer(ptr), aax(ptr), buffer(buf), is_drum_channel(drums)
     {
         pan.wide = wide;
@@ -274,7 +274,11 @@ public:
         tie(reverb_cutoff, AAX_REVERB_EFFECT, AAX_CUTOFF_FREQUENCY);
         tie(reverb_state, AAX_REVERB_EFFECT);
 
-        Mixer::matrix(pan.mtx_init);
+        if (panned) {
+            Mixer::matrix(pan.mtx_panned);
+        } else {
+            Mixer::matrix(mtx::identity);
+        }
         Mixer::set(AAX_POSITION, AAX_RELATIVE);
         Mixer::set(AAX_PLAYING);
         if (is_drum_channel) {
@@ -331,7 +335,7 @@ public:
                 Mixer::add(buffer);
                 playing = true;
             }
-            if (is_drum_channel && !pan.panned) note->matrix(pan.mtx_init);
+            if (is_drum_channel && !pan.panned) note->matrix(pan.mtx_panned);
             else if (pan.panned && abs(pan.wide) > 1) note->matrix(pan.mtx);
             note->buffer(buffer);
         }
@@ -376,7 +380,7 @@ public:
 
     void set_soft(float s) { notes_set_soft(s); }
     void set_pan(float p) { notes_set_pan(p); }
-    void set_pan(Matrix64& m) { notes_set_pan(m); }
+    void set_pos(Matrix64& m) { notes_set_pos(m); }
     void set_hold(bool h) { notes_set_hold(h); }
     void set_hold(int key_no, bool h) { notes_set_hold(key_no, h); }
     void set_sustain(bool s) { notes_set_sustain(s); }
@@ -558,17 +562,17 @@ protected:
         p = floorf(p * note::pan_levels)/note::pan_levels;
         if (p != pan_prev) {
             pan.set(p);
-            notes_set_pan(pan.mtx);
+            notes_set_pos(pan.mtx);
             pan_prev = p;
         }
     }
 
-    virtual void notes_set_pan(Matrix64& m) {
+    virtual void notes_set_pos(Matrix64& m) {
         pan.mtx = m;
-        if (!is_drum_channel && !pan.wide) {
-            Mixer::matrix(pan.mtx);
-        } else {
+        if (is_drum_channel || pan.wide) {
             for (auto& it : key) it.second->matrix(pan.mtx);
+        } else {
+            Mixer::matrix(pan.mtx);
         }
     }
 
@@ -748,8 +752,7 @@ public:
     {
         std::uniform_real_distribution<> dis(0.995f*pitch, pitch);
         if (member.size()) pitch = dis(m_mt);
-        Instrument *i = new Instrument(aax, buf, is_drum_channel, pan.wide);
-        i->set_pan(mtx::identity);
+        Instrument *i = new Instrument(aax, buf, is_drum_channel, pan.wide, false);
         member_t *m = new member_t(this, i, pitch, gain, min, max);
         member.emplace_back(m);
     }
@@ -860,12 +863,12 @@ private:
             p = floorf(p * note::pan_levels)/note::pan_levels;
             if (p != pan_prev) {
                 pan.set(p);
-                if (!is_drum_channel && !pan.wide) {
-                    Mixer::matrix(pan.mtx);
-                } else {
+                if (is_drum_channel || pan.wide) {
                     for(int i=0; i<member.size(); ++i) {
-                        member[i]->instrument->set_pan(pan.mtx);
+                        member[i]->instrument->set_pos(pan.mtx);
                     }
+                } else {
+                    Mixer::matrix(pan.mtx);
                 }
                 pan_prev = p;
             }
