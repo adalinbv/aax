@@ -31,11 +31,11 @@ static float distance = 2.0f;
 
 namespace math
 {
-inline float note2freq(int v) {
-    return 440.0f*powf(2.0f, (float(v)-69.0f)/12.0f);
+inline float note2freq(float note, float base_freq=440.0f) {
+    return base_freq*powf(2.0f, (note-69.0f)/12.0f);
 }
-inline int freq2note(float v) {
-   return rintf(12*(logf(v/220.0f)/log(2))+57);
+inline int freq2note(float freq, float base_freq=440.0f) {
+   return rintf(12*(logf(freq/base_freq)/log(2))+57);
 }
 
 }; // namespace math

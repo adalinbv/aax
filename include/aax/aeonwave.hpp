@@ -342,7 +342,9 @@ public:
     Buffer(aaxBuffer b, bool o=true) : Obj(b, o ? aaxBufferDestroy : 0) {}
 
     Buffer(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f)
-        : Obj(aaxBufferCreate(c,n,t,f), aaxBufferDestroy) {}
+        : Obj(aaxBufferCreate(c,n,t,f), aaxBufferDestroy),
+          frequency(get(AAX_BASE_FREQUENCY)), fraction(getf(AAX_PITCH_FRACTION))
+    {}
 
     Buffer(aaxConfig c, const char* name, bool o=true, bool s=false)
     {
@@ -395,8 +397,6 @@ public:
 
     // get the pitch of a given frequency against the buffer base frequency
     float get_pitch(float freq) {
-        float frequency = get(AAX_BASE_FREQUENCY);
-        float fraction = getf(AAX_PITCH_FRACTION);
         freq = (freq - frequency)*fraction + frequency;
         return freq/frequency;
     }
@@ -413,6 +413,9 @@ private:
         rv.append("/"); rv.append(name); rv.append(".aaxs");
         return rv;
     }
+
+    float frequency = 440.0f;
+    float fraction = 1.0f;
 };
 
 using SharedBufferPtr = std::shared_ptr<Buffer>;
