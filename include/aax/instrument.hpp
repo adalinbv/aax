@@ -387,7 +387,6 @@ public:
 
     void set_key_finish(bool finish) { key_finish = finish; }
     void set_monophonic(bool m) { if (!is_drum_channel) monophonic = m; }
-    void set_detune(float level) { detune = level; }
     void set_gain(float v) {
         gain = v; set_volume();
     }
@@ -427,6 +426,9 @@ public:
 
     void set_tuning_fine(float s) { tuning_fine = s; }
     float get_tuning_fine() { return tuning_fine; }
+
+    void set_celeste_depth(float level) { detune = level; }
+    float get_celeste_depth() { return detune; }
 
     void set_modulation_depth(float d) { modulation_range = d; }
     float get_modulation_depth() { return modulation_range; }
@@ -507,7 +509,6 @@ public:
         if (!freqfilter_state) freqfilter_state = true;
     }
 
-    float get_detune() { return detune; }
     float get_gain() { return gain; }
     float get_spread(void) { return pan.spread; }
     int get_wide(void) { return pan.wide; }
@@ -516,6 +517,8 @@ public:
     float get_chorus_level() { return chorus_level; }
     float get_delay_level() { return delay_level; }
     float get_reverb_level() { return reverb_level/reverb_decay_level; }
+
+    Buffer& get_buffer() { return buffer; }
 
 protected:
     virtual void notes_finish(void) {
@@ -683,14 +686,13 @@ protected:
     float fc = math::lin2log(float(freqfilter_cutoff));
     float Q = float(freqfilter_resonance);
 
-    float detune = 0.0f;
-
     float soft = 1.0f;
     float gain = 1.0f;
     float expression = 1.0f;
 
     float pan_prev = 0.0f;
 
+    float detune = 0.0f;
     float pitch_depth = 2.0f;
     float tuning_coarse = 0.0f;
     float tuning_fine = 0.0f;
