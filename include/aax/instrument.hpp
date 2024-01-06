@@ -302,9 +302,12 @@ public:
     // It's tempting to store the instrument buffer as a class parameter
     // but drums require a different buffer for every key_no
     void play(int key_no, float velocity, Buffer& buffer, float pitch=1.0f) {
-        if (!is_drum_channel) {
-            pitch *= buffer.get_pitch(aax::math::note2freq(key_no));
-        }
+        float coarse_tuning = get_tuning_coarse();
+        float fine_tuning = get_tuning_fine()/100.0f;
+        float base_freq = aax::math::note2freq(69.0f+coarse_tuning+fine_tuning);
+        float freq = aax::math::note2freq(key_no); // , base_freq);
+        pitch *= buffer.get_pitch(freq);
+
         if (monophonic || legato) {
             auto it = key.find(key_prev);
             if (it != key.end()) it->second->stop();
@@ -418,6 +421,22 @@ public:
     void set_pitch_transition_time(float t) {
         if (!is_drum_channel) { transition_time = t; }
     }
+
+    void set_pitch_depth(float s) { pitch_depth = s; }
+    float get_pitch_depth() { return pitch_depth; }
+
+    void set_tuning_coarse(float s) { tuning_coarse = s; }
+    float get_tuning_coarse() { return tuning_coarse; }
+
+    void set_tuning_fine(float s) { tuning_fine = s; }
+    float get_tuning_fine() { return tuning_fine; }
+
+    void set_modulation_depth(float d) { modulation_range = d; }
+    float get_modulation_depth() { return modulation_range; }
+
+    bool get_pressure_volume_bend() { return pressure_volume_bend; }
+    bool get_pressure_pitch_bend() { return pressure_pitch_bend; }
+    float get_aftertouch_sensitivity() { return pressure_sensitivity; }
 
     void set_vibrato_rate(float r) {}
     void set_vibrato_depth(float d) {}
@@ -675,6 +694,12 @@ protected:
 
     float pan_prev = 0.0f;
 
+    float pitch_depth = 2.0f;
+    float tuning_coarse = 0.0f;
+    float tuning_fine = 0.0f;
+    float modulation_range = 2.0f;
+    float pressure_sensitivity = 1.0f;
+
     float transition_time = 0.0f;
     float pitch_start = 1.0f;
     int key_prev = 0;
@@ -684,6 +709,9 @@ protected:
     bool playing = false;
     bool slide_state = false;
     bool legato = false;
+
+    bool pressure_volume_bend = true;
+    bool pressure_pitch_bend = false;
 
     bool key_finish = false;
     std::map<uint32_t,note_t> key_stopped;

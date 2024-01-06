@@ -397,6 +397,8 @@ public:
 
     // get the pitch of a given frequency against the buffer base frequency
     float get_pitch(float freq) {
+        frequency = get(AAX_BASE_FREQUENCY);
+        fraction = getf(AAX_PITCH_FRACTION);
         freq = (freq - frequency)*fraction + frequency;
         return freq/frequency;
     }
