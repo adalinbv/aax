@@ -302,12 +302,9 @@ public:
     // It's tempting to store the instrument buffer as a class parameter
     // but drums require a different buffer for every key_no
     void play(int key_no, float velocity, Buffer& buffer, float pitch=1.0f) {
-        float coarse_tuning = get_tuning_coarse();
-        float fine_tuning = get_tuning_fine()/100.0f;
-        float base_freq = aax::math::note2freq(69.0f+coarse_tuning+fine_tuning);
-        float freq = aax::math::note2freq(key_no); // , base_freq);
-        pitch *= buffer.get_pitch(freq);
-
+        if (!is_drum_channel) {
+            pitch *= buffer.get_pitch(aax::math::note2freq(key_no));
+        }
         if (monophonic || legato) {
             auto it = key.find(key_prev);
             if (it != key.end()) it->second->stop();
