@@ -31,8 +31,8 @@ static float distance = 2.0f;
 
 namespace math
 {
-inline float note2freq(float note, float base_freq=440.0f) {
-    return base_freq*powf(2.0f, (note-69.0f)/12.0f);
+inline float note2freq(float note_no, float base_freq=440.0f) {
+    return base_freq*powf(2.0f, (note_no-69.0f)/12.0f);
 }
 inline int freq2note(float freq, float base_freq=440.0f) {
    return rintf(12*(logf(freq/base_freq)/log(2))+57);
@@ -175,8 +175,8 @@ public:
         return (s != AAX_PLAYING);
     }
 
-    // notes hold until hold becomes false, even after a stop message.
-    // already stopped notes can be caught by hold again.
+    // current_notes hold until hold becomes false, even after a stop message.
+    // already stopped current_notes can be caught by hold again.
     void set_hold(bool h) {
         if (!h && hold) Emitter::set(AAX_STOPPED);
         else if (h && Emitter::state() == AAX_STOPPED) {
@@ -185,7 +185,7 @@ public:
         hold = h;
     }
 
-    // only notes started before this command should hold until stop arrives
+    // only current_notes started before this command should hold until stop arrives
     void set_sustain(bool s) { hold = s; }
 
     void set_soft(float soft) {
@@ -296,96 +296,97 @@ public:
     Instrument& operator=(const Instrument&) = delete;
     Instrument& operator=(Instrument&&) = delete;
 
-    void finish(void) { notes_finish(); }
-    bool finished(void) { return notes_finished(); }
+    void finish(void) { note_finish(); }
+    bool finished(void) { return note_finished(); }
 
     // It's tempting to store the instrument buffer as a class parameter
-    // but drums require a different buffer for every key_no
-    void play(int key_no, float velocity, Buffer& buffer, float pitch=1.0f) {
+    // but drums require a different buffer for every note_no
+    void play(int note_no, float velocity, Buffer& buffer, float pitch=1.0f) {
+        note_no += coarse_tuning;
         if (!is_drum_channel) {
-            pitch *= buffer.get_pitch(aax::math::note2freq(key_no));
+            pitch *= buffer.get_pitch(aax::math::note2freq(note_no));
         }
         if (monophonic || legato) {
-            auto it = key.find(key_prev);
-            if (it != key.end()) it->second->stop();
-            key_prev = key_no;
+            auto it = note.find(note_prev);
+            if (it != note.end()) it->second->stop();
+            note_prev = note_no;
         }
-        note_t note;
-        auto it = key.find(key_no);
-        if (it != key.end()) {
-            note = it->second;
-            if (key_finish && !note->finished()) {
-                note->finish();
-                key_stopped[key_no] = std::move(key.at(key_no));
-                key.erase(key_no);
-                it = key.end();
+        note_t current_note;
+        auto it = note.find(note_no);
+        if (it != note.end()) {
+            current_note = it->second;
+            if (request_note_finish && !current_note->finished()) {
+                current_note->finish();
+                note_stopped[note_no] = std::move(note.at(note_no));
+                note.erase(note_no);
+                it = note.end();
             }
         }
-        if (it == key.end()) {
+        if (it == note.end()) {
             float buffer_frequency = buffer.get(AAX_BASE_FREQUENCY);
             Note *n = new Note(buffer_frequency,pitch,pan);
-            auto ret = key.insert({key_no,
+            auto ret = note.insert({note_no,
                                note_t(n, [this](Note *n) { Mixer::remove(*n); })
                                   });
-            note = ret.first->second;
+            current_note = ret.first->second;
             if (!playing && !is_drum_channel) {
                 Mixer::add(buffer);
                 playing = true;
             }
-            if (is_drum_channel && !pan.panned) note->matrix(pan.mtx_panned);
-            else if (pan.panned && abs(pan.wide) > 1) note->matrix(pan.mtx);
-            note->buffer(buffer);
+            if (is_drum_channel && !pan.panned) current_note->matrix(pan.mtx_panned);
+            else if (pan.panned && abs(pan.wide) > 1) current_note->matrix(pan.mtx);
+            current_note->buffer(buffer);
         }
 
-        Mixer::add(*note);
-        note->set_soft(soft);
-        note->set_attack_time(attack_time);
-        note->set_release_time(release_time);
-        note->set_decay_time(decay_time);
-        note->play(velocity, pitch_start, slide_state ? transition_time : 0.0f);
+        Mixer::add(*current_note);
+        current_note->set_soft(soft);
+        current_note->set_attack_time(attack_time);
+        current_note->set_release_time(release_time);
+        current_note->set_decay_time(decay_time);
+        current_note->play(velocity, pitch_start, slide_state ? transition_time : 0.0f);
         pitch_start = pitch;
-        for (auto it = key_stopped.begin(), next = it; it != key_stopped.end();
+        for (auto it = note_stopped.begin(), next = it; it != note_stopped.end();
              it = next)
         {
             ++next;
             if (it->second->finished()) {
-                key_stopped.erase(it);
+                note_stopped.erase(it);
             }
         }
     }
 
     // So support both
-    void play(int key_no, float velocity, float pitch=1.0f) {
-        notes_play(key_no, velocity, pitch);
+    void play(int note_no, float velocity, float pitch=1.0f) {
+        note_play(note_no, velocity, pitch);
     }
 
-    void stop(int key_no, float velocity=0) {
-       notes_stop(key_no, velocity);
+    void stop(int note_no, float velocity=0) {
+       note_stop(note_no, velocity);
     }
 
     void set_pitch(float pitch) {
-        notes_set_pitch(pitch);
+        note_set_pitch(pitch);
     }
-    void set_pitch(int key_no, float pitch) {
-        notes_set_pitch(key_no, pitch);
-    }
-
-    void set_pressure(float p) { notes_set_pressure(p); }
-    void set_pressure(int key_no, float p) {
-        notes_set_pressure(key_no, p);
+    void set_pitch(int note_no, float pitch) {
+        note_set_pitch(note_no, pitch);
     }
 
-    void set_soft(float s) { notes_set_soft(s); }
-    void set_pan(float p) { notes_set_pan(p); }
-    void set_pos(Matrix64& m) { notes_set_pos(m); }
-    void set_hold(bool h) { notes_set_hold(h); }
-    void set_hold(int key_no, bool h) { notes_set_hold(key_no, h); }
-    void set_sustain(bool s) { notes_set_sustain(s); }
-    void set_attack_time(unsigned t) { notes_set_attack_time(t); }
-    void set_release_time(unsigned t) { notes_set_release_time(t); }
-    void set_decay_time(unsigned t) { notes_set_decay_time(t); }
+    void set_pressure(float p) { note_set_pressure(p); }
+    void set_pressure(int note_no, float p) {
+        note_set_pressure(note_no, p);
+    }
 
-    void set_key_finish(bool finish) { key_finish = finish; }
+    void set_soft(float s) { note_set_soft(s); }
+    void set_pan(float p) { note_set_pan(p); }
+    void set_pos(Matrix64& m) { note_set_pos(m); }
+    void set_hold(bool h) { note_set_hold(h); }
+    void set_hold(int note_no, bool h) { note_set_hold(note_no, h); }
+    void set_sustain(bool s) { note_set_sustain(s); }
+    void set_attack_time(unsigned t) { note_set_attack_time(t); }
+    void set_release_time(unsigned t) { note_set_release_time(t); }
+    void set_decay_time(unsigned t) { note_set_decay_time(t); }
+
+    void set_note_finish(bool finish) { request_note_finish = finish; }
     void set_monophonic(bool m) { if (!is_drum_channel) monophonic = m; }
     void set_gain(float v) {
         gain = v; set_volume();
@@ -421,16 +422,16 @@ public:
     void set_pitch_depth(float s) { pitch_depth = s; }
     float get_pitch_depth() { return pitch_depth; }
 
-    void set_tuning_coarse(float s) { tuning_coarse = s; }
-    float get_tuning_coarse() { return tuning_coarse; }
+    void set_tuning_coarse(float s) { note_tuning_coarse(s); }
+    float get_tuning_coarse() { return coarse_tuning; }
 
-    void set_tuning_fine(float s) { tuning_fine = s; }
-    float get_tuning_fine() { return tuning_fine; }
+    void set_tuning_fine(float s) { note_tuning_fine(s); }
+    float get_tuning_fine() { return fine_tuning; }
 
-    void set_celeste_depth(float level) { detune = level; }
+    void set_celeste_depth(float level) { note_celeste_depth(level); }
     float get_celeste_depth() { return detune; }
 
-    void set_modulation_depth(float d) { modulation_range = d; }
+    void set_modulation_depth(float d) { note_modulation_depth(d); }
     float get_modulation_depth() { return modulation_range; }
 
     bool get_pressure_volume_bend() { return pressure_volume_bend; }
@@ -521,107 +522,112 @@ public:
     Buffer& get_buffer() { return buffer; }
 
 protected:
-    virtual void notes_finish(void) {
-        for (auto& it : key) it.second->stop();
+    virtual void note_finish(void) {
+        for (auto& it : note) it.second->stop();
     }
 
-    virtual bool notes_finished(void) {
-        for (auto& it : key) {
+    virtual bool note_finished(void) {
+        for (auto& it : note) {
             if (!it.second->finished()) return false;
         }
         return true;
     }
 
-    virtual void notes_play(int key_no, float velocity, float pitch) {
-        play(key_no, velocity, buffer, pitch);
+    virtual void note_play(int note_no, float velocity, float pitch) {
+        play(note_no, velocity, buffer, pitch);
     }
 
-    virtual void notes_stop(int key_no, float velocity=0) {
+    virtual void note_stop(int note_no, float velocity=0) {
         if (!legato) {
-            auto it = key.find(key_no);
-            if (it != key.end()) {
+            auto it = note.find(note_no);
+            if (it != note.end()) {
                 it->second->stop(velocity);
             }
         }
     }
 
-    virtual void notes_set_pitch(float pitch) {
-        for (auto& it : key) it.second->set_pitch(pitch);
+    virtual void note_set_pitch(float pitch) {
+        for (auto& it : note) it.second->set_pitch(pitch);
     }
 
-    virtual void notes_set_pitch(int key_no, float pitch) {
-        auto it = key.find(key_no);
-        if (it != key.end()) {
+    virtual void note_set_pitch(int note_no, float pitch) {
+        auto it = note.find(note_no);
+        if (it != note.end()) {
             it->second->set_pitch(pitch);
         }
     }
 
-    virtual void notes_set_soft(float s) {
+    virtual void note_tuning_coarse(float s) { coarse_tuning = s; }
+    virtual void note_tuning_fine(float s) { fine_tuning = s; }
+    virtual void note_celeste_depth(float level) { detune = level; }
+    virtual void note_modulation_depth(float d) { modulation_range = d; }
+
+    virtual void note_set_soft(float s) {
         // sitch between 1.0f (non-soft) and 0.707f (soft)
         soft = (!is_drum_channel) ? 1.0f - 0.293f*s : 1.0f;
         set_filter_cutoff();
-        for (auto& it : key) it.second->set_soft(soft);
+        for (auto& it : note) it.second->set_soft(soft);
     }
 
-    virtual void notes_set_pressure(float p) {
-        for (auto& it : key) it.second->set_pressure(p);
+    virtual void note_set_pressure(float p) {
+        for (auto& it : note) it.second->set_pressure(p);
     }
 
-    virtual void notes_set_pressure(int key_no, float p) {
-        auto it = key.find(key_no);
-        if (it != key.end()) {
+    virtual void note_set_pressure(int note_no, float p) {
+        auto it = note.find(note_no);
+        if (it != note.end()) {
             it->second->set_pressure(p);
         }
     }
 
-    virtual void notes_set_pan(float p) {
+    virtual void note_set_pan(float p) {
         p = floorf(p * note::pan_levels)/note::pan_levels;
         if (p != pan_prev) {
             pan.set(p);
-            notes_set_pos(pan.mtx);
+            note_set_pos(pan.mtx);
             pan_prev = p;
         }
     }
 
-    virtual void notes_set_pos(Matrix64& m) {
+    virtual void note_set_pos(Matrix64& m) {
         pan.mtx = m;
         if (is_drum_channel || pan.wide) {
-            for (auto& it : key) it.second->matrix(pan.mtx);
+            for (auto& it : note) it.second->matrix(pan.mtx);
         } else {
             Mixer::matrix(pan.mtx);
         }
     }
 
-    virtual void notes_set_hold(int key_no, bool h) {
-       auto it = key.find(key_no);
-       if (it != key.end()) {
+    virtual void note_set_hold(int note_no, bool h) {
+       auto it = note.find(note_no);
+       if (it != note.end()) {
             it->second->set_hold(h);
         }
     }
 
-    virtual void notes_set_hold(bool h) {
-        for (auto& it : key) it.second->set_hold(h);
+    virtual void note_set_hold(bool h) {
+        for (auto& it : note) it.second->set_hold(h);
     }
 
-    virtual void notes_set_sustain(bool s) {
+    virtual void note_set_sustain(bool s) {
         if (!is_drum_channel) {
-            for (auto& it : key) it.second->set_sustain(s);
+            for (auto& it : note) it.second->set_sustain(s);
         }
     }
 
-    virtual void notes_set_attack_time(unsigned t) {
+    virtual void note_set_attack_time(unsigned t) {
         if (!is_drum_channel) { attack_time = t;
-            for (auto& it : key) it.second->set_attack_time(t);
+            for (auto& it : note) it.second->set_attack_time(t);
         }
     }
-    virtual void notes_set_release_time(unsigned t) {
+    virtual void note_set_release_time(unsigned t) {
         if (!is_drum_channel) { release_time = t;
-            for (auto& it : key) it.second->set_release_time(t);
+            for (auto& it : note) it.second->set_release_time(t);
         }
     }
-    virtual void notes_set_decay_time(unsigned t) {
+    virtual void note_set_decay_time(unsigned t) {
         if (!is_drum_channel) { decay_time = t;
-            for (auto& it : key) it.second->set_decay_time(t);
+            for (auto& it : note) it.second->set_decay_time(t);
         }
     }
 
@@ -694,14 +700,14 @@ protected:
 
     float detune = 0.0f;
     float pitch_depth = 2.0f;
-    float tuning_coarse = 0.0f;
-    float tuning_fine = 0.0f;
+    float coarse_tuning = 0.0f;
+    float fine_tuning = 0.0f;
     float modulation_range = 2.0f;
     float pressure_sensitivity = 1.0f;
 
     float transition_time = 0.0f;
     float pitch_start = 1.0f;
-    int key_prev = 0;
+    int note_prev = 0;
 
     bool is_drum_channel = false;
     bool monophonic = false;
@@ -712,9 +718,9 @@ protected:
     bool pressure_volume_bend = true;
     bool pressure_pitch_bend = false;
 
-    bool key_finish = false;
-    std::map<uint32_t,note_t> key_stopped;
-    std::map<uint32_t,note_t> key;
+    bool request_note_finish = false;
+    std::map<uint32_t,note_t> note_stopped;
+    std::map<uint32_t,note_t> note;
 };
 
 
@@ -732,7 +738,7 @@ private:
     struct member_t {
         member_t(Ensemble* e, Instrument *i, float p, float g, int n=0, int m=128)
           : ensemble(e), instrument(std::unique_ptr<Instrument>(i)),
-            min_key(n), max_key(m), pitch(p), gain(g)
+            min_note(n), max_note(m), pitch(p), gain(g)
         {
             ensemble->add(*instrument);
         }
@@ -743,8 +749,8 @@ private:
 
         Ensemble* ensemble;
         std::unique_ptr<Instrument> instrument;
-        int min_key;
-        int max_key;
+        int min_note;
+        int max_note;
         float pitch;
         float gain;
     };
@@ -793,37 +799,37 @@ private:
     std::vector<std::unique_ptr<member_t>> member;
     std::mt19937 m_mt;
 
-    void notes_play(int key_no, float velocity, float pitch)
+    void note_play(int note_no, float velocity, float pitch)
     {
         for(int i=0; i<member.size(); ++i) {
             auto& m = member[i];
-            if (key_no >= m->min_key && key_no < m->max_key) {
-                m->instrument->play(key_no, velocity, pitch*m->pitch);
+            if (note_no >= m->min_note && note_no < m->max_note) {
+                m->instrument->play(note_no, velocity, pitch*m->pitch);
             }
         }
     }
 
-    void notes_stop(int key_no, float velocity) {
+    void note_stop(int note_no, float velocity) {
         if (!member.size()) {
-            Instrument::notes_stop(key_no, velocity);
+            Instrument::note_stop(note_no, velocity);
         } else if (!legato) {
             for(int i=0; i<member.size(); ++i) {
-                member[i]->instrument->stop(key_no, velocity);
+                member[i]->instrument->stop(note_no, velocity);
             }
         }
     }
 
-    void notes_finish(void) {
+    void note_finish(void) {
         if (!member.size()) {
-            Instrument::notes_finish();
+            Instrument::note_finish();
         } else for(int i=0; i<member.size(); ++i) {
             member[i]->instrument->finish();
         }
     }
 
-    bool notes_finished(void) {
+    bool note_finished(void) {
         if (!member.size()) {
-            return Instrument::notes_finished();
+            return Instrument::note_finished();
         }
         for(int i=0; i<member.size(); ++i) {
             if (!member[i]->instrument->finished()) return false;
@@ -831,25 +837,54 @@ private:
         return true;
     }
 
-    void notes_set_pitch(float pitch) {
+    void note_set_pitch(float pitch) {
         if (!member.size()) {
-            Instrument::notes_set_pitch(pitch);
+            Instrument::note_set_pitch(pitch);
         } else for(int i=0; i<member.size(); ++i) {
             member[i]->instrument->set_pitch(pitch);
         }
     }
 
-    void notes_set_pitch(int key_no, float pitch) {
+    void note_set_pitch(int note_no, float pitch) {
         if (!member.size()) {
-            Instrument::notes_set_pitch(key_no, pitch);
+            Instrument::note_set_pitch(note_no, pitch);
         } else for(int i=0; i<member.size(); ++i) {
-            member[i]->instrument->set_pitch(key_no, pitch);
+            member[i]->instrument->set_pitch(note_no, pitch);
         }
     }
 
-    void notes_set_soft(float s) {
+    void note_tuning_coarse(float s) {
         if (!member.size()) {
-            Instrument::notes_set_soft(s);
+            Instrument::note_tuning_coarse(s);
+        } else for(int i=0; i<member.size(); ++i) {
+            member[i]->instrument->set_tuning_coarse(s);
+        }
+    }
+    void note_tuning_fine(float s) {
+        if (!member.size()) {
+            Instrument::note_tuning_fine(s);
+        } else for(int i=0; i<member.size(); ++i) {
+            member[i]->instrument->set_tuning_fine(s);
+        }
+    }
+    void note_celeste_depth(float level) {
+        if (!member.size()) {
+            Instrument::note_celeste_depth(level);
+        } else for(int i=0; i<member.size(); ++i) {
+            member[i]->instrument->set_celeste_depth(level);
+        }
+    }
+    void note_modulation_depth(float d) {
+        if (!member.size()) {
+            Instrument::note_modulation_depth(d);
+        } else for(int i=0; i<member.size(); ++i) {
+            member[i]->instrument->set_modulation_depth(d);
+        }
+     }
+
+    void note_set_soft(float s) {
+        if (!member.size()) {
+            Instrument::note_set_soft(s);
         } else {
             // sitch between 1.0f (non-soft) and 0.707f (soft)
             soft = (!is_drum_channel) ? 1.0f - 0.293f*s : 1.0f;
@@ -860,25 +895,25 @@ private:
         }
     }
 
-    void notes_set_pressure(float p) {
+    void note_set_pressure(float p) {
         if (!member.size()) {
-            Instrument::notes_set_pressure(p);
+            Instrument::note_set_pressure(p);
         } else for(int i=0; i<member.size(); ++i) {
             member[i]->instrument->set_pressure(p);
         }
     }
 
-    void notes_set_pressure(int key_no, float p) {
+    void note_set_pressure(int note_no, float p) {
         if (!member.size()) {
-            Instrument::notes_set_pressure(key_no, p);
+            Instrument::note_set_pressure(note_no, p);
         } else for(int i=0; i<member.size(); ++i) {
-            member[i]->instrument->set_pressure(key_no, p);
+            member[i]->instrument->set_pressure(note_no, p);
         }
     }
 
-    void notes_set_pan(float p) {
+    void note_set_pan(float p) {
         if (!member.size()) {
-            Instrument::notes_set_pan(p);
+            Instrument::note_set_pan(p);
         } else {
             p = floorf(p * note::pan_levels)/note::pan_levels;
             if (p != pan_prev) {
@@ -895,25 +930,25 @@ private:
         }
     }
 
-    void notes_set_hold(int key_no, bool h) {
+    void note_set_hold(int note_no, bool h) {
         if (!member.size()) {
-            Instrument::notes_set_hold(key_no, h);
+            Instrument::note_set_hold(note_no, h);
         } else for(int i=0; i<member.size(); ++i) {
-            member[i]->instrument->set_hold(key_no, h);
+            member[i]->instrument->set_hold(note_no, h);
         }
     }
 
-    void notes_set_hold(bool h) {
+    void note_set_hold(bool h) {
         if (!member.size()) {
-            Instrument::notes_set_hold(h);
+            Instrument::note_set_hold(h);
         } else for(int i=0; i<member.size(); ++i) {
             member[i]->instrument->set_hold(h);
         }
     }
 
-    void notes_set_sustain(bool s) {
+    void note_set_sustain(bool s) {
         if (!member.size()) {
-            Instrument::notes_set_sustain(s);
+            Instrument::note_set_sustain(s);
         } else if (!is_drum_channel) {
             for(int i=0; i<member.size(); ++i) {
                 member[i]->instrument->set_sustain(s);
@@ -921,27 +956,27 @@ private:
         }
     }
 
-    void notes_set_attack_time(unsigned t) {
+    void note_set_attack_time(unsigned t) {
         if (!member.size()) {
-            Instrument::notes_set_attack_time(t);
+            Instrument::note_set_attack_time(t);
         } else if (!is_drum_channel) { attack_time = t;
             for(int i=0; i<member.size(); ++i) {
                 member[i]->instrument->set_attack_time(t);
             }
         }
     }
-    void notes_set_release_time(unsigned t) {
+    void note_set_release_time(unsigned t) {
         if (!member.size()) {
-            Instrument::notes_set_release_time(t);
+            Instrument::note_set_release_time(t);
         } else if (!is_drum_channel) { release_time = t;
             for(int i=0; i<member.size(); ++i) {
                 member[i]->instrument->set_release_time(t);
             }
         }
     }
-    void notes_set_decay_time(unsigned t) {
+    void note_set_decay_time(unsigned t) {
         if (!member.size()) {
-            Instrument::notes_set_decay_time(t);
+            Instrument::note_set_decay_time(t);
         } else if (!is_drum_channel) { decay_time = t;
             for(int i=0; i<member.size(); ++i) {
                 member[i]->instrument->set_decay_time(t);
