@@ -146,7 +146,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
    }
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
-      // inetnional fall-through
+      // intentional fall-through
    case false:
       if (filter->slot[0]->data)
       {

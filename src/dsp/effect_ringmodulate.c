@@ -132,7 +132,7 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
    }
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
-      // inetnional fall-through
+      // intentional fall-through
    case false:
       if (effect->slot[0]->data)
       {
