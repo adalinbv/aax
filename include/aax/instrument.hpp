@@ -302,7 +302,7 @@ public:
     // It's tempting to store the instrument buffer as a class parameter
     // but drums require a different buffer for every note_no
     void play(int note_no, float velocity, Buffer& buffer, float pitch=1.0f) {
-        note_no += coarse_tuning;
+        note_no = get_note(note_no);
         if (!is_drum_channel) {
             pitch *= buffer.get_pitch(aax::math::note2freq(note_no));
         }
@@ -361,26 +361,26 @@ public:
     }
 
     void stop(int note_no, float velocity=0) {
-       note_stop(note_no, velocity);
+       note_stop(get_note(note_no), velocity);
     }
 
     void set_pitch(float pitch) {
         note_set_pitch(pitch);
     }
     void set_pitch(int note_no, float pitch) {
-        note_set_pitch(note_no, pitch);
+        note_set_pitch(get_note(note_no), pitch);
     }
 
     void set_pressure(float p) { note_set_pressure(p); }
     void set_pressure(int note_no, float p) {
-        note_set_pressure(note_no, p);
+        note_set_pressure(get_note(note_no), p);
     }
 
     void set_soft(float s) { note_set_soft(s); }
     void set_pan(float p) { note_set_pan(p); }
     void set_pos(Matrix64& m) { note_set_pos(m); }
     void set_hold(bool h) { note_set_hold(h); }
-    void set_hold(int note_no, bool h) { note_set_hold(note_no, h); }
+    void set_hold(int note_no, bool h) { note_set_hold(get_note(note_no), h); }
     void set_sustain(bool s) { note_set_sustain(s); }
     void set_attack_time(unsigned t) { note_set_attack_time(t); }
     void set_release_time(unsigned t) { note_set_release_time(t); }
@@ -676,6 +676,11 @@ private:
     Status reverb_state = false;
 
 protected:
+    int get_note(int note_no) {
+        if (is_drum_channel) return note_no;
+        return note_no + coarse_tuning;
+    }
+
     AeonWave& aax;
     Buffer& buffer;
 
