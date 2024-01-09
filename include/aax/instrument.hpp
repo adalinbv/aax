@@ -140,7 +140,6 @@ public:
     }
 
     bool play(float velocity, float start_pitch=1.0f, float time=0.0f) {
-        hold = false;
         if (time > 0.0f && start_pitch != pitch) {
            aax::dsp dsp = Emitter::get(AAX_PITCH_EFFECT);
            dsp.set(AAX_PITCH_START, start_pitch);
@@ -161,7 +160,7 @@ public:
     }
 
     bool finish(void) {
-        hold = false; playing = false;
+        playing = false;
         return Emitter::set(AAX_STOPPED);
     }
 
@@ -175,8 +174,8 @@ public:
         return (s != AAX_PLAYING);
     }
 
-    // current_notes hold until hold becomes false, even after a stop message.
-    // already stopped current_notes can be caught by hold again.
+    // notes hold until hold becomes false, even after a stop message.
+    // already stopped notes can be caught by hold again.
     void set_hold(bool h) {
         if (!h && hold) Emitter::set(AAX_STOPPED);
         else if (h && Emitter::state() == AAX_STOPPED) {
@@ -185,7 +184,7 @@ public:
         hold = h;
     }
 
-    // only current_notes started before this command should hold until stop arrives
+    // only notes started before this command should hold until stop arrives
     void set_sustain(bool s) { hold = s; }
 
     void set_soft(float soft) {
@@ -217,7 +216,7 @@ private:
     Param pitch_param = 1.0f;
 
     bool playing = false;
-    bool hold = true;
+    bool hold = false;
 
     float pan_prev = -1000.0f;
     float pitch_bend = 1.0f;
@@ -397,7 +396,7 @@ public:
     void set_modulation(float m) {
         if (!is_drum_channel) {
             bool enabled = (m != 0.0f);
-            vibrato_depth = m; tremolo_depth = m; tremolo_offset - 1.0f - m;
+            vibrato_depth = m; tremolo_depth = m; tremolo_offset = 1.0f - m;
             if (enabled)
             {
                 if (!vibrato_state) {
@@ -421,6 +420,12 @@ public:
 
     void set_pitch_depth(float s) { pitch_depth = s; }
     float get_pitch_depth() { return pitch_depth; }
+
+    void set_master_tuning_coarse(float s) { note_master_tuning_coarse(s); }
+    float get_master_tuning_coarse() { return master_coarse_tuning; }
+
+    void set_master_tuning_fine(float s) { note_master_tuning_fine(s); }
+    float get_master_tuning_fine() { return master_fine_tuning; }
 
     void set_tuning_coarse(float s) { note_tuning_coarse(s); }
     float get_tuning_coarse() { return coarse_tuning; }
@@ -557,6 +562,8 @@ protected:
         }
     }
 
+    virtual void note_master_tuning_coarse(float s){ master_coarse_tuning = s; }
+    virtual void note_master_tuning_fine(float s) { master_fine_tuning = s; }
     virtual void note_tuning_coarse(float s) { coarse_tuning = s; }
     virtual void note_tuning_fine(float s) { fine_tuning = s; }
     virtual void note_celeste_depth(float level) { detune = level; }
@@ -599,14 +606,18 @@ protected:
     }
 
     virtual void note_set_hold(int note_no, bool h) {
-       auto it = note.find(note_no);
-       if (it != note.end()) {
-            it->second->set_hold(h);
+        if (!is_drum_channel) {
+            auto it = note.find(note_no);
+            if (it != note.end()) {
+                it->second->set_hold(h);
+            }
         }
     }
 
     virtual void note_set_hold(bool h) {
-        for (auto& it : note) it.second->set_hold(h);
+        if (!is_drum_channel) {
+            for (auto& it : note) it.second->set_hold(h);
+        }
     }
 
     virtual void note_set_sustain(bool s) {
@@ -678,7 +689,7 @@ private:
 protected:
     int get_note(int note_no) {
         if (is_drum_channel) return note_no;
-        return note_no + coarse_tuning;
+        return note_no + coarse_tuning + master_coarse_tuning;
     }
 
     AeonWave& aax;
@@ -705,6 +716,8 @@ protected:
 
     float detune = 0.0f;
     float pitch_depth = 2.0f;
+    float master_coarse_tuning = 0.0f;
+    float master_fine_tuning = 0.0f;
     float coarse_tuning = 0.0f;
     float fine_tuning = 0.0f;
     float modulation_range = 2.0f;
@@ -858,28 +871,53 @@ private:
         }
     }
 
+    void note_master_tuning_coarse(float s) {
+        master_coarse_tuning = s;
+        if (!member.size()) {
+            Instrument::note_master_tuning_coarse(s);
+        } else for(int i=0; i<member.size(); ++i) {
+            member[i]->instrument->set_master_tuning_coarse(s);
+        }
+    }
+
     void note_tuning_coarse(float s) {
+        coarse_tuning = s;
         if (!member.size()) {
             Instrument::note_tuning_coarse(s);
         } else for(int i=0; i<member.size(); ++i) {
             member[i]->instrument->set_tuning_coarse(s);
         }
     }
+
+    void note_master_tuning_fine(float s) {
+        master_fine_tuning = s;
+        if (!member.size()) {
+            Instrument::note_master_tuning_fine(s);
+        } else for(int i=0; i<member.size(); ++i) {
+            member[i]->instrument->set_master_tuning_fine(s);
+        }
+    }
+
     void note_tuning_fine(float s) {
+        fine_tuning = s;
         if (!member.size()) {
             Instrument::note_tuning_fine(s);
         } else for(int i=0; i<member.size(); ++i) {
             member[i]->instrument->set_tuning_fine(s);
         }
     }
+
     void note_celeste_depth(float level) {
+        detune = level;
         if (!member.size()) {
             Instrument::note_celeste_depth(level);
         } else for(int i=0; i<member.size(); ++i) {
             member[i]->instrument->set_celeste_depth(level);
         }
     }
+
     void note_modulation_depth(float d) {
+        modulation_range = d;
         if (!member.size()) {
             Instrument::note_modulation_depth(d);
         } else for(int i=0; i<member.size(); ++i) {
@@ -936,18 +974,22 @@ private:
     }
 
     void note_set_hold(int note_no, bool h) {
-        if (!member.size()) {
-            Instrument::note_set_hold(note_no, h);
-        } else for(int i=0; i<member.size(); ++i) {
-            member[i]->instrument->set_hold(note_no, h);
+        if (!is_drum_channel) {
+            if (!member.size()) {
+                Instrument::note_set_hold(note_no, h);
+            } else for(int i=0; i<member.size(); ++i) {
+                member[i]->instrument->set_hold(note_no, h);
+            }
         }
     }
 
     void note_set_hold(bool h) {
-        if (!member.size()) {
-            Instrument::note_set_hold(h);
-        } else for(int i=0; i<member.size(); ++i) {
-            member[i]->instrument->set_hold(h);
+        if (!is_drum_channel) {
+            if (!member.size()) {
+                Instrument::note_set_hold(h);
+            } else for(int i=0; i<member.size(); ++i) {
+                member[i]->instrument->set_hold(h);
+            }
         }
     }
 
