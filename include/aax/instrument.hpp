@@ -1065,24 +1065,7 @@ private:
             }
         }
     }
-    void note_gain(float v) {
-        if (!member.size()) {
-            Instrument::note_gain(v);
-        } else if (!is_drum_channel) {
-            for(int i=0; i<member.size(); ++i) {
-                member[i]->instrument->set_gain(v);
-            }
-        }
-    }
-    void note_expression(float e) {
-        if (!member.size()) {
-            Instrument::note_expression(e);
-        } else if (!is_drum_channel) { expression = e;
-            for(int i=0; i<member.size(); ++i) {
-                member[i]->instrument->set_expression(e);
-            }
-        }
-    }
+
     void note_modulation(float m) { //
         if (!member.size()) {
             Instrument::note_modulation(m);
