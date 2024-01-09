@@ -153,11 +153,27 @@ public:
         return playing;
     }
 
+    // When a Note-Off is received and the Damper is ON, the Note-Off shall
+    // be deferred (ignored for now)
     bool stop(float velocity=1.0f) {
         playing = false;
         Emitter::set(AAX_MIDI_RELEASE_VELOCITY_FACTOR, 127.0f*velocity);
-        return hold ? true : Emitter::set(AAX_STOPPED);
+        return damper ? true : Emitter::set(AAX_STOPPED);
     }
+
+    // When the Damper transitions from ON to OFF, any notes which have
+    // deferred Note-Offs should now respond to the note off, and the
+    // amplitude envelope should enter the Release stage, from wherever it was.
+    void set_hold(bool h) {
+        if (damper && !h && !playing) Emitter::set(AAX_STOPPED);
+        else if (h && Emitter::state() == AAX_STOPPED) {
+            playing = Emitter::set(AAX_PLAYING);
+        }
+        damper = h;
+    }
+
+    // only notes started before this command should hold until stop arrives
+    void set_sustain(bool s) { damper = s; }
 
     bool finish(void) {
         playing = false;
@@ -173,19 +189,6 @@ public:
         aaxState s = Emitter::state();
         return (s != AAX_PLAYING);
     }
-
-    // notes hold until hold becomes false, even after a stop message.
-    // already stopped notes can be caught by hold again.
-    void set_hold(bool h) {
-        if (!h && hold) Emitter::set(AAX_STOPPED);
-        else if (h && Emitter::state() == AAX_STOPPED) {
-            Emitter::set(AAX_PLAYING);
-        }
-        hold = h;
-    }
-
-    // only notes started before this command should hold until stop arrives
-    void set_sustain(bool s) { hold = s; }
 
     void set_soft(float soft) {
         Emitter::set(AAX_MIDI_SOFT_FACTOR, 127.0f*soft);
@@ -216,7 +219,7 @@ private:
     Param pitch_param = 1.0f;
 
     bool playing = false;
-    bool hold = false;
+    bool damper = false;
 
     float pan_prev = -1000.0f;
     float pitch_bend = 1.0f;
