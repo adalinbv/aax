@@ -57,7 +57,7 @@ public:
     float get() { return pan; }
     void set(float p, bool init=false) {
         pan = p;
-        panned = !init;
+        panned = ~init;
 
         if (!init && abs(wide) > 0) {
             p = floorf(pan*wide)/abs(wide);
@@ -1038,32 +1038,38 @@ private:
     }
 
     void note_attack_time(unsigned t) {
-        p.attack_time = t;
-        if (!member.size()) {
-            Instrument::note_attack_time(t);
-        } else if (!p.is_drum_channel) {
-            for(int i=0; i<member.size(); ++i) {
-                member[i]->instrument->set_attack_time(t);
+        if (!p.is_drum_channel) {
+            p.attack_time = t;
+            if (!member.size()) {
+                Instrument::note_attack_time(t);
+            } else {
+                for(int i=0; i<member.size(); ++i) {
+                    member[i]->instrument->set_attack_time(t);
+                }
             }
         }
     }
     void note_release_time(unsigned t) {
-        p.release_time = t;
-        if (!member.size()) {
-            Instrument::note_release_time(t);
-        } else if (!p.is_drum_channel) {
-            for(int i=0; i<member.size(); ++i) {
-                member[i]->instrument->set_release_time(t);
+        if (!p.is_drum_channel) {
+            p.release_time = t;
+            if (!member.size()) {
+                Instrument::note_release_time(t);
+            } else {
+                for(int i=0; i<member.size(); ++i) {
+                    member[i]->instrument->set_release_time(t);
+                }
             }
         }
     }
     void note_decay_time(unsigned t) {
-        p.decay_time = t;
-        if (!member.size()) {
-            Instrument::note_decay_time(t);
-        } else if (!p.is_drum_channel) {
-            for(int i=0; i<member.size(); ++i) {
-                member[i]->instrument->set_decay_time(t);
+        if (!p.is_drum_channel) {
+            p.decay_time = t;
+            if (!member.size()) {
+                Instrument::note_decay_time(t);
+            } else {
+                for(int i=0; i<member.size(); ++i) {
+                    member[i]->instrument->set_decay_time(t);
+                }
             }
         }
     }
@@ -1078,12 +1084,14 @@ private:
         }
     }
     void note_monophonic(bool m) {
-        p.monophonic = m;
-        if (!member.size()) {
-            Instrument::note_monophonic(m);
-        } else if (!p.is_drum_channel) {
-            for(int i=0; i<member.size(); ++i) {
-                member[i]->instrument->set_monophonic(m);
+        if (!p.is_drum_channel) {
+            p.monophonic = m;
+            if (!member.size()) {
+                Instrument::note_monophonic(m);
+            } else {
+                for(int i=0; i<member.size(); ++i) {
+                    member[i]->instrument->set_monophonic(m);
+                }
             }
         }
     }
@@ -1120,33 +1128,39 @@ private:
         }
     }
     void note_pitch_slide_state(bool s) {
-        p.slide_state = s;
-        if (!member.size()) {
-            Instrument::note_pitch_slide_state(s);
-        } else if (!p.is_drum_channel) {
-            for(int i=0; i<member.size(); ++i) {
-                member[i]->instrument->set_pitch_slide_state(s);
+        if (!p.is_drum_channel) {
+            p.slide_state = s;
+            if (!member.size()) {
+                Instrument::note_pitch_slide_state(s);
+            } else {
+                for(int i=0; i<member.size(); ++i) {
+                    member[i]->instrument->set_pitch_slide_state(s);
+                }
             }
         }
     }
     void note_pitch_transition_time(float t) {
-        p.transition_time = t;
-        if (!member.size()) {
-            Instrument::note_pitch_transition_time(t);
-        } else if (!p.is_drum_channel) {
-            for(int i=0; i<member.size(); ++i) {
-                member[i]->instrument->set_pitch_transition_time(t);
+        if (!p.is_drum_channel) {
+            p.transition_time = t;
+            if (!member.size()) {
+                Instrument::note_pitch_transition_time(t);
+            } else {
+                for(int i=0; i<member.size(); ++i) {
+                    member[i]->instrument->set_pitch_transition_time(t);
+                }
             }
         }
     }
 
     void note_pitch_depth(float s) {
-        p.pitch_depth = s;
-        if (!member.size()) {
-            Instrument::note_pitch_depth(s);
-        } else if (!p.is_drum_channel) {
-            for(int i=0; i<member.size(); ++i) {
-                member[i]->instrument->set_pitch_depth(s);
+        if (!p.is_drum_channel) {
+            p.pitch_depth = s;
+            if (!member.size()) {
+                Instrument::note_pitch_depth(s);
+            } else {
+                for(int i=0; i<member.size(); ++i) {
+                    member[i]->instrument->set_pitch_depth(s);
+                }
             }
         }
     }
