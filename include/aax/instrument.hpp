@@ -22,6 +22,8 @@
 namespace aax
 {
 
+#define MAX_NO_NOTES	128
+
 namespace note
 {
 static float volume = 0.5f;
@@ -238,6 +240,8 @@ public:
     Instrument(AeonWave& ptr, Buffer& buf, bool drums=false, int wide=0, bool panned=true)
         : Mixer(ptr), aax(ptr), buffer(buf)
     {
+        for (int i=0; i<MAX_NO_NOTES; ++i) p.note_tuning[i] = 1.0f;
+
         p.is_drum_channel = drums;
         pan.wide = wide;
 
@@ -306,6 +310,7 @@ public:
     // but drums require a different buffer for every note_no
     void play(int note_no, float velocity, Buffer& buffer, float pitch=1.0f) {
         note_no = get_note(note_no);
+        pitch *= get_note_tuning(note_no);
         if (!p.is_drum_channel) {
             pitch *= buffer.get_pitch(aax::math::note2freq(note_no));
         }
@@ -406,11 +411,11 @@ public:
     void set_master_tuning_coarse(float s) { note_master_tuning_coarse(s); }
     float get_master_tuning_coarse() { return p.master_coarse_tuning; }
 
-    void set_master_tuning_fine(float s) { note_master_tuning_fine(s); }
-    float get_master_tuning_fine() { return p.master_fine_tuning; }
-
     void set_tuning_coarse(float s) { note_tuning_coarse(s); }
     float get_tuning_coarse() { return p.coarse_tuning; }
+
+    void set_master_tuning_fine(float s) { note_master_tuning_fine(s); }
+    float get_master_tuning_fine() { return p.master_fine_tuning; }
 
     void set_tuning_fine(float s) { note_tuning_fine(s); }
     float get_tuning_fine() { return p.fine_tuning; }
@@ -549,12 +554,15 @@ protected:
 
     virtual void note_master_tuning_coarse(float s) {
         p.master_coarse_tuning = s;
-     }
-    virtual void note_master_tuning_fine(float s) {
-        p.master_fine_tuning = s;
     }
     virtual void note_tuning_coarse(float s) { p.coarse_tuning = s; }
-    virtual void note_tuning_fine(float s) { p.fine_tuning = s; }
+
+    virtual void note_master_tuning_fine(float s, int note=-1) {
+        p.master_fine_tuning = s/100.0f; set_note_tuning(note);
+    }
+    virtual void note_tuning_fine(float s, int note=-1) {
+        p.fine_tuning = s/100.0f; set_note_tuning(note);
+    }
     virtual void note_celeste_depth(float level) { p.detune = level; }
     virtual void note_modulation_depth(float d) { p.modulation_range = d; }
 
@@ -680,6 +688,20 @@ protected:
     }
 
 private:
+    float get_note_tuning(int note_no) {
+        float fine_tuning = p.note_tuning[note_no];
+        float base_freq = aax::math::note2freq(69.0f+fine_tuning);
+        float freq = aax::math::note2freq(note_no, base_freq);
+        return freq/aax::math::note2freq(note_no);
+    }
+    void set_note_tuning(int note_no) { // C = 0, C# = 1, all notes = -1
+        int start = (note_no >= 0) ? note_no : 0;
+        int step = (note_no >= 0) ? 12 : 1;
+        for (int i = start; i<MAX_NO_NOTES; i += step) {
+            p.note_tuning[i] = p.master_fine_tuning + p.fine_tuning;
+        }
+    }
+
     Param volume = 1.0f;
 
     Param vibrato_freq = 5.0f;
@@ -758,6 +780,8 @@ protected:
 
         bool pressure_volume_bend = true;
         bool pressure_pitch_bend = false;
+
+        float note_tuning[MAX_NO_NOTES];
     } p;
 
     float fc = math::lin2log(float(freqfilter_cutoff));
@@ -787,7 +811,7 @@ class Ensemble : public Instrument
 {
 private:
     struct member_t {
-        member_t(Ensemble* e, Instrument *i, float p, float g, int n=0, int m=128)
+        member_t(Ensemble* e, Instrument *i, float p, float g, int n=0, int m=MAX_NO_NOTES)
           : ensemble(e), instrument(std::unique_ptr<Instrument>(i)),
             min_note(n), max_note(m), pitch(p), gain(g)
         {
@@ -835,12 +859,12 @@ public:
     }
 
     void add_member(Buffer& buf, float pitch, float gain) {
-        add_member(buf, pitch, gain, 0, 128);
+        add_member(buf, pitch, gain, 0, MAX_NO_NOTES);
     }
-    void add_member(Buffer& buf, float pitch, int min=0, int max=128) {
+    void add_member(Buffer& buf, float pitch, int min=0, int max=MAX_NO_NOTES) {
         add_member(buf, pitch, 1.0f, min, max);
     }
-    void add_member(Buffer& buf, int min=0, int max=128) {
+    void add_member(Buffer& buf, int min=0, int max=MAX_NO_NOTES) {
         add_member(buf, 1.0f, 1.0f, min, max);
     }
 
@@ -925,7 +949,7 @@ private:
     }
 
     void note_master_tuning_fine(float s) {
-        p.master_fine_tuning = s;
+        p.master_fine_tuning = s/100.0f;
         if (!member.size()) {
             Instrument::note_master_tuning_fine(s);
         } else for(int i=0; i<member.size(); ++i) {
@@ -934,7 +958,7 @@ private:
     }
 
     void note_tuning_fine(float s) {
-        p.fine_tuning = s;
+        p.fine_tuning = s/100.0f;
         if (!member.size()) {
             Instrument::note_tuning_fine(s);
         } else for(int i=0; i<member.size(); ++i) {
