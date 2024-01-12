@@ -310,10 +310,7 @@ public:
     // but drums require a different buffer for every note_no
     void play(int note_no, float velocity, Buffer& buffer, float pitch=1.0f) {
         note_no = get_note(note_no);
-        pitch *= get_note_tuning(note_no);
-        if (!p.is_drum_channel) {
-            pitch *= buffer.get_pitch(aax::math::note2freq(note_no));
-        }
+        pitch *= get_note_pitch(note_no);
         if (p.monophonic || p.legato) {
             auto it = note.find(note_prev);
             if (it != note.end()) it->second->stop();
@@ -414,11 +411,16 @@ public:
     void set_tuning_coarse(float s) { note_tuning_coarse(s); }
     float get_tuning_coarse() { return p.coarse_tuning; }
 
-    void set_master_tuning_fine(float s) { note_master_tuning_fine(s); }
+    void set_master_tuning_fine(float s, int n=-1) {
+        note_master_tuning_fine(s, n);
+    }
     float get_master_tuning_fine() { return p.master_fine_tuning; }
 
-    void set_tuning_fine(float s) { note_tuning_fine(s); }
+    void set_tuning_fine(float s, int n=-1) { note_tuning_fine(s, n); }
     float get_tuning_fine() { return p.fine_tuning; }
+
+    void set_tuning_offset(float f) { note_tuning_offset(f); }
+    float get_tuning_offset() { return p.tuning_offset; }
 
     void set_celeste_depth(float level) { note_celeste_depth(level); }
     float get_celeste_depth() { return p.detune; }
@@ -557,12 +559,13 @@ protected:
     }
     virtual void note_tuning_coarse(float s) { p.coarse_tuning = s; }
 
-    virtual void note_master_tuning_fine(float s, int note=-1) {
-        p.master_fine_tuning = s/100.0f; set_note_tuning(note);
+    virtual void note_master_tuning_fine(float s, int n) {
+        p.master_fine_tuning = s/100.0f; set_note_tuning(n);
     }
-    virtual void note_tuning_fine(float s, int note=-1) {
-        p.fine_tuning = s/100.0f; set_note_tuning(note);
+    virtual void note_tuning_fine(float s, int n) {
+        p.fine_tuning = s/100.0f; set_note_tuning(n);
     }
+    virtual void note_tuning_offset(float f) { p.tuning_offset = f; }
     virtual void note_celeste_depth(float level) { p.detune = level; }
     virtual void note_modulation_depth(float d) { p.modulation_range = d; }
 
@@ -688,11 +691,16 @@ protected:
     }
 
 private:
-    float get_note_tuning(int note_no) {
+    float get_note_pitch(int note_no) {
         float fine_tuning = p.note_tuning[note_no];
         float base_freq = aax::math::note2freq(69.0f+fine_tuning);
         float freq = aax::math::note2freq(note_no, base_freq);
-        return freq/aax::math::note2freq(note_no);
+        float note_freq = aax::math::note2freq(note_no);
+        float pitch = freq/note_freq;
+        if (!p.is_drum_channel) {
+            pitch *= buffer.get_pitch(p.tuning_offset + note_freq);
+        }
+        return pitch;
     }
     void set_note_tuning(int note_no) { // C = 0, C# = 1, all notes = -1
         int start = (note_no >= 0) ? note_no : 0;
@@ -767,6 +775,7 @@ protected:
         float master_fine_tuning = 0.0f;
         float coarse_tuning = 0.0f;
         float fine_tuning = 0.0f;
+        float tuning_offset = 0.0f;
         float modulation_range = 2.0f;
         float pressure_sensitivity = 1.0f;
 
@@ -948,21 +957,30 @@ private:
         }
     }
 
-    void note_master_tuning_fine(float s) {
+    void note_master_tuning_fine(float s, int n) {
         p.master_fine_tuning = s/100.0f;
         if (!member.size()) {
-            Instrument::note_master_tuning_fine(s);
+            Instrument::note_master_tuning_fine(s, n);
         } else for(int i=0; i<member.size(); ++i) {
-            member[i]->instrument->set_master_tuning_fine(s);
+            member[i]->instrument->set_master_tuning_fine(s, n);
         }
     }
 
-    void note_tuning_fine(float s) {
+    void note_tuning_fine(float s, int n) {
         p.fine_tuning = s/100.0f;
         if (!member.size()) {
-            Instrument::note_tuning_fine(s);
+            Instrument::note_tuning_fine(s, n);
         } else for(int i=0; i<member.size(); ++i) {
-            member[i]->instrument->set_tuning_fine(s);
+            member[i]->instrument->set_tuning_fine(s, n);
+        }
+    }
+
+    void note_tuning_offset(float f) {
+        p.tuning_offset = f;
+        if (!member.size()) {
+            Instrument::note_tuning_offset(f);
+        } else for(int i=0; i<member.size(); ++i) {
+            member[i]->instrument->set_tuning_offset(f);;
         }
     }
 
