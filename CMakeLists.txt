@@ -287,7 +287,7 @@ else(MSVC)
    endif(CLANG)
 
    if (GCC OR CLANG)
-     set(CXX_FLAGS "${CXX_FLAGS} -g -std=c++11" CACHE STRING
+     set(CXX_FLAGS "${CXX_FLAGS} -g -std=c++17" CACHE STRING
          "Flags used by al build types."
          FORCE)
      set(C_FLAGS "${C_FLAGS} -g -Werror=format-security -std=c11 -Wall -fvisibility=hidden -funroll-loops" CACHE STRING
