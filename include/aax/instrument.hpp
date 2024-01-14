@@ -37,7 +37,7 @@ inline float note2freq(float note_no, float base_freq=440.0f) {
     return base_freq*powf(2.0f, (note_no-69.0f)/12.0f);
 }
 inline int freq2note(float freq, float base_freq=440.0f) {
-   return rintf(12*(logf(freq/base_freq)/log(2))+57);
+   return rintf(12.0f*(logf(freq/base_freq)/logf(2.0f))+69);
 }
 
 }; // namespace math
