@@ -29,6 +29,8 @@ namespace note
 static float volume = 0.5f;
 static float pan_levels = 128.0f;
 static float distance = 2.0f;
+
+static int max = MAX_NO_NOTES;
 }; // namespace aax
 
 namespace math
@@ -234,14 +236,15 @@ private:
 class Instrument : public Mixer
 {
 private:
-    using note_t = std::shared_ptr<Note>;
+    using note_t = std::vector<std::shared_ptr<Note>>;
 
 public:
-    Instrument(AeonWave& ptr, Buffer& buf, bool drums=false, int wide=0, bool panned=true)
-        : Mixer(ptr), aax(ptr), buffer(buf)
+    Instrument(AeonWave& ptr, Buffer& buf, bool drums=false, int wide=0, bool panned=true, int count=1)
+        : Mixer(ptr), aax(ptr), buffer(buf), m_mt((std::random_device())())
     {
-        for (int i=0; i<MAX_NO_NOTES; ++i) p.note_tuning[i] = 1.0f;
+        for (int i=0; i<aax::note::max; ++i) p.note_tuning[i] = 1.0f;
 
+        p.count = count;
         p.is_drum_channel = drums;
         pan.wide = wide;
 
@@ -313,15 +316,21 @@ public:
         pitch *= get_note_pitch(note_no);
         if (p.monophonic || p.legato) {
             auto it = note.find(note_prev);
-            if (it != note.end()) it->second->stop();
+            if (it != note.end()) {
+               for (int i=0; i<it->second.size(); ++i) it->second[i]->stop();
+            }
             note_prev = note_no;
         }
         note_t current_note;
         auto it = note.find(note_no);
         if (it != note.end()) {
             current_note = it->second;
-            if (request_note_finish && !current_note->finished()) {
-                current_note->finish();
+            if (request_note_finish && !current_note[0]->finished()) {
+                if (it != note.end()) {
+                   for (int i=0; i<it->second.size(); ++i) {
+                       it->second[i]->finish();
+                   }
+                }
                 note_stopped[note_no] = std::move(note.at(note_no));
                 note.erase(note_no);
                 it = note.end();
@@ -329,34 +338,50 @@ public:
         }
         if (it == note.end()) {
             float buffer_frequency = buffer.get(AAX_BASE_FREQUENCY);
-            Note *n = new Note(buffer_frequency,pitch,pan);
-            auto ret = note.insert({note_no,
-                               note_t(n, [this](Note *n) { Mixer::remove(*n); })
-                                  });
+            note_t n;
+            for (int i=0; i<p.count; ++i) {
+                std::uniform_real_distribution<> dis(0.995f*pitch, pitch);
+                Note *ptr = new Note(buffer_frequency,dis(m_mt),pan);
+                n.push_back(std::shared_ptr<Note>(ptr,
+                                       [this](Note *n) { Mixer::remove(*n); }));
+            }
+            auto ret = note.insert({note_no, n});
             current_note = ret.first->second;
             if (!playing && !p.is_drum_channel) {
                 Mixer::add(buffer);
                 playing = true;
             }
-            if (p.is_drum_channel && !pan.panned) current_note->matrix(pan.mtx_panned);
-            else if (pan.panned && abs(pan.wide) > 1) current_note->matrix(pan.mtx);
-            current_note->buffer(buffer);
+            for (int i=0; i<current_note.size(); ++i) {
+                if (p.is_drum_channel && !pan.panned) {
+                    current_note[i]->matrix(pan.mtx_panned);
+                } else if (pan.panned && abs(pan.wide) > 1) {
+                    current_note[i]->matrix(pan.mtx);
+                }
+                current_note[i]->buffer(buffer);
+            }
         }
 
-        Mixer::add(*current_note);
-        current_note->set_soft(p.soft);
-        current_note->set_attack_time(p.attack_time);
-        current_note->set_release_time(p.release_time);
-        current_note->set_decay_time(p.decay_time);
-        current_note->play(velocity, p.pitch_start, p.slide_state ? p.transition_time : 0.0f);
+        for (int i=0; i<current_note.size(); ++i) {
+            Mixer::add(*current_note[i]);
+            current_note[i]->set_soft(p.soft);
+            current_note[i]->set_attack_time(p.attack_time);
+            current_note[i]->set_release_time(p.release_time);
+            current_note[i]->set_decay_time(p.decay_time);
+            current_note[i]->play(velocity, p.pitch_start, p.slide_state ? p.transition_time : 0.0f);
+        }
         p.pitch_start = pitch;
         for (auto it = note_stopped.begin(), next = it; it != note_stopped.end();
              it = next)
         {
             ++next;
-            if (it->second->finished()) {
-                note_stopped.erase(it);
+            bool finished = true;
+            for (int i=0; i<it->second.size(); ++i) {
+                if (!it->second[i]->finished()) {
+                    finished = false;
+                    break;
+                }
             }
+            if (finished) note_stopped.erase(it);
         }
     }
 
@@ -520,12 +545,18 @@ public:
 
 protected:
     virtual void note_finish(void) {
-        for (auto& it : note) it.second->stop();
+        for (auto& it : note) {
+            for (int i=0; i<it.second.size(); ++i) {
+                it.second[i]->stop();
+            }
+        }
     }
 
     virtual bool note_finished(void) {
         for (auto& it : note) {
-            if (!it.second->finished()) return false;
+            for (int i=0; i<it.second.size(); ++i) {
+                if (!it.second[i]->finished()) return false;
+            }
         }
         return true;
     }
@@ -538,19 +569,27 @@ protected:
         if (!p.legato) {
             auto it = note.find(note_no);
             if (it != note.end()) {
-                it->second->stop(velocity);
+                for (int i=0; i<it->second.size(); ++i) {
+                    it->second[i]->stop(velocity);
+                }
             }
         }
     }
 
     virtual void note_pitch(float pitch) {
-        for (auto& it : note) it.second->set_pitch(pitch);
+        for (auto& it : note) {
+            for (int i=0; i<it.second.size(); ++i) {
+                it.second[i]->set_pitch(pitch);
+            }
+        }
     }
 
     virtual void note_pitch(int note_no, float pitch) {
         auto it = note.find(note_no);
         if (it != note.end()) {
-            it->second->set_pitch(pitch);
+            for (int i=0; i<it->second.size(); ++i) {
+                it->second[i]->set_pitch(pitch);
+            }
         }
     }
 
@@ -573,17 +612,27 @@ protected:
         // sitch between 1.0f (non-soft) and 0.707f (soft)
         p.soft = (!p.is_drum_channel) ? 1.0f - 0.293f*s : 1.0f;
         set_filter_cutoff();
-        for (auto& it : note) it.second->set_soft(s);
+        for (auto& it : note) {
+            for (int i=0; i<it.second.size(); ++i) {
+                it.second[i]->set_soft(s);
+            }
+        }
     }
 
     virtual void note_pressure(float p) {
-        for (auto& it : note) it.second->set_pressure(p);
+        for (auto& it : note) {
+            for (int i=0; i<it.second.size(); ++i) {
+                it.second[i]->set_pressure(p);
+            }
+        }
     }
 
     virtual void note_pressure(int note_no, float p) {
         auto it = note.find(note_no);
         if (it != note.end()) {
-            it->second->set_pressure(p);
+            for (int i=0; i<it->second.size(); ++i) {
+                it->second[i]->set_pressure(p);
+            }
         }
     }
 
@@ -599,7 +648,11 @@ protected:
     virtual void note_pos(Matrix64& m) {
         pan.mtx = m;
         if (p.is_drum_channel || pan.wide) {
-            for (auto& it : note) it.second->matrix(pan.mtx);
+            for (auto& it : note) {
+                for (int i=0; i<it.second.size(); ++i) {
+                    it.second[i]->matrix(pan.mtx);
+                }
+            }
         } else {
             Mixer::matrix(pan.mtx);
         }
@@ -609,36 +662,61 @@ protected:
         if (!p.is_drum_channel) {
             auto it = note.find(note_no);
             if (it != note.end()) {
-                it->second->set_hold(h);
+                for (int i=0; i<it->second.size(); ++i) {
+                    it->second[i]->set_hold(h);
+                }
             }
         }
     }
 
     virtual void note_hold(bool h) {
         if (!p.is_drum_channel) {
-            for (auto& it : note) it.second->set_hold(h);
+            for (auto& it : note) {
+                for (int i=0; i<it.second.size(); ++i) {
+                    it.second[i]->set_hold(h);
+                }
+            }
         }
     }
 
     virtual void note_sustain(bool s) {
         if (!p.is_drum_channel) {
-            for (auto& it : note) it.second->set_sustain(s);
+            for (auto& it : note) {
+                for (int i=0; i<it.second.size(); ++i) {
+                    it.second[i]->set_sustain(s);
+                }
+            }
         }
     }
 
     virtual void note_attack_time(unsigned t) {
-        if (!p.is_drum_channel) { p.attack_time = t;
-            for (auto& it : note) it.second->set_attack_time(t);
+        if (!p.is_drum_channel) {
+            p.attack_time = t;
+            for (auto& it : note) {
+                for (int i=0; i<it.second.size(); ++i) {
+                    it.second[i]->set_attack_time(t);
+                }
+            }
         }
     }
     virtual void note_release_time(unsigned t) {
-        if (!p.is_drum_channel) { p.release_time = t;
-            for (auto& it : note) it.second->set_release_time(t);
+        if (!p.is_drum_channel) {
+            p.release_time = t;
+            for (auto& it : note) {
+                for (int i=0; i<it.second.size(); ++i) {
+                    it.second[i]->set_release_time(t);
+                }
+            }
         }
     }
     virtual void note_decay_time(unsigned t) {
-        if (!p.is_drum_channel) { p.decay_time = t;
-            for (auto& it : note) it.second->set_decay_time(t);
+        if (!p.is_drum_channel) {
+            p.decay_time = t;
+            for (auto& it : note) {
+                for (int i=0; i<it.second.size(); ++i) {
+                    it.second[i]->set_decay_time(t);
+                }
+            }
         }
     }
 
@@ -705,7 +783,7 @@ private:
     void set_note_tuning(int note_no) { // C = 0, C# = 1, all notes = -1
         int start = (note_no >= 0) ? note_no : 0;
         int step = (note_no >= 0) ? 12 : 1;
-        for (int i = start; i<MAX_NO_NOTES; i += step) {
+        for (int i = start; i<aax::note::max; i += step) {
             p.note_tuning[i] = p.master_fine_tuning + p.fine_tuning;
         }
     }
@@ -756,12 +834,14 @@ protected:
     Buffer& buffer;
 
     Panning pan;
+    std::mt19937 m_mt;
 
     struct p_t
     {
         unsigned attack_time = 64;
         unsigned release_time = 64;
         unsigned decay_time = 64;
+        unsigned count = 1;
 
         float cutoff = 1.0f;
 
@@ -820,7 +900,7 @@ class Ensemble : public Instrument
 {
 private:
     struct member_t {
-        member_t(Ensemble* e, Instrument *i, float p, float g, int n=0, int m=MAX_NO_NOTES)
+        member_t(Ensemble* e, Instrument *i, float p, float g, int n=0, int m=aax::note::max)
           : ensemble(e), instrument(std::unique_ptr<Instrument>(i)),
             min_note(n), max_note(m), pitch(p), gain(g)
         {
@@ -844,7 +924,7 @@ private:
 
 public:
     Ensemble(AeonWave& ptr, Buffer& buf, bool drums=false, int wide=0)
-        : Instrument(ptr, buf, drums, wide), m_mt((std::random_device())())
+        : Instrument(ptr, buf, drums, wide)
     {}
 
     Ensemble(AeonWave& ptr, bool drums=false, int wide=0) :
@@ -858,22 +938,22 @@ public:
     Ensemble(Ensemble&&) = default;
     Ensemble& operator=(Ensemble&&) = default;
 
-    void add_member(Buffer& buf, float pitch, float gain, int min, int max)
+    void add_member(Buffer& buf, float pitch, float gain, int min, int max, int count=1)
     {
         std::uniform_real_distribution<> dis(0.995f*pitch, pitch);
         if (member.size()) pitch = dis(m_mt);
-        Instrument *i = new Instrument(aax, buf, p.is_drum_channel, pan.wide, false);
+        Instrument *i = new Instrument(aax, buf, p.is_drum_channel, pan.wide, false, count);
         member_t *m = new member_t(this, i, pitch, gain, min, max);
         member.emplace_back(m);
     }
 
     void add_member(Buffer& buf, float pitch, float gain) {
-        add_member(buf, pitch, gain, 0, MAX_NO_NOTES);
+        add_member(buf, pitch, gain, 0, aax::note::max);
     }
-    void add_member(Buffer& buf, float pitch, int min=0, int max=MAX_NO_NOTES) {
+    void add_member(Buffer& buf, float pitch, int min=0, int max=aax::note::max) {
         add_member(buf, pitch, 1.0f, min, max);
     }
-    void add_member(Buffer& buf, int min=0, int max=MAX_NO_NOTES) {
+    void add_member(Buffer& buf, int min=0, int max=aax::note::max) {
         add_member(buf, 1.0f, 1.0f, min, max);
     }
 
@@ -881,7 +961,6 @@ public:
 
 private:
     std::vector<std::unique_ptr<member_t>> member;
-    std::mt19937 m_mt;
 
     void note_play(int note_no, float velocity, float pitch)
     {
