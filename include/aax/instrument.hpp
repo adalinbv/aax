@@ -239,12 +239,12 @@ private:
     using note_t = std::vector<std::shared_ptr<Note>>;
 
 public:
-    Instrument(AeonWave& ptr, Buffer& buf, bool drums=false, int wide=0, bool panned=true, int count=1)
+    Instrument(AeonWave& ptr, Buffer& buf, bool drums=false, int wide=0, bool panned=true, int cnt=1)
         : Mixer(ptr), aax(ptr), buffer(buf), m_mt((std::random_device())())
     {
         for (int i=0; i<aax::note::max; ++i) p.note_tuning[i] = 1.0f;
 
-        p.count = count;
+        count = cnt;
         p.is_drum_channel = drums;
         pan.wide = wide;
 
@@ -339,7 +339,7 @@ public:
         if (it == note.end()) {
             float buffer_frequency = buffer.get(AAX_BASE_FREQUENCY);
             note_t n;
-            for (int i=0; i<p.count; ++i) {
+            for (int i=0; i<count; ++i) {
                 std::uniform_real_distribution<> dis(0.995f*pitch, pitch);
                 Note *ptr = new Note(buffer_frequency,dis(m_mt),pan);
                 n.push_back(std::shared_ptr<Note>(ptr,
@@ -841,7 +841,6 @@ protected:
         unsigned attack_time = 64;
         unsigned release_time = 64;
         unsigned decay_time = 64;
-        unsigned count = 1;
 
         float cutoff = 1.0f;
 
@@ -872,6 +871,8 @@ protected:
 
         float note_tuning[MAX_NO_NOTES];
     } p;
+
+    unsigned count = 1;
 
     float fc = math::lin2log(float(freqfilter_cutoff));
     float Q = float(freqfilter_resonance);
