@@ -529,7 +529,7 @@ public:
         if (!freqfilter_state) freqfilter_state = true;
     }
 
-    float get_gain() { return p.gain; }
+    float get_gain() { return gain; }
     float get_spread(void) { return pan.spread; }
     int get_wide(void) { return pan.wide; }
     bool is_drums() { return p.is_drum_channel; }
@@ -727,7 +727,7 @@ protected:
         if (!p.is_drum_channel) p.monophonic = m;
     }
     virtual void note_gain(float v) {
-        p.gain = v; set_volume();
+        gain = v; set_volume();
     }
     virtual void note_expression(float e) {
         p.expression = e; set_volume();
@@ -765,7 +765,7 @@ protected:
         freqfilter_cutoff = p.soft * math::log2lin(p.cutoff*fc);
     }
     void set_volume() {
-        volume = p.gain*p.expression;
+        volume = gain*p.expression;
     }
 
 private:
@@ -845,7 +845,6 @@ protected:
         float cutoff = 1.0f;
 
         float soft = 1.0f;
-        float gain = 1.0f;
         float expression = 1.0f;
 
         float detune = 0.0f;
@@ -873,6 +872,8 @@ protected:
     } p;
 
     unsigned count = 1;
+
+    float gain = 1.0f;
 
     float fc = math::lin2log(float(freqfilter_cutoff));
     float Q = float(freqfilter_resonance);
@@ -970,6 +971,7 @@ private:
             if (note_no >= m->min_note && note_no < m->max_note) {
                 auto &inst = m->instrument;
                 inst->set_params(p);
+                inst->set_gain(m->gain);
                 inst->play(note_no, velocity, pitch*m->pitch);
             }
         }
