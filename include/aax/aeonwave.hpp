@@ -363,7 +363,7 @@ public:
         }
     }
 
-    Buffer(aaxConfig c, std::string& name, bool o=true, bool s=false)
+    Buffer(aaxConfig c, const std::string& name, bool o=true, bool s=false)
         : Buffer(c, name.c_str(), o, s) {}
 
     Buffer(const Buffer&) = default;
@@ -644,7 +644,7 @@ public:
     explicit Sensor(const char* n, enum aaxRenderMode m=AAX_MODE_READ)
         : Sensor(aaxDriverOpenByName(n,m)) {}
 
-    explicit Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_READ)
+    explicit Sensor(const std::string& s, enum aaxRenderMode m=AAX_MODE_READ)
         : Sensor(s.empty() ? nullptr : s.c_str(),m) {}
 
     Sensor(const Sensor&) = delete;
@@ -703,7 +703,7 @@ public:
         return aaxIsFilterSupported(ptr,fe) ? true
                                             : aaxIsEffectSupported(ptr,fe);
     }
-    bool supports(std::string& s) {
+    bool supports(const std::string& s) {
         return supports(s.c_str());
     }
 
@@ -787,7 +787,7 @@ public:
     const char* interface_name(const char* d, unsigned i) {
         return aaxDriverGetInterfaceNameByPos(ptr,d,i,mode);
     }
-    const char* interface_name(std::string& d, unsigned i) {
+    const char* interface_name(const std::string& d, unsigned i) {
         return aaxDriverGetInterfaceNameByPos(ptr,d.c_str(),i,mode);
     }
 
@@ -1039,7 +1039,7 @@ public:
    explicit AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
         : Sensor(n,m) {}
 
-    explicit AeonWave(std::string& s,enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
+    explicit AeonWave(const std::string& s,enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
         : AeonWave(s.empty() ? nullptr : s.c_str(),m) {}
 
     explicit AeonWave(enum aaxRenderMode m)
@@ -1128,7 +1128,7 @@ public:
     // The name can be an URL or a path to a file or just a reference-id.
     // In the case of an URL or a path the data is read automatically,
     // otherwise the application should add the audio-data itself.
-    virtual Buffer& buffer(std::string name, bool strict=false) {
+    virtual Buffer& buffer(const std::string name, bool strict=false) {
         buffers_mutex.lock();
         auto it = buffers.find(name);
         if (it == buffers.end()) {
@@ -1155,7 +1155,7 @@ public:
         }
         buffers_mutex.unlock();
     }
-    virtual bool buffer_avail(std::string &name) {
+    virtual bool buffer_avail(const std::string &name) {
         bool rv = false;
         buffers_mutex.lock();
         auto it = buffers.find(name);
@@ -1170,8 +1170,8 @@ public:
 
     // ** handles for a single background music stream ******
     // The name can be an URL or a path to a file.
-    bool playback(std::string name) {
-        std::string devname = std::string("AeonWave on Audio Files: ")+name;
+    bool playback(const std::string name) {
+        const std::string devname = std::string("AeonWave on Audio Files: ")+name;
         play = Sensor(devname, AAX_MODE_READ);
         return add(play) ? (play.set(AAX_INITIALIZED) ? play.sensor(AAX_CAPTURING) : false) : false;
     }
