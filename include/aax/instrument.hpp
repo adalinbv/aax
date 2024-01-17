@@ -171,7 +171,7 @@ public:
     void set_hold(bool h) {
         if (damper && !h && !playing) Emitter::set(AAX_STOPPED);
         else if (h && Emitter::state() == AAX_STOPPED) {
-            playing = Emitter::set(AAX_PLAYING);
+            Emitter::set(AAX_PLAYING);
         }
         damper = h;
     }
