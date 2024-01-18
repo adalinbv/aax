@@ -319,7 +319,8 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       switch(type)
       {
       case AAX_SAMPLE_RATE:
-         rv = (unsigned int)roundf(handle->info.rate);
+         if (handle->aaxs) rv = handle->info.base_frequency;
+         else rv = (unsigned int)roundf(handle->info.rate);
          break;
       case AAX_TRACKS:
          rv = handle->info.no_tracks;
