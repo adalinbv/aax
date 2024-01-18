@@ -273,6 +273,7 @@ enum aaxSetupType
    AAX_BLOCK_ALIGNMENT,
    AAX_AUDIO_FRAMES,
    AAX_UPDATE_RATE,
+   AAX_SAMPLE_RATE,
    AAX_LATENCY,
    AAX_TRACK_LAYOUT,
    AAX_BIT_RATE,
@@ -535,7 +536,7 @@ enum aaxParameter {	/* Filter & Effect parameter number definitions */
 
    /** AAX_BITCRUSHER_FILTER, first parameter is noise level          **/
    AAX_NOISE_LEVEL = 0,
-   AAX_SAMPLE_RATE = 0x10, AAX_STATICITY,
+   /* AAX_SAMPLE_RATE = 0x10, */ AAX_STATICITY = 0x11,
    /** AAX_DYNAMIC_GAIN_FILTER, first parameter is AAX_INITIAL_DELAY  **/
    /** AAX_DYNAMIC_PITCH_EFFECT, first parameter is AAX_INITIAL_DELAY **/
    AAX_INITIAL_DELAY = 0,
