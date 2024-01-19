@@ -13,7 +13,7 @@
 #include <string>
 #include <aax/aax.h>
 
-namespace aax
+namespace aeonwave
 {
 
 static inline std::string to_string(enum aaxHandleType handle)

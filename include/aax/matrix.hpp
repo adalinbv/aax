@@ -18,7 +18,7 @@
 
 #include <aax/aax.h>
 
-namespace aax
+namespace aeonwave
 {
 
 template <typename T>

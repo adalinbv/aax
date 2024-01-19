@@ -1,7 +1,10 @@
 
 #include <cstdio>
 #include <cstring>
+
 #include <aax/aeonwave.hpp>
+
+namespace aax = aeonwave;
 
 int main()
 {

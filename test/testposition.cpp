@@ -4,6 +4,8 @@
 #include <aax/aeonwave.hpp>
 #include <aax/matrix.hpp>
 
+namespace aax = aeonwave;
+
 #define SPOSX	-1000.0
 #define SPOSY	 2200.0
 #define SPOSZ	15200.0

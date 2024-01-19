@@ -25,7 +25,7 @@
 #include <aax/aax.h>
 
 
-namespace aax
+namespace aeonwave
 {
 
 namespace math
@@ -1135,7 +1135,7 @@ public:
             std::shared_ptr<Buffer> b(new Buffer(ptr,name,false,strict));
             if (!b) {
                 buffers_mutex.unlock();
-                return aax::nullBuffer;
+                return aeonwave::nullBuffer;
             }
             buffer_t *buf = new buffer_t(b);
             auto ret = buffers.insert({name,std::unique_ptr<buffer_t>(buf)});

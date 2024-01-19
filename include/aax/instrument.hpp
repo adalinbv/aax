@@ -19,7 +19,7 @@
 
 #include <aax/aeonwave.hpp>
 
-namespace aax
+namespace aeonwave
 {
 
 #define MAX_NO_NOTES	128
@@ -123,7 +123,7 @@ public:
             Emitter::matrix(mtx::identity);
         }
 
-        aax::dsp dsp = Emitter::get(AAX_VOLUME_FILTER);
+        aeonwave::dsp dsp = Emitter::get(AAX_VOLUME_FILTER);
         dsp.set(AAX_MAX_GAIN, 2.56f);
         Emitter::set(dsp);
     }
@@ -145,7 +145,7 @@ public:
 
     bool play(float velocity, float start_pitch=1.0f, float time=0.0f) {
         if (time > 0.0f && start_pitch != pitch) {
-           aax::dsp dsp = Emitter::get(AAX_PITCH_EFFECT);
+           aeonwave::dsp dsp = Emitter::get(AAX_PITCH_EFFECT);
            dsp.set(AAX_PITCH_START, start_pitch);
            dsp.set(AAX_PITCH_RATE, time);
            dsp.set(true|AAX_ENVELOPE_FOLLOW);
@@ -242,7 +242,7 @@ public:
     Instrument(AeonWave& ptr, Buffer& buf, bool drums=false, int wide=0, bool panned=true, int cnt=1)
         : Mixer(ptr), aax(ptr), buffer(buf), m_mt((std::random_device())())
     {
-        for (int i=0; i<aax::note::max; ++i) p.note_tuning[i] = 1.0f;
+        for (int i=0; i<aeonwave::note::max; ++i) p.note_tuning[i] = 1.0f;
 
         count = cnt;
         p.is_drum_channel = drums;
@@ -502,7 +502,7 @@ public:
 
     void set_reverb(Buffer& buf) {
         Mixer::add(buf);
-        aax::dsp dsp = Mixer::get(AAX_REVERB_EFFECT);
+        aeonwave::dsp dsp = Mixer::get(AAX_REVERB_EFFECT);
         reverb_decay_level = dsp.get(AAX_DECAY_LEVEL);
     }
     void set_reverb_level(float lvl) {
@@ -749,7 +749,7 @@ protected:
     }
 
     virtual void note_portamento(int note_no) {
-        float freq = aax::math::note2freq(get_note(note_no));
+        float freq = aeonwave::math::note2freq(get_note(note_no));
         p.pitch_start = buffer.get_pitch(freq);
     }
     virtual void note_pitch_start(float s) { p.pitch_start = s; }
@@ -771,9 +771,9 @@ protected:
 private:
     float get_note_pitch(int note_no) {
         float fine_tuning = p.note_tuning[note_no];
-        float base_freq = aax::math::note2freq(69.0f+fine_tuning);
-        float freq = aax::math::note2freq(note_no, base_freq);
-        float note_freq = aax::math::note2freq(note_no);
+        float base_freq = aeonwave::math::note2freq(69.0f+fine_tuning);
+        float freq = aeonwave::math::note2freq(note_no, base_freq);
+        float note_freq = aeonwave::math::note2freq(note_no);
         float pitch = freq/note_freq;
         if (!p.is_drum_channel) {
             pitch *= buffer.get_pitch(p.tuning_offset + note_freq);
@@ -783,7 +783,7 @@ private:
     void set_note_tuning(int note_no) { // C = 0, C# = 1, all notes = -1
         int start = (note_no >= 0) ? note_no : 0;
         int step = (note_no >= 0) ? 12 : 1;
-        for (int i = start; i<aax::note::max; i += step) {
+        for (int i = start; i<aeonwave::note::max; i += step) {
             p.note_tuning[i] = p.master_fine_tuning + p.fine_tuning;
         }
     }
@@ -902,7 +902,7 @@ class Ensemble : public Instrument
 {
 private:
     struct member_t {
-        member_t(Ensemble* e, Instrument *i, float p, float g, int n=0, int m=aax::note::max)
+        member_t(Ensemble* e, Instrument *i, float p, float g, int n=0, int m=aeonwave::note::max)
           : ensemble(e), instrument(std::unique_ptr<Instrument>(i)),
             min_note(n), max_note(m), pitch(p), gain(g)
         {
@@ -930,7 +930,7 @@ public:
     {}
 
     Ensemble(AeonWave& ptr, bool drums=false, int wide=0) :
-        Ensemble(ptr, aax::nullBuffer, drums, wide)
+        Ensemble(ptr, aeonwave::nullBuffer, drums, wide)
     {}
 
     Ensemble() = delete;
@@ -950,12 +950,12 @@ public:
     }
 
     void add_member(Buffer& buf, float pitch, float gain) {
-        add_member(buf, pitch, gain, 0, aax::note::max);
+        add_member(buf, pitch, gain, 0, aeonwave::note::max);
     }
-    void add_member(Buffer& buf, float pitch, int min=0, int max=aax::note::max) {
+    void add_member(Buffer& buf, float pitch, int min=0, int max=aeonwave::note::max) {
         add_member(buf, pitch, 1.0f, min, max);
     }
-    void add_member(Buffer& buf, int min=0, int max=aax::note::max) {
+    void add_member(Buffer& buf, int min=0, int max=aeonwave::note::max) {
         add_member(buf, 1.0f, 1.0f, min, max);
     }
 
@@ -1232,7 +1232,7 @@ private:
 
 
     void note_portamento(int note_no) {
-        float freq = aax::math::note2freq(get_note(note_no));
+        float freq = aeonwave::math::note2freq(get_note(note_no));
         p.pitch_start = buffer.get_pitch(freq);
         if (!member.size()) {
             Instrument::note_pitch_start(p.pitch_start);
