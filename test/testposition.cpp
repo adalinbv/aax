@@ -1,8 +1,8 @@
 
 #include <cstdio>
 #include <cstring>
-#include <aax/aeonwave.hpp>
-#include <aax/matrix.hpp>
+#include <aax/aeonwave>
+#include <aax/matrix>
 
 namespace aax = aeonwave;
 

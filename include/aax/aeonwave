@@ -21,7 +21,7 @@
 #include <mutex>
 #include <cstring>	// strstr
 
-#include <aax/matrix.hpp>
+#include <aax/matrix>
 #include <aax/aax.h>
 
 

@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cstring>
 
-#include <aax/aeonwave.hpp>
+#include <aax/aeonwave>
 
 namespace aax = aeonwave;
 

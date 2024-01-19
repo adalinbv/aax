@@ -17,7 +17,7 @@
 #include <utility>
 #include <algorithm>
 
-#include <aax/aeonwave.hpp>
+#include <aax/aeonwave>
 
 namespace aeonwave
 {
