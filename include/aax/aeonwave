@@ -18,7 +18,6 @@
 #include <utility>
 #include <memory>
 #include <vector>
-#include <mutex>
 #include <cstring>	// strstr
 
 #include <aax/matrix>
@@ -1028,9 +1027,7 @@ public:
         for (size_t i=0; i<emitters.size(); ++i) {
              aaxMixerDeregisterEmitter(ptr,emitters[i]);
         }
-        buffers_mutex.lock();
         buffers.clear();
-        buffers_mutex.unlock();
     }
 
    explicit AeonWave(aaxConfig c)
@@ -1129,12 +1126,10 @@ public:
     // In the case of an URL or a path the data is read automatically,
     // otherwise the application should add the audio-data itself.
     virtual Buffer& buffer(const std::string name, bool strict=false) {
-        buffers_mutex.lock();
         auto it = buffers.find(name);
         if (it == buffers.end()) {
             std::shared_ptr<Buffer> b(new Buffer(ptr,name,false,strict));
             if (!b) {
-                buffers_mutex.unlock();
                 return aeonwave::nullBuffer;
             }
             buffer_t *buf = new buffer_t(b);
@@ -1143,24 +1138,19 @@ public:
         } else {
             it->second->refctr++;
         }
-        buffers_mutex.unlock();
         return *it->second->buffer;
     }
     virtual void destroy(Buffer& b) {
-        buffers_mutex.lock();
         for(auto it=buffers.begin(); it!=buffers.end(); ++it) {
             if (it->second->buffer.get() == &b) {
                 buffers.erase(it); break;
             }
         }
-        buffers_mutex.unlock();
     }
     virtual bool buffer_avail(const std::string &name) {
         bool rv = false;
-        buffers_mutex.lock();
         auto it = buffers.find(name);
         if (it != buffers.end()) rv = true;
-        buffers_mutex.unlock();
         return rv;
     }
 
@@ -1193,7 +1183,6 @@ private:
     std::vector<aaxConfig> sensors;
     std::vector<aaxEmitter> emitters;
 
-    mutable std::mutex buffers_mutex;
     std::map<std::string,std::unique_ptr<buffer_t>> buffers;
 
     // background music stream
