@@ -341,7 +341,7 @@ public:
             float buffer_frequency = buffer.get(AAX_BASE_FREQUENCY);
             note_t n;
             for (int i=0; i<count; ++i) {
-                std::uniform_real_distribution<float> dis(0.995f*pitch, pitch);
+                std::uniform_real_distribution<float> dis(0.995f*pitch, 1.005f*pitch);
                 Note *ptr = new Note(buffer_frequency,dis(m_mt),pan);
                 n.push_back(std::shared_ptr<Note>(ptr,
                                        [this](Note *n) { Mixer::remove(*n); }));
@@ -943,8 +943,8 @@ public:
 
     void add_member(Buffer& buf, float pitch, float gain, int min, int max, int count=1)
     {
-        std::uniform_real_distribution<> dis(0.995f*pitch, pitch);
-        if (member.size()) pitch = dis(m_mt);
+        std::uniform_real_distribution<> dis(0.995f*pitch, 1.005f*pitch);
+        pitch = dis(m_mt);
         Instrument *i = new Instrument(aax, buf, p.is_drum_channel, pan.wide, false, count);
         member_t *m = new member_t(this, i, pitch, gain, min, max);
         member.emplace_back(m);
