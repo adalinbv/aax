@@ -341,7 +341,7 @@ public:
             float buffer_frequency = buffer.get(AAX_BASE_FREQUENCY);
             note_t n;
             for (int i=0; i<count; ++i) {
-                std::uniform_real_distribution<> dis(0.995f*pitch, pitch);
+                std::uniform_real_distribution<float> dis(0.995f*pitch, pitch);
                 Note *ptr = new Note(buffer_frequency,dis(m_mt),pan);
                 n.push_back(std::shared_ptr<Note>(ptr,
                                        [this](Note *n) { Mixer::remove(*n); }));
@@ -962,8 +962,27 @@ public:
 
     int no_members() { return member.size(); }
 
+    void set_master_pan(float pn) {
+        master_pan = pn;
+        if (!member.size()) {
+            Instrument::note_pan(pn);
+        } else {
+            pn = floorf(pn * note::pan_levels)/note::pan_levels;
+            pan.set(pn);
+            if (p.is_drum_channel || pan.wide) {
+                for(int i=0; i<member.size(); ++i) {
+                    member[i]->instrument->set_pos(pan.mtx);
+                }
+            } else {
+                Mixer::matrix(pan.mtx);
+            }
+        }
+    }
+
 private:
     std::vector<std::unique_ptr<member_t>> member;
+
+    float master_pan = 0.0f;
 
     void note_play(int note_no, float velocity, float pitch)
     {
@@ -1114,6 +1133,7 @@ private:
     }
 
     void note_pan(float pn) {
+        pn += master_pan;
         if (!member.size()) {
             Instrument::note_pan(pn);
         } else {
