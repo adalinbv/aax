@@ -568,7 +568,6 @@ install(FILES
         include/aax/aeonwave
         include/aax/strings
         include/aax/matrix
-        include/aax/instrument
         DESTINATION "include/${AEONWAVE_DIR}"
         COMPONENT Headers
 )
