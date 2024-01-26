@@ -1821,7 +1821,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
       }
    }
 
-   // layers, if none defined declare one
+   // layers, declare one if none are defined
    no_layers = xmlNodeGetNum(xsid, "layer");
    if (no_layers > 0) {
       xlid = xmlMarkId(xsid);
@@ -1964,6 +1964,10 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
       }
    } // mip-level
 
+   if (xlid != xsid) {
+      xmlFree(xlid);
+   }
+
    return rv;
 }
 
@@ -1980,7 +1984,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
    xmlId *xsid;
 
    xaid = xmlNodeGet(xid, "aeonwave");
-   if (!xaid) xaid = xid; // backwards compatibility
+   if (!xaid) return rv;
 
    midi_mode = handle->midi_mode;
    if (midi_mode == AAX_RENDER_NORMAL && handle->mixer_info) {
@@ -1998,7 +2002,11 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
          xsid = xmlNodeGet(xaid, "sound");
       }
    }
-   if (!xsid) return rv;
+   if (!xsid)
+   {
+      xmlFree(xaid);
+      return rv;
+   }
 
    xiid = xmlNodeGet(xaid, "info");
    if (xiid)
@@ -2184,7 +2192,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
    }
 
    xmlFree(xsid);
-   if (xaid != xid) xmlFree(xaid);
+   xmlFree(xaid);
 
    return rv;
 }
