@@ -931,31 +931,46 @@ public:
 
     // ** sub-mixing ******
     bool add(Frame& m) {
-        frames.push_back(m);
-        return aaxAudioFrameRegisterAudioFrame(ptr,m);
+        bool rv = aaxAudioFrameRegisterAudioFrame(ptr,m);
+        if (rv) frames.push_back(m);
+        return rv;
     }
     bool remove(Frame& m) {
+        bool rv = false;
         auto fi = std::find(frames.begin(),frames.end(),m);
-        if (fi != frames.end()) frames.erase(fi);
-        return aaxAudioFrameDeregisterAudioFrame(ptr,m);
+        if (fi != frames.end()) {
+           rv = aaxAudioFrameDeregisterAudioFrame(ptr,m);
+           frames.erase(fi);
+        }
+        return rv;
     }
     bool add(Sensor& s) {
-        sensors.push_back(s);
-        return aaxAudioFrameRegisterSensor(ptr,s);
+        bool rv = aaxAudioFrameRegisterSensor(ptr,s);
+        if (rv) sensors.push_back(s);
+        return rv;
     }
     bool remove(Sensor& s) {
+        bool rv = false;
         auto si = std::find(sensors.begin(),sensors.end(),s);
-        if (si != sensors.end()) sensors.erase(si);
-        return aaxAudioFrameDeregisterSensor(ptr,s);
+        if (si != sensors.end()) {
+            rv = aaxAudioFrameDeregisterSensor(ptr,s);
+            sensors.erase(si);
+        }
+        return rv;
     }
     bool add(Emitter& e) {
-        emitters.push_back(e);
-        return aaxAudioFrameRegisterEmitter(ptr,e);
+        bool rv = aaxAudioFrameRegisterEmitter(ptr,e);
+        if (rv) emitters.push_back(e);
+        return rv;
     }
     bool remove(Emitter& e) {
+        bool rv = false;
         auto ei = std::find(emitters.begin(),emitters.end(),e);
-        if (ei != emitters.end()) emitters.erase(ei);
-        return aaxAudioFrameDeregisterEmitter(ptr,e);
+        if (ei != emitters.end()) {
+            rv = aaxAudioFrameDeregisterEmitter(ptr,e);
+            ei = emitters.erase(ei);
+        }
+        return rv;
     }
 
     // ** position and orientation ******
@@ -1088,31 +1103,46 @@ public:
 
     // ** mixing ******
     bool add(Frame& m) {
-        frames.push_back(m);
-        return aaxMixerRegisterAudioFrame(ptr,m);
+        bool rv = aaxMixerRegisterAudioFrame(ptr,m);
+        if (rv) frames.push_back(m);
+        return rv;
     }
     bool remove(Frame& m) {
+        bool rv = false;
         auto fi = std::find(frames.begin(),frames.end(),m);
-        if (fi != frames.end()) frames.erase(fi);
-        return aaxMixerDeregisterAudioFrame(ptr,m);
+        if (fi != frames.end()) {
+            rv = aaxMixerDeregisterAudioFrame(ptr,m);
+            frames.erase(fi);
+        }
+        return rv;
     }
     bool add(Sensor& s) {
-        sensors.push_back(s);
-        return aaxMixerRegisterSensor(ptr,s);
+        bool rv = aaxMixerRegisterSensor(ptr,s);
+        if (rv) sensors.push_back(s);
+        return rv;
     }
     bool remove(Sensor& s) {
+        bool rv = false;
         auto si = std::find(sensors.begin(),sensors.end(),s);
-        if (si != sensors.end()) sensors.erase(si);
-        return aaxMixerDeregisterSensor(ptr,s);
+        if (si != sensors.end()) {
+            rv = aaxMixerDeregisterSensor(ptr,s);
+            sensors.erase(si);
+        }
+        return rv;
     }
     bool add(Emitter& e) {
-        emitters.push_back(e);
-        return aaxMixerRegisterEmitter(ptr,e);
+        bool rv = aaxMixerRegisterEmitter(ptr,e);
+        if (rv) emitters.push_back(e);
+        return rv;
     }
     bool remove(Emitter& e) {
+        bool rv = false;
         auto ei = std::find(emitters.begin(),emitters.end(),e);
-        if (ei != emitters.end()) emitters.erase(ei);
-        return aaxMixerDeregisterEmitter(ptr,e);
+        if (ei != emitters.end()) {
+            rv = aaxMixerDeregisterEmitter(ptr,e);
+            emitters.erase(ei);
+        }
+        return rv;
     }
 
     // ** buffer handling (AAXS only) ******
