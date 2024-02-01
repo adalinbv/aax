@@ -420,7 +420,6 @@ private:
     float fraction = 1.0f;
 };
 
-using SharedBufferPtr = std::shared_ptr<Buffer>;
 static Buffer nullBuffer;
 
 class dsp : public Obj<aaxDSP>
@@ -1019,15 +1018,18 @@ using Mixer = Frame;
 class AeonWave : public Sensor
 {
 private:
-    struct buffer_t {
-        buffer_t() = delete;
-        buffer_t(SharedBufferPtr b) : buffer(b) {}
-        ~buffer_t() {
-            if (!--refctr) aaxBufferDestroy(*buffer);
-        }
+    struct SharedBufferPtr {
+        SharedBufferPtr() = delete;
+        ~SharedBufferPtr() = default;
 
-        int refctr = 1;
-        SharedBufferPtr buffer;
+        SharedBufferPtr(Buffer *b)
+          : buffer(std::shared_ptr<Buffer>(b,
+                             [](Buffer *b){ aaxBufferDestroy(*b); delete b; })),
+            refcount(1)
+        {}
+
+        std::shared_ptr<Buffer> buffer;
+        int refcount = 0;
     };
 
 public:
@@ -1159,22 +1161,20 @@ public:
     virtual Buffer& buffer(const std::string name, bool strict=false) {
         auto it = buffers.find(name);
         if (it == buffers.end()) {
-            std::shared_ptr<Buffer> b(new Buffer(ptr,name,false,strict));
-            if (!b) {
-                return aeonwave::nullBuffer;
-            }
-            buffer_t *buf = new buffer_t(b);
-            auto ret = buffers.insert({name,std::unique_ptr<buffer_t>(buf)});
+            SharedBufferPtr buf(new Buffer(ptr,name,false,strict));
+            auto ret = buffers.insert({name,buf});
             it = ret.first;
-        } else {
-            it->second->refctr++;
         }
-        return *it->second->buffer;
+        else {
+            it->second.refcount++;
+        }
+        return *it->second.buffer;
     }
-    virtual void destroy(Buffer& b) {
+    virtual void destroy(Buffer& buf) {
         for(auto it=buffers.begin(); it!=buffers.end(); ++it) {
-            if (it->second->buffer.get() == &b) {
-                buffers.erase(it); break;
+            if (*it->second.buffer == buf) {
+                if (!--it->second.refcount) buffers.erase(it);
+                break;
             }
         }
     }
@@ -1214,7 +1214,7 @@ private:
     std::vector<aaxConfig> sensors;
     std::vector<aaxEmitter> emitters;
 
-    std::map<std::string,std::unique_ptr<buffer_t>> buffers;
+    std::map<std::string,SharedBufferPtr> buffers;
 
     // background music stream
     Sensor play;
