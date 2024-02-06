@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,16 +13,17 @@
 
  <info name="Xylophone" bank="0" program="13">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="65" max="96" step="12"/>
+  <sound version="1.1"/>
  </info>
 
  <sound mode="1" gain="2.88" frequency="349.228" duration="0.1">
   <layer n="0">
-   <waveform src="pure-sine" processing="add"/>
-   <waveform src="pure-sine" processing="add" ratio="0.2" pitch="0.5"/>
+   <waveform src="pure-sine" processing="add" ratio="0.909"/>
+   <waveform src="pure-sine" processing="add" ratio="0.182" pitch="0.5"/>
   </layer>
  </sound>
 

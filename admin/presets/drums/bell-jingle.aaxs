@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,18 +13,19 @@
 
  <info name="Jingle Bell" bank="0" program="83">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
+  <sound version="1.1"/>
  </info>
 
  <sound gain="2.92" frequency="1479.98" duration="0.3">
   <layer n="0">
-   <waveform src="square" pitch="4.1025"/>
+   <waveform src="square" ratio="1.9" pitch="4.1025"/>
    <waveform src="white-noise" processing="add" ratio="0.4" pitch="0.15"/>
-   <waveform src="square" processing="add" ratio="0.3" pitch="6.1025"/>
-   <waveform src="square" processing="modulate" pitch="2.075"/>
+   <waveform src="square" processing="add" ratio="0.57" pitch="6.1025"/>
+   <waveform src="square" processing="modulate" ratio="1.9" pitch="2.075"/>
   </layer>
  </sound>
 

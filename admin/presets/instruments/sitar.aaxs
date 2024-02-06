@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,19 +13,20 @@
 
  <info name="Sitar" bank="0" program="104">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="48" max="127" step="12"/>
   <aftertouch mode="2"/>
+  <sound version="1.1"/>
  </info>
 
  <sound gain="2.00" frequency="440" duration="0.1">
   <layer n="0">
-   <waveform src="triangle"/>
-   <waveform src="sawtooth" processing="add" ratio="0.95" pitch="1.999"/>
+   <waveform src="triangle" ratio="0.818"/>
+   <waveform src="sawtooth" processing="add" ratio="1.33" pitch="1.999"/>
    <waveform src="sine" processing="modulate" ratio="0.6" pitch="4.999"/>
-   <waveform src="impulse" processing="add" ratio="0.3" pitch="0.987"/>
+   <waveform src="impulse" processing="add" ratio="0.33" pitch="0.987"/>
    <filter type="equalizer">
     <slot n="0" src="24db">
      <param n="0">700.0</param>

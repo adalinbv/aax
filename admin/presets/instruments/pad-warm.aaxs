@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,16 +13,17 @@
 
  <info name="Pad 2 (Warm)" bank="0" program="88">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="36" max="96" step="12"/>
+  <sound version="1.1"/>
  </info>
 
  <sound mode="1" gain="1.99" frequency="220" voices="3" spread="0.93">
   <layer n="0">
-   <waveform src="pure-sine" ratio="0.5"/>
-   <waveform src="triangle" processing="add" ratio="0.15" pitch="2.0"/>
+   <waveform src="pure-sine" ratio="0.455"/>
+   <waveform src="triangle" processing="add" ratio="0.123" pitch="2.0"/>
   </layer>
  </sound>
 

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,16 +13,17 @@
 
  <info name="Cymbal Ride" bank="0" program="51">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
+  <sound version="1.1"/>
  </info>
 
  <sound gain="3.13" frequency="554.365" duration="0.3">
   <layer n="0">
-   <waveform src="square" pitch="0.985"/>
-   <waveform src="sawtooth" processing="mix" pitch="2.9"/>
+   <waveform src="square" ratio="1.9" pitch="0.985"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.7" pitch="2.9"/>
    <waveform src="pink-noise" processing="add" ratio="1.2"/>
    <waveform src="sine" processing="modulate" pitch="6.3"/>
    <filter type="frequency">
@@ -34,9 +36,9 @@
    </filter>
   </layer>
   <layer n="1">
-   <waveform src="square" ratio="0.7" pitch="0.9"/>
+   <waveform src="square" ratio="1.33" pitch="0.9"/>
    <waveform src="white-noise" processing="add" pitch="0.12"/>
-   <waveform src="sawtooth" processing="add" ratio="0.33" pitch="0.707"/>
+   <waveform src="sawtooth" processing="add" ratio="0.462" pitch="0.707"/>
    <waveform src="sine" processing="modulate" pitch="6.9"/>
    <filter type="equalizer">
     <slot n="0">

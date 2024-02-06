@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,16 +13,17 @@
 
  <info name="Synth Brass 4" bank="8" program="63">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="35" max="96" step="12"/>
+  <sound version="1.1"/>
  </info>
 
  <sound gain="1.71" frequency="880" duration="0.25">
   <layer n="0">
-   <waveform src="sawtooth" ratio="0.75" pitch="0.993"/>
-   <waveform src="impulse" processing="add" pitch="3.0"/>
+   <waveform src="sawtooth" ratio="1.05" pitch="0.993"/>
+   <waveform src="impulse" processing="add" ratio="1.1" pitch="3.0"/>
    <filter type="equalizer">
     <slot n="0">
      <param n="0" pitch="1.0">880.0</param>
@@ -32,8 +34,8 @@
    </filter>
   </layer>
   <layer n="1">
-   <waveform src="sawtooth" ratio="0.75" pitch="0.993"/>
-   <waveform src="impulse" processing="add" pitch="3.0"/>
+   <waveform src="sawtooth" ratio="1.05" pitch="0.993"/>
+   <waveform src="impulse" processing="add" ratio="1.1" pitch="3.0"/>
    <filter type="equalizer">
     <slot n="0">
      <param n="0" pitch="3.0">2640.0</param>

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,17 +13,18 @@
 
  <info name="Synth Bass 1" bank="0" program="38">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="28" max="88" step="12"/>
+  <sound version="1.1"/>
  </info>
 
  <sound gain="1.92" frequency="55" duration="0.5">
   <layer n="0">
-   <waveform src="sawtooth" ratio="0.85" pitch="2.0"/>
-   <waveform src="pure-sawtooth" processing="modulate"/>
-   <waveform src="sawtooth" processing="add"/>
+   <waveform src="sawtooth" ratio="1.19" pitch="2.0"/>
+   <waveform src="pure-sawtooth" processing="modulate" ratio="2.5"/>
+   <waveform src="sawtooth" processing="add" ratio="1.4"/>
   </layer>
  </sound>
 

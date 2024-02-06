@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,10 +13,11 @@
 
  <info name="Low Mid Tom" bank="8" program="47">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
+  <sound version="1.1"/>
  </info>
 
  <sound mode="2" gain="3.43" frequency="146.832" duration="0.3">
@@ -26,7 +28,7 @@
   <layer n="1">
    <waveform src="pink-noise" ratio="1.5" pitch="0.18"/>
    <waveform src="sine" processing="add" ratio="0.3" pitch="0.96"/>
-   <waveform src="triangle" processing="add"/>
+   <waveform src="triangle" processing="add" ratio="0.818"/>
   </layer>
  </sound>
 

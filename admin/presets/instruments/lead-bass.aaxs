@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,17 +13,18 @@
 
  <info name="Lead 8 (Classic Bass+lead)" bank="0" program="87">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="37" max="127" step="12"/>
+  <sound version="1.1"/>
  </info>
 
  <sound gain="1.83" frequency="1760" voices="3" spread="0.91" phasing="true">
   <layer n="0">
-   <waveform src="square"/>
-   <waveform src="triangle" processing="modulate" pitch="3.4991"/>
-   <waveform src="sawtooth" processing="add" ratio="0.6" pitch="1.4925"/>
+   <waveform src="square" ratio="1.9"/>
+   <waveform src="triangle" processing="modulate" ratio="0.818" pitch="3.4991"/>
+   <waveform src="sawtooth" processing="add" ratio="0.84" pitch="1.4925"/>
   </layer>
  </sound>
 

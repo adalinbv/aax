@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -10,18 +11,20 @@
 
 <aeonwave>
 
- <info name="Brass Section 2" bank="0" program="61">
+ <info name="Brass Section 2" bank="8" program="61">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="16" min="36" max="96" step="6"/>
+  <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.69" frequency="880" duration="0.5" voices="3" spread="0.11" phasing="true">
+ <sound mode="1" gain="1.53" frequency="880" duration="0.5">
   <layer n="0">
-   <waveform src="pure-impulse" ratio="0.7" pitch="1.49545"/>
-   <waveform src="cycloid" processing="add" ratio="0.7"/>
+   <waveform src="impulse" ratio="0.55" pitch="1.987" voices="7" spread="0.91" phasing="true"/>
+   <waveform src="sawtooth" processing="add" ratio="1.4" voices="3" spread="0.7"/>
+   <waveform src="pure-sawtooth" processing="add" ratio="0.526" pitch="1.987"/>
   </layer>
  </sound>
 
@@ -54,8 +57,16 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <effect type="distortion" src="envelope|exponential">
+   <slot n="0">
+    <param n="0">0.1</param>
+    <param n="1">0.0</param>
+    <param n="2">0.2</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
  </emitter>
 
- <audioframe pan="-0.8"/>
+ <audioframe pan="0.4"/>
 
 </aeonwave>

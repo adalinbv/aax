@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,16 +13,17 @@
 
  <info name="Acoustic Bass Drum" bank="0" program="35">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
+  <sound version="1.1"/>
  </info>
 
  <sound gain="1.96" frequency="130.813" duration="0.3">
   <layer n="0">
    <waveform src="pink-noise" ratio="0.5" pitch="0.12"/>
-   <waveform src="triangle" processing="add" ratio="0.6" pitch="0.6"/>
+   <waveform src="triangle" processing="add" ratio="0.491" pitch="0.6"/>
   </layer>
  </sound>
 

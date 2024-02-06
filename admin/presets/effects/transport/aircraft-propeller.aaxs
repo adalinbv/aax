@@ -1,30 +1,30 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <!--
- * Copyright (C) 2017-2023 by Erik Hofman.
- * Copyright (C) 2017-2023 by Adalin B.V.
- * All rights reserved.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
- * This file is part of AeonWave and covered by the
- * Creative Commons Attribution-ShareAlike 4.0 International Public License
- * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+ * Package Name: AeonWave Audio eXtentions library.
+ *
+ * SPDX-License-Identifier: CC-BY-SA-4.0
 -->
 
 <aeonwave>
 
  <info name="Propeller Aircraft" bank="0" program="126">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" pitch-fraction="0.5"/>
+  <sound version="1.1"/>
  </info>
 
  <sound gain="1.05" frequency="220" duration="3.3">
   <layer n="0">
    <waveform src="white-noise" ratio="80.0" pitch="0.75"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.96"/>
-   <waveform src="sawtooth" processing="modulate" pitch="0.25"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.672"/>
+   <waveform src="sawtooth" processing="modulate" ratio="1.4" pitch="0.25"/>
   </layer>
  </sound>
 

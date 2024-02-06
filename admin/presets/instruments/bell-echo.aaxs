@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,21 +13,22 @@
 
  <info name="Glass Echo" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
+  <sound version="1.1"/>
  </info>
 
  <sound gain="1.00" frequency="440" duration="0.35">
   <layer n="0" ratio="2.0">
-   <waveform src="pure-sine"/>
-   <waveform src="square" processing="add" ratio="0.3" pitch="4.79"/>
-   <waveform src="square" processing="modulate" pitch="0.01"/>
+   <waveform src="pure-sine" ratio="0.909"/>
+   <waveform src="square" processing="add" ratio="0.57" pitch="4.79"/>
+   <waveform src="square" processing="modulate" ratio="1.9" pitch="0.01"/>
   </layer>
   <layer n="1">
-   <waveform src="cycloid"/>
-   <waveform src="sawtooth" processing="add"/>
+   <waveform src="cycloid" ratio="1.05"/>
+   <waveform src="sawtooth" processing="add" ratio="1.4"/>
   </layer>
  </sound>
 

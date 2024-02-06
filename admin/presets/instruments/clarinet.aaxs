@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,17 +13,18 @@
 
  <info name="Clarinet" bank="0" program="71">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="50" max="91" step="12"/>
+  <sound version="1.1"/>
  </info>
 
  <sound mode="1" gain="1.93" frequency="440" duration="0.3">
   <layer n="0">
-   <waveform src="square"/>
+   <waveform src="square" ratio="1.9"/>
    <waveform src="pink-noise" processing="add" ratio="0.1" pitch="0.3"/>
-   <waveform src="square" processing="modulate" pitch="3.0"/>
+   <waveform src="square" processing="modulate" ratio="1.9" pitch="3.0"/>
   </layer>
  </sound>
 

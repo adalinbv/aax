@@ -1,30 +1,30 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <!--
- * Copyright (C) 2017-2023 by Erik Hofman.
- * Copyright (C) 2017-2023 by Adalin B.V.
- * All rights reserved.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
- * This file is part of AeonWave and covered by the
- * Creative Commons Attribution-ShareAlike 4.0 International Public License
- * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+ * Package Name: AeonWave Audio eXtentions library.
+ *
+ * SPDX-License-Identifier: CC-BY-SA-4.0
 -->
 
 <aeonwave>
 
  <info name="Punch Large Object" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1"/>
+  <sound version="1.1"/>
  </info>
 
  <sound fixed-gain="1.20" frequency="32.7032">
   <layer n="0">
-   <waveform src="sawtooth"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.1" pitch="3.9897"/>
-   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="9.4991"/>
+   <waveform src="sawtooth" ratio="1.4"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.07" pitch="3.9897"/>
+   <waveform src="triangle" processing="modulate" ratio="1.23" pitch="9.4991"/>
    <filter type="frequency" src="48db">
     <slot n="0">
      <param n="0" pitch="5.5">179.9</param>

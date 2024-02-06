@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,18 +13,19 @@
 
  <info name="Upright Piano" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="88" min="21" max="127" step="6"/>
+  <sound version="1.1"/>
  </info>
 
  <sound gain="1.85" frequency="220" duration="0.1">
   <layer n="0">
-   <waveform src="sawtooth" ratio="0.2"/>
-   <waveform src="triangle" processing="add" ratio="0.125" pitch="2.0"/>
-   <waveform src="triangle" processing="add" ratio="0.05" pitch="4.0"/>
-   <waveform src="triangle" processing="modulate" ratio="2.0" pitch="5.0"/>
+   <waveform src="sawtooth" ratio="0.28"/>
+   <waveform src="triangle" processing="add" ratio="0.102" pitch="2.0"/>
+   <waveform src="triangle" processing="add" ratio="0.0409" pitch="4.0"/>
+   <waveform src="triangle" processing="modulate" ratio="1.64" pitch="5.0"/>
   </layer>
  </sound>
 

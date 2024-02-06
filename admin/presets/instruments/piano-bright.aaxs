@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,18 +13,19 @@
 
  <info name="Acoustic Grand Piano" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="88" min="21" max="127" step="6"/>
+  <sound version="1.1"/>
  </info>
 
  <sound gain="2.55" frequency="55" duration="0.2">
   <layer n="0">
-   <waveform src="sawtooth"/>
-   <waveform src="triangle" processing="add" ratio="0.625" pitch="2.0"/>
-   <waveform src="triangle" processing="add" ratio="0.25" pitch="4.0"/>
-   <waveform src="triangle" processing="modulate" pitch="5.0"/>
+   <waveform src="sawtooth" ratio="1.4"/>
+   <waveform src="triangle" processing="add" ratio="0.511" pitch="2.0"/>
+   <waveform src="triangle" processing="add" ratio="0.205" pitch="4.0"/>
+   <waveform src="triangle" processing="modulate" ratio="0.818" pitch="5.0"/>
   </layer>
  </sound>
 

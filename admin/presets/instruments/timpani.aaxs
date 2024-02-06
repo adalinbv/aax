@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -12,16 +13,17 @@
 
  <info name="Timpani" bank="0" program="47">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="36" max="88" step="1"/>
+  <sound version="1.1"/>
  </info>
 
  <sound mode="1" gain="2.54" frequency="65.4064" duration="2.0">
   <layer n="0">
-   <waveform src="sawtooth" ratio="0.5"/>
-   <waveform src="sawtooth" processing="add" ratio="0.45" pitch="0.7"/>
+   <waveform src="sawtooth" ratio="0.7"/>
+   <waveform src="sawtooth" processing="add" ratio="0.63" pitch="0.7"/>
    <waveform src="white-noise" processing="add" pitch="0.075" random="0.185"/>
   </layer>
   <layer n="1">
