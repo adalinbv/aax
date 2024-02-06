@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Electric Bass (Slapped 1)" bank="0" program="33">
+ <info name="Slapped Electric Bass 1" bank="0" program="33">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
@@ -21,16 +21,17 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="2.02" frequency="55" duration="0.1">
+ <sound mode="1" gain="1.51" frequency="55" duration="0.1">
   <layer n="0">
-   <waveform src="sawtooth" ratio="1.26"/>
-   <waveform src="cycloid" processing="add" ratio="0.421" pitch="7.0"/>
-   <waveform src="sine" processing="modulate" pitch="5.0"/>
+   <waveform src="pure-square" ratio="2.85"/>
+   <waveform src="triangle" processing="add" ratio="0.409" pitch="5.997"/>
+   <waveform src="triangle" processing="modulate" pitch="1.998"/>
+   <waveform src="triangle" processing="add" ratio="0.773" pitch="5.887"/>
   </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" src="envelope" release-time="0.3">
+  <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
     <param n="0">1.0</param>
     <param n="1">0.005</param>
@@ -42,27 +43,12 @@
    <slot n="0">
     <param n="0">2.77</param>
     <param n="1">0.01</param>
-    <param n="2">1.05</param>
-    <param n="3">0.01</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.95</param>
-    <param n="1">0.01</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
- <audioframe pan="0.1">
-  <filter type="equalizer" optional="true">
-   <slot n="0">
-    <param n="0">2500.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.05</param>
-    <param n="3">4.5</param>
-   </slot>
-  </filter>
- </audioframe>
+ <audioframe pan="0.1"/>
 
 </aeonwave>
