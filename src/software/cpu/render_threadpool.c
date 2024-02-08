@@ -374,8 +374,9 @@ _aaxWorkerThread(void *id)
    _aaxThreadSetAffinity(thread->ptr, worker_no % _aaxGetNoCores());
    thread->started = true;
 
-   // wait for our first job
-   _aaxSemaphoreWait(handle->worker_start);
+   // Wait for our first job
+   // which never might come around so do not timeout
+   _aaxSemaphoreWaitNoTimeout(handle->worker_start);
    if (thread->started == true)
    {
       int *busy = &handle->workers_busy;
