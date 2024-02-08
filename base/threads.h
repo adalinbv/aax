@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2007-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2007-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2009-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -83,7 +83,7 @@ int _aaxProcessSetPriority(int);
  { 
    char initialized;
    pthread_mutex_t mutex;
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
    const char *name;
    const char *function;
    const char *last_file;
@@ -123,7 +123,7 @@ int _aaxProcessSetPriority(int);
    char initialized;
    char waiting;
    HANDLE mutex;
-# if defined(NDEBUG)
+# if defined(NDEBUGTHREADS)
    CRITICAL_SECTION crit;
 # else
    const char *name;
@@ -151,7 +151,7 @@ int _aaxThreadJoin(void *);
 
 
 /* -- Mutexes ---------------------------------------------------------- */
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 #define _aaxMutexCreate(a) _aaxMutexCreateDebug(a, __FILE__, __func__)
 #define _aaxMutexLock(a) _aaxMutexLockDebug(a, __FILE__, __LINE__)
 #define _aaxMutexUnLock(a) _aaxMutexUnLockDebug(a, __FILE__, __LINE__)
@@ -176,7 +176,7 @@ _aaxSignal *_aaxSignalCreate();
 void _aaxSignalInit(_aaxSignal *);
 void _aaxSignalDestroy(_aaxSignal*);
 void _aaxSignalFree(_aaxSignal*);
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 int _aaxSignalTriggerDebug(_aaxSignal*, char *, int);
 #define _aaxSignalTrigger(a)	_aaxSignalTriggerDebug(a, __FILE__, __LINE__)
 #else
@@ -188,12 +188,13 @@ int _aaxSignalWaitTimed(_aaxSignal*, float);
 /* -- Semaphores ------------------------------------------------------- */
 _aaxSemaphore *_aaxSemaphoreCreate(unsigned);
 int _aaxSemaphoreDestroy(_aaxSemaphore*);
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 int _aaxSemaphoreWaitDebug(_aaxSemaphore*, char *, int);
 #define _aaxSemaphoreWait(a)	_aaxSemaphoreWaitDebug(a, __FILE__, __LINE__)
 #else
-int _aaxSemaphoreWait(_aaxSemaphore*);
+#define _aaxSemaphoreWait(a)	_aaxSemaphoreWaitNoTimeout(a)
 #endif
+int _aaxSemaphoreWaitNoTimeout(_aaxSemaphore*);
 int _aaxSemaphoreRelease(_aaxSemaphore*);
 
 #if defined(__cplusplus)

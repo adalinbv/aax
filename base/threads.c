@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2007-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2007-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2009-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -234,7 +234,7 @@ _aaxThreadJoin(void *t)
 }
 
 
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
 void *
 _aaxMutexCreate(void *mutex)
 {
@@ -272,7 +272,7 @@ _aaxMutexCreateDebug(void *mutex, const char *name, const char *fn)
 }
 #endif
 
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 _aaxMutex *
 _aaxMutexCreateInt(_aaxMutex *m)
 {
@@ -284,7 +284,7 @@ _aaxMutexCreateInt(_aaxMutex *m)
       status = pthread_mutexattr_init(&mta);
       if (!status)
       {
-# ifndef NDEBUG
+# ifndef NDEBUGTHREADS
          status = pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_RECURSIVE);
 # else
          status = pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_NORMAL);
@@ -331,7 +331,7 @@ _aaxMutexDestroy(void *mutex)
    m = 0;
 }
 
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
 int
 _aaxMutexLock(void *mutex)
 {
@@ -414,7 +414,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
       if (m->initialized != 0)
       {
          struct timespec to;
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 # ifdef __GNUC__
          unsigned int mtx;
 
@@ -433,7 +433,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
          to.tv_nsec = 0;
          r = pthread_mutex_timedlock(&m->mutex, &to);
 
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
          if (r == ETIMEDOUT) {
             printf("mutex timed out after %i seconds\n  %s line %i\n"
                    "  last call from\n  %s line %zu\n",
@@ -465,7 +465,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
    return r;
 }
 
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
 int
 _aaxMutexUnLock(void *mutex)
 {
@@ -487,7 +487,7 @@ _aaxMutexUnLockDebug(void *mutex, char *file, int line)
 
    if (m)
    {
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 # ifdef __GNUC__
       unsigned int mtx;
 
@@ -509,7 +509,7 @@ _aaxMutexUnLockDebug(void *mutex, char *file, int line)
 #endif
 
       r = pthread_mutex_unlock(&m->mutex);
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 #endif
 
       m->last_file = file;
@@ -650,7 +650,7 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
 }
 
 
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 int
 _aaxSignalTriggerDebug(_aaxSignal *signal, char *file, int line)
 {
@@ -716,7 +716,7 @@ _aaxSemaphoreDestroy(_aaxSemaphore *sem)
    return rv;
 }
 
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 inline int
 _aaxSemaphoreWaitDebug(_aaxSemaphore *sem, char *file, int line)
 {
@@ -742,13 +742,13 @@ _aaxSemaphoreWaitDebug(_aaxSemaphore *sem, char *file, int line)
    }
    return rv ? false : true;
 }
-#else
+#endif
+
 inline int
-_aaxSemaphoreWait(_aaxSemaphore *sem)
+_aaxSemaphoreWaitNoTimeout(_aaxSemaphore *sem)
 {
    return sem_wait(sem) ? false : true;
 }
-#endif
 
 inline int
 _aaxSemaphoreRelease(_aaxSemaphore *sem)
@@ -985,7 +985,7 @@ _aaxThreadJoin(void *t)
  * In release mode use critical sections which could be way faster
  *    for single process applications.
  */
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
 void *
 _aaxMutexCreate(void *mutex)
 {
@@ -1029,7 +1029,7 @@ _aaxMutexCreateInt(_aaxMutex *m)
 {
    if (m && m->initialized == 0)
    {
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
       m->mutex = CreateMutex(NULL, FALSE, NULL);
       InitializeCriticalSection(&m->crit);
       m->initialized = 1;
@@ -1049,7 +1049,7 @@ _aaxMutexDestroy(void *mutex)
 
    if (m)
    {
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
       CloseHandle(m->mutex);
       DeleteCriticalSection(&m->crit);
 #else
@@ -1061,7 +1061,7 @@ _aaxMutexDestroy(void *mutex)
    m = 0;
 }
 
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
 int
 _aaxMutexLock(void *mutex)
 {
@@ -1129,7 +1129,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
 
       if (m->initialized != 0)
       {
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
          EnterCriticalSection(&m->crit);
          r = WAIT_OBJECT_0;
 #else
@@ -1156,7 +1156,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
    return r;
 }
 
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
 int
 _aaxMutexUnLock(void *mutex)
 {
@@ -1323,7 +1323,7 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
    return rv;
 }
 
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 int
 _aaxSignalTriggerDebug(_aaxSignal *signal, char *file, int line)
 {
@@ -1381,22 +1381,21 @@ _aaxSemaphoreDestroy(_aaxSemaphore *sem)
    return true;
 }
 
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 inline int
 _aaxSemaphoreWaitDebug(_aaxSemaphore *sem, char *file, int line)
 {
    DWORD r = WaitForSingleObject(sem, INFINITE);
    return (r == WAIT_OBJECT_0) ? true : false;
 }
+#endif
 
-#else
 inline int
-_aaxSemaphoreWait(_aaxSemaphore *sem)
+_aaxSemaphoreWaitNoTimeout(_aaxSemaphore *sem)
 {
    DWORD r = WaitForSingleObject(sem, INFINITE);
    return (r == WAIT_OBJECT_0) ? true : false;
 }
-#endif
 
 inline int
 _aaxSemaphoreRelease(_aaxSemaphore *sem)
