@@ -709,7 +709,6 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (handle->use_iothread)
             {
                _aaxSignalInit(&handle->iothread.signal);
-               handle->iothread.signal.mutex = _aaxMutexCreate(handle->iothread.signal.mutex);
 
                handle->iothread.ptr = _aaxThreadCreate();
                if (handle->mode == AAX_MODE_READ) {
@@ -1789,6 +1788,7 @@ _aaxStreamDriverWriteThread(void *id)
    _driver_t *handle = (_driver_t*)id;
 
    _aaxMutexLock(handle->iothread.signal.mutex);
+
    do
    {
       _aaxSignalWait(&handle->iothread.signal);
@@ -1802,6 +1802,7 @@ _aaxStreamDriverWriteThread(void *id)
       _aaxDataMoveData(handle->rawBuffer, 0, handle->ioBuffer, 0, res);
    }
    while (_aaxStreamDriverWriteChunk(id));
+
    _aaxMutexUnLock(handle->iothread.signal.mutex);
 
    return handle;
@@ -1882,11 +1883,10 @@ _aaxStreamDriverReadThread(void *id)
 
    // wait for our first job
    _aaxMutexLock(handle->iothread.signal.mutex);
+
    do {
       _aaxSignalWaitTimed(&handle->iothread.signal, handle->dt);
-//    _aaxMutexUnLock(handle->iothread.signal.mutex);
       res = _aaxStreamDriverReadChunk(id);
-//    _aaxMutexLock(handle->iothread.signal.mutex);
    }
    while(res >= 0 && handle->iothread.started);
 

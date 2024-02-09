@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2007-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2007-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2009-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -234,7 +234,7 @@ _aaxThreadJoin(void *t)
 }
 
 
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
 void *
 _aaxMutexCreate(void *mutex)
 {
@@ -272,30 +272,23 @@ _aaxMutexCreateDebug(void *mutex, const char *name, const char *fn)
 }
 #endif
 
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 _aaxMutex *
 _aaxMutexCreateInt(_aaxMutex *m)
 {
    if (m && m->initialized == 0)
    {
-      pthread_mutexattr_t mta;
       int status;
-
+      pthread_mutexattr_t mta;
       status = pthread_mutexattr_init(&mta);
       if (!status)
       {
-# ifndef NDEBUG
          status = pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_RECURSIVE);
-# else
-         status = pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_NORMAL);
-# endif
-         if (!status) {
+         if (!status)
+         {
             status = pthread_mutex_init(&m->mutex, &mta);
+            if (!status) m->initialized = 1;
          }
-      }
-
-      if (!status) {
-         m->initialized = 1;
       }
    }
 
@@ -308,9 +301,7 @@ _aaxMutexCreateInt(_aaxMutex *m)
    if (m && m->initialized == 0)
    {
       int status = pthread_mutex_init(&m->mutex, NULL);
-      if (!status) {
-         m->initialized = 1;
-      }
+      if (!status) m->initialized = 1;
    }
 
    return m;
@@ -320,26 +311,22 @@ _aaxMutexCreateInt(_aaxMutex *m)
 void
 _aaxMutexDestroy(void *mutex)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
-
-   if (m)
+   if (mutex)
    {
+      _aaxMutex *m = (_aaxMutex *)mutex;
       pthread_mutex_destroy(&m->mutex);
       free(m);
    }
-
-   m = 0;
 }
 
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
 int
 _aaxMutexLock(void *mutex)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
-
-   if (m)
+   if (mutex)
    {
+      _aaxMutex *m = (_aaxMutex *)mutex;
       if (m->initialized == 0) {
          m = _aaxMutexCreateInt(m);
       }
@@ -376,11 +363,10 @@ _aaxMutexLock(void *mutex)
 int
 _aaxMutexLockTimed(void *mutex, float dt)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
-
-   if (m)
+   if (mutex)
    {
+      _aaxMutex *m = (_aaxMutex *)mutex;
       if (m->initialized == 0) {
          m = _aaxMutexCreateInt(m);
       }
@@ -402,11 +388,10 @@ _aaxMutexLockTimed(void *mutex, float dt)
 int
 _aaxMutexLockDebug(void *mutex, char *file, int line)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
-
-   if (m)
+   if (mutex)
    {
+      _aaxMutex *m = (_aaxMutex *)mutex;
       if (m->initialized == 0) {
          mutex = _aaxMutexCreateInt(m);
       }
@@ -414,16 +399,17 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
       if (m->initialized != 0)
       {
          struct timespec to;
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 # ifdef __GNUC__
-         unsigned int mtx;
+         unsigned int mtx_count;
 
-         mtx = m->mutex.__data.__count;	/* only works for recursive locks */
-         if (mtx != 0 && mtx != 1) {
+         /* only works for recursive locks */
+         mtx_count = m->mutex.__data.__count;
+         if (mtx_count != 0 && mtx_count != 1) {
             printf("1. lock mutex = %i\n  %s line %i, for: %s in %s\n"
-                   "last called from: %s line %zu\n", mtx, file, line,
+                   "last called from: %s line %zu\n", mtx_count, file, line,
                    m->name, m->function, m->last_file, m->last_line);
-            r = -mtx;
+            r = -mtx_count;
             abort();
          }
 # endif
@@ -433,7 +419,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
          to.tv_nsec = 0;
          r = pthread_mutex_timedlock(&m->mutex, &to);
 
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
          if (r == ETIMEDOUT) {
             printf("mutex timed out after %i seconds\n  %s line %i\n"
                    "  last call from\n  %s line %zu\n",
@@ -448,12 +434,13 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
          }
 
 # ifdef __GNUC__
-         mtx = m->mutex.__data.__count;	/* only works for recursive locks */
-         if (mtx != 1) {
+         /* only works for recursive locks */
+         mtx_count = m->mutex.__data.__count;
+         if (mtx_count != 1) {
             printf("2. lock mutex != 1 (%i)\n  %s line %i, for: %s in %s\n"
-                    "last called from: %s line %zu\n", mtx, file, line,
-                    m->name, m->function, m->last_file, m->last_line);
-            r = -mtx;
+                    "last called from: %s line %zu\n", mtx_count, file,
+                    line, m->name, m->function, m->last_file, m->last_line);
+            r = -mtx_count;
             abort();
          }
 # endif
@@ -465,14 +452,14 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
    return r;
 }
 
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
 int
 _aaxMutexUnLock(void *mutex)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
-
-   if (m) {
+   if (mutex)
+   {
+      _aaxMutex *m = (_aaxMutex *)mutex;
       r = pthread_mutex_unlock(&m->mutex);
    }
    return r;
@@ -482,34 +469,34 @@ _aaxMutexUnLock(void *mutex)
 int
 _aaxMutexUnLockDebug(void *mutex, char *file, int line)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
-
-   if (m)
+   if (mutex)
    {
-#ifndef NDEBUG
+      _aaxMutex *m = (_aaxMutex *)mutex;
+#ifndef NDEBUGTHREADS
 # ifdef __GNUC__
-      unsigned int mtx;
+      unsigned int mtx_count;
 
-      mtx = m->mutex.__data.__count;
-      if (mtx != 1) {
-         if (mtx == 0)
+      mtx_count = m->mutex.__data.__count;
+      if (mtx_count != 1) {
+         if (mtx_count == 0) {
             printf("mutex already unlocked in %s line %i, for: %s\n"
                     "last called from: %s line %zu\n",
                      file, line, m->name, m->last_file, m->last_line);
-         else
+         } else {
             printf("unlock mutex != 1 (%i) in %s line %i, for: %s in %s\n"
                     "last called from: %s line %zu\n",
-                    mtx, file, line, m->name, m->function,
+                    mtx_count, file, line, m->name, m->function,
                     m->last_file, m->last_line);
-         r = -mtx;
+         }
+         r = -mtx_count;
          abort();
       }
 # endif
 #endif
 
       r = pthread_mutex_unlock(&m->mutex);
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 #endif
 
       m->last_file = file;
@@ -543,6 +530,7 @@ void
 _aaxSignalFree(_aaxSignal *signal)
 {
    _aaxMutexDestroy(signal->mutex);
+   signal->mutex = NULL;
 
    if (signal->condition)
    {
@@ -650,7 +638,7 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
 }
 
 
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 int
 _aaxSignalTriggerDebug(_aaxSignal *signal, char *file, int line)
 {
@@ -665,7 +653,7 @@ _aaxSignalTriggerDebug(_aaxSignal *signal, char *file, int line)
       signal->waiting = false;
       rv =  pthread_cond_signal(signal->condition);
    }
-   _aaxMutexUnLock(signal->mutex);
+   _aaxMutexUnLockDebug(signal->mutex, file, line);
 
    return rv;
 }
@@ -716,7 +704,7 @@ _aaxSemaphoreDestroy(_aaxSemaphore *sem)
    return rv;
 }
 
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 inline int
 _aaxSemaphoreWaitDebug(_aaxSemaphore *sem, char *file, int line)
 {
@@ -742,13 +730,13 @@ _aaxSemaphoreWaitDebug(_aaxSemaphore *sem, char *file, int line)
    }
    return rv ? false : true;
 }
-#else
+#endif
+
 inline int
-_aaxSemaphoreWait(_aaxSemaphore *sem)
+_aaxSemaphoreWaitNoTimeout(_aaxSemaphore *sem)
 {
    return sem_wait(sem) ? false : true;
 }
-#endif
 
 inline int
 _aaxSemaphoreRelease(_aaxSemaphore *sem)
@@ -985,12 +973,11 @@ _aaxThreadJoin(void *t)
  * In release mode use critical sections which could be way faster
  *    for single process applications.
  */
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
 void *
 _aaxMutexCreate(void *mutex)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
-
    if (!m)
    {
       m = calloc(1, sizeof(_aaxMutex));
@@ -1008,7 +995,6 @@ void *
 _aaxMutexCreateDebug(void *mutex, const char *name, const char *fn)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
-
    if (!m)
    {
       m = calloc(1, sizeof(_aaxMutex));
@@ -1029,7 +1015,7 @@ _aaxMutexCreateInt(_aaxMutex *m)
 {
    if (m && m->initialized == 0)
    {
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
       m->mutex = CreateMutex(NULL, FALSE, NULL);
       InitializeCriticalSection(&m->crit);
       m->initialized = 1;
@@ -1045,11 +1031,10 @@ _aaxMutexCreateInt(_aaxMutex *m)
 void
 _aaxMutexDestroy(void *mutex)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
-
-   if (m)
+   if (mutex)
    {
-#if defined(NDEBUG)
+      _aaxMutex *m = (_aaxMutex *)mutex;
+#if defined(NDEBUGTHREADS)
       CloseHandle(m->mutex);
       DeleteCriticalSection(&m->crit);
 #else
@@ -1057,19 +1042,16 @@ _aaxMutexDestroy(void *mutex)
 #endif
       free(m);
    }
-
-   m = 0;
 }
 
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
 int
 _aaxMutexLock(void *mutex)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
-
-   if (m)
+   if (mutex)
    {
+      _aaxMutex *m = (_aaxMutex *)mutex;
       if (m->initialized == 0) {
          m = _aaxMutexCreateInt(m);
       }
@@ -1085,11 +1067,10 @@ _aaxMutexLock(void *mutex)
 int
 _aaxMutexLockTimed(void *mutex, float dt)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
-
-   if (m)
+   if (mutex)
    {
+      _aaxMutex *m = (_aaxMutex *)mutex;
       if (m->initialized == 0) {
          m = _aaxMutexCreateInt(m);
       }
@@ -1118,18 +1099,17 @@ _aaxMutexLockTimed(void *mutex, float dt)
 int
 _aaxMutexLockDebug(void *mutex, char *file, int line)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
-
-   if (m)
+   if (mutex)
    {
+      _aaxMutex *m = (_aaxMutex *)mutex;
       if (m->initialized == 0) {
          m = _aaxMutexCreateInt(m);
       }
 
       if (m->initialized != 0)
       {
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
          EnterCriticalSection(&m->crit);
          r = WAIT_OBJECT_0;
 #else
@@ -1156,15 +1136,14 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
    return r;
 }
 
-#if defined(NDEBUG)
+#if defined(NDEBUGTHREADS)
 int
 _aaxMutexUnLock(void *mutex)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
    int r = 0;
-
-   if (m)
+   if (mutex)
    {
+      _aaxMutex *m = (_aaxMutex *)mutex;
       if (m->waiting) {
          ReleaseMutex(m->mutex);
       } else {
@@ -1179,11 +1158,10 @@ _aaxMutexUnLock(void *mutex)
 int
 _aaxMutexUnLockDebug(void *mutex, char *file, int line)
 {
-   _aaxMutex *m = (_aaxMutex *)mutex;
    int r = EINVAL;
-
-   if (m)
+   if (mutex)
    {
+      _aaxMutex *m = (_aaxMutex *)mutex;
       ReleaseMutex(m->mutex);
       r = 0;
 
@@ -1323,7 +1301,7 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
    return rv;
 }
 
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 int
 _aaxSignalTriggerDebug(_aaxSignal *signal, char *file, int line)
 {
@@ -1381,22 +1359,21 @@ _aaxSemaphoreDestroy(_aaxSemaphore *sem)
    return true;
 }
 
-#ifndef NDEBUG
+#ifndef NDEBUGTHREADS
 inline int
 _aaxSemaphoreWaitDebug(_aaxSemaphore *sem, char *file, int line)
 {
    DWORD r = WaitForSingleObject(sem, INFINITE);
    return (r == WAIT_OBJECT_0) ? true : false;
 }
+#endif
 
-#else
 inline int
-_aaxSemaphoreWait(_aaxSemaphore *sem)
+_aaxSemaphoreWaitNoTimeout(_aaxSemaphore *sem)
 {
    DWORD r = WaitForSingleObject(sem, INFINITE);
    return (r == WAIT_OBJECT_0) ? true : false;
 }
-#endif
 
 inline int
 _aaxSemaphoreRelease(_aaxSemaphore *sem)
