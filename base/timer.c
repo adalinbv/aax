@@ -21,7 +21,7 @@
 #include <math.h>
 
 #include <aax/aax.h>
-#include <base/threads.h>
+#include <base/xthreads.h>
 #include "timer.h"
 
 

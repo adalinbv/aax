@@ -18,7 +18,7 @@
 
 #include "buffers.h"
 #ifndef _AL_NOTHREADS
-# include "threads.h"
+# include "xthreads.h"
 #endif
 
 #ifdef NDEBUG

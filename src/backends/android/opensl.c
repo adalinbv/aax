@@ -1059,7 +1059,7 @@ _aaxSLESDriverCallback(SLAndroidSimpleBufferQueueItf queue, void *id)
    _aaxSemaphoreRelease(handle->worker_start);
 }
 
-void *
+int
 _aaxSLESDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
@@ -1073,7 +1073,7 @@ _aaxSLESDriverThread(void* config)
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
-      return NULL;
+      return false;
    }
 
    delay_sec = 1.0f/handle->info->period_rate;
@@ -1104,11 +1104,11 @@ _aaxSLESDriverThread(void* config)
       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
       if (!dest_rb) {
-         return NULL;
+         return false;
       }
    }
    else {
-      return NULL;
+      return false;
    }
 
    be->state(handle->backend.handle, DRIVER_PAUSE);
@@ -1155,7 +1155,7 @@ _aaxSLESDriverThread(void* config)
    be->destroy_ringbuffer(dest_rb);
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
-   return handle;
+   return handle ? true : false;
 }
 
 #endif // 0

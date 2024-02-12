@@ -14,7 +14,6 @@
 #include <errno.h>		/* for ETIMEDOUT */
 #include <assert.h>
 
-#include <base/threads.h>
 #include <base/buffers.h>
 #include <dsp/filters.h>
 #include <dsp/effects.h>

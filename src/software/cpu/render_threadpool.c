@@ -21,7 +21,6 @@
 #include <aax/aax.h>
 
 #include <base/buffers.h>
-#include <base/threads.h>
 #include <base/logging.h>
 
 #include <api.h>
@@ -101,7 +100,7 @@ typedef struct
 
 } _render_t;
 
-static void* _aaxWorkerThread(void*);
+static int _aaxWorkerThread(void*);
 
 
 static int
@@ -361,7 +360,7 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
 
 /* ------------------------------------------------------------------------- */
 
-static void*
+static int
 _aaxWorkerThread(void *id)
 {
    _render_t *handle = (_render_t*)id;
@@ -472,5 +471,5 @@ _aaxWorkerThread(void *id)
 
    _aaxSemaphoreRelease(handle->worker_ready);
 
-   return handle;
+   return handle ? true : false;
 }

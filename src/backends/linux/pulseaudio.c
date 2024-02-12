@@ -1302,7 +1302,7 @@ stream_capture_cb(pa_stream *p, size_t nbytes, void *be_ptr)
 #endif
 
 #if USE_PULSE_THREAD
-static void *
+static int
 _aaxPulseAudioDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
@@ -1318,7 +1318,7 @@ _aaxPulseAudioDriverThread(void* config)
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
-      return NULL;
+      return false;
    }
 
    be = handle->backend.ptr;
@@ -1356,7 +1356,7 @@ _aaxPulseAudioDriverThread(void* config)
 
    dest_rb = handle->ringbuffer;
    if (!dest_rb) {
-      return NULL;
+      return false;
    }
 
    /* get real duration, it might have been altered for better performance */
@@ -1434,7 +1434,7 @@ _aaxPulseAudioDriverThread(void* config)
       handle->ringbuffer = NULL;
    }
 
-   return handle;
+   return handle ? true : false;
 }
 #endif
 

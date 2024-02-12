@@ -2197,7 +2197,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
    return rv;
 }
 
-static void*
+static int
 _bufAAXSThread(void *d)
 {
    _buffer_aax_t *aax_buf = (_buffer_aax_t*)d;
@@ -2210,7 +2210,9 @@ _bufAAXSThread(void *d)
    assert(aaxs);
 
    handle->aaxs = strdup(aaxs);
-   if (!handle->aaxs) return NULL;
+   if (!handle->aaxs) {
+      return false;
+   }
 
    xid = xmlInitBuffer(handle->aaxs, strlen(handle->aaxs));
    if (xid)
@@ -2304,7 +2306,7 @@ _bufAAXSThread(void *d)
       aax_buf->error = AAX_INVALID_PARAMETER+2;
    }
 
-   return rv ? d : NULL;
+   return rv;
 }
 
 static int

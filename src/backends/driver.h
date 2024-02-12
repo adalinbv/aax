@@ -155,7 +155,7 @@ typedef void _aaxDriverRingBufferDestroy(void*);
 
 
 typedef struct _aaxRenderer_t *_aaxDriverRender(const void*);
-typedef void *_aaxDriverThread(void*);
+typedef int _aaxDriverThread(void*);
 
 
 typedef struct
@@ -211,7 +211,7 @@ _aaxDriverGetSetSources _aaxSoftwareDriverGetSetSources;
 
 void _aaxNoneDriverProcessFrame(void*);
 
-void* _aaxSoftwareMixerThread(void*);
+int _aaxSoftwareMixerThread(void*);
 int _aaxSoftwareMixerThreadUpdate(void*, void*);
 void _aaxSoftwareMixerPostProcess(const void *);
 void _aaxSoftwareMixerApplyEffects(const void *);

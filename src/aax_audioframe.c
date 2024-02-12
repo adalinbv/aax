@@ -21,7 +21,6 @@
 #include <aax/aax.h>
 #include <xml.h>
 
-#include <base/threads.h>
 #include <base/timer.h>		/* for msecSleep */
 #include <dsp/filters.h>
 #include <dsp/effects.h>

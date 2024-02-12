@@ -1031,7 +1031,7 @@ _sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
 }
 
 #if USE_SDL_THREAD
-static void *
+static int
 _aaxSDLDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
@@ -1047,7 +1047,7 @@ _aaxSDLDriverThread(void* config)
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
-      return NULL;
+      return false;
    }
 
    be = handle->backend.ptr;
@@ -1085,7 +1085,7 @@ _aaxSDLDriverThread(void* config)
 
    dest_rb = handle->ringbuffer;
    if (!dest_rb) {
-      return NULL;
+      return false;
    }
 
    /* get real duration, it might have been altered for better performance */
@@ -1165,6 +1165,6 @@ _aaxSDLDriverThread(void* config)
       handle->ringbuffer = NULL;
    }
 
-   return handle;
+   return handle ? true : false;
 }
 #endif

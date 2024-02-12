@@ -1783,7 +1783,7 @@ ExitNameId:
    return rv;
 }
 
-void *
+int
 _aaxWASAPIDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
@@ -1799,7 +1799,7 @@ _aaxWASAPIDriverThread(void* config)
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
-      return NULL;
+      return false;
    }
 
    delay_sec = 1.0f/handle->info->period_rate;
@@ -1829,11 +1829,11 @@ _aaxWASAPIDriverThread(void* config)
       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
       if (!dest_rb) {
-         return NULL;
+         return false;
       }
    }
    else {
-      return NULL;
+      return false;
    }
 
    be_handle = handle->backend.handle;
@@ -1927,7 +1927,7 @@ _aaxWASAPIDriverThread(void* config)
    be->destroy_ringbuffer(dest_rb);
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
-   return handle;
+   return handle ? true : false;
 }
 
 static int

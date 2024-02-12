@@ -31,7 +31,6 @@
 #include <xml.h>
 
 #include <base/types.h>
-#include <base/threads.h>
 #include <base/logging.h>
 
 #include <api.h>
@@ -176,8 +175,8 @@ typedef struct
 
 static _ext_t* _aaxGetFormat(const char*, enum aaxRenderMode);
 
-static void* _aaxStreamDriverReadThread(void*);
-static void* _aaxStreamDriverWriteThread(void*);
+static int _aaxStreamDriverReadThread(void*);
+static int _aaxStreamDriverWriteThread(void*);
 static size_t _aaxStreamDriverWriteChunk(const void*);
 static ssize_t _aaxStreamDriverReadChunk(const void*);
 
@@ -1643,7 +1642,7 @@ _aaxStreamDriverWriteChunk(const void *id)
    return rv;
 }
 
-static void *
+static int
 _aaxStreamDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
@@ -1659,7 +1658,7 @@ _aaxStreamDriverThread(void* config)
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
-      return NULL;
+      return false;
    }
 
    be = handle->backend.ptr;
@@ -1697,7 +1696,7 @@ _aaxStreamDriverThread(void* config)
 
    dest_rb = handle->ringbuffer;
    if (!dest_rb) {
-      return NULL;
+      return false;
    }
 
    /* get real duration, it might have been altered for better performance */
@@ -1779,10 +1778,10 @@ _aaxStreamDriverThread(void* config)
       handle->ringbuffer = NULL;
    }
 
-   return handle;
+   return handle ? true : false;
 }
 
-static void*
+static int
 _aaxStreamDriverWriteThread(void *id)
 {
    _driver_t *handle = (_driver_t*)id;
@@ -1805,7 +1804,7 @@ _aaxStreamDriverWriteThread(void *id)
 
    _aaxMutexUnLock(handle->iothread.signal.mutex);
 
-   return handle;
+   return handle ? true : false;
 }
 
 static ssize_t
@@ -1859,7 +1858,7 @@ _aaxStreamDriverThreadReadChunk(const void *id)
    return res;
 }
 
-static void*
+static int
 _aaxStreamDriverReadThread(void *id)
 {
    _driver_t *handle = (_driver_t*)id;
@@ -1892,5 +1891,5 @@ _aaxStreamDriverReadThread(void *id)
 
    _aaxMutexUnLock(handle->iothread.signal.mutex);
 
-   return handle;
+   return handle ? true : false;
 }

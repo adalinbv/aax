@@ -1708,7 +1708,7 @@ detect_cardnum(const char *devname)
    return rv;
 }
 
-void *
+int
 _aaxLinuxDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
@@ -1726,7 +1726,7 @@ _aaxLinuxDriverThread(void* config)
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
-      return NULL;
+      return false;
    }
 
    delay_sec = 1.0f/handle->info->period_rate;
@@ -1735,7 +1735,7 @@ _aaxLinuxDriverThread(void* config)
    id = handle->backend.handle;		// Required for _AAX_DRVLOG
    be_handle = (_driver_t *)handle->backend.handle;
    if (!be_handle->status) {
-      return NULL;
+      return false;
    }
 
    dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
@@ -1760,11 +1760,11 @@ _aaxLinuxDriverThread(void* config)
       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
       if (!dest_rb) {
-         return NULL;
+         return false;
       }
    }
    else {
-      return NULL;
+      return false;
    }
 
    be->state(handle->backend.handle, DRIVER_PAUSE);
@@ -1903,5 +1903,5 @@ _aaxLinuxDriverThread(void* config)
    be->destroy_ringbuffer(dest_rb);
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
-   return handle;
+   return handle ? true : false;
 }

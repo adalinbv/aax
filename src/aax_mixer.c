@@ -23,7 +23,6 @@
 #include <xml.h>
 
 #include <base/gmath.h>
-#include <base/threads.h>
 #include <base/timer.h>		/* for msecSleep, etc */
 
 #include <dsp/filters.h>

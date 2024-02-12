@@ -2393,7 +2393,7 @@ _aaxPipeWireGetFormat(unsigned int format)
 }
 
 #if USE_PIPEWIRE_THREAD
-static void *
+static int
 _aaxPipeWireDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
@@ -2409,7 +2409,7 @@ _aaxPipeWireDriverThread(void* config)
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
-      return NULL;
+      return false;
    }
 
    be = handle->backend.ptr;
@@ -2449,7 +2449,7 @@ _aaxPipeWireDriverThread(void* config)
 
    dest_rb = handle->ringbuffer;
    if (!dest_rb) {
-      return NULL;
+      return false;
    }
 
    /* get real duration, it might have been altered for better performance */
@@ -2498,7 +2498,7 @@ _aaxPipeWireDriverThread(void* config)
    }
 #endif
 
-   return handle;
+   return handle ? true : false;
 }
 #endif
 
