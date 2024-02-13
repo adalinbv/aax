@@ -116,6 +116,9 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
                float iv = (float)setup;
                if (iv <= 5.0f) iv = 5.0f;
 
+               // make no_samples a power of two
+               iv = fq/get_pow2((size_t)rintf(fq/iv));
+
                iv = fq / INTERVAL(fq / iv);
                info->refresh_rate = iv;
                info->period_rate = iv;
