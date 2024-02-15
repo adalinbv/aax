@@ -42,6 +42,18 @@
 #define DEBUG_TIMEOUT		3
 #define _TH_SYSLOG(a)		__aax_log(LOG_SYSLOG, 0, (a), 0, LOG_SYSLOG);
 
+// Note: Requires Visual Studio version 17.8 Preview 2 or later.
+//    It’s shipped as a new satellite DLL of vcruntime:
+//    vcruntime140_threads.dll and vcruntime140_threadsd.dll.
+//    If you use the dynamic version of the Visual C++ runtime (/MD or /MDd),
+//    and you use the new threads facilities, then you need to either
+//    redistribute this file with your app, or redistribute a Visual C++
+//    runtime redist that is new enough to contain these files.
+//
+//    A key difference between Visual Studio's implementation and C11 threads
+//    implementations based on pthreads is that threads can not detach
+//    themselves using thrd_current() and thrd_detach().
+
 #if HAVE_PTHREAD_H	/* UNIX */
 
 # include <sys/time.h>
@@ -60,7 +72,7 @@ _aaxSemaphoreCreate(unsigned initial)
 
    if (initial < SEM_VALUE_MAX)
    {
-      rv = malloc(sizeof(sem_t));
+      rv = calloc(1, sizeof(sem_t));
       if (rv) {
          sem_init(rv, 0, initial);
       }
@@ -134,55 +146,10 @@ _aaxProcessSetPriority(int prio)
    return rv;
 }
 
-#elif defined( WIN32 )	/* HAVE_PTHREAD_H */
+#elif defined( WIN32 )	/* WINDOWS */
 
 #include <processthreadsapi.h>
 #include <base/dlsym.h>
-
-# ifndef __MINGW32__
-int
-__sync_fetch_and_add(int *variable, int value) {
-   return InterlockedExchangeAdd(variable, value);
-}
-
-void*
-__sync_lock_test_and_set(void **ptr, void *value) {
-   return InterlockedExchangePointer(ptr, value);
-}
-#endif
-
-							/* --- WINDOWS --- */
-int                     /* Prio is a value in the range -20 to 19 */
-_aaxProcessSetPriority(int prio)
-{
-   int rv = 0;
-
-   DWORD curr_priority = GetPriorityClass(GetCurrentProcess());
-   DWORD new_priority;
-
-   if (prio < ((AAX_HIGHEST_PRIORITY+AAX_TIME_CRITICAL_PRIORITY)/2)) {
-      new_priority = HIGH_PRIORITY_CLASS;
-   }
-   else if (prio < ((AAX_HIGH_PRIORITY+AAX_HIGHEST_PRIORITY)/2)) {
-      new_priority = ABOVE_NORMAL_PRIORITY_CLASS;
-   }
-   else if (prio < ((AAX_LOWEST_PRIORITY+AAX_HIGH_PRIORITY)/2)) {
-      new_priority = NORMAL_PRIORITY_CLASS;
-   }
-   else if (prio < ((AAX_IDLE_PRIORITY+AAX_LOWEST_PRIORITY)/2)) {
-      new_priority = BELOW_NORMAL_PRIORITY_CLASS;
-   }
-   else {
-      new_priority = IDLE_PRIORITY_CLASS;
-   }
-
-   if (new_priority > curr_priority) {
-      rv = SetPriorityClass(GetCurrentProcess(), new_priority);
-   }
-
-   return rv;
-}
-
 
 /* http://www.slideshare.net/abufayez/pthreads-vs-win32-threads */
 /* http://www.ibm.com/developerworks/linux/library/l-ipc2lin3/index.html */
@@ -190,160 +157,6 @@ _aaxProcessSetPriority(int prio)
 DECL_FUNCTION(AvSetMmThreadCharacteristicsA);
 DECL_FUNCTION(AvRevertMmThreadCharacteristics);
 DECL_FUNCTION(AvSetMmThreadPriority);
-
-void *
-_aaxThreadCreate()
-{
-   void *ret  = calloc(1, sizeof(_aaxThread));
-
-   if (!pAvSetMmThreadCharacteristicsA)
-   {
-      void *audio = _aaxIsLibraryPresent("avrt", 0);
-      if (audio)
-      {
-         TIE_FUNCTION(AvSetMmThreadCharacteristicsA);
-         TIE_FUNCTION(AvRevertMmThreadCharacteristics);
-         TIE_FUNCTION(AvSetMmThreadPriority);
-      }
-   }
-
-   return ret;
-}
-
-int
-_aaxThreadSetPriority(void *t, int prio)
-{
-   _aaxThread *thread = t;
-   int rv = 0;
-
-// DWORD curr_priority = GetThreadPriority(GetCurrentThread());
-   DWORD new_priority;
-
-   if (prio < ((AAX_HIGHEST_PRIORITY+AAX_TIME_CRITICAL_PRIORITY)/2)) {
-      new_priority = THREAD_PRIORITY_TIME_CRITICAL;
-   }
-   else if (prio < ((AAX_HIGH_PRIORITY+AAX_HIGHEST_PRIORITY)/2)) {
-      new_priority = THREAD_PRIORITY_HIGHEST;
-   }
-   else if (prio < ((AAX_NORMAL_PRIORITY+AAX_HIGH_PRIORITY)/2)) {
-      new_priority = THREAD_PRIORITY_ABOVE_NORMAL;
-   }
-   else if (prio < ((AAX_LOW_PRIORITY+AAX_NORMAL_PRIORITY)/2)) {
-      new_priority = THREAD_PRIORITY_NORMAL;
-   }
-   else if (prio < ((AAX_LOWEST_PRIORITY+AAX_LOW_PRIORITY)/2)) {
-      new_priority = THREAD_PRIORITY_BELOW_NORMAL;
-   }
-   else if (prio < ((AAX_IDLE_PRIORITY+AAX_LOWEST_PRIORITY)/2)) {
-      new_priority = THREAD_PRIORITY_LOWEST;
-   }
-   else {
-      new_priority = THREAD_PRIORITY_IDLE;
-   }
-
-   SetThreadPriority(thread, new_priority);
-   if (!rv) {
-      rv = GetLastError();
-   }
-
-   return rv;
-}
-
-void
-_aaxThreadDestroy(void *t)
-{
-   _aaxThread *thread = t;
-
-   assert(t);
-
-   if (thread->handle)
-   {
-      CloseHandle(thread->handle);
-      thread->handle = 0;
-   }
-   free(t);
-   t = 0;
-}
-
-static DWORD WINAPI
-_callback_handler(LPVOID t)
-{
-   _aaxThread *thread = t;
-
-   if (pAvSetMmThreadCharacteristicsA)
-   {
-      DWORD tIdx = 0;
-      if (thread->ms >= 10) {
-         thread->task = pAvSetMmThreadCharacteristicsA("Audio", &tIdx);
-      }
-      else
-      {
-         thread->task = pAvSetMmThreadCharacteristicsA("Pro Audio", &tIdx);
-         if (thread->task && pAvSetMmThreadPriority) {
-            pAvSetMmThreadPriority(thread->task, AVRT_PRIORITY_HIGH);
-         }
-      }
-   }
-
-   thread->callback_fn(thread->callback_data);
-
-   if (thread->task)
-   {
-     if (pAvRevertMmThreadCharacteristics) {
-         pAvRevertMmThreadCharacteristics(thread->task);
-      }
-      thread->task = NULL;
-   }
-
-   return 0;
-}
-
-int
-_aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, unsigned int ms, const char *name)
-{
-   _aaxThread *thread = t;
-   int rv = -1;
-
-   thread->ms = ms;
-   thread->callback_fn = handler;
-   thread->callback_data = arg;
-   thread->handle = CreateThread(NULL, 0, _callback_handler, t, 0, NULL);
-   if (thread->handle != NULL)
-   {
-      if (name) SetThreadDescription(thread->handle, name);
-      rv = 0;
-   }
-
-   return rv;
-}
-
-int
-_aaxThreadJoin(void *t)
-{
-   _aaxThread *thread = t;
-   int ret = 0;
-   DWORD r;
-
-   assert(t);
-
-   r = WaitForSingleObject(thread->handle, INFINITE);
-   switch (r)
-   {
-   case WAIT_OBJECT_0:
-      break;
-   case WAIT_TIMEOUT:
-      r = ETIMEDOUT;
-      break;
-   case WAIT_ABANDONED:
-      ret = EINVAL;
-      break;
-   case WAIT_FAILED:
-   default:
-      ret = ESRCH;
-   }
-
-   return ret;
-}
 
 inline _aaxSemaphore *
 _aaxSemaphoreCreate(unsigned initial)
@@ -381,6 +194,37 @@ _aaxSemaphoreRelease(_aaxSemaphore *sem)
    return ReleaseSemaphore(sem, 1, NULL) ? true : false;
 }
 
+int                     /* Prio is a value in the range -20 to 19 */
+_aaxProcessSetPriority(int prio)
+{
+   int rv = 0;
+
+   DWORD curr_priority = GetPriorityClass(GetCurrentProcess());
+   DWORD new_priority;
+
+   if (prio < ((AAX_HIGHEST_PRIORITY+AAX_TIME_CRITICAL_PRIORITY)/2)) {
+      new_priority = HIGH_PRIORITY_CLASS;
+   }
+   else if (prio < ((AAX_HIGH_PRIORITY+AAX_HIGHEST_PRIORITY)/2)) {
+      new_priority = ABOVE_NORMAL_PRIORITY_CLASS;
+   }
+   else if (prio < ((AAX_LOWEST_PRIORITY+AAX_HIGH_PRIORITY)/2)) {
+      new_priority = NORMAL_PRIORITY_CLASS;
+   }
+   else if (prio < ((AAX_IDLE_PRIORITY+AAX_LOWEST_PRIORITY)/2)) {
+      new_priority = BELOW_NORMAL_PRIORITY_CLASS;
+   }
+   else {
+      new_priority = IDLE_PRIORITY_CLASS;
+   }
+
+   if (new_priority > curr_priority) {
+      rv = SetPriorityClass(GetCurrentProcess(), new_priority);
+   }
+
+   return rv;
+}
+
 #else
 # error "threads not implemented for this platform"
 #endif /* HAVE_PTHREAD_H */
@@ -389,7 +233,7 @@ _aaxSemaphoreRelease(_aaxSemaphore *sem)
 void *
 _aaxThreadCreate()
 {
-   void *ret  = malloc(sizeof(_aaxThread));
+   void *ret  = calloc(1, sizeof(_aaxThread));
    return ret;
 }
 
@@ -416,6 +260,8 @@ _aaxThreadStart(_aaxThread *t,  int(*handler)(void*), void *arg, UNUSED(unsigned
 #else
 # pragma waring implement me
 #endif
+
+      _aaxThreadSetPriority(t, AAX_HIGH_PRIORITY);
    }
 
    return ret;
