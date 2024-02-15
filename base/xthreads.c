@@ -433,7 +433,7 @@ _aaxMutexLock(_aaxMutex *m)
 int
 _aaxMutexLockTimed(_aaxMutex *m, float dt)
 {
-   int r = EINVAL;
+   int r = 0;
    if (m)
    {
       struct timespec to;
@@ -475,7 +475,7 @@ _aaxSignalCreate()
 int
 _aaxSignalInit(_aaxSignal *signal)
 {
-   int r = EINVAL;
+   int rv = thrd_error;
 
    if (!signal->condition) {
       signal->condition = calloc(1, sizeof(cnd_t));
@@ -483,12 +483,13 @@ _aaxSignalInit(_aaxSignal *signal)
 
    if (signal->condition)
    {
-      r = (cnd_init(signal->condition) != thrd_success);
-      if (!r) {
+      rv = cnd_init(signal->condition);
+      if (rv == thrd_success) {
          signal->mutex = _aaxMutexCreate(signal->mutex);
       }
    }
-   return r;
+
+   return (rv == thrd_success) ? 0 : EINVAL;
 }
 
 void
@@ -515,7 +516,7 @@ _aaxSignalDestroy(_aaxSignal *signal)
 int
 _aaxSignalWait(_aaxSignal *signal)
 {
-   int rv;
+   int rv = thrd_success;
 
    if (!signal->triggered)
    {
@@ -530,20 +531,16 @@ _aaxSignalWait(_aaxSignal *signal)
       {
       case thrd_success:
          signal->triggered--;
-         rv = true;
          break;
       default:
-         rv = false;
          break;
       }
    }
-   else
-   {
+   else {
       signal->triggered--;
-      rv = true;
    }
 
-   return rv;
+   return (rv == thrd_success) ? 0 : EINVAL;
 }
 
 int
@@ -551,7 +548,7 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float dt)
 {
    int rv = false;
 
-   if (!signal->triggered  && dt > 0.0f)
+   if (!signal->triggered && dt > 0.0f)
    {
       _aaxMutex *m = signal->mutex;
       struct timespec to;
@@ -572,22 +569,20 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float dt)
 
       switch(rv)
       {
+      case thrd_timedout:
+         rv = AAX_TIMEOUT;
+         break;
       case thrd_success:
          signal->triggered--;
          rv = true;
-         break;
-      case thrd_timedout:
-         rv = AAX_TIMEOUT;
          break;
       default:
          rv = false;
          break;
       }
    }
-   else if (signal->triggered > 0)
-   {
+   else if (signal->triggered > 0) {
       signal->triggered--;
-      rv = true;
    }
 
    return rv;
@@ -596,7 +591,7 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float dt)
 int
 _aaxSignalTrigger(_aaxSignal *signal)
 {
-  int rv = 0;
+  int rv = thrd_success;
 
    _aaxMutexLock(signal->mutex);
    if (!signal->triggered)
@@ -605,9 +600,9 @@ _aaxSignalTrigger(_aaxSignal *signal)
       /* try to prevent this situation anyhow.               */
       signal->triggered = 1;
       signal->waiting = false;
-      rv =  cnd_signal(signal->condition);
+      rv = cnd_signal(signal->condition);
    }
    _aaxMutexUnLock(signal->mutex);
 
-   return rv;
+   return (rv == thrd_success) ? 0 : EINVAL;
 }
