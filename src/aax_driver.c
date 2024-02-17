@@ -1004,7 +1004,7 @@ _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
       flt[0]->Q = 1.0f;
       flt[0]->type = HIGHPASS;
       flt[0]->high_gain = 1.0f;
-      flt[0]->low_gain = 0.0f;
+      flt[0]->low_gain = 0.01f;
       flt[0]->fs = fs;
       _aax_butterworth_compute(20.0f, flt[0]);
 
@@ -1014,7 +1014,7 @@ _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
       flt[1]->Q = 1.0f;
       flt[1]->type = LOWPASS;
       flt[1]->high_gain = 1.0f;
-      flt[1]->low_gain = 0.0f;
+      flt[1]->low_gain = 0.05f;
       flt[1]->fs = fs;
       _aax_butterworth_compute(0.9f*0.5f*fs, flt[1]);
    }
