@@ -22,8 +22,8 @@
 
  <sound gain="2.05" frequency="880" duration="0.25">
   <layer n="0">
-   <waveform src="sawtooth" ratio="1.05" pitch="0.993"/>
-   <waveform src="impulse" processing="add" ratio="1.1" pitch="3.0"/>
+   <waveform src="sawtooth" ratio="1.4" pitch="0.993"/>
+   <waveform src="impulse" processing="add" ratio="0.8" pitch="3.0"/>
   </layer>
  </sound>
 
