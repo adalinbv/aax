@@ -182,7 +182,7 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
                         if (io->ssl)
                         {
                            int err = SSL_ERROR_NONE;
-                           int ctr = 30;
+                           int ctr = 300; // 300msec
                            pSSL_set_fd(io->ssl, fd);
                            do {
                               res = pSSL_connect(io->ssl);
