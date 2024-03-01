@@ -1131,11 +1131,11 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, int64_t setup)
       rv = true;
       break;
    case AAX_MIDI_PRESSURE_FACTOR:
-      p2d->note.pressure = (float)setup/127.0f;			// 0.0 .. 1.0
+      p2d->note.pressure = _ln(1.0f - 0.75f*setup/127.0f);	// 0.0 .. 1.0
       rv = true;
       break;
    case AAX_MIDI_SOFT_FACTOR:
-      p2d->note.soft = (float)setup/127.0f;                     // 0.0 .. 1.0
+      p2d->note.soft = (float)setup/127.0f;			// 0.0 .. 1.0
       rv = true;
       break;
    default:
