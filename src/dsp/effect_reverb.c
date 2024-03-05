@@ -35,6 +35,8 @@
 #define NUM_REFLECTIONS_MIN	4
 #define NUM_REFLECTIONS_MAX	7
 
+#define MUL			0.5f
+
 static void _reverb_swap(void*,void*);
 static void _reverb_destroy(void*);
 
@@ -754,7 +756,7 @@ _reflections_run(const _aaxRingBufferReflectionData *reflections,
 }
 
 static int
-_loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, MIX_PTR_T scratch, size_t no_samples, size_t ds, unsigned int track, unsigned int no_tracks, float dst, int state)
+_loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, _aaxRingBufferFreqFilterData *filter, MIX_PTR_T dptr, MIX_PTR_T scratch, size_t no_samples, size_t ds, unsigned int track, unsigned int no_tracks, float dst, int state)
 {
    int snum, rv = false;
 
@@ -766,7 +768,8 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, 
       size_t bytes = ds*sizeof(MIX_T);
       int q;
 
-      memcpy(scratch, dptr, no_samples*sizeof(MIX_T));
+      filter->run(rbd, scratch, dptr, 0, no_samples, 0, track, filter,
+                  NULL, 1.0f, 0);
       memcpy(dptr-ds, loopbacks->reverb->history[track], bytes);
 
       for(q=0; q<snum; ++q)
@@ -823,7 +826,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
                      occlusion);
    }
    else {
-      rbd->add(direct, sptr, no_samples, 1.0f, 0.0f);
+      rbd->add(direct, sptr, no_samples, MUL, 0.0f);
    }
 
    if (reverb->state & AAX_EFFECT_1ST_ORDER)
@@ -838,8 +841,9 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 
       _reflections_run(reverb->reflections, rb, scratch, sptr,
                             no_samples, ds, track, dst, mono, state);
-      filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter,
+      filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter,
                   NULL, 1.0f, 0);
+      rbd->add(dptr, scratch, no_samples, MUL, 0.0f);
    }
    else {
       memcpy(dptr, sptr, no_samples*sizeof(MIX_T));
@@ -849,10 +853,8 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    {
       int no_tracks = reverb->info->no_tracks;
 
-      _loopbacks_run(reverb->loopbacks, rb, dptr, scratch, no_samples,
+      _loopbacks_run(reverb->loopbacks, rb, filter, dptr, scratch, no_samples,
                      ds, track, no_tracks, dst, state);
-      filter->run(rbd, dptr, dptr, 0, no_samples, 0, track, filter,
-                  NULL, 1.0f, 0);
       memcpy(reverb->track_prev[track], dptr, no_samples*sizeof(MIX_T));
    }
 
@@ -881,7 +883,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
                if (q != r)
                {
                   void *sptr = reverb->track_prev[r];
-                  rbd->add(xdptr, sptr, no_samples, -1.0f, 0.0f);
+                  rbd->add(xdptr, sptr, no_samples, -MUL, 0.0f);
                }
             }
          }
