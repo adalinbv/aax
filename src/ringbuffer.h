@@ -305,6 +305,9 @@ typedef struct
    _aaxRingBufferHistoryData *direct_path;
    void** track_prev;
 
+   float initial_delay;
+   float loopback_delay;
+   float direct_path_gain;
    size_t no_samples;
    float fc;
 
