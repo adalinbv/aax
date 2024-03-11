@@ -54,7 +54,7 @@
 #define NUM_LOOPBACKS_MIN	2
 #define NUM_LOOPBACKS_MAX	7
 #define NUM_REFLECTIONS_MIN	4
-#define NUM_REFLECTIONS_MAX	7
+#define NUM_REFLECTIONS_MAX	6
 
 
 static void _reverb_swap(void*,void*);
@@ -625,14 +625,20 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       if (occlusion)
       {
          vec4f_t occl = occlusion->occlusion;
+         float down = (occl.v4[1] > 1.6f) ? 1.6f : 0.1*occl.v4[1];
+         float up = occl.v4[1] - down;
+         float front = 0.2f*occl.v4[2];
+         float back = occl.v4[3] - front;
+         float left = occl.v4[0];
+         float right = occl.v4[0];
+
          float mul = fs/vs;
-         delays[0] = delay_offs + mul*occl.v4[0]; // left-right
-         delays[1] = delay_offs + mul*occl.v4[0];
-         delays[2] = delay_offs + mul*occl.v4[1]; // down-up
-         delays[3] = delay_offs + mul*occl.v4[1];
-         delays[4] = delay_offs + mul*occl.v4[3]; // front-back
-         delays[5] = delay_offs + mul*occl.v4[2];
-         delays[3] = delay_offs + fs*delay;
+         delays[3] = delay_offs + mul*left;
+         delays[5] = delay_offs + mul*right;
+         delays[1] = delay_offs + mul*down;
+         delays[0] = delay_offs + mul*up;
+         delays[4] = delay_offs + mul*front;
+         delays[2] = delay_offs + mul*back;
       }
       else
       {
