@@ -215,8 +215,7 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
    if (state != AAX_FALSE &&
        ((slot->param[0] >= 0.1f && slot->param[1] >= 0.1f) ||
         (slot->param[0] >= 0.1f && slot->param[2] >= 0.1f) ||
-        (slot->param[1] >= 0.1f && slot->param[2] >= 0.1f)) &&
-       slot->param[3] > LEVEL_64DB)
+        (slot->param[1] >= 0.1f && slot->param[2] >= 0.1f)))
    {
       if (!occlusion)
       {
