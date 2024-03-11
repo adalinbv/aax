@@ -304,7 +304,6 @@ _aaxConvolutionEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxConvolutionEffect =
 {
-   true,
    "AAX_convolution_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxConvolutionEffectCreate,
    (_aaxEffectDestroy*)&_aaxConvolutionEffectDestroy,

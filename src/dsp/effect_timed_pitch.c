@@ -224,7 +224,6 @@ _aaxTimedPitchEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxTimedPitchEffect =
 {
-   false,
    "AAX_timed_pitch_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxTimedPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxTimedPitchEffectDestroy,

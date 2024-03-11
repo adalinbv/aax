@@ -132,7 +132,6 @@ _aaxVelocityEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxVelocityEffect =
 {
-   true,
    "AAX_velocity_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxVelocityEffectCreate,
    (_aaxEffectDestroy*)&_aaxVelocityEffectDestroy,

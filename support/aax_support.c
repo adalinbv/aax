@@ -43,11 +43,6 @@
 
 #define _AAX_MAX_ERROR		12
 
-typedef struct {
-   char supported_lite;
-   const char *name;
-} ef_type;
-
 const char *_aax_id_s[_AAX_MAX_ID];
 const char *_aaxErrorStrings[_AAX_MAX_ERROR];
 
@@ -265,7 +260,7 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
                float v = _aaxFilters[i]->version - version;
                if (v >= 0 && v < 1)
                {
-                  if (_aaxFilters[i]->lite || VALID_HANDLE(handle)) {
+                  if (VALID_HANDLE(handle)) {
                      rv = true;
                   }
                }
@@ -273,7 +268,7 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
             }
             else if (!strncasecmp(filter, _aaxFilters[i]->name, strlen(filter)))
             {
-               if (_aaxFilters[i]->lite || VALID_HANDLE(handle)) {
+               if (VALID_HANDLE(handle)) {
                   rv = true;
                }
                break;
@@ -310,7 +305,7 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
                float v = version - _aaxEffects[i]->version;
                if (v >= 0 && v < 1)
                {
-                  if (_aaxEffects[i]->lite || VALID_HANDLE(handle)) {
+                  if (VALID_HANDLE(handle)) {
                      rv = true;
                   }
                }
@@ -318,7 +313,7 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
             }
             else if (!strncasecmp(effect, _aaxEffects[i]->name, strlen(effect)))
             {
-               if (_aaxEffects[i]->lite || VALID_HANDLE(handle)) {
+               if (VALID_HANDLE(handle)) {
                   rv = true;
                }
                break;

@@ -322,7 +322,6 @@ _aaxBitCrusherFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxBitCrusherFilter =
 {
-   true,
    "AAX_bitcrusher_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxBitCrusherFilterCreate,
    (_aaxFilterDestroy*)&_aaxBitCrusherFilterDestroy,

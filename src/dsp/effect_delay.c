@@ -436,7 +436,6 @@ _aaxDelayEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxDelayLineEffect =
 {
-   false,
    "AAX_delay_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDelayEffectCreate,
    (_aaxEffectDestroy*)&_aaxDelayEffectDestroy,
@@ -543,7 +542,6 @@ _aaxChorusEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxChorusEffect =
 {
-   false,
    "AAX_chorus_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDelayEffectCreate,
    (_aaxEffectDestroy*)&_aaxDelayEffectDestroy,
@@ -620,7 +618,6 @@ _aaxPhasingEffectSet(float val, int ptype, unsigned char param)
 
 _eff_function_tbl _aaxPhasingEffect =
 {
-   false,
    "AAX_phasing_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDelayEffectCreate,
    (_aaxEffectDestroy*)&_aaxDelayEffectDestroy,
@@ -650,7 +647,6 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
 
 _eff_function_tbl _aaxFlangingEffect =
 {
-   false,
    "AAX_flanging_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDelayEffectCreate,
    (_aaxEffectDestroy*)&_aaxDelayEffectDestroy,

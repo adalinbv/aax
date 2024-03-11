@@ -271,7 +271,6 @@ _aaxGraphicEqualizerMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxGraphicEqualizer =
 {
-   true,
    "AAX_graphic_equalizer", 1.0f,
    (_aaxFilterCreate*)&_aaxGraphicEqualizerCreate,
    (_aaxFilterDestroy*)&_aaxGraphicEqualizerDestroy,

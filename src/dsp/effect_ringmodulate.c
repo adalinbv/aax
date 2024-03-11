@@ -196,7 +196,6 @@ _aaxModulatorEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxModulatorEffect =
 {
-   true,
    "AAX_ringmodulator_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxModulatorEffectCreate,
    (_aaxEffectDestroy*)&_aaxModulatorEffectDestroy,

@@ -281,7 +281,6 @@ _aaxDistortionEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxDistortionEffect =
 {
-   false,
    "AAX_distortion_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDistortionEffectCreate,
    (_aaxEffectDestroy*)&_aaxDistortionEffectDestroy,

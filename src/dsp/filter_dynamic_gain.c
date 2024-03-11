@@ -211,7 +211,6 @@ _aaxDynamicGainFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxDynamicGainFilter =
 {
-   false,
    "AAX_dynamic_gain_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxDynamicGainFilterCreate,
    (_aaxFilterDestroy*)&_aaxDynamicGainFilterDestroy,

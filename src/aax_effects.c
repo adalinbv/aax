@@ -197,7 +197,7 @@ aaxEffectSetState(aaxEffect e, uint64_t state)
    if (effect)
    {
       _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-      if (eff->lite || EBF_VALID(effect))
+      if (EBF_VALID(effect))
       {
          unsigned slot;
 

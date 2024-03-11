@@ -161,7 +161,6 @@ _aaxPitchEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxPitchEffect =
 {
-   true,
    "AAX_pitch_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxPitchEffectDestroy,

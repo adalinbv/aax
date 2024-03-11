@@ -68,7 +68,6 @@ typedef float _aaxFilterConvert(float, int, unsigned char);
 
 typedef struct
 {
-   bool lite;
    const char *name;
    float version;
    _aaxFilterCreate *create;

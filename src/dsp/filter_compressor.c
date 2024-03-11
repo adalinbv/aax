@@ -266,7 +266,6 @@ _aaxCompressorMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxCompressor =
 {
-   true,
    "AAX_compressor", 1.0f,
    (_aaxFilterCreate*)&_aaxCompressorCreate,
    (_aaxFilterDestroy*)&_aaxCompressorDestroy,

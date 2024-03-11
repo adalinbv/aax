@@ -170,7 +170,6 @@ _aaxDynamicPitchEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxDynamicPitchEffect =
 {
-   false,
    "AAX_dynamic_pitch_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDynamicPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxDynamicPitchEffectDestroy,

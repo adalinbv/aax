@@ -202,7 +202,6 @@ _aaxDistanceFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxDistanceFilter =
 {
-   true,
    "AAX_distance_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxDistanceFilterCreate,
    (_aaxFilterDestroy*)&_aaxDistanceFilterDestroy,

@@ -156,7 +156,7 @@ aaxFilterSetState(aaxFilter f, uint64_t state)
    if (filter)
    {
       _flt_function_tbl *flt = _aaxFilters[filter->type-1];
-      if (flt->lite || EBF_VALID(filter))
+      if (EBF_VALID(filter))
       {
          unsigned slot;
 
