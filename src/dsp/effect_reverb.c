@@ -575,8 +575,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       static const float max_depth = _MIN(REVERB_EFFECTS_TIME, 0.15f);
       float delays[NUM_REFLECTIONS_MAX], gains[NUM_REFLECTIONS_MAX];
       float delay, delay_offs, vs;
-      int num;
-      int i;
+      int i, track, num;
 
       reflections->history_samples = TIME_TO_SAMPLES(fs, max_depth);
       if (reflections->history == 0)
@@ -622,6 +621,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
 
       vs = info->unit_m*343.0f;
       delay_offs *= fs;
+      delay *= fs;
       if (occlusion)
       {
          vec4f_t occl = occlusion->occlusion;
@@ -652,23 +652,32 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       }
 
       reflections->no_delays = num;
-      for (i=0; i<num; ++i)
+      for (track=0; track<tracks; ++track)
       {
-         if ((gains[i] > 0.001f) || (gains[i] < -0.001f))
-         {
-            int track;
-            for (track=0; track<tracks; ++track) {
-               reflections->delay[i].sample_offs[track] = (ssize_t)delays[i];
-            }
-            reflections->delay[i].gain = gains[i];
-#if 0
- printf("reflection delay[%zi]: %zi\n", i, reflections->delay[i].sample_offs[0]);
-#endif
+         for (i=0; i<num; ++i) {
+            reflections->delay[i].sample_offs[track] = (ssize_t)delays[i];
          }
-         else {
-            reflections->delay[i].gain = 0.0f;
+
+         for (i=0; i<num; ++i)
+         {
+            if ((gains[i] > 0.001f) || (gains[i] < -0.001f)) {
+               reflections->delay[i].gain = gains[i];
+            } else {
+               reflections->delay[i].gain = 0.0f;
+            }
          }
       }
+
+#if 0
+ for (track=0; track<tracks; ++track) {
+  for (i=0; i<num; ++i) {
+   printf("%i: delay[%i]: %zi\n", track, i, reflections->delay[i].sample_offs[track]);
+  }
+  for (i=0; i<num; ++i) {
+   printf("%i: gain[%i]: %f\n", track, i, gains[i]);
+  }
+ }
+#endif
    }
 }
 
@@ -877,18 +886,18 @@ _loopbacks_2nd_run(const _aaxRingBufferReverbData *reverb, _aaxRingBufferSample 
 {
    _aaxRingBufferLoopbackData *loopbacks = reverb->loopbacks;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
-   void **tracks = rbd->track;
+   MIX_T **tracks = (MIX_T**)rbd->track;
    int q, r;
 
    // late reflections: feed the result back to the other channels
    for(q=0; q<no_tracks; ++q)
    {
-      void *xdptr = tracks[q];
+      MIX_T *xdptr = tracks[q];
       for(r=0; r<no_tracks; ++r)
       {
          if (q != r)
          {
-            void *sptr = reverb->track_prev[r];
+            MIX_T *sptr = reverb->track_prev[r];
             float volume = loopbacks->loopback[q].gain;
             if ((volume > 0.001f) || (volume < -0.001f))
             {
@@ -980,20 +989,18 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
       rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
       memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
    }
-   else if (reverb->track_prev)
-   { // This is the final mixer with loop-backs enabled
-      int no_tracks = reverb->info->no_tracks;
+   else // This is the final mixer
+   {
+      if (reverb->track_prev) // loop-backs are enabled
+      {
+         int no_tracks = reverb->info->no_tracks;
 
-      // feed the result back to the other channels
-      if (track == (no_tracks-1)) {
-         _loopbacks_2nd_run(reverb, rb, no_samples, no_tracks, ds, dst);
+         // feed the result back to the other channels
+         if (track == (no_tracks-1)) {
+            _loopbacks_2nd_run(reverb, rb, no_samples, no_tracks, ds, dst);
+         }
       }
 
-      rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
-      memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
-   }
-   else
-   { // This is the final mixer with loop-backs disabled
       rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
       memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
    }
