@@ -117,22 +117,31 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    bool inverse = (state & AAX_INVERSE) ? true : false;
-   int istate, rstate;
+   int order_state, istate;
    aaxEffect rv = false;
 
-   rstate = istate = state & ~AAX_INVERSE;
-   if (rstate == AAX_TRUE || state == AAX_INVERSE) {
-      rstate = (AAX_EFFECT_1ST_ORDER | AAX_EFFECT_2ND_ORDER);
+   if (state == AAX_INVERSE || (state & ~AAX_STAGE_MASK) == 0) {
+      state |= AAX_TRUE;
+   }
+   if ((state & AAX_STAGE_MASK) == 0) {
+      state |= AAX_NORMAL_ROOM;
    }
 
+   order_state = state;
+   if ((state & AAX_EFFECT_ORDER_MASK) == 0) {
+      order_state |= AAX_EFFECT_ORDER_MASK;
+   }
+
+   istate = state & ~(AAX_STAGE_MASK|AAX_INVERSE);
    switch (istate)
    {
    case AAX_TRUE:
    case AAX_EFFECT_1ST_ORDER:
    case AAX_EFFECT_2ND_ORDER:
+   case AAX_EFFECT_ORDER_MASK:
    {
-      char reflections = (rstate & AAX_EFFECT_1ST_ORDER) ? true : false;
-      char loopbacks = (rstate & AAX_EFFECT_2ND_ORDER) ? true : false;
+      char reflections = (order_state & AAX_EFFECT_1ST_ORDER) ? true : false;
+      char loopbacks = (order_state & AAX_EFFECT_2ND_ORDER) ? true : false;
       _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
       int no_tracks = effect->info->no_tracks;
       float rate = 23.0f;
@@ -160,6 +169,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          float lb_depth, decay_level;
          float depth, hf_gain;
 
+         reverb->damping = 1.0f+0.25f*((state & AAX_STAGE_MASK) >> 8);
          reverb->reflections_prepare = _reflections_prepare;
          reverb->prepare = _reverb_prepare;
          reverb->run = _reverb_run;
@@ -324,7 +334,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
                      float f = lfo->max;
                      lfo->max = lfo->min;
                      lfo->min = f;
-                     state ^= AAX_INVERSE;
+                     inverse = !inverse;
                   }
 
                   lfo->min_sec = lfo->min/lfo->fs;
@@ -345,7 +355,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             }
          }
 
-         reverb->state = rstate;
+         reverb->state = order_state;
          reverb->info = effect->info;
          reverb->freq_filter = flt;
          reverb->occlusion = _occlusion_create(reverb->occlusion, effect->slot[1], state, fs);
@@ -597,7 +607,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
          num = NUM_REFLECTIONS_MAX;
       }
 
-      decay_level /= 0.95f*num;
+      decay_level /= (num*reverb->damping);
 
       gains[0] =  0.9484f*decay_level;      // conrete/brick = 0.95
       gains[1] = -0.8935f*decay_level;      // wood floor    = 0.90
@@ -713,7 +723,7 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
             num = NUM_LOOPBACKS_MAX;
          }
 
-         decay_level /= 0.85f*num;
+         decay_level /= (num*reverb->damping);
 
          gains[5] = -0.9484f*decay_level;      // conrete/brick = 0.95
          gains[2] =  0.8935f*decay_level;      // wood floor    = 0.90

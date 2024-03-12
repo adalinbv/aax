@@ -309,6 +309,7 @@ typedef struct
    float loopback_delay;
    float direct_path_gain;
    size_t no_samples;
+   float damping;
    float fc;
 
 } _aaxRingBufferReverbData;

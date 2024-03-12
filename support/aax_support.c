@@ -693,6 +693,23 @@ aaxGetSourceTypeByName(const char *wave)
                rv |= AAX_CONSTANT;
             } else if (!strncasecmp(name, "inverse", len)) {
                rv |= AAX_CONSTANT|AAX_INVERSE;
+            /* reverb */
+            } else if (!strncasecmp(name, "empty", len)) {
+               rv |= AAX_EMPTY_ROOM;
+            } else if (!strncasecmp(name, "open", len)) {
+               rv |= AAX_OPEN_ROOM;
+            } else if (!strncasecmp(name, "sparse", len)) {
+               rv |= AAX_SPARSE_ROOM;
+            } else if (!strncasecmp(name, "normal", len)) {
+               rv |= AAX_NORMAL_ROOM;
+            } else if (!strncasecmp(name, "filled", len)) {
+               rv |= AAX_FILLED_ROOM;
+            } else if (!strncasecmp(name, "packed", len)) {
+               rv |= AAX_PACKED_ROOM;
+            } else if (!strncasecmp(name, "dense", len)) {
+               rv |= AAX_DENSE_ROOM;
+            } else if (!strncasecmp(name, "damped", len)) {
+               rv |= AAX_DAMPED_ROOM;
             }
             else /* frequency filter, delay effects */
             {
