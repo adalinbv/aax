@@ -116,25 +116,20 @@ static aaxEffect
 _aaxReverbEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
+   bool inverse = (state & AAX_INVERSE) ? true : false;
+   int istate, rstate;
    aaxEffect rv = false;
-   int rstate;
 
-   rstate = state;
-   if (rstate == AAX_INVERSE || rstate == true ||
-       rstate == (AAX_INVERSE|true))
-   {
+   rstate = istate = state & ~AAX_INVERSE;
+   if (rstate == AAX_TRUE || state == AAX_INVERSE) {
       rstate = (AAX_EFFECT_1ST_ORDER | AAX_EFFECT_2ND_ORDER);
    }
 
-   switch (state)
+   switch (istate)
    {
-   case true:
-   case AAX_INVERSE:
-   case (AAX_INVERSE|true):
+   case AAX_TRUE:
    case AAX_EFFECT_1ST_ORDER:
-   case (AAX_EFFECT_1ST_ORDER|AAX_INVERSE):
    case AAX_EFFECT_2ND_ORDER:
-   case (AAX_EFFECT_2ND_ORDER|AAX_INVERSE):
    {
       char reflections = (rstate & AAX_EFFECT_1ST_ORDER) ? true : false;
       char loopbacks = (rstate & AAX_EFFECT_2ND_ORDER) ? true : false;
@@ -337,7 +332,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
                   lfo->depth = 1.0f;
                   lfo->offset = 0.0f;
                   lfo->f = 1.0f;
-                  lfo->inverse = (state & AAX_INVERSE) ? true : false;
+                  lfo->inverse = inverse;
                   lfo->stereo_link = !(state & AAX_LFO_STEREO);
 
                   constant = _lfo_set_timing(lfo);
@@ -361,7 +356,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // intentional fall-through
-   case false:
+   case AAX_FALSE:
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
