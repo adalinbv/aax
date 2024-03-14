@@ -124,7 +124,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       state |= AAX_TRUE;
    }
    if ((state & AAX_STAGE_MASK) == 0) {
-      state |= AAX_NORMAL_ROOM;
+      state |= AAX_AVERAGE_ROOM;
    }
 
    order_state = state;
@@ -609,12 +609,12 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
 
       decay_level /= (num*reverb->damping);
 
-      gains[0] =  0.9484f*decay_level;      // conrete/brick = 0.95
-      gains[1] = -0.8935f*decay_level;      // wood floor    = 0.90
-      gains[2] =  0.8254f*decay_level;      // carpet        = 0.853
-      gains[3] = -0.8997f*decay_level;
+      gains[3] =  0.9484f*decay_level;      // conrete/brick = 0.95
+      gains[5] = -0.8935f*decay_level;      // wood floor    = 0.90
+      gains[1] = -0.8254f*decay_level;      // carpet        = 0.853
+      gains[0] =  0.8997f*decay_level;
       gains[4] =  0.8346f*decay_level;
-      gains[5] = -0.7718f*decay_level;
+      gains[2] = -0.7718f*decay_level;
       gains[6] =  0.7946f*decay_level;
       assert(7 <= NUM_REFLECTIONS_MAX);
 
@@ -638,22 +638,22 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
          float right = occl.v4[0];
 
          float mul = fs/vs;
-         delays[3] = delay_offs + mul*left;
-         delays[5] = delay_offs + mul*right;
-         delays[1] = delay_offs + mul*down;
-         delays[0] = delay_offs + mul*up;
+         delays[0] = delay_offs + mul*left;
+         delays[1] = delay_offs + mul*right;
+         delays[2] = delay_offs + mul*down;
+         delays[3] = delay_offs + mul*up;
          delays[4] = delay_offs + mul*front;
-         delays[2] = delay_offs + mul*back;
+         delays[5] = delay_offs + mul*back;
       }
       else
       {
          delays[5] = delay_offs + delay/1.0f;
-         delays[3] = delay_offs + delay/2.0f;
-         delays[1] = delay_offs + delay/3.0f;
-         delays[6] = delay_offs + delay/5.0f;
-         delays[4] = delay_offs + delay/7.0f;
-         delays[2] = delay_offs + delay/11.0f;
-         delays[0] = delay_offs + delay/13.0f;
+         delays[4] = delay_offs + delay/2.0f;
+         delays[3] = delay_offs + delay/3.0f;
+         delays[2] = delay_offs + delay/5.0f;
+         delays[1] = delay_offs + delay/7.0f;
+         delays[0] = delay_offs + delay/11.0f;
+         delays[6] = delay_offs + delay/13.0f;
       }
 
       reflections->no_delays = num;
@@ -665,7 +665,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
 
          for (i=0; i<num; ++i)
          {
-            if ((gains[i] > 0.001f) || (gains[i] < -0.001f)) {
+            if (fabsf(gains[i]) > LEVEL_60DB) {
                reflections->delay[i].gain = gains[i];
             } else {
                reflections->delay[i].gain = 0.0f;
@@ -713,7 +713,7 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
 
       // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
       // https://web.archive.org/web/20150416071915/http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
-      if ((depth != 0) && (decay_level > 0.001f))
+      if ((depth != 0) && (decay_level > LEVEL_60DB))
       {
          float delay, delay_offs;
          int i;
@@ -768,7 +768,7 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
          loopbacks->no_loopbacks = num;
          for (i=0; i<num; ++i)
          {
-            if ((gains[i] > 0.001f) || (gains[i] < -0.001f))
+            if (fabsf(gains[i]) > LEVEL_60DB)
             {
                int track;
                for (track=0; track<tracks; ++track) {
@@ -832,7 +832,7 @@ _reflections_run(const _aaxRingBufferReflectionData *reflections,
       {
          volume = reflections->delay[q].gain;
          volume /= (1 + (track+q) % tracks);
-         if ((volume > 0.001f) || (volume < -0.001f))
+         if (fabsf(volume) > LEVEL_60DB)
          {
             ssize_t offs = reflections->delay[q].sample_offs[track] + dst;
             if (offs && offs < (ssize_t)ds) {
@@ -870,12 +870,13 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, _aaxRingBufferFr
       for(q=0; q<snum; ++q)
       {
          float volume = loopbacks->loopback[q].gain;
-         if ((volume > 0.001f) || (volume < -0.001f))
+         if (fabsf(volume) > LEVEL_60DB)
          {
             ssize_t offs = loopbacks->loopback[q].sample_offs[track] + dst;
             if (offs && offs < (ssize_t)ds)
             {
-               rbd->add(dptr, dptr-offs, no_samples, volume, 0.0f);
+               rbd->add(dptr, dptr-offs, no_samples,
+                                         (track % 2) ? volume : -volume, 0.0f);
                rv = true;
             }
          }
@@ -904,13 +905,8 @@ _loopbacks_2nd_run(const _aaxRingBufferReverbData *reverb, _aaxRingBufferSample 
          {
             MIX_T *sptr = reverb->track_prev[r];
             float volume = loopbacks->loopback[q].gain;
-            if ((volume > 0.001f) || (volume < -0.001f))
-            {
-               ssize_t offs = loopbacks->loopback[q].sample_offs[r] + dst;
-               if (offs && offs < (ssize_t)ds)
-               {
-                  rbd->add(xdptr, sptr, no_samples, -volume, 0.0f);
-               }
+            if (fabsf(volume) > LEVEL_60DB) {
+               rbd->add(xdptr, sptr, no_samples, -volume, 0.0f);
             }
          }
       }

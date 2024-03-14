@@ -700,8 +700,8 @@ aaxGetSourceTypeByName(const char *wave)
                rv |= AAX_OPEN_ROOM;
             } else if (!strncasecmp(name, "sparse", len)) {
                rv |= AAX_SPARSE_ROOM;
-            } else if (!strncasecmp(name, "normal", len)) {
-               rv |= AAX_NORMAL_ROOM;
+            } else if (!strncasecmp(name, "average", len)) {
+               rv |= AAX_AVERAGE_ROOM;
             } else if (!strncasecmp(name, "filled", len)) {
                rv |= AAX_FILLED_ROOM;
             } else if (!strncasecmp(name, "packed", len)) {
