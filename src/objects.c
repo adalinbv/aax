@@ -44,20 +44,6 @@ _aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
    }
    info = *inf;
 
-   size = 2*sizeof(vec4f_t);
-   _aax_memcpy(&info->hrtf, &_aaxDefaultHead, size);
-
-   size = _AAX_MAX_SPEAKERS * sizeof(vec4f_t);
-   _aax_memcpy(&info->speaker, &_aaxDefaultSpeakersVolume, size);
-
-   info->delay = &info->speaker[_AAX_MAX_SPEAKERS];
-   _aax_memcpy(info->delay, &_aaxDefaultSpeakersDelay, size);
-
-   size = _AAX_MAX_SPEAKERS-1;
-   do {
-      info->router[size] = size;
-   } while (size--);
-
    info->no_tracks = 2;
    info->bitrate = 0; // variable bitrate
    info->track = AAX_TRACK_ALL;
@@ -74,6 +60,20 @@ _aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
 
    info->update_rate = 0;
    info->capabilities = _aaxGetCapabilities(NULL);
+
+   size = 2*sizeof(vec4f_t);
+   _aax_memcpy(&info->hrtf, &_aaxDefaultHead, size);
+
+   size = _AAX_MAX_SPEAKERS * sizeof(vec4f_t);
+   _aax_memcpy(&info->speaker, &_aaxDefaultSpeakersVolume, size);
+
+   info->delay = &info->speaker[_AAX_MAX_SPEAKERS];
+   _aax_memcpy(info->delay, &_aaxDefaultSpeakersDelay, size);
+
+   size = _AAX_MAX_SPEAKERS-1;
+   do {
+      info->router[size] = size;
+   } while (size--);
 
    if (env)
    {

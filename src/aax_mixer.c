@@ -1596,6 +1596,13 @@ _aaxMixerInit(_handle_t *handle)
             info->refresh_rate = refrate/periods;
             info->no_samples = TIME_TO_SAMPLES(freq, info->refresh_rate);
 
+            /*
+             * By mulitplying the delays with the sample frequency the
+             * delays in seconds get converted into sample offsets.
+             */
+            vec4fScalarMul(&info->hrtf[0], &info->hrtf[0], info->frequency);
+            vec4fScalarMul(&info->hrtf[1], &info->hrtf[1], info->frequency);
+
             /* copy the hardware volume from the backend */
             dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
             if (dptr)

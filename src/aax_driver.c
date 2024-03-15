@@ -1339,32 +1339,40 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode, char setup)
                if (info->mode == AAX_MODE_WRITE_HRTF)
                {
                   info->no_tracks = 2;
-                  _aax_memcpy(&info->speaker,&_aaxDefaultHRTFVolume, size);
+                  _aax_memcpy(&info->speaker, &_aaxDefaultHRTFVolume, size);
                   _aax_memcpy(info->delay, &_aaxDefaultHRTFDelay, size);
 
-                  /*
-                   * By mulitplying the delays with the sample frequency the
-                   * delays in seconds get converted into sample offsets.
-                   */
                   _aaxSetupHRTF(config->node[0].hrtf, 0);
                   vec4fFill(info->hrtf[0].v4, _aaxDefaultHead[0]);
-                  vec4fScalarMul(&info->hrtf[0], &info->hrtf[0], fq);
-
                   vec4fFill(info->hrtf[1].v4, _aaxDefaultHead[1]);
-                  vec4fScalarMul(&info->hrtf[1], &info->hrtf[1], fq);
                }
                else
                {
+                  const vec4f_ptr speaker = info->speaker;
                   unsigned int t;
 
                   _aaxSetupSpeakers(config->node[0].speaker,
                                            info->router, info->no_tracks);
                   for (t=0; t<info->no_tracks; t++)
                   {
+                     float gain, dir_gain;
                      vec3f_t sv;
                      vec3fFill(sv.v3, _aaxDefaultSpeakersVolume[t]);
-                     float gain = vec3fNormalize((vec3f_ptr)&info->speaker[t], &sv);
-                     info->speaker[t].v4[3] = 1.0f/gain;
+
+                     dir_gain = -1.0f;
+                     if (speaker[t].v4[DIR_RIGHT]) {
+                        dir_gain *= speaker[t].v4[DIR_RIGHT];
+                     }
+                     if (speaker[t].v4[DIR_BACK]) {
+                        dir_gain *= speaker[t].v4[DIR_BACK];
+                     }
+                     if (speaker[t].v4[DIR_UPWD]) {
+                        dir_gain *= speaker[t].v4[DIR_UPWD];
+                     }
+
+                     gain = vec3fNormalize((vec3f_ptr)&info->speaker[t], &sv);
+                     gain *= (dir_gain < 0.0f) ? -1.0f : 1.0f;
+                     info->speaker[t].v4[GAIN] = 1.0f/gain;
                   }
                   _aax_memcpy(info->delay, &_aaxDefaultSpeakersDelay, size);
                }

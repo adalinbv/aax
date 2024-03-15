@@ -227,7 +227,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
             for (t=0; t<_AAX_MAX_SPEAKERS; ++t)
             {
-               float dst = info->speaker[t].v4[0]*info->frequency*t/343.0;
+               float dst = info->speaker[t].v4[DIR_RIGHT]*info->frequency*t/343.0;
                convolution->tid[t] = _aaxThreadCreate();
                convolution->history_start[t] = _MAX(dst, 0);
             }
