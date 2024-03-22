@@ -167,7 +167,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          _aaxMixerInfo *info = effect->info;
          float initial_delay, loopback_delay;
          float lb_depth, decay_level;
-         float depth, hf_gain;
+         float depth, reverb_gain;
 
          reverb->damping = 1.0f+0.25f*((state & AAX_STAGE_MASK) >> 8);
          reverb->reflections_prepare = _reflections_prepare;
@@ -206,7 +206,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          decay_level = effect->slot[0]->param[AAX_DECAY_LEVEL];
          decay_level *= rate/100.0f; // imaginary refresh rate of 100Hz.
 
-         hf_gain = effect->slot[2]->param[AAX_REVERB_HF_GAIN & 0xF];
+         reverb_gain = effect->slot[2]->param[AAX_REVERB_GAIN & 0xF];
 
          initial_delay = effect->slot[2]->param[AAX_INITIAL_DELAY];
          if (initial_delay == 0.0f) { // backwards compatible
@@ -288,16 +288,24 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             flt->low_gain = 0.0f;
             flt->no_stages = 1;
 
-            if (hf_gain > 0.0f) // user defined
+            if (reverb_gain != 0.0f) // user defined
             {
-               flt->low_gain = 1.0f;
-               flt->high_gain = hf_gain;
+               if (reverb_gain > 0.0f)
+               {
+                  flt->low_gain = 1.0f;
+                  flt->high_gain = reverb_gain;
+               }
+               else
+               {
+                  flt->low_gain = fabsf(reverb_gain);
+                  flt->high_gain = 1.0f;
+               }
             }
             else
             {
                float dfact = powf(reverb->fc*0.00005f, 0.2f);
                flt->low_gain = _MIN(1.75f-0.75f*dfact, 1.0f);
-               flt->high_gain = (hf_gain) ? hf_gain : 1.0f - 0.33f*dfact;
+               flt->high_gain = (reverb_gain) ? reverb_gain : 1.0f - 0.33f*dfact;
             }
             flt->k = flt->low_gain/flt->high_gain;
             flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
@@ -429,7 +437,7 @@ _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
    {    /* min[4] */                  /* max[4] */
     { { 50.0f, 0.001f, 0.0f, 0.001f }, { 22000.0f,    MAX1,    2.0f, MAX2 } },
     { {  0.1f,   0.1f, 0.1f,   0.0f }, {  FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
-    { {  0.0f,   0.0f, 0.0f,   0.0f }, {     MAX1,    MAX2,    1.0f, 0.0f } },
+    { {  0.0f,   0.0f,-1.0f,   0.0f }, {     MAX1,    MAX2,    1.0f, 0.0f } },
     { {  0.0f,   0.0f, 0.0f,   0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } }
    };
 
