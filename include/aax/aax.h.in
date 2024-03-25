@@ -389,7 +389,8 @@ enum aaxCapabilities
 
    AAX_SIMD                   = 0x100, /* SSE2 or NEON is supported  */
    AAX_SIMD256                = 0x200, /* AVX or HELIUM is supported */
-   AAX_SIMD512                = 0x400, /* AVX2                       */
+   AAX_SIMD256_2              = 0x400, /* AVX2                       */
+   AAX_SIMD512                = 0x800, /* AVX512                     */
 
    AAX_RENDER_NORMAL          = 0,
    AAX_RENDER_SYNTHESIZER     = 0x4000000,

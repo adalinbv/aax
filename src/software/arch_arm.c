@@ -65,7 +65,7 @@ enum {
 uint32_t _aax_arch_capabilities = AAX_NO_SIMD;
 static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
 {
-   "",
+   "FP",
    "VFPv2",
    "VFPv3",
    "VFPv4",
@@ -102,6 +102,7 @@ _aaxArchDetectFeatures()
 
          if (rv > 0 && rv <= MAX_CPUINFO)
          {
+            int capabilities = _info->capabilities;
             char *features, *ptr;
 
             cpuinfo[MAX_CPUINFO-1] = '\0';
@@ -138,32 +139,41 @@ _aaxArchDetectFeatures()
                   res = AAX_SIMD_VFPV4;
                }
 
-               ptr = strstr(features, " neon");
-               if (ptr && (ptr[5] == ' ' || ptr[5] == '\0'))
+               if (capabilities & AAX_SIMD)
                {
-                  _aax_arch_capabilities |= AAX_ARCH_NEON;
-                  if (_aax_arch_capabilities & AAX_ARCH_VFPV4) {
-                     res = AAX_SIMD_VFPV4_NEON;
+                  ptr = strstr(features, " neon");
+                  if (ptr && (ptr[5] == ' ' || ptr[5] == '\0'))
+                  {
+                     _aax_arch_capabilities |= AAX_ARCH_NEON;
+                     if (_aax_arch_capabilities & AAX_ARCH_VFPV4) {
+                        res = AAX_SIMD_VFPV4_NEON;
+                     }
+                     else res = AAX_SIMD_NEON;
                   }
-                  else res = AAX_SIMD_NEON;
                }
 
-	       ptr = strstr(features, " asimd");
-               if (ptr && (ptr[6] == ' ' || ptr[6] == '\0'))
+               if (capabilities & AAX_SIMD256)
                {
-                  _aax_arch_capabilities |= AAX_ARCH_NEON;
-                  res = AAX_SIMD_VFPV4_NEON;
+                  ptr = strstr(features, " asimd");
+                  if (ptr && (ptr[6] == ' ' || ptr[6] == '\0'))
+                  {
+                     _aax_arch_capabilities |= AAX_ARCH_NEON;
+                     res = AAX_SIMD_VFPV4_NEON;
+                  }
                }
 
 #if 0
-               ptr = strstr(features, " helium");
-               if (ptr && (ptr[7] == ' ' || ptr[7] == '\0'))
+               if (capabilities & AAX_SIMD256_2)
                {
-                  _aax_arch_capabilities |= AAX_ARCH_HELIUM;
-                  if (_aax_arch_capabilities & AAX_ARCH_VFPV4) {
-                     res = AAX_SIMD_VFPV4_HELIUM;
+                  ptr = strstr(features, " helium");
+                  if (ptr && (ptr[7] == ' ' || ptr[7] == '\0'))
+                  {
+                     _aax_arch_capabilities |= AAX_ARCH_HELIUM;
+                     if (_aax_arch_capabilities & AAX_ARCH_VFPV4) {
+                        res = AAX_SIMD_VFPV4_HELIUM;
+                     }
+                     else res = AAX_SIMD_HELIUM;
                   }
-                  else res = AAX_SIMD_HELIUM;
                }
 #endif
             }
@@ -217,35 +227,11 @@ _aaxGetSIMDSupportLevel()
 
    if (init)
    {
-      char *simd_support = getenv("AAX_NO_SIMD_SUPPORT");
-      char *simd_level = getenv("AAX_SIMD_LEVEL");
-
       init = false;
       rv = _aaxArchDetectFeatures();
-      if (rv >= AAX_SIMD_NEON) {
-         support_simd = true;
-      }
 
-      if (simd_support) { // for backwards compatibility
-         support_simd = !_aax_getbool(simd_support);
-         if (!support_simd) {
-            rv = AAX_SIMD_NONE;
-         }
-      }
-
-      if (simd_level)
-      {
-         int level = atoi(simd_level);
-         if (level < 256) {
-            support_simd256 = false;
-         }
-         if (level < 128)
-         {
-            support_simd = false;
-            rv = AAX_SIMD_NONE;
-         }
-      }
-
+      support_simd = _info->capabilities & 0xF00;
+      support_simd256 = _info->capabilities & (AAX_SIMD256|AAX_SIMD256_2);
       if (_aax_arch_capabilities & AAX_ARCH_VFPV3)
       {
          _aax_generate_waveform_float = _aax_generate_waveform_vfpv3;

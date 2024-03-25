@@ -1507,6 +1507,11 @@ _aaxGetCapabilities(const aaxConfig config)
 
    if (rv < 0)
    {
+      char *simd_support = getenv("AAX_NO_SIMD_SUPPORT");
+      char *simd_level = getenv("AAX_SIMD_LEVEL");
+      bool support_simd = true;
+      unsigned int level = -1;
+
       rv = _MINMAX(_aaxGetNoCores()-1, 0, 63);
 
       if (sizeof(size_t) >= 8) {
@@ -1521,8 +1526,23 @@ _aaxGetCapabilities(const aaxConfig config)
          rv |= AAX_SIMD256;
       }
       if (_aaxArchDetectAVX2()) {
+         rv |= AAX_SIMD256_2;
+      }
+
+      if (_aaxArchDetectAVX512F()) {
          rv |= AAX_SIMD512;
       }
+
+      if (simd_level) level = atoi(simd_level);
+      if (simd_support)
+      {
+         support_simd = !_aax_getbool(simd_support);
+         if (!support_simd) level = 0;
+      }
+
+      if (level < 512) rv &= ~AAX_SIMD512;
+      if (level < 256) rv &= ~(AAX_SIMD256|AAX_SIMD256_2);
+      if (level < 128) rv &= ~AAX_SIMD;
    }
 
    if (config)
@@ -1669,7 +1689,7 @@ _aaxMixerInit(_handle_t *handle)
    return res;
 }
 
-static bool 
+static bool
 _aaxMixerStart(_handle_t *handle)
 {
    bool rv = false;
