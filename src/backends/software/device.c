@@ -20,7 +20,6 @@
 
 #include <aax/aax.h>
 
-#include <base/threads.h>
 #include <base/types.h>
 #include <dsp/effects.h>
 
@@ -667,7 +666,7 @@ _aaxNoneDriverProcessFrame(void* config)
 }
 
 
-void *
+int
 _aaxNoneDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
@@ -683,13 +682,13 @@ _aaxNoneDriverThread(void* config)
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
-      return NULL;
+      return false;
    }
 
    be = handle->backend.ptr;
    dest_rb = be->get_ringbuffer(MAX_EFFECTS_TIME, handle->info->mode);
    if (!dest_rb) {
-      return NULL;
+      return false;
    }
 
    delay_sec = 1.0f/handle->info->period_rate;
@@ -707,7 +706,7 @@ _aaxNoneDriverThread(void* config)
    else
    {
       be->destroy_ringbuffer(dest_rb);
-      return NULL;
+      return false;
    }
 
    _aaxMutexLock(handle->thread.signal.mutex);
@@ -772,10 +771,10 @@ _aaxNoneDriverThread(void* config)
       handle->ringbuffer = NULL;
    }
 
-   return handle;
+   return handle ? true : false;
 }
 
-void*
+int
 _aaxSoftwareMixerThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
@@ -789,7 +788,7 @@ _aaxSoftwareMixerThread(void* config)
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
-      return NULL;
+      return false;
    }
 
    be = handle->backend.ptr;
@@ -825,7 +824,7 @@ _aaxSoftwareMixerThread(void* config)
 
    dest_rb = handle->ringbuffer;
    if (!dest_rb) {
-      return NULL;
+      return false;
    }
 
    /* get real duration, it might have been altered for better performance */
@@ -871,7 +870,7 @@ _aaxSoftwareMixerThread(void* config)
       handle->ringbuffer = NULL;
    }
 
-   return handle;
+   return handle ? true : false;
 }
 
 unsigned int

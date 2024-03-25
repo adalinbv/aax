@@ -31,7 +31,6 @@
 #include <base/timer.h>		/* for msecSleep */
 #include <base/dlsym.h>
 #include <base/logging.h>
-#include <base/threads.h>
 #include <base/memory.h>
 #include <base/types.h>
 
@@ -3184,7 +3183,7 @@ _aaxALSADriverRender(const void* config)
    return handle->render;
 }
 
-void *
+int
 _aaxALSADriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
@@ -3203,7 +3202,7 @@ _aaxALSADriverThread(void* config)
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
-      return NULL;
+      return false;
    }
 
    delay_sec = 1.0f/handle->info->period_rate;
@@ -3233,11 +3232,11 @@ _aaxALSADriverThread(void* config)
       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
 
       if (!dest_rb) {
-         return NULL;
+         return false;
       }
    }
    else {
-      return NULL;
+      return false;
    }
 
    be->state(handle->backend.handle, DRIVER_PAUSE);
@@ -3381,5 +3380,5 @@ if (elapsed > delay_sec)
    be->destroy_ringbuffer(dest_rb);
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
-   return handle;
+   return handle ? true : false;
 }

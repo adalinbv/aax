@@ -53,7 +53,7 @@
 // https://msdn.microsoft.com/en-us/library/hskdteyh.aspx
 enum {
     CPUID_FEAT_EBX_AVX2        	= 1 << 5,
-    CPUID_FEAT_EBX_AVX512F      = 1 << 16,
+    CPUID_FEAT_EBX_AVX512F      = 1 << 16, //AVX-512 Foundation
     CPUID_FEAT_EBX_AVX512PF     = 1 << 26,
     CPUID_FEAT_EBX_AVX512ER     = 1 << 27,
     CPUID_FEAT_EBX_AVX512CD     = 1 << 28,
@@ -61,7 +61,6 @@ enum {
     CPUID_FEAT_ECX_SSE3         = 1 << 0,
     CPUID_FEAT_ECX_SSE4a        = 1 << 6,
     CPUID_FEAT_ECX_SSSE3        = 1 << 9,
-    CPUID_FEAT_ECX_XOP          = 1 << 11,
     CPUID_FEAT_ECX_FMA3         = 1 << 12,
     CPUID_FEAT_ECX_CX16         = 1 << 13,
     CPUID_FEAT_ECX_SSE4_1       = 1 << 19,
@@ -91,9 +90,9 @@ enum {
     AAX_ARCH_SSE41   = 0x00000040,
     AAX_ARCH_SSE42   = 0x00000080,
     AAX_ARCH_AVX     = 0x00000100,
-    AAX_ARCH_XOP     = 0x00000200,
-    AAX_ARCH_AVX2    = 0x00000400,
-    AAX_ARCH_FMA3    = 0x00000800
+    AAX_ARCH_AVX2    = 0x00000200,
+    AAX_ARCH_FMA3    = 0x00000400,
+    AAX_ARCH_AVX512  = 0x00000800
 };
 
 enum {
@@ -107,16 +106,16 @@ enum {
    AAX_SIMD_SSE41,
    AAX_SIMD_SSE42,
    AAX_SIMD_AVX,
-   AAX_SIMD_XOP,
    AAX_SIMD_AVX2,
    AAX_SIMD_FMA3,
+   AAX_SIMD_AVX512,
    AAX_SIMD_MAX
 };
 
 static uint32_t _aax_arch_capabilities = AAX_NO_SIMD;
 static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
 {
-   "",
+   "FP",
    "MMX",
    "SSE",
    "SSE2",
@@ -126,7 +125,6 @@ static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
    "SSE4.1",
    "SSE4.2",
    "SSE/AVX",
-   "SSE/XOP",
    "SSE/AVX2",
    "SSE/FMA3"
 };
@@ -255,20 +253,6 @@ _aaxArchDetectFMA3()
 
 
 char
-_aaxArchDetectXOP()
-{
-   static uint32_t res = 0;
-   static int8_t init = -1;
-   if (init)
-   {
-      init = 0;
-      res = check_cpuid_ecx(CPUID_FEAT_ECX_XOP) ? AAX_SIMD_XOP : 0;
-      if (res) _aax_arch_capabilities |= AAX_ARCH_XOP;
-   }
-   return res;
-}
-
-char
 _aaxArchDetectAVX2()
 {
    static uint32_t res = 0;
@@ -283,6 +267,20 @@ _aaxArchDetectAVX2()
 }
 
 char
+_aaxArchDetectAVX512F()
+{
+   static uint32_t res = 0;
+   static int8_t init = -1;
+   if (init)
+   {
+      init = 0;
+      res = check_cpuid_ebx(CPUID_FEAT_EBX_AVX512F) ? AAX_SIMD_AVX512 : 0;
+      if (res) _aax_arch_capabilities |= AAX_ARCH_AVX512;
+   }
+   return res;
+}
+
+char
 _aaxGetSSELevel()
 {
    static uint32_t sse_level = AAX_NO_SIMD;
@@ -290,34 +288,47 @@ _aaxGetSSELevel()
 
    if (init)
    {
+      int capabilities = _aaxGetCapabilities(NULL);
       int res;
 
       _aax_calloc = _aax_calloc_aligned;
       _aax_malloc = _aax_malloc_aligned;
 
-      res = _aaxArchDetectSSE();
-      if (res) sse_level = res;
+      if (capabilities & AAX_SIMD)
+      {
+         res = _aaxArchDetectSSE();
+         if (res) sse_level = res;
 
-      res = _aaxArchDetectSSE2();
-      if (res) sse_level = res;
+         res = _aaxArchDetectSSE2();
+         if (res) sse_level = res;
 
-      res = _aaxArchDetectSSE3();
-      if (res) sse_level = res;
+         res = _aaxArchDetectSSE3();
+         if (res) sse_level = res;
 
-      res = _aaxArchDetectSSE4();
-      if (res) sse_level = res;
+         res = _aaxArchDetectSSE4();
+         if (res) sse_level = res;
+      }
 
-      res = _aaxArchDetectAVX();
-      if (res) sse_level = res;
+      if (capabilities & AAX_SIMD256)
+      {
+         res = _aaxArchDetectAVX();
+         if (res) sse_level = res;
+      }
 
-      res = _aaxArchDetectXOP();
-      if (res) sse_level = res;
+      if (capabilities & AAX_SIMD256_2)
+      {
+         res = _aaxArchDetectAVX2();
+         if (res) sse_level = res;
 
-      res = _aaxArchDetectAVX2();
-      if (res) sse_level = res;
+         res = _aaxArchDetectFMA3();
+         if (res) sse_level = res;
+      }
 
-      res = _aaxArchDetectFMA3();
-      if (res) sse_level = res;
+      if (capabilities & AAX_SIMD512)
+      {
+         res = _aaxArchDetectAVX512F();
+         if (res) sse_level = res;
+      }
    }
 
    return sse_level;
@@ -334,40 +345,11 @@ _aaxGetSIMDSupportLevel()
 # ifndef __TINYC__
    if (init)
    {
-      char *simd_support = getenv("AAX_NO_SIMD_SUPPORT");
-      char *simd_level = getenv("AAX_SIMD_LEVEL");
-
       init = false;
       rv = _aaxGetSSELevel();
-      if (rv >= AAX_SIMD_SSE) {
-         support_simd = true;
-      }
-      if (rv >= AAX_SIMD_AVX) {
-         support_simd256 = true;
-      }
 
-      if (simd_support) { // for backwards compatibility
-         support_simd = !_aax_getbool(simd_support);
-         if (!support_simd) {
-            rv = AAX_SIMD_NONE;
-         }
-      }
-
-      if (simd_level)
-      {
-         int level = atoi(simd_level);
-         if (level < 256)
-         {
-            support_simd256 = false;
-            rv &= 0x8;
-         }
-         if (level < 128)
-         {
-            support_simd = false;
-            rv = AAX_SIMD_NONE;
-         }
-      }
-
+      support_simd = _info->capabilities & 0xF00;
+      support_simd256 = _info->capabilities & (AAX_SIMD256|AAX_SIMD256_2);
       if (support_simd)
       {
          if (_aax_arch_capabilities & AAX_ARCH_SSE)
@@ -707,12 +689,6 @@ char
 _aaxArchDetectSSE4() {
    return 0;
 }
-
-char
-_aaxArchDetectXOP() {
-   return 0;
-}
-
 
 char
 _aaxArchDetectAVX() {

@@ -151,6 +151,7 @@ char _aaxArchDetectSSE4();
 char _aaxArchDetectXOP();
 char _aaxArchDetectAVX();
 char _aaxArchDetectAVX2();
+char _aaxArchDetectAVX512F();
 
 char _aaxArchDetectHF();
 char _aaxArchDetectVFPV2();

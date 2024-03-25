@@ -240,7 +240,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // intentional fall-through
-   case false:
+   case AAX_FALSE:
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
@@ -322,7 +322,6 @@ _aaxBitCrusherFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxBitCrusherFilter =
 {
-   true,
    "AAX_bitcrusher_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxBitCrusherFilterCreate,
    (_aaxFilterDestroy*)&_aaxBitCrusherFilterDestroy,

@@ -7,7 +7,7 @@ set(BASE_HEADERS
   gmath.h
   logging.h
   memory.h
-  threads.h
+  xthreads.h
   timer.h
   types.h
   random.h
@@ -21,7 +21,7 @@ set(BASE_SOURCES
   gmath.c
   logging.c
   memory.c
-  threads.c
+  xthreads.c
   timer.c
   types.c
   random.c

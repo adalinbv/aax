@@ -20,7 +20,6 @@
 
 #include <aax/aax.h>
 
-#include <base/threads.h>
 #include <base/logging.h>
 
 #include <api.h>
@@ -63,7 +62,7 @@ typedef struct
 
 } _render_t;
 
-static void*
+static int
 _aaxConvolutionThread(void *id)
 {
    _render_t *handle = (_render_t*)id;
@@ -73,7 +72,7 @@ _aaxConvolutionThread(void *id)
 
    data->callback(data->drb, data, NULL, track);
 
-   return id;
+   return id ? true : false;
 }
 
 static int

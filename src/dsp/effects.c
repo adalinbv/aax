@@ -153,7 +153,8 @@ _aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
       effect->param[AAX_GAIN] = 1.0f;
       break;
    case REVERB_EFFECT:
-      if (slot == 0) {
+      if (slot == 0)
+      {
          effect->param[AAX_CUTOFF_FREQUENCY] = MAXIMUM_CUTOFF;
          effect->param[AAX_DELAY_DEPTH] = 0.027f;
          effect->param[AAX_DECAY_LEVEL] = 0.3f;
@@ -182,8 +183,9 @@ _aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
    switch(type)
    {
    case REVERB_OCCLUSION_EFFECT:
-      if (slot == 0) {
-         effect->param[AAX_CUTOFF_FREQUENCY] = 15000.0f;
+      if (slot == 0)
+      {
+         effect->param[AAX_CUTOFF_FREQUENCY] = MAXIMUM_CUTOFF;
          effect->param[AAX_DELAY_DEPTH] = 0.27f;
          effect->param[AAX_DECAY_LEVEL] = 0.3f;
          effect->param[AAX_DECAY_DEPTH] = 0.7f;

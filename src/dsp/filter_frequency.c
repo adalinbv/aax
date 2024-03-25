@@ -356,7 +356,6 @@ _aaxFrequencyFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxFrequencyFilter =
 {
-   true,
    "AAX_frequency_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxFrequencyFilterCreate,
    (_aaxFilterDestroy*)&_aaxFrequencyFilterDestroy,

@@ -106,7 +106,7 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // intentional fall-through
-   case false:
+   case AAX_FALSE:
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
@@ -170,7 +170,6 @@ _aaxDynamicPitchEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxDynamicPitchEffect =
 {
-   false,
    "AAX_dynamic_pitch_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDynamicPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxDynamicPitchEffectDestroy,

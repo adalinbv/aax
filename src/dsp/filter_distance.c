@@ -202,7 +202,6 @@ _aaxDistanceFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxDistanceFilter =
 {
-   true,
    "AAX_distance_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxDistanceFilterCreate,
    (_aaxFilterDestroy*)&_aaxDistanceFilterDestroy,
@@ -459,7 +458,7 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_ptr rpos, float dist_fact,
    case AAX_MODE_WRITE_HRTF:
       for (t=0; t<info->no_tracks; t++)
       {
-         float gain = speaker[t].v4[3];
+         float gain = fabsf(speaker[t].v4[GAIN]);
          for (i=0; i<3; i++)
          {
             /*
@@ -485,9 +484,9 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_ptr rpos, float dist_fact,
       {
 #ifdef USE_SPATIAL_FOR_SURROUND
          dp = vec3fDotProduct(&speaker[t].v3, rpos);
-         dp *= speaker[t].v4[3];
+         dp *= fabsf(speaker[t].v4[GAIN]);
 
-         ep2d->speaker[t].v4[0] = 0.5f + dp*dist_fact;
+         ep2d->speaker[t].v4[DIR_RIGHT] = 0.5f + dp*dist_fact;
 #else
          vec3fMulVec3(&ep2d->speaker[t].v3, &speaker[t].v3, rpos);
          vec3fScalarMul(&ep2d->speaker[t].v3, &ep2d->speaker[t].v3, dist_fact);
@@ -509,9 +508,9 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_ptr rpos, float dist_fact,
       for (t=0; t<info->no_tracks; t++)
       {                                         /* speaker == sensor_pos */
          dp = vec3fDotProduct(&speaker[t].v3, rpos);
-         dp *= speaker[t].v4[3];
+         dp *= fabsf(speaker[t].v4[GAIN]);
 
-         ep2d->speaker[t].v4[0] = 0.5f + dp*dist_fact;
+         ep2d->speaker[t].v4[DIR_RIGHT] = 0.5f + dp*dist_fact;
       }
       break;
    default: /* AAX_MODE_WRITE_STEREO */

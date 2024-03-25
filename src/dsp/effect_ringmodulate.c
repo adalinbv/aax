@@ -133,7 +133,7 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // intentional fall-through
-   case false:
+   case AAX_FALSE:
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
@@ -196,7 +196,6 @@ _aaxModulatorEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxModulatorEffect =
 {
-   true,
    "AAX_ringmodulator_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxModulatorEffectCreate,
    (_aaxEffectDestroy*)&_aaxModulatorEffectDestroy,

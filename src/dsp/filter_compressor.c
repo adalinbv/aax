@@ -22,6 +22,7 @@
 #include "filters.h"
 #include "api.h"
 
+#define VERSION	1.0
 #define DSIZE	sizeof(_aaxLFOData)
 
 static float _aaxCompressorMinMax(float, int, unsigned char);
@@ -198,7 +199,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // intentional fall-through
-   case false:
+   case AAX_FALSE:
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
@@ -266,8 +267,7 @@ _aaxCompressorMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxCompressor =
 {
-   true,
-   "AAX_compressor", 1.0f,
+   "AAX_compressor", VERSION,
    (_aaxFilterCreate*)&_aaxCompressorCreate,
    (_aaxFilterDestroy*)&_aaxCompressorDestroy,
    NULL,

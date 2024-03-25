@@ -27,7 +27,6 @@
 #include <assert.h>
 
 #include <base/logging.h>
-#include <base/threads.h>
 
 #include <software/renderer.h>
 #include <dsp/filters.h>

@@ -147,7 +147,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // intentional fall-through
-   case false:
+   case AAX_FALSE:
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
@@ -211,7 +211,6 @@ _aaxDynamicGainFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxDynamicGainFilter =
 {
-   false,
    "AAX_dynamic_gain_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxDynamicGainFilterCreate,
    (_aaxFilterDestroy*)&_aaxDynamicGainFilterDestroy,

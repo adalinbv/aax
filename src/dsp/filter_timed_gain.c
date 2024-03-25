@@ -303,7 +303,6 @@ _aaxTimedGainFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxTimedGainFilter =
 {
-   false,
    "AAX_timed_gain_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxTimedGainFilterCreate,
    (_aaxFilterDestroy*)&_aaxTimedGainFilterDestroy,

@@ -43,11 +43,6 @@
 
 #define _AAX_MAX_ERROR		12
 
-typedef struct {
-   char supported_lite;
-   const char *name;
-} ef_type;
-
 const char *_aax_id_s[_AAX_MAX_ID];
 const char *_aaxErrorStrings[_AAX_MAX_ERROR];
 
@@ -265,7 +260,7 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
                float v = _aaxFilters[i]->version - version;
                if (v >= 0 && v < 1)
                {
-                  if (_aaxFilters[i]->lite || VALID_HANDLE(handle)) {
+                  if (VALID_HANDLE(handle)) {
                      rv = true;
                   }
                }
@@ -273,7 +268,7 @@ aaxIsFilterSupported(aaxConfig cfg, const char *filter)
             }
             else if (!strncasecmp(filter, _aaxFilters[i]->name, strlen(filter)))
             {
-               if (_aaxFilters[i]->lite || VALID_HANDLE(handle)) {
+               if (VALID_HANDLE(handle)) {
                   rv = true;
                }
                break;
@@ -310,7 +305,7 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
                float v = version - _aaxEffects[i]->version;
                if (v >= 0 && v < 1)
                {
-                  if (_aaxEffects[i]->lite || VALID_HANDLE(handle)) {
+                  if (VALID_HANDLE(handle)) {
                      rv = true;
                   }
                }
@@ -318,7 +313,7 @@ aaxIsEffectSupported(aaxConfig cfg, const char *effect)
             }
             else if (!strncasecmp(effect, _aaxEffects[i]->name, strlen(effect)))
             {
-               if (_aaxEffects[i]->lite || VALID_HANDLE(handle)) {
+               if (VALID_HANDLE(handle)) {
                   rv = true;
                }
                break;
@@ -698,6 +693,25 @@ aaxGetSourceTypeByName(const char *wave)
                rv |= AAX_CONSTANT;
             } else if (!strncasecmp(name, "inverse", len)) {
                rv |= AAX_CONSTANT|AAX_INVERSE;
+            /* reverb */
+            } else if (!strncasecmp(name, "empty", len)) {
+               rv |= AAX_EMPTY_ROOM;
+            } else if (!strncasecmp(name, "open", len)) {
+               rv |= AAX_OPEN_ROOM;
+            } else if (!strncasecmp(name, "sparse", len)) {
+               rv |= AAX_SPARSE_ROOM;
+            } else if (!strncasecmp(name, "average", len)) {
+               rv |= AAX_AVERAGE_ROOM;
+            } else if (!strncasecmp(name, "filled", len)) {
+               rv |= AAX_FILLED_ROOM;
+            } else if (!strncasecmp(name, "packed", len)) {
+               rv |= AAX_PACKED_ROOM;
+            } else if (!strncasecmp(name, "dense", len)) {
+               rv |= AAX_DENSE_ROOM;
+            } else if (!strncasecmp(name, "damped", len)) {
+               rv |= AAX_DAMPED_ROOM;
+            } else if (!strncasecmp(name, "high-pass", len)) {
+               rv |= AAX_ROOOM_HIGH_PASS;
             }
             else /* frequency filter, delay effects */
             {
@@ -799,7 +813,7 @@ aaxGetSourceTypeByName(const char *wave)
 }
 
 static char*
-aaxGetSourceNameByType(enum aaxSourceType type, bool freqfilter, bool delay)
+aaxGetSourceNameByType(enum aaxSourceType type, bool freqfilter, bool delay, bool reverb)
 {
    enum aaxSourceType ntype = type & AAX_NOISE_MASK;
    enum aaxSourceType stype = type & AAX_SOURCE_MASK;
@@ -916,6 +930,38 @@ aaxGetSourceNameByType(enum aaxSourceType type, bool freqfilter, bool delay)
 
       if (type & AAX_LFO_EXPONENTIAL) {
          SRC_ADD(p, l, m, "logarithmic");
+      }
+   }
+   else if (reverb)
+   {
+      int order = type & AAX_ROOM_MASK;
+
+      if (type & AAX_EFFECT_1ST_ORDER) {
+         SRC_ADD(p, l, m, "1st-order");
+      } else if (type & AAX_EFFECT_2ND_ORDER) {
+         SRC_ADD(p, l, m, "2nd-order");
+      }
+
+      if (order == AAX_EMPTY_ROOM) {
+          SRC_ADD(p, l, m, "empty");
+      } else if (order == AAX_OPEN_ROOM) {
+          SRC_ADD(p, l, m, "open");
+      } else if (order == AAX_SPARSE_ROOM) {
+          SRC_ADD(p, l, m, "sparse");
+      } else if (order == AAX_AVERAGE_ROOM) {
+          SRC_ADD(p, l, m, "average");
+      } else if (order == AAX_FILLED_ROOM) {
+          SRC_ADD(p, l, m, "filled");
+      } else if (order == AAX_PACKED_ROOM) {
+          SRC_ADD(p, l, m, "packed");
+      } else if (order == AAX_DENSE_ROOM) {
+          SRC_ADD(p, l, m, "dense");
+      } else if (order == AAX_DAMPED_ROOM) {
+          SRC_ADD(p, l, m, "damped");
+      }
+
+      if (type & AAX_ROOOM_HIGH_PASS) {
+          SRC_ADD(p, l, m, "high-pass");
       }
    }
    else /* not a delay effect nor a frequency filter */
@@ -1227,13 +1273,16 @@ aaxGetStringByType(int type, enum aaxTypeName name)
    switch(name)
    {
    case AAX_SOURCE_NAME:
-      rv = aaxGetSourceNameByType(type, false, false);
+      rv = aaxGetSourceNameByType(type, false, false, false);
       break;
    case AAX_FREQUENCY_FILTER_NAME:
-      rv = aaxGetSourceNameByType(type, true, false);
+      rv = aaxGetSourceNameByType(type, true, false, false);
       break;
    case AAX_DELAY_EFFECT_NAME:
-      rv = aaxGetSourceNameByType(type, false, true);
+      rv = aaxGetSourceNameByType(type, false, true, false);
+      break;
+   case AAX_REVERB_NAME:
+      rv = aaxGetSourceNameByType(type, false, false, true);
       break;
    case AAX_FILTER_NAME:
       switch (type)

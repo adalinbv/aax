@@ -15,7 +15,6 @@
 #include <math.h>		/* for INFINITY */
 #include <errno.h>		/* for ETIMEDOUT */
 
-#include <base/threads.h>
 #include <base/gmath.h>
 #include <base/timer.h>		/* for msecSleep */
 

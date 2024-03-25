@@ -22,6 +22,7 @@
 #include "api.h"
 #include "arch.h"
 
+#define VERSION	1.0
 #define	DSIZE	sizeof(_aaxEnvelopeData)
 
 static aaxEffect
@@ -224,8 +225,7 @@ _aaxTimedPitchEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxTimedPitchEffect =
 {
-   false,
-   "AAX_timed_pitch_effect", 1.0f,
+   "AAX_timed_pitch_effect", VERSION,
    (_aaxEffectCreate*)&_aaxTimedPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxTimedPitchEffectDestroy,
    (_aaxEffectReset*)&_env_reset,

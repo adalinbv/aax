@@ -28,7 +28,6 @@
 #endif
 
 #include <base/geometry.h>
-#include <base/threads.h>
 #include <base/types.h>
 #include <dsp/filters.h>
 #include <dsp/effects.h>

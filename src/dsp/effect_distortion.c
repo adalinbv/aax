@@ -210,7 +210,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // intentional fall-through
-   case false:
+   case AAX_FALSE:
       do {
          _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
 
@@ -281,7 +281,6 @@ _aaxDistortionEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxDistortionEffect =
 {
-   false,
    "AAX_distortion_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDistortionEffectCreate,
    (_aaxEffectDestroy*)&_aaxDistortionEffectDestroy,

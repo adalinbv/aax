@@ -291,7 +291,6 @@ _aaxEqualizerMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxEqualizer =
 {
-   false,
    "AAX_equalizer_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxEqualizerCreate,
    (_aaxFilterDestroy*)&_aaxEqualizerDestroy,

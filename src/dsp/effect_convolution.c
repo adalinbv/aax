@@ -26,6 +26,7 @@
 #include "dsp.h"
 #include "api.h"
 
+#define VERSION 1.0
 #define DSIZE	sizeof(_aaxRingBufferConvolutionData)
 
 static void _convolution_swap(void*, void*);
@@ -145,7 +146,7 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       // intentional fall-through
-   case false:
+   case AAX_FALSE:
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
@@ -227,7 +228,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
             for (t=0; t<_AAX_MAX_SPEAKERS; ++t)
             {
-               float dst = info->speaker[t].v4[0]*info->frequency*t/343.0;
+               float dst = info->speaker[t].v4[DIR_RIGHT]*info->frequency*t/343.0;
                convolution->tid[t] = _aaxThreadCreate();
                convolution->history_start[t] = _MAX(dst, 0);
             }
@@ -304,8 +305,7 @@ _aaxConvolutionEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxConvolutionEffect =
 {
-   true,
-   "AAX_convolution_effect", 1.0f,
+   "AAX_convolution_effect", VERSION,
    (_aaxEffectCreate*)&_aaxConvolutionEffectCreate,
    (_aaxEffectDestroy*)&_aaxConvolutionEffectDestroy,
    NULL,

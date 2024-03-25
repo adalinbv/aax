@@ -68,7 +68,6 @@ typedef float _aaxEffectConvert(float, int, unsigned char);
 
 typedef struct
 {
-   bool lite;
    const char *name;
    float version;
    _aaxEffectCreate *create;

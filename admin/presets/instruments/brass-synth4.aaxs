@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.71" frequency="880" duration="0.25">
+ <sound gain="1.81" frequency="880" duration="0.25">
   <layer n="0">
    <waveform src="sawtooth" ratio="1.05" pitch="0.993"/>
    <waveform src="impulse" processing="add" ratio="1.1" pitch="3.0"/>
