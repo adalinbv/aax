@@ -26,6 +26,7 @@
 #include "dsp.h"
 #include "api.h"
 
+#define VERSION	1.0
 #define DSIZE	sizeof(_aaxRingBufferEqualizerData)
 
 static void _grapheq_destroy(void*);
@@ -271,7 +272,7 @@ _aaxGraphicEqualizerMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxGraphicEqualizer =
 {
-   "AAX_graphic_equalizer", 1.0f,
+   "AAX_graphic_equalizer", VERSION,
    (_aaxFilterCreate*)&_aaxGraphicEqualizerCreate,
    (_aaxFilterDestroy*)&_aaxGraphicEqualizerDestroy,
    NULL,

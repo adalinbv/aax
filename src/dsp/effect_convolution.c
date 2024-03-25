@@ -26,6 +26,7 @@
 #include "dsp.h"
 #include "api.h"
 
+#define VERSION 1.0
 #define DSIZE	sizeof(_aaxRingBufferConvolutionData)
 
 static void _convolution_swap(void*, void*);
@@ -304,7 +305,7 @@ _aaxConvolutionEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxConvolutionEffect =
 {
-   "AAX_convolution_effect", 1.0f,
+   "AAX_convolution_effect", VERSION,
    (_aaxEffectCreate*)&_aaxConvolutionEffectCreate,
    (_aaxEffectDestroy*)&_aaxConvolutionEffectDestroy,
    NULL,
