@@ -56,6 +56,8 @@
 #define NUM_REFLECTIONS_MIN	4
 #define NUM_REFLECTIONS_MAX	6
 
+#define REVERB_MASK 	(AAX_ROOM_MASK|AAX_ROOOM_HIGH_PASS)
+
 
 static void _reverb_swap(void*,void*);
 static void _reverb_destroy(void*);
@@ -120,19 +122,19 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
    int order_state, istate;
    aaxEffect rv = false;
 
-   if (state == AAX_INVERSE || (state & ~AAX_STAGE_MASK) == 0) {
-      state |= AAX_TRUE;
+   if (state == AAX_INVERSE || (state & ~REVERB_MASK) == 0) {
+      state |= AAX_TRUE; // add AAX_TRUE if only AAX_INVRESE is defined
    }
-   if ((state & AAX_STAGE_MASK) == 0) {
-      state |= AAX_AVERAGE_ROOM;
+   if ((state & REVERB_MASK) == 0) {
+      state |= AAX_AVERAGE_ROOM; // default to average room response
    }
 
    order_state = state;
    if ((state & AAX_EFFECT_ORDER_MASK) == 0) {
-      order_state |= AAX_EFFECT_ORDER_MASK;
+      order_state |= AAX_EFFECT_ORDER_MASK; // default to 1st and 2nd order
    }
 
-   istate = state & ~(AAX_STAGE_MASK|AAX_INVERSE);
+   istate = state & ~(REVERB_MASK|AAX_INVERSE);
    switch (istate)
    {
    case AAX_TRUE:
@@ -169,7 +171,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          float lb_depth, decay_level;
          float depth, reverb_gain;
 
-         reverb->damping = 1.0f+0.25f*((state & AAX_STAGE_MASK) >> 8);
+         reverb->damping = 1.0f+0.25f*((state & AAX_ROOM_MASK) >> 8);
          reverb->reflections_prepare = _reflections_prepare;
          reverb->prepare = _reverb_prepare;
          reverb->run = _reverb_run;
@@ -290,7 +292,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 
             if (reverb_gain != 0.0f) // user defined
             {
-               if (reverb_gain > 0.0f)
+               if (reverb_gain > 0.0f && (state & AAX_ROOOM_HIGH_PASS) == 0)
                {
                   flt->low_gain = 1.0f;
                   flt->high_gain = reverb_gain;
