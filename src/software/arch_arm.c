@@ -102,7 +102,7 @@ _aaxArchDetectFeatures()
 
          if (rv > 0 && rv <= MAX_CPUINFO)
          {
-            int capabilities = _info->capabilities;
+            int capabilities = _aaxGetCapabilities();
             char *features, *ptr;
 
             cpuinfo[MAX_CPUINFO-1] = '\0';

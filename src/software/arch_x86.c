@@ -288,7 +288,7 @@ _aaxGetSSELevel()
 
    if (init)
    {
-      int capabilities = _info->capabilities;
+      int capabilities = _aaxGetCapabilities(NULL);
       int res;
 
       _aax_calloc = _aax_calloc_aligned;
