@@ -1067,7 +1067,7 @@ _aaxPipeWireDriverParam(const void *id, enum _aaxDriverParam param)
          rv = 1.0f;
          break;
       case DRIVER_MAX_PERIODS:
-         rv = 4.0f;
+         rv = 1.0f;
          break;
       case DRIVER_MAX_SOURCES:
          rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
