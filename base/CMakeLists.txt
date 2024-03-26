@@ -11,6 +11,7 @@ set(BASE_HEADERS
   timer.h
   types.h
   random.h
+  localize.h
 )
 
 set(BASE_SOURCES
@@ -25,6 +26,7 @@ set(BASE_SOURCES
   timer.c
   types.c
   random.c
+  localize.c
 )
 
 set(SOURCES "")
