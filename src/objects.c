@@ -88,6 +88,23 @@ _aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
 
    info->id = INFO_ID;
    info->backend = handle;
+
+#ifdef HAVE_LOCALE_H
+   if (info->locale == NULL)
+   {
+      char *locale = strdup(setlocale(LC_CTYPE, ""));
+      const char *ptr = strrchr(locale, '.');
+
+      info->locale = newlocale(LC_CTYPE_MASK, locale, 0);
+
+# if defined(HAVE_ICONV_H) || defined(WIN32)
+      if (!ptr) ptr = locale;
+      else ++ptr;
+      info->cd = iconv_open(ptr, info->encoding);
+# endif
+      free(locale);
+   }
+#endif
 }
 
 void

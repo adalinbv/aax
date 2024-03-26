@@ -527,6 +527,17 @@ aaxDriverDestroy(aaxConfig config)
 
       _aaxSignalFree(&handle->buffer_ready);
 
+#if defined(HAVE_ICONV_H) || defined(WIN32)
+       if (handle->info->cd != (iconv_t)-1) {
+          iconv_close(handle->info->cd);
+       }
+#endif
+#ifndef WIN32
+       if (handle->info->locale) {
+          freelocale(handle->info->locale);
+       }
+#endif
+
       handle->info->id = FADEDBAD;
       if (_info == handle->info) {
          _info = NULL;

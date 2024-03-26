@@ -21,6 +21,7 @@ extern "C" {
 #include <xml.h>
 
 #include <base/geometry.h>
+#include <base/localize.h>
 #include <dsp/common.h>
 
 #define WRITE_BUFFER_TO_FILE(dptr, bufsz) \
@@ -264,6 +265,7 @@ typedef ALIGN16  struct {
  * need to update the pre defined structure in objects.c when changing
  * something here
  */
+#define MAX_ENCODING    32
 typedef ALIGN16 struct
 {
    vec4f_t hrtf[2];
@@ -294,6 +296,15 @@ typedef ALIGN16 struct
 
    unsigned int id;
    void *backend;
+
+#if defined(HAVE_LOCALE_H) && !defined(WIN32)
+    locale_t locale;
+# if defined(HAVE_ICONV_H) || defined(WIN32)
+    iconv_t cd;
+    iconv_t cd_utf8;
+    char encoding[MAX_ENCODING+1];
+# endif
+#endif
 
 } _aaxMixerInfo ALIGN16C;
 

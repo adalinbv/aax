@@ -260,6 +260,10 @@
 /* pulseaudio */
 #cmakedefine HAVE_PULSEAUDIO_H @HAVE_PULSEAUDIO_H@
 
+/* define if locale.h is available */
+#undef HAVE_LOCALE_H
+#cmakedefine HAVE_LOCALE_H @HAVE_LOCALE_H@
+
 /* define if iconv.h is available */
 #undef HAVE_ICONV_H
 #cmakedefine HAVE_ICONV_H @HAVE_ICONV_H@
