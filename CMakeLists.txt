@@ -370,8 +370,7 @@ else(MSVC)
      elseif(X86)
        message("Unsupported build environment: X86")
      elseif(ARM)
-       if(ARM64) # AND NOT ARCH32)
-	 message(FATAL_ERROR "Build environment: ARM64")
+       if(ARM64)
          set(C_FLAGS "${C_FLAGS} -march=armv8-a -moutline-atomics -DARCH64=1")
          set_property(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
                       PROPERTY COMPILE_FLAGS "${C_FLAGS} -O2 -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
@@ -397,9 +396,9 @@ else(MSVC)
          set_property(SOURCE src/software/cpu/arch2d_neon64.c APPEND
                       PROPERTY COMPILE_FLAGS "${C_FLAGS} -O3  -ffast-math -ftree-vectorize -ftree-slp-vectorize"
          )
-       elseif(ARM64 AND NOT ARCH32) # ARM32
+       else(ARM64) # ARM32
          message(FATAL_ERROR "Unsupported build environment: ARM")
-       endif(ARM64 AND NOT ARCH32)
+       endif(ARM64)
      else()
        message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
      endif()
