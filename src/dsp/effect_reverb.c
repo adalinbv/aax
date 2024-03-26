@@ -51,9 +51,9 @@
 #define REFLECTIONSIZE	sizeof(_aaxRingBufferReflectionData)
 #define LOOPBACKSIZE	sizeof(_aaxRingBufferLoopbackData)
 
-#define NUM_LOOPBACKS_MIN	2
+#define NUM_LOOPBACKS_MIN	3
 #define NUM_LOOPBACKS_MAX	7
-#define NUM_REFLECTIONS_MIN	4
+#define NUM_REFLECTIONS_MIN	3
 #define NUM_REFLECTIONS_MAX	6
 
 #define REVERB_MASK 	(AAX_ROOM_MASK|AAX_ROOOM_HIGH_PASS)
