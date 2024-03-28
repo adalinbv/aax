@@ -63,11 +63,7 @@ unsigned
 log2i(uint32_t x)
 {
 #if defined(__GNUC__)
-# if __x86_64__ || __ppc64__
-   return 63 - __builtin_clz(x);
-# else
    return 31 - __builtin_clz(x);
-# endif
 #else
    int y = 0;
    while (x > 0)
