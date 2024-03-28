@@ -1760,8 +1760,8 @@ _aaxStreamDriverThread(void* config)
 # endif
 #endif
 
-         if (handle->finished) {
-            _aaxSemaphoreRelease(handle->finished);
+         if (handle->batch_finished) { // batched mode
+            _aaxSemaphoreRelease(handle->batch_finished);
          }
       }
 

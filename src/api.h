@@ -153,7 +153,7 @@ typedef struct aax_handle_t
 
    struct threat_t thread;
    _aaxSignal buffer_ready;
-   _aaxSemaphore *finished;		/* released after a rendering period */
+   _aaxSemaphore *batch_finished;	/* released after a rendering period */
 
    /* destination ringbuffer */
    _aaxRingBuffer *ringbuffer;

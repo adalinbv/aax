@@ -98,7 +98,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
       {
          p2d = smixer->props2d;
          dest_track = smixer->info->track;
-         batched = device->finished ? true : false;
+         batched = device->batch_finished ? true : false;
          srb = drb;
       }
       _intBufReleaseData(dptr_sensor, _AAX_SENSOR);

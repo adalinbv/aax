@@ -1914,8 +1914,8 @@ _aaxWASAPIDriverThread(void* config)
          _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
       }
 
-      if (handle->finished) {
-         _aaxSemaphoreRelease(handle->finished);
+      if (handle->batch_finished) { // batched mode
+         _aaxSemaphoreRelease(handle->batch_finished);
       }
 
       hr = S_OK;

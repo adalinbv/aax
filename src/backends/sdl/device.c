@@ -1147,8 +1147,8 @@ _aaxSDLDriverThread(void* config)
          while (0);
 #endif
 
-         if (handle->finished) {
-            _aaxSemaphoreRelease(handle->finished);
+         if (handle->batch_finished) { // batched mode
+            _aaxSemaphoreRelease(handle->batch_finished);
          }
       }
 

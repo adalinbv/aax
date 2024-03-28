@@ -1980,8 +1980,8 @@ stream_playback_cb(void *be_ptr)
       if (handle->ringbuffer) {
          _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
       }
-      if (handle->finished) {
-         _aaxSemaphoreRelease(handle->finished);
+      if (handle->batch_finished) { // batched mode
+         _aaxSemaphoreRelease(handle->batch_finished);
       }
 
       be_handle->callback_avail = 0;

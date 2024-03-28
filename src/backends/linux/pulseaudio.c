@@ -1416,8 +1416,8 @@ _aaxPulseAudioDriverThread(void* config)
          }
          while (0);
 
-         if (handle->finished) {
-            _aaxSemaphoreRelease(handle->finished);
+         if (handle->batch_finished) { // batched mode
+            _aaxSemaphoreRelease(handle->batch_finished);
          }
       }
 

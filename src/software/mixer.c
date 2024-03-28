@@ -405,7 +405,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
 
    _aaxTimerStart(handle->timer);
 
-   batched = handle->finished ? true : false;
+   batched = handle->batch_finished ? true : false;
 
    be = handle->backend.ptr;
    if (handle->file.driver && _IS_PLAYING((_handle_t*)handle->file.driver)) {

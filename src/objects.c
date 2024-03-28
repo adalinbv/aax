@@ -35,8 +35,8 @@ void
 _aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
 {
    char *env = getenv("AAX_RENDER_MODE");
+   unsigned int i, size;
    _aaxMixerInfo *info;
-   unsigned int size;
 
    assert(inf);
    if (!*inf) {
@@ -44,47 +44,54 @@ _aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
    }
    info = *inf;
 
+   // hrtf
+   size = 2*sizeof(vec4f_t);
+   _aax_memcpy(&info->hrtf, &_aaxDefaultHead, size);
+
+   // speaker
+   size = _AAX_MAX_SPEAKERS * sizeof(vec4f_t);
+   _aax_memcpy(&info->speaker, &_aaxDefaultSpeakersVolume, size);
+
+   // delay
+   info->delay = &info->speaker[_AAX_MAX_SPEAKERS];
+   _aax_memcpy(info->delay, &_aaxDefaultSpeakersDelay, size);
+
+   // router
+   i = _AAX_MAX_SPEAKERS-1;
+   do {
+      info->router[i] = i;
+   } while (i--);
+
+   info->no_samples = 0;
    info->no_tracks = 2;
    info->bitrate = 0; // variable bitrate
    info->track = AAX_TRACK_ALL;
 
    info->pitch = 1.0f;
+   info->balance = 0.0f;
    info->frequency = 48000.0f;
    info->period_rate = 20.0f;
    info->refresh_rate = 20.0f;
+   info->unit_m = 1.0f; // unit multiplication factor for 1 meter
    info->format = AAX_PCM16S;
    info->mode = AAX_MODE_WRITE_STEREO;
-   info->max_emitters = _AAX_MAX_MIXER_REGISTERED;
-   info->max_registered = 0;
-   info->unit_m = 1.0f;
-
-   info->update_rate = 0;
-   info->capabilities = _aaxGetCapabilities(NULL);
-
-   size = 2*sizeof(vec4f_t);
-   _aax_memcpy(&info->hrtf, &_aaxDefaultHead, size);
-
-   size = _AAX_MAX_SPEAKERS * sizeof(vec4f_t);
-   _aax_memcpy(&info->speaker, &_aaxDefaultSpeakersVolume, size);
-
-   info->delay = &info->speaker[_AAX_MAX_SPEAKERS];
-   _aax_memcpy(info->delay, &_aaxDefaultSpeakersDelay, size);
-
-   size = _AAX_MAX_SPEAKERS-1;
-   do {
-      info->router[size] = size;
-   } while (size--);
-
+   info->midi_mode = AAX_RENDER_NORMAL;
    if (env)
    {
-       if (!strcasecmp(env, "synthesizer")) {
-          info->midi_mode = AAX_RENDER_SYNTHESIZER;
-       } else if (!strcasecmp(env, "arcade")) {
-          info->midi_mode = AAX_RENDER_ARCADE;
-       } else if (!strcasecmp(env, "default")) {
-          info->midi_mode = AAX_RENDER_DEFAULT;
-       }
+      if (!strcasecmp(env, "synthesizer")) {
+         info->midi_mode = AAX_RENDER_SYNTHESIZER;
+      } else if (!strcasecmp(env, "arcade")) {
+         info->midi_mode = AAX_RENDER_ARCADE;
+      } else if (!strcasecmp(env, "default")) {
+         info->midi_mode = AAX_RENDER_DEFAULT;
+      }
    }
+   info->max_emitters = _AAX_MAX_MIXER_REGISTERED;
+   info->max_registered = 0;
+
+   info->capabilities = _aaxGetCapabilities(NULL);
+   info->update_rate = 0;
+   info->batched_mode = false;
 
    info->id = INFO_ID;
    info->backend = handle;
@@ -98,8 +105,9 @@ _aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
       info->locale = newlocale(LC_CTYPE_MASK, locale, 0);
 
 # if defined(HAVE_ICONV_H) || defined(WIN32)
-      if (!ptr) ptr = locale;
+      if (!ptr) ptr = locale; // tocode
       else ++ptr;
+      snprintf(info->encoding, MAX_ENCODING, "UTF-8"); // fromcode
       info->cd = iconv_open(ptr, info->encoding);
 # endif
       free(locale);

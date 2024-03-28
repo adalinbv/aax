@@ -125,6 +125,20 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
+         case AAX_NO_SAMPLES:
+            { // Set the exact number of samples per update period.
+              // Note: this is for every track, not for all tracks combined.
+               float fq = info->frequency;
+               float iv = fq/setup;
+               if (iv <= 5.0f) iv = 5.0f;
+
+               // intentionally commented out because: "exact number of samples"
+//             iv = fq / INTERVAL(fq / iv);
+               info->refresh_rate = iv;
+               info->period_rate = iv;
+               rv = true;
+            }
+            break;
          case AAX_TRACK_SIZE:
             {
                float fq = info->frequency;
@@ -173,6 +187,11 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, int64_t setup)
             }
             else _aaxErrorSet(AAX_INVALID_PARAMETER);
             break;
+         case AAX_BATCHED_MODE:
+         {
+            info->batched_mode = setup ? true : false;
+            break;
+         }
          case AAX_RELEASE_MODE:
             __release_mode = setup;
             rv = true;
@@ -284,8 +303,11 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                rv = (unsigned int)info->period_rate;
                break;
             case AAX_UPDATE_RATE:
-                rv=(unsigned int)(info->refresh_rate/handle->info->update_rate);
-                break;
+               rv =(unsigned int)(info->refresh_rate/handle->info->update_rate);
+               break;
+            case AAX_NO_SAMPLES:
+               rv = (unsigned int)(info->frequency/info->refresh_rate);
+               break;
             case AAX_FRAME_TIMING:
             {
                const _intBufferData* dptr;
@@ -1576,6 +1598,7 @@ _aaxMixerInit(_handle_t *handle)
 
    if ((handle->valid & true) == 0)
    {
+      const char *env = getenv("AAX_BATCHED_MODE");
       const _aaxDriverBackend *be = handle->backend.ptr;
       void *be_handle = handle->backend.handle;
       float periodrate = info->period_rate;
@@ -1586,6 +1609,13 @@ _aaxMixerInit(_handle_t *handle)
       int rssr;
 
       assert(be != 0);
+
+      if (env) {
+         info->batched_mode = _aax_getbool(env);
+      }
+      if (info->batched_mode && !handle->batch_finished) {
+         handle->batch_finished = _aaxSemaphoreCreate(0);
+      }
 
       /* is this a registered sensor? */
       rssr = (handle->parent) ? true : false;
@@ -1772,10 +1802,10 @@ _aaxMixerStop(_handle_t *handle)
       _aaxSignalFree(&handle->thread.signal);
       _aaxThreadDestroy(handle->thread.ptr);
 
-      if (handle->finished)
+      if (handle->batch_finished)
       {
-         _aaxSemaphoreDestroy(handle->finished);
-         handle->finished = NULL;
+         _aaxSemaphoreDestroy(handle->batch_finished);
+         handle->batch_finished = NULL;
       }
 
       rv = true;
@@ -1794,15 +1824,15 @@ _aaxMixerUpdate(_handle_t *handle)
    if (!handle->parent && TEST_FOR_TRUE(handle->thread.started))
    {
       int playing = _IS_PLAYING(handle);
-      if (!handle->finished) {
-         handle->finished = _aaxSemaphoreCreate(0);
+      if (!handle->batch_finished) {
+         handle->batch_finished = _aaxSemaphoreCreate(0);
       }
 
       if (!playing) {
          _SET_PLAYING(handle);
       }
       _aaxSignalTrigger(&handle->thread.signal);
-      _aaxSemaphoreWait(handle->finished);
+      _aaxSemaphoreWait(handle->batch_finished);
       if (!playing) {
          _SET_PAUSED(handle);
       }

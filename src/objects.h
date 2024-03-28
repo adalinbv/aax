@@ -262,7 +262,7 @@ typedef ALIGN16  struct {
 } bounding_t ALIGN16C;
 
 /* warning:
- * need to update the pre defined structure in objects.c when changing
+ * need to update the _aaxSetDefaultInfo function in objects.c when changing
  * something here
  */
 #define MAX_ENCODING    32
@@ -293,6 +293,7 @@ typedef ALIGN16 struct
 
    int capabilities;			/* CPU capabilities */
    uint8_t update_rate;	/* how many frames get processed before an update */
+   bool batched_mode;
 
    unsigned int id;
    void *backend;
@@ -301,7 +302,6 @@ typedef ALIGN16 struct
     locale_t locale;
 # if defined(HAVE_ICONV_H) || defined(WIN32)
     iconv_t cd;
-    iconv_t cd_utf8;
     char encoding[MAX_ENCODING+1];
 # endif
 #endif

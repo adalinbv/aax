@@ -413,7 +413,7 @@ _aaxLoopbackDriverSetup(const void *id, float *refresh_rate, int *fmt, unsigned 
       handle->no_channels = *tracks;
       handle->refresh_rate = *refresh_rate;
       handle->bits_sample = aaxGetBitsPerSample(*fmt);
-      handle->no_frames = (size_t)rintf((float)*speed / *refresh_rate);
+      handle->no_frames = (size_t)rintf(handle->frequency/handle->refresh_rate);
       handle->latency = 1.0f / period_rate;
       handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode, registered);
       if (handle->render)
@@ -677,7 +677,7 @@ _aaxNoneDriverThread(void* config)
    _sensor_t* sensor;
    float delay_sec;
    ssize_t nsamps;
-   char batched;
+   bool batched;
    int res;
 
    if (!handle || !handle->sensors || !handle->backend.ptr
@@ -692,7 +692,7 @@ _aaxNoneDriverThread(void* config)
    }
 
    delay_sec = 1.0f/handle->info->period_rate;
-   batched = handle->finished ? true : false;
+   batched = handle->batch_finished ? true : false;
 
    dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
    if (dptr_sensor)
@@ -755,8 +755,8 @@ _aaxNoneDriverThread(void* config)
          }
       }
 
-      if (handle->finished) {
-         _aaxSemaphoreRelease(handle->finished);
+      if (handle->batch_finished) { // batched mode
+         _aaxSemaphoreRelease(handle->batch_finished);
       }
       res = _aaxSignalWaitTimed(&handle->thread.signal, delay_sec);
    }
@@ -854,8 +854,8 @@ _aaxSoftwareMixerThread(void* config)
       /* do all the mixing */
       _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
 
-      if (handle->finished) {
-         _aaxSemaphoreRelease(handle->finished);
+      if (handle->batch_finished) { // batched mode
+         _aaxSemaphoreRelease(handle->batch_finished);
       }
       res = _aaxSignalWaitTimed(&handle->thread.signal, delay_sec);
    }

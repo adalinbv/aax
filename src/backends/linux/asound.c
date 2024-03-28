@@ -3368,8 +3368,8 @@ if (elapsed > delay_sec)
  printf("playing: %i, standby: %i\n", _IS_PLAYING(handle), _IS_STANDBY(handle));
 #endif
 
-      if (handle->finished) {
-         _aaxSemaphoreRelease(handle->finished);
+      if (handle->batch_finished) { // batched mode
+         _aaxSemaphoreRelease(handle->batch_finished);
       }
    }
 
