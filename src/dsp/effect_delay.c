@@ -367,10 +367,10 @@ _aaxDelayEffectGet(float val, int ptype, unsigned char param)
       switch(ptype)
       {
       case AAX_MILLISECONDS:
-         rv = val*1e-3f;
+         rv = 1e-3f*val;
          break;
       case AAX_MICROSECONDS:
-         rv = val*1e-6f;
+         rv = 1e-6f*val;
          break;
       case AAX_LINEAR: // delay range 0.0 .. 5.0
          rv = val*DELAY_DEPTH;
@@ -397,10 +397,10 @@ _aaxDelayEffectSet(float val, int ptype, unsigned char param)
       switch(ptype)
       {
       case AAX_MILLISECONDS:
-         rv = val*1e3f;
+         rv = 1e3f*val;
          break;
       case AAX_MICROSECONDS:
-         rv = val*1e6f;
+         rv = 1e6f*val;
          break;
       case AAX_LINEAR: //delay-line range 0.0 .. 5.0
          if (param == AAX_LFO_OFFSET) val -= DELAY_MIN;
@@ -472,10 +472,10 @@ _aaxChorusEffectGet(float val, int ptype, unsigned char param)
       switch(ptype)
       {
       case AAX_MILLISECONDS:
-         rv = val*1e-3f;
+         rv = 1e-3f*val;
          break;
       case AAX_MICROSECONDS:
-         rv = val*1e-6f;
+         rv = 1e-6f*val;
          break;
       case AAX_LINEAR: // chorus range 0.0 .. 1.0
          rv = val*CHORUS_DEPTH;
@@ -502,10 +502,10 @@ _aaxChorusEffectSet(float val, int ptype, unsigned char param)
       switch(ptype)
       {
       case AAX_MILLISECONDS:
-         rv = val*1e3f;
+         rv = 1e3f*val;
          break;
       case AAX_MICROSECONDS:
-         rv = val*1e6f;
+         rv = 1e6f*val;
          break;
       case AAX_LINEAR: // chorus range 0.0 .. 1.0
          if (param == AAX_LFO_OFFSET) val -= CHORUS_MIN;
@@ -569,10 +569,10 @@ _aaxPhasingEffectGet(float val, int ptype, unsigned char param)
       switch(ptype)
       {
       case AAX_MILLISECONDS:
-         rv = val*1e-3f;
+         rv = 1e-3f*val;
          break;
       case AAX_MICROSECONDS:
-         rv = val*1e-6f;
+         rv = 1e-6f*val;
          break;
       case AAX_LINEAR: // phasing range 0.0 .. 1.0
          rv = val*PHASING_DEPTH;
@@ -599,10 +599,10 @@ _aaxPhasingEffectSet(float val, int ptype, unsigned char param)
       switch(ptype)
       {
       case AAX_MILLISECONDS:
-         rv = val*1e3f;
+         rv = 1e3f*val;
          break;
       case AAX_MICROSECONDS:
-         rv = val*1e6f;
+         rv = 1e6f*val;
          break;
       case AAX_LINEAR: // phasing range 0.0 .. 1.0
          if (param == AAX_LFO_OFFSET) val -= PHASING_MIN;

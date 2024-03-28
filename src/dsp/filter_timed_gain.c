@@ -247,12 +247,17 @@ _aaxTimedGainFilterSet(float val, int ptype, unsigned char param)
    }
    else
    {
-      if (ptype == AAX_SECONDS) {
-         rv = val;
-      } else if (ptype == AAX_MILLISECONDS) {
-         rv = val*1e3f;
-      } else if (ptype == AAX_MICROSECONDS) {
-         rv = val*1e6f;
+      switch(ptype)
+      {
+      case AAX_MILLISECONDS:
+         rv = 1e3f*val;
+         break;
+      case AAX_MICROSECONDS:
+         rv = 1e6f*val;
+         break;
+      case AAX_SECONDS:
+      default:
+         break;
       }
    }
    return rv;
@@ -270,12 +275,17 @@ _aaxTimedGainFilterGet(float val, int ptype, unsigned char param)
    }
    else
    {
-      if (ptype == AAX_SECONDS) {
-         rv = val;
-      } else if (ptype == AAX_MILLISECONDS) {
-         rv = val*1e-3f;
-      } else if (ptype == AAX_MICROSECONDS) {
-         rv = val*1e-6f;
+      switch(ptype)
+      {
+      case AAX_MILLISECONDS:
+         rv = 1e-3f*val;
+         break;
+      case AAX_MICROSECONDS:
+         rv = 1e-6f*val;
+         break;
+      case AAX_SECONDS:
+      default:
+         break;
       }
    }
    return rv;
