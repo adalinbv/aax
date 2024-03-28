@@ -1436,8 +1436,8 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
       break;
    case AAX_DIRECTIONAL_FILTER:
    {
-      float inner_vec = _FILTER_GET_SLOT(filter, 0, 0);
-      float outer_gain = _FILTER_GET_SLOT(filter, 0, 2);
+      float inner_vec = _FILTER_GET_SLOT(filter, 0, AAX_INNER_ANGLE);
+      float outer_gain = _FILTER_GET_SLOT(filter, 0, AAX_OUTER_GAIN);
 
       if ((inner_vec >= 1.0f) || (outer_gain >= 1.0f)) {
          _PROP_CONE_CLEAR_DEFINED(p3d);

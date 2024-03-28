@@ -24,6 +24,7 @@
 #include <base/timer.h>		/* for msecSleep */
 #include <dsp/filters.h>
 #include <dsp/effects.h>
+#include <dsp/common.h>
 #include <dsp/lfo.h>
 
 #include "ringbuffer.h"
@@ -540,8 +541,8 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          break;
       case AAX_DIRECTIONAL_FILTER:
       {
-         float inner_vec = _FILTER_GET_SLOT(filter, 0, 0);
-         float outer_gain = _FILTER_GET_SLOT(filter, 0, 2);
+         float inner_vec = _FILTER_GET_SLOT(filter, 0, AAX_INNER_ANGLE);
+         float outer_gain = _FILTER_GET_SLOT(filter, 0, AAX_OUTER_GAIN);
          if ((inner_vec >= 0.995f) || (outer_gain >= 0.99f)) {
             _PROP_CONE_CLEAR_DEFINED(p3d);
          } else {
@@ -639,15 +640,22 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
          _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
          break;
       case AAX_REVERB_EFFECT:
+      {
+         _aaxRingBufferReverbData *reverb;
+
          _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
          _EFFECT_SWAP_SLOT(p3d, type, effect, 1);
          _EFFECT_COPY_DATA(p3d, p2d, type);
-         if (_EFFECT_GET_DATA(p2d, type)) {
+         if ((reverb = _EFFECT_GET_DATA(p2d, type)) != NULL)
+         {
+            float decay_level = _EFFECT_GET_SLOT(effect, 0, AAX_DECAY_LEVEL);
+            handle->reverb_decay_time = decay_level_to_reverb_time(decay_level);
             _PROP_OCCLUSION_SET_DEFINED(p3d);
          }
 
          // TODO: add _aaxRingBufferReflectionData to all registered emitters
          break;
+      }
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
          rv = false;

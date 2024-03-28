@@ -586,11 +586,11 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
          switch (filter->type)
          {
          case AAX_VOLUME_FILTER:
-            _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
+            _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, AAX_GAIN));
                 /* gain min and gain max are read-only for the mixer      */
-            /* _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1)); */
-            /* _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2)); */
-            _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
+            /* _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, AAX_MIN_GAIN)); */
+            /* _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, AAX_MAX_GAIN)); */
+            _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, AAX_AGC_RESPONSE_RATE));
             _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
             _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
             break;
