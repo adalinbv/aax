@@ -420,6 +420,23 @@ static float
 _aaxReverbEffectSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
+   if (param == AAX_DECAY_LEVEL)
+   {
+      switch(ptype)
+      {
+      case AAX_MILLISECONDS:
+         rv = decay_level_to_reverb_time(val*1e-3f);
+         break;
+      case AAX_MICROSECONDS:
+         rv = decay_level_to_reverb_time(val*1e-6f);
+         break;
+      case AAX_SECONDS:
+         rv = decay_level_to_reverb_time(val);
+         break;
+      default:
+         break;
+      }
+   }
    return rv;
 }
 
@@ -427,6 +444,23 @@ static float
 _aaxReverbEffectGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
+   if (param == AAX_DECAY_LEVEL)
+   {
+      switch(ptype)
+      {
+      case AAX_MILLISECONDS:
+         rv = 1e-3f*reverb_time_to_decay_level(val);
+         break;
+      case AAX_MICROSECONDS:
+         rv = 1e-6f*reverb_time_to_decay_level(val);
+         break;
+      case AAX_SECONDS:
+         rv = reverb_time_to_decay_level(val);
+         break;
+      default:
+         break;
+      }
+   }
    return rv;
 }
 
