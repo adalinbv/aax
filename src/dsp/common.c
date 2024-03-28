@@ -51,32 +51,44 @@ void _aax_dsp_swap(void *d, void *s) {
    dst->swap = src->swap;
 }
 
-inline float _lin(float v) { return v; }
-inline float _ln(float v) { return powf(v, GMATH_1_E1); }
-inline float _square(float v) { return v*v; }
-inline float _lin2log(float v) { return log10f(_MAX(v, 1e-9f)); }
-inline float _log2lin(float v) { return powf(10.0f,v); }
-inline float _lin2db(float v) { return 20.0f*log10f(_MAX(v, 1e-9f)); }
-inline float _db2lin(float v) { return _MINMAX(powf(10.0f,v/20.0f),0.0f,10.0f); }
-inline float _rad2deg(float v) { return v*GMATH_RAD_TO_DEG; }
-inline float _deg2rad(float v) { return fmodf(v, 360.0f)*GMATH_DEG_TO_RAD; }
-inline float _cos_deg2rad_2(float v) { return cosf(_deg2rad(v)/2); }
-inline float _2acos_rad2deg(float v) { return 2*_rad2deg(acosf(v)); }
-inline float _cos_2(float v) { return cosf(v/2); }
-inline float _2acos(float v) { return 2*acosf(v); }
-inline float _degC2K(float v) { return 273.15f+v; }
-inline float _K2degC(float v) { return v-273.15f; }
-inline float _degF2K(float v) { return (v+459.67f)*5.0f/9.0f; }
-inline float _K2degF(float v) { return v*9.0f/5.0f - 459.67f; }
-inline float _atm2kpa(float v) { return v*0.0098692327f; }
-inline float _kpa2atm(float v) { return v*101.325f; }
-inline float _bar2kpa(float v) { return v*0.01f; }
-inline float _kpa2bar(float v) { return v*100.0f; }
-inline float _psi2kpa(float v) { return v*0.1450377377f; }
-inline float _kpa2psi(float v) { return v*6.8947572932f; }
+float _lin(float v) { return v; }
+float _ln(float v) { return powf(v, GMATH_1_E1); }
+float _square(float v) { return v*v; }
+float _lin2log(float v) { return log10f(_MAX(v, 1e-9f)); }
+float _log2lin(float v) { return powf(10.0f,v); }
+float _lin2db(float v) { return 20.0f*log10f(_MAX(v, 1e-9f)); }
+float _db2lin(float v) { return _MINMAX(powf(10.0f,v/20.0f),0.0f,10.0f); }
+float _rad2deg(float v) { return v*GMATH_RAD_TO_DEG; }
+float _deg2rad(float v) { return fmodf(v, 360.0f)*GMATH_DEG_TO_RAD; }
+float _cos_deg2rad_2(float v) { return cosf(_deg2rad(v)/2); }
+float _2acos_rad2deg(float v) { return 2*_rad2deg(acosf(v)); }
+float _cos_2(float v) { return cosf(v/2); }
+float _2acos(float v) { return 2*acosf(v); }
+float _degC2K(float v) { return 273.15f+v; }
+float _K2degC(float v) { return v-273.15f; }
+float _degF2K(float v) { return (v+459.67f)*5.0f/9.0f; }
+float _K2degF(float v) { return v*9.0f/5.0f - 459.67f; }
+float _atm2kpa(float v) { return v*0.0098692327f; }
+float _kpa2atm(float v) { return v*101.325f; }
+float _bar2kpa(float v) { return v*0.01f; }
+float _kpa2bar(float v) { return v*100.0f; }
+float _psi2kpa(float v) { return v*0.1450377377f; }
+float _kpa2psi(float v) { return v*6.8947572932f; }
 
-inline int _freq2note(float v) { return rintf(12*(logf(v/220.0f)/log(2))+57); }
-inline float _note2freq(int n) { return 440.0f*powf(2.0f, ((float)n-69.0f)/12.0f); }
+int _freq2note(float v) { return rintf(12*(logf(v/220.0f)/log(2))+57); }
+float _note2freq(int n) { return 440.0f*powf(2.0f, ((float)n-69.0f)/12.0f); }
+
+float reverb_time_to_decay_level(float reverb_time)
+{
+   float refresh_rate = 100.0f; // imaginary refresh rate of 100Hz
+   return 0.5f*powf(10.0f, LOG_60DB/(reverb_time*refresh_rate));
+}
+
+float decay_level_to_reverb_time(float decay_level)
+{
+   float refresh_rate = 100.0f; // imaginary refresh rate of 100Hz
+   return LOG_60DB/(refresh_rate*log10f(2.0f*decay_level));
+}
 
 char* _note2name(int n)
 {

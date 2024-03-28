@@ -26,6 +26,8 @@ extern "C" {
 #define EPS		1e-5
 #define _MAX_FE_SLOTS	4
 
+#define LOG_60DB	-3.0f   // logf(LEVEL_60DB)
+
 #define LEVEL_32DB	0.02511886321008205413818f
 #define LEVEL_60DB	0.00100000004749745130539f
 #define LEVEL_64DB	0.00063095724908635020256f
@@ -189,6 +191,9 @@ float _kpa2psi(float v);
 float _note2freq(int n);
 int _freq2note(float v);
 char *_note2name(int n);
+
+float reverb_time_to_decay_level(float reverb_time);
+float decay_level_to_reverb_time(float decay_level);
 
 typedef float (*cvtfn_t)(float);
 
