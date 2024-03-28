@@ -417,7 +417,7 @@ _aaxNewReverbEffectHandle(const aaxConfig config, enum aaxEffectType type, UNUSE
 }
 
 static float
-_aaxReverbEffectSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
+_aaxReverbEffectSet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    if (param == AAX_DECAY_LEVEL)
@@ -425,10 +425,10 @@ _aaxReverbEffectSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
       switch(ptype)
       {
       case AAX_MILLISECONDS:
-         rv = decay_level_to_reverb_time(val*1e-3f);
+         rv = decay_level_to_reverb_time(1e-3f*val);
          break;
       case AAX_MICROSECONDS:
-         rv = decay_level_to_reverb_time(val*1e-6f);
+         rv = decay_level_to_reverb_time(1e-6f*val);
          break;
       case AAX_SECONDS:
          rv = decay_level_to_reverb_time(val);
@@ -441,7 +441,7 @@ _aaxReverbEffectSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 }
 
 static float
-_aaxReverbEffectGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
+_aaxReverbEffectGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    if (param == AAX_DECAY_LEVEL)

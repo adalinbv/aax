@@ -80,14 +80,14 @@ float _note2freq(int n) { return 440.0f*powf(2.0f, ((float)n-69.0f)/12.0f); }
 
 float reverb_time_to_decay_level(float reverb_time)
 {
-   float refresh_rate = 100.0f; // imaginary refresh rate of 100Hz
-   return 0.5f*powf(10.0f, LOG_60DB/(reverb_time*refresh_rate));
+   float refresh_rate = _info->refresh_rate;
+   return powf(10.0f, LOG_60DB/(reverb_time*refresh_rate));
 }
 
 float decay_level_to_reverb_time(float decay_level)
 {
-   float refresh_rate = 100.0f; // imaginary refresh rate of 100Hz
-   return LOG_60DB/(refresh_rate*log10f(2.0f*decay_level));
+   float refresh_rate = _info->refresh_rate;
+   return LOG_60DB/(refresh_rate*log10f(decay_level));
 }
 
 char* _note2name(int n)
