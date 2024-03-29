@@ -648,8 +648,14 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
          _EFFECT_COPY_DATA(p3d, p2d, type);
          if ((reverb = _EFFECT_GET_DATA(p2d, type)) != NULL)
          {
-            float decay_level = _EFFECT_GET_SLOT(effect, 0, AAX_DECAY_LEVEL);
-            handle->reverb_decay_time = decay_level_to_reverb_time(decay_level);
+            if (_EFFECT_GET_STATE(p2d, REVERB_EFFECT) == false) {
+               fmixer->reverb_time = fmixer->reverb_dt = 0.0f;
+            }
+            else
+            {
+               float decay_level = _EFFECT_GET_SLOT(effect, 0, AAX_DECAY_LEVEL);
+               fmixer->reverb_time = decay_level_to_reverb_time(decay_level);
+            }
             _PROP_OCCLUSION_SET_DEFINED(p3d);
          }
 
@@ -1686,15 +1692,17 @@ _aaxAudioFrameResetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
 static bool
 _aaxAudioFrameStart(_frame_t *frame)
 {
+   _aaxAudioFrame* fmixer = frame->submix;
    _aax3dProps *fp3d;
    bool rv = false;
 
    assert(frame);
 
-   fp3d = frame->submix->props3d;
+   fp3d = fmixer->props3d;
    if (_IS_INITIAL(fp3d) || _IS_PROCESSED(fp3d))
    {
-      frame->submix->capturing = false;
+      fmixer->reverb_dt = 0.0f;
+      fmixer->capturing = false;
       rv = true;
    }
    else if _IS_STANDBY(fp3d) {

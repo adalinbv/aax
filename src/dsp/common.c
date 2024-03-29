@@ -87,7 +87,7 @@ float reverb_time_to_decay_level(float reverb_time)
 float decay_level_to_reverb_time(float decay_level)
 {
    float refresh_rate = _info->refresh_rate;
-   return LOG_60DB/(refresh_rate*log10f(decay_level));
+   return LOG_60DB/(refresh_rate*log10f(_MIN(decay_level, 0.998f)));
 }
 
 char* _note2name(int n)

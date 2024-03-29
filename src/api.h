@@ -197,8 +197,6 @@ typedef struct aax_frame_t
 
    _aaxAudioFrame *submix;
 
-   float reverb_decay_time;
-
    bool registered_at_mixer;
    bool mtx_set;
 

@@ -409,6 +409,9 @@ typedef struct
    int64_t curr_sample;
    float curr_pos_sec;
 
+   float reverb_time;
+   float reverb_dt;		/* how long after all emitters stopped  */
+
    unsigned char refctr;
 
    bool capturing;

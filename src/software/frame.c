@@ -386,6 +386,20 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
       res = _aaxAudioFrameProcess(frame_rb, subframe, NULL, sfmixer, ssv, sdf,
                                   &sfp2d, &sfp3d, &sfdp3d,
                                   be, be_handle, batched, mono);
+      if (fmixer->reverb_time > 0.0f)
+      {
+         if (!res)
+         {
+            if (fmixer->reverb_dt < fmixer->reverb_time)
+            {
+               fmixer->reverb_dt += 1.0f/fmixer->info->refresh_rate;
+               res = true;
+            }
+         }
+         else if (fmixer->reverb_dt > 0.0f) {
+            fmixer->reverb_dt = 0.0f;
+         }
+      }
       _PROP3D_CLEAR(sfmixer->props3d->m_dprops3d);
 
 
