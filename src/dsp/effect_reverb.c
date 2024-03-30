@@ -41,9 +41,6 @@
  *  param 1: Loopback Delay
  *  param 2: HF Gain
  *  param 3:
- *
- * The reverb time is based on the Decay Level and an imaginary
- * refresh rate of 100Hz.
  */
 
 #define VERSION		1.2
@@ -206,21 +203,30 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          depth = effect->slot[0]->param[AAX_DELAY_DEPTH]/DELAY_EFFECTS_TIME;
          lb_depth = effect->slot[0]->param[AAX_DECAY_DEPTH]/REVERB_EFFECTS_TIME;
          decay_level = effect->slot[0]->param[AAX_DECAY_LEVEL];
-         decay_level *= rate/100.0f; // imaginary refresh rate of 100Hz.
-
          reverb_gain = effect->slot[2]->param[AAX_REVERB_GAIN & 0xF];
 
          initial_delay = effect->slot[2]->param[AAX_INITIAL_DELAY];
          if (initial_delay == 0.0f) { // backwards compatible
             initial_delay = 0.005f+0.045f*depth;
          }
-         if (initial_delay+depth > DELAY_EFFECTS_TIME) {
-             depth = DELAY_EFFECTS_TIME-initial_delay;
+         if (initial_delay+depth > DELAY_EFFECTS_TIME)
+         {
+             float diff = (initial_delay+depth) - DELAY_EFFECTS_TIME;
+             initial_delay -= 0.5f*diff;
+             depth -= 0.5f*diff;
          }
 
          loopback_delay = effect->slot[2]->param[AAX_REVERB_LOOPBACK_DELAY & 0xF];
          if (loopback_delay == 0.0f) { // backwards compatible
              loopback_delay = 0.01f+lb_depth*REVERB_EFFECTS_TIME;
+         } else {
+            loopback_delay += initial_delay;
+         }
+         if (loopback_delay+lb_depth > REVERB_EFFECTS_TIME)
+         {
+            float diff = (loopback_delay+lb_depth) - REVERB_EFFECTS_TIME;
+            loopback_delay -= 0.5f*diff;
+            lb_depth -= 0.5f*diff;
          }
 
          // allow the wet path to be louder than the dry path
@@ -242,7 +248,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             size_t offs, tracksize;
             char *ptr, *ptr2;
 
-            _reverb_add_loopbacks(reverb, fs, no_tracks, lb_depth, state, decay_level, info);
+            _reverb_add_loopbacks(reverb, fs, no_tracks, lb_depth, state, decay_level,info);
 
             tracksize = (reverb->no_samples + MEMMASK) * sizeof(MIX_T);
 
@@ -623,7 +629,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
    {
       static const float max_depth = _MIN(REVERB_EFFECTS_TIME, 0.15f);
       float delays[NUM_REFLECTIONS_MAX], gains[NUM_REFLECTIONS_MAX];
-      float delay, delay_offs, vs;
+      float vs, delay_offs, delay_depth;
       int i, track, num;
 
       reflections->history_samples = TIME_TO_SAMPLES(fs, max_depth);
@@ -663,14 +669,12 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       assert(7 <= NUM_REFLECTIONS_MAX);
 
       // depth definies the initial delay of the first reflections
-      delay = reverb->initial_delay;
-      delay_offs = (max_depth-delay)*depth;
-      delay_offs = _MINMAX(delay_offs, 0.01f, max_depth-0.05f);
-      assert(delay_offs+delay*0.9876543f <= REVERB_EFFECTS_TIME);
+      delay_offs = reverb->initial_delay;
+      delay_depth = depth;
 
       vs = info->unit_m*343.0f;
       delay_offs *= fs;
-      delay *= fs;
+      delay_depth *= fs;
       if (occlusion)
       {
          vec4f_t occl = occlusion->occlusion;
@@ -691,13 +695,13 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       }
       else
       {
-         delays[5] = delay_offs + delay/1.0f;
-         delays[4] = delay_offs + delay/2.0f;
-         delays[3] = delay_offs + delay/3.0f;
-         delays[2] = delay_offs + delay/5.0f;
-         delays[1] = delay_offs + delay/7.0f;
-         delays[0] = delay_offs + delay/11.0f;
-         delays[6] = delay_offs + delay/13.0f;
+         delays[5] = delay_offs + delay_depth/1.0f;
+         delays[4] = delay_offs + delay_depth/2.0f;
+         delays[3] = delay_offs + delay_depth/3.0f;
+         delays[2] = delay_offs + delay_depth/5.0f;
+         delays[1] = delay_offs + delay_depth/7.0f;
+         delays[0] = delay_offs + delay_depth/11.0f;
+         delays[6] = delay_offs + delay_depth/13.0f;
       }
 
       reflections->no_delays = num;
@@ -732,7 +736,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
 
 // Calculate the 2nd order reflections
 static void
-_reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int tracks, float depth, int state, float decay_level, _aaxMixerInfo *info)
+_reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int tracks, float lb_depth, int state, float decay_level, _aaxMixerInfo *info)
 {
    _aaxRingBufferLoopbackData *loopbacks = reverb->loopbacks;
    int num;
@@ -757,9 +761,9 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
 
       // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
       // https://web.archive.org/web/20150416071915/http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
-      if ((depth != 0) && (decay_level > LEVEL_60DB))
+      if ((lb_depth != 0) && (decay_level > LEVEL_60DB))
       {
-         float delay, delay_offs;
+         float lb_delay_offs, lb_delay_depth;
          int i;
 
          num = NUM_LOOPBACKS_MIN;
@@ -782,31 +786,30 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
  printf(" loopback[%i].gain: %f\n", i,  loopbacks->loopback[i].gain);
 #endif
 
-         delay = reverb->initial_delay + reverb->loopback_delay;
-         delay_offs = (REVERB_EFFECTS_TIME-delay)*depth;
-         delay_offs = _MINMAX(delay_offs, 0.01f, REVERB_EFFECTS_TIME-0.01f);
+         lb_delay_offs = reverb->loopback_delay;
+         lb_delay_depth = lb_depth;
 
-         delay *= fs;
-         delay_offs *= fs;
+         lb_delay_offs *= fs;
+         lb_delay_depth *= fs;
          if (state & AAX_INVERSE)
          {
-            delays[0] = delay_offs + delay/1.0f;
-            delays[2] = delay_offs + delay/2.0f;
-            delays[1] = delay_offs + delay/3.0f;
-            delays[6] = delay_offs + delay/5.0f;
-            delays[4] = delay_offs + delay/7.0f;
-            delays[5] = delay_offs + delay/11.0f;
-            delays[3] = delay_offs + delay/13.0f;
+            delays[0] = lb_delay_offs + lb_delay_depth/1.0f;
+            delays[2] = lb_delay_offs + lb_delay_depth/2.0f;
+            delays[1] = lb_delay_offs + lb_delay_depth/3.0f;
+            delays[6] = lb_delay_offs + lb_delay_depth/5.0f;
+            delays[4] = lb_delay_offs + lb_delay_depth/7.0f;
+            delays[5] = lb_delay_offs + lb_delay_depth/11.0f;
+            delays[3] = lb_delay_offs + lb_delay_depth/13.0f;
          }
          else
          {
-            delays[5] = delay_offs + delay/1.0f;
-            delays[3] = delay_offs + delay/2.0f;
-            delays[1] = delay_offs + delay/3.0f;
-            delays[6] = delay_offs + delay/5.0f;
-            delays[4] = delay_offs + delay/7.0f;
-            delays[2] = delay_offs + delay/11.0f;
-            delays[0] = delay_offs + delay/13.0f;
+            delays[5] = lb_delay_offs + lb_delay_depth/1.0f;
+            delays[3] = lb_delay_offs + lb_delay_depth/2.0f;
+            delays[1] = lb_delay_offs + lb_delay_depth/3.0f;
+            delays[6] = lb_delay_offs + lb_delay_depth/5.0f;
+            delays[4] = lb_delay_offs + lb_delay_depth/7.0f;
+            delays[2] = lb_delay_offs + lb_delay_depth/11.0f;
+            delays[0] = lb_delay_offs + lb_delay_depth/13.0f;
          }
 
          loopbacks->no_loopbacks = num;
