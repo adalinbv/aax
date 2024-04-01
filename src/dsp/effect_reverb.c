@@ -1023,19 +1023,21 @@ _loopbacks_2nd_run(const _aaxRingBufferReverbData *reverb, _aaxRingBufferSample 
 {
    _aaxRingBufferLoopbackData *loopbacks = reverb->loopbacks;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
+   const vec4f_ptr speaker = reverb->info->speaker;
    MIX_T **tracks = (MIX_T**)rbd->track;
    int q, r;
 
    // late reflections: feed the result back to the other channels
    for(q=0; q<no_tracks; ++q)
    {
+      float gain = -1.0f*speaker[q].v4[GAIN];
       MIX_T *xdptr = tracks[q];
       for(r=0; r<no_tracks; ++r)
       {
          if (q != r)
          {
             MIX_T *sptr = reverb->track_prev[r];
-            float volume = loopbacks->loopback[q].gain;
+            float volume = gain*loopbacks->loopback[q].gain;
             if (fabsf(volume) > LEVEL_60DB) {
                rbd->add(xdptr, sptr, no_samples, -volume, 0.0f);
             }
