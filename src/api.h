@@ -26,7 +26,6 @@ extern "C" {
 #include "ringbuffer.h"
 #include "objects.h"
 
-#define USE_SPATIAL_FOR_SURROUND	true
 #define	FADEDBAD			0xfadedbad
 
 #if _WIN32

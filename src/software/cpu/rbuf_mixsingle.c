@@ -133,11 +133,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
       /**
        * horizontal positioning, left-right
        **/
-#ifdef USE_SPATIAL_FOR_SURROUND
-      dir_fact = ep2d->speaker[t].v4[DIR_RIGHT];
-#else
       dir_fact = _MIN(0.8776f + ep2d->speaker[t].v4[DIR_RIGHT], 1.0f);
-#endif
       vstart = ep2d->prev_gain[t] * svol;
       vend = gain * evol;
       vstep = (vend - vstart) / dno_samples;
@@ -154,6 +150,61 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
       gain *= 0.76923f; 		/* 1.0f/0.3f */
 
       i = DIR_UPWD;			/* skip left-right and back-front */
+      do
+      {
+         ssize_t diff = (ssize_t)ep2d->hrtf[t].v4[i];
+         float v_start, v_step;
+
+         assert(diff < (ssize_t)drbd->dde_samples);
+         assert(diff > -(ssize_t)dno_samples);
+         diff = _MINMAX(diff, -(ssize_t)dno_samples,(ssize_t)drbd->dde_samples);
+
+         v_start = vstart * hrtf_volume[i];
+         v_step = ((vend - vstart) * hrtf_volume[i])/dno_samples;
+
+//       DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
+
+// TODO: add HF filtered version of sptr[ch] if (t != AAX_TRACK_LFE)
+// TODO: or add LF filtered verson of sptr[ch] if (t == AAX_TRACK_LFE)
+         drbd->add(dptr, sptr[ch]+offs-diff, dno_samples, v_start, v_step);
+      }
+      while(0);
+   }
+}
+
+void
+_aaxRingBufferMixMono16SpatialSurround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol, UNUSED(char ctr))
+{
+   int t;
+
+   _AAX_LOG(LOG_DEBUG, __func__);   for (t=0; t<drbd->no_tracks; t++)
+   {
+      MIX_T *dptr = (MIX_T*)drbd->track[router[t]] + offs;
+      float vstart, vend, vstep;
+      float dir_fact;
+      float hrtf_volume[3];
+      int i;
+
+      /**
+       * horizontal positioning, left-right
+       **/
+      dir_fact = ep2d->speaker[t].v4[DIR_RIGHT];
+      vstart = ep2d->prev_gain[t] * svol;
+      vend = gain * evol;
+      vstep = (vend - vstart) / dno_samples;
+
+      drbd->add(dptr, sptr[ch]+offs, dno_samples, dir_fact*vstart, vstep);
+
+      ep2d->prev_gain[t] = vend;
+
+      /**
+       * vertical positioning
+       **/
+      dir_fact = ep2d->speaker[t].v4[DIR_UPWD];
+      hrtf_volume[DIR_UPWD] = _MAX(-0.125f*dir_fact, 0.1f);
+      gain *= 0.76923f;                 /* 1.0f/0.3f */
+
+      i = DIR_UPWD;                     /* skip left-right and back-front */
       do
       {
          ssize_t diff = (ssize_t)ep2d->hrtf[t].v4[i];

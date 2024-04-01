@@ -146,6 +146,9 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          case AAX_MODE_WRITE_SURROUND:
             rbd->mix1n = _aaxRingBufferMixMono16Surround;
             break;
+         case AAX_MODE_WRITE_SPATIAL_SURROUND:
+            rbd->mix1n = _aaxRingBufferMixMono16SpatialSurround;
+            break;
          case AAX_MODE_WRITE_HRTF:
             rbd->mix1n = _aaxRingBufferMixMono16HRTF;
             break;

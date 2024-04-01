@@ -48,7 +48,7 @@
 #define REFLECTIONSIZE	sizeof(_aaxRingBufferReflectionData)
 #define LOOPBACKSIZE	sizeof(_aaxRingBufferLoopbackData)
 
-#define NUM_LOOPBACKS_MIN	3
+#define NUM_LOOPBACKS_MIN	4
 #define NUM_LOOPBACKS_MAX	7
 #define NUM_REFLECTIONS_MIN	3
 #define NUM_REFLECTIONS_MAX	6
@@ -772,7 +772,6 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
          }
 
          decay_level /= (num*reverb->damping);
-
          gains[5] = -0.9484f*decay_level;      // conrete/brick = 0.95
          gains[2] =  0.8935f*decay_level;      // wood floor    = 0.90
          gains[4] = -0.8254f*decay_level;      // carpet        = 0.853
@@ -873,17 +872,15 @@ _reflections_run(const _aaxRingBufferReverbData *reverb,
    snum = reflections->no_delays;
    if (!mono && (snum > 0))
    {
-      int q = 0;
+      int diff, q = 0;
 
       memset(scratch, 0, no_samples*sizeof(MIX_T));
       if ((reverb->info->mode == AAX_MODE_WRITE_SPATIAL ||
-           reverb->info->mode == AAX_MODE_WRITE_HRTF
-#if USE_SPATIAL_FOR_SURROUND
-           || reverb->info->mode == AAX_MODE_WRITE_SURROUND
-#endif
-          ) && rbd->no_tracks == 2)
+           reverb->info->mode == AAX_MODE_WRITE_SPATIAL_SURROUND ||
+           reverb->info->mode == AAX_MODE_WRITE_HRTF)
+          && rbd->no_tracks == 2)
       {
-         int diff = reverb->info->hrtf[track].v4[DIR_BACK];
+         assert(NUM_LOOPBACKS_MIN >= 4);
          for(; q<4; ++q)
          {
             volume = reflections->delay[q].gain;
@@ -896,7 +893,10 @@ _reflections_run(const _aaxRingBufferReverbData *reverb,
                }
             }
          }
-         for(; q<snum; ++q) // HRTF, back-front
+
+         // HRTF, back-front
+         diff = reverb->info->hrtf[track].v4[DIR_BACK];
+         for(; q<snum; ++q)
          {
             volume = reflections->delay[q].gain;
             volume /= (1 + (track+q) % tracks);
@@ -958,13 +958,13 @@ _loopbacks_run(const _aaxRingBufferReverbData *reverb, void *rb,
 
       memcpy(dptr-ds, loopbacks->reverb->history[track], bytes);
       if ((reverb->info->mode == AAX_MODE_WRITE_SPATIAL ||
-           reverb->info->mode == AAX_MODE_WRITE_HRTF
-#if USE_SPATIAL_FOR_SURROUND
-           || reverb->info->mode == AAX_MODE_WRITE_SURROUND
-#endif
-          ) && rbd->no_tracks == 2)
+           reverb->info->mode == AAX_MODE_WRITE_SPATIAL_SURROUND ||
+           reverb->info->mode == AAX_MODE_WRITE_HRTF)
+          && rbd->no_tracks == 2)
       {
-         int diff = reverb->info->hrtf[track].v4[DIR_BACK];
+         int diff;
+
+         // render left, right, down to up direction
          for(; q<4; ++q)
          {
             float volume = gain*loopbacks->loopback[q].gain;
@@ -978,7 +978,10 @@ _loopbacks_run(const _aaxRingBufferReverbData *reverb, void *rb,
                }
             }
          }
-         for(; q<snum; ++q) // HRTF, back-front
+
+         // HRTF, back to front only
+         diff = reverb->info->hrtf[track].v4[DIR_BACK];
+         for(; q<snum; ++q)
          {
             float volume = gain*loopbacks->loopback[q].gain;
             if (fabsf(volume) > LEVEL_60DB)
