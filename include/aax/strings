@@ -263,8 +263,9 @@ static inline std::string to_string(enum aaxRenderMode mode)
     case AAX_MODE_READ: return "capturing";
     case AAX_MODE_WRITE_STEREO: return "stereo playback";
     case AAX_MODE_WRITE_SPATIAL: return "spatialized stereo playback";
-    case AAX_MODE_WRITE_SURROUND: return "surround sound playback";
+    case AAX_MODE_WRITE_SPATIAL_SURROUND: return "spatialized surround sound playback";
     case AAX_MODE_WRITE_HRTF: return "binaural headphone playback";
+    case AAX_MODE_WRITE_SURROUND: return "surround sound playback";
     case AAX_MODE_WRITE_MAX:
         break;
     }

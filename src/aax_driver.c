@@ -1283,14 +1283,16 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode, char setup)
             }
             else if ((devname || setup) && info->mode == AAX_MODE_WRITE_STEREO)
             {
-               if (!strcasecmp(ptr, "surround")) {
-                  info->mode = AAX_MODE_WRITE_SURROUND;
-               } else if (!strcasecmp(ptr, "hrtf")) {
-                  info->mode = AAX_MODE_WRITE_HRTF;
+               if (!strcasecmp(ptr, "stereo")) {
+                  info->mode = AAX_MODE_WRITE_STEREO;
                } else if (!strcasecmp(ptr, "spatial")) {
                   info->mode = AAX_MODE_WRITE_SPATIAL;
-               } else if (!strcasecmp(ptr, "stereo")) {
-                  info->mode = AAX_MODE_WRITE_STEREO;
+               } else if (!strcasecmp(ptr, "spatial-surround")) {
+                  info->mode = AAX_MODE_WRITE_SPATIAL_SURROUND;
+               } else if (!strcasecmp(ptr, "hrtf")) {
+                  info->mode = AAX_MODE_WRITE_HRTF;
+               } else if (!strcasecmp(ptr, "surround")) {
+                  info->mode = AAX_MODE_WRITE_SURROUND;
                }
             }
          }
