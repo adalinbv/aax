@@ -872,16 +872,17 @@ _reflections_run(const _aaxRingBufferReverbData *reverb,
    snum = reflections->no_delays;
    if (!mono && (snum > 0))
    {
-      int diff, q = 0;
-
       memset(scratch, 0, no_samples*sizeof(MIX_T));
       if ((reverb->info->mode == AAX_MODE_WRITE_SPATIAL ||
            reverb->info->mode == AAX_MODE_WRITE_SPATIAL_SURROUND ||
            reverb->info->mode == AAX_MODE_WRITE_HRTF)
           && rbd->no_tracks == 2)
       {
+         float dir_fact;
+         int q, diff;
+
          assert(NUM_LOOPBACKS_MIN >= 4);
-         for(; q<4; ++q)
+         for(q=0; q<4; ++q)
          {
             volume = reflections->delay[q].gain;
             volume /= (1 + (track+q) % tracks);
@@ -895,7 +896,10 @@ _reflections_run(const _aaxRingBufferReverbData *reverb,
          }
 
          // HRTF, back-front
+         // Interaural Time Difference (converted to samples)
          diff = reverb->info->hrtf[track].v4[DIR_BACK];
+         // Interaural Level Differences
+         dir_fact = _MAX(0.175f + 0.25f*reverb->info->speaker[track].v4[DIR_BACK], 0.1f);
          for(; q<snum; ++q)
          {
             volume = reflections->delay[q].gain;
@@ -906,14 +910,15 @@ _reflections_run(const _aaxRingBufferReverbData *reverb,
                if (offs && offs < (ssize_t)ds)
                {
                   rbd->add(scratch, sptr-offs, no_samples, volume, 0.0f);
-                  rbd->add(scratch, sptr-offs-diff, no_samples, volume, 0.0f);
+                  rbd->add(scratch, sptr-offs-diff, no_samples, dir_fact*volume, 0.0f);
                }
             }
          }
       }
       else
       {
-         for(; q<snum; ++q)
+         int q;
+         for(q=0; q<snum; ++q)
          {
             volume = reflections->delay[q].gain;
             volume /= (1 + (track+q) % tracks);
