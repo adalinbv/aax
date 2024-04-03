@@ -393,8 +393,10 @@ aaxDriverGetSupport(const aaxConfig config, enum aaxRenderMode mode)
          rv = be->state(NULL, DRIVER_SUPPORTS_CAPTURE);
          break;
       case AAX_MODE_WRITE_STEREO:
-      case AAX_MODE_WRITE_SURROUND:
+      case AAX_MODE_WRITE_SPATIAL:
+      case AAX_MODE_WRITE_SPATIAL_SURROUND:
       case AAX_MODE_WRITE_HRTF:
+      case AAX_MODE_WRITE_SURROUND:
          rv = be->state(NULL, DRIVER_SUPPORTS_PLAYBACK);
          break;
       default:
@@ -1066,7 +1068,8 @@ _open_handle(aaxConfig config)
                smixer = (_aaxAudioFrame*)((char*)sensor + size);
 
                _aaxSetDefaultEqualizer(smixer->filter);
-               if (handle->info->mode == AAX_MODE_WRITE_SURROUND)
+               if (handle->info->mode == AAX_MODE_WRITE_SURROUND ||
+                   handle->info->mode == AAX_MODE_WRITE_SPATIAL_SURROUND)
                {
                   _aaxRingBufferFreqFilterData *freqfilter;
                   float k, fc = 80.0f;

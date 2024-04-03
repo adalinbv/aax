@@ -120,7 +120,8 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
    /** Resample */
    offs = 0;
    if (drbi->mode == AAX_MODE_WRITE_HRTF ||
-       drbi->mode == AAX_MODE_WRITE_SURROUND /* also uses HRTF for up-down */)
+       drbi->mode == AAX_MODE_WRITE_SPATIAL_SURROUND /* uses HRTF for up-down */
+      )
    {
       offs = drbi->sample->dde_samples;
    }

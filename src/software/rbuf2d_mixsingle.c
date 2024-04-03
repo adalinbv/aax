@@ -137,7 +137,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    /** DECODE, resample and apply effects */
    offs = 0;
    if (drbi->mode == AAX_MODE_WRITE_HRTF ||
-       drbi->mode == AAX_MODE_WRITE_SURROUND /* also uses HRTF for up-down */)
+       drbi->mode == AAX_MODE_WRITE_SPATIAL_SURROUND /* uses HRTF for up-down */
+      )
    {
       offs = drbi->sample->dde_samples;
    }
