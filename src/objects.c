@@ -300,11 +300,11 @@ float _aaxDefaultHead[2][4] =
 float _aaxDefaultHRTFVolume[_AAX_MAX_SPEAKERS][4] =
 {
    /* left headphone shell (volume)                          --- */
-   { 1.00f, 0.00f, 0.00f, 1.0f }, 	 /* left-right           */
+   {-1.00f, 0.00f, 0.00f, 1.0f }, 	 /* left-right           */
    { 0.00f,-1.00f, 0.00f, 1.0f }, 	 /* up-down              */
    { 0.00f, 0.00f, 1.00f, 1.0f }, 	 /* back-front           */
    /* right headphone shell (volume)                         --- */
-   {-1.00f, 0.00f, 0.00f, 1.0f }, 	 /* left-right           */
+   { 1.00f, 0.00f, 0.00f, 1.0f }, 	 /* left-right           */
    { 0.00f,-1.00f, 0.00f, 1.0f }, 	 /* up-down              */
    { 0.00f, 0.00f, 1.00f, 1.0f }, 	 /* back-front           */
    /* unused                                                     */

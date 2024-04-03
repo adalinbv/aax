@@ -1388,7 +1388,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode, char setup)
 
                      gain = vec3fNormalize((vec3f_ptr)&info->speaker[t], &sv);
                      gain *= (dir_gain < 0.0f) ? -1.0f : 1.0f;
-                     info->speaker[t].v4[GAIN] = 1.0f/gain;
+                     info->speaker[t].v4[GAIN] /= gain;
                   }
                   _aax_memcpy(info->delay, &_aaxDefaultSpeakersDelay, size);
                }
@@ -1499,7 +1499,7 @@ _aaxSetupSpeakersFromXML(char **speaker, unsigned char *router, unsigned int n)
             _aaxDefaultSpeakersVolume[channel][GAIN] = 1.0f;
          }
 
-         v.v3[0] = (float)xmlNodeGetDouble(xsid, "pos-x");
+         v.v3[0] = -(float)xmlNodeGetDouble(xsid, "pos-x");
          v.v3[1] = -(float)xmlNodeGetDouble(xsid, "pos-y");
          v.v3[2] = (float)xmlNodeGetDouble(xsid, "pos-z");
          vec3fFill(_aaxDefaultSpeakersVolume[channel], v.v3);
