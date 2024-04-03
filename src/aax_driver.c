@@ -42,7 +42,7 @@ static _intBuffers* get_backends();
 static _handle_t* _open_handle(aaxConfig);
 static _aaxConfig* _aaxReadConfig(_handle_t*, const char*, int, char);
 static void _aaxSetupHRTF(xmlId*, unsigned int);
-static void _aaxSetupSpeakers(char **, unsigned char *router, unsigned int);
+static void _aaxSetupSpeakersFromXML(char **, unsigned char *router, unsigned int);
 static void _aaxFreeSensor(void *);
 
 static const char* _aax_default_devname;
@@ -1367,7 +1367,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode, char setup)
                   const vec4f_ptr speaker = info->speaker;
                   unsigned int t;
 
-                  _aaxSetupSpeakers(config->node[0].speaker,
+                  _aaxSetupSpeakersFromXML(config->node[0].speaker,
                                            info->router, info->no_tracks);
                   for (t=0; t<info->no_tracks; t++)
                   {
@@ -1470,7 +1470,7 @@ _aaxSetupHRTF(xmlId *xid, UNUSED(unsigned int n))
 }
 
 static void
-_aaxSetupSpeakers(char **speaker, unsigned char *router, unsigned int n)
+_aaxSetupSpeakersFromXML(char **speaker, unsigned char *router, unsigned int n)
 {
    unsigned int i;
 
