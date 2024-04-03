@@ -11,8 +11,6 @@
  * 1:N ringbuffer mixer functions.
  */
 
-#define PURE_STEREO
-
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -70,11 +68,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T spt
        *
        * 0.8776 = cosf(0.5)
        */
-#ifdef PURE_STEREO
       dir_fact = _MINMAX(0.5f+ep2d->speaker[t].v4[DIR_RIGHT], 0.0f, 1.0f);
-#else
-      dir_fact = _MIN(0.8776f + ep2d->speaker[t].v4[DIR_RIGHT], 1.0f);
-#endif
       vstart = ep2d->prev_gain[t] * svol;
       vend   = gain * dir_fact * evol;
       vstep  = (vend - vstart) / dno_samples;
@@ -127,48 +121,18 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
       MIX_T *dptr = (MIX_T*)drbd->track[router[t]] + offs;
       float vstart, vend, vstep;
       float dir_fact;
-      float hrtf_volume[3];
-      int i;
 
       /**
        * horizontal positioning, left-right
        **/
-      dir_fact = _MIN(0.8776f + ep2d->speaker[t].v4[DIR_RIGHT], 1.0f);
+      dir_fact = _MINMAX(0.5f+ep2d->speaker[t].v4[DIR_RIGHT], 0.0f, 1.0f);
       vstart = ep2d->prev_gain[t] * svol;
-      vend = gain * evol;
+      vend = gain * dir_fact * evol;
       vstep = (vend - vstart) / dno_samples;
 
-      drbd->add(dptr, sptr[ch]+offs, dno_samples, dir_fact*vstart, vstep);
+      drbd->add(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
 
       ep2d->prev_gain[t] = vend;
-
-      /**
-       * vertical positioning
-       **/
-      dir_fact = ep2d->speaker[t].v4[DIR_UPWD];
-      hrtf_volume[DIR_UPWD] = _MAX(-0.125f*dir_fact, 0.1f);
-      gain *= 0.76923f; 		/* 1.0f/0.3f */
-
-      i = DIR_UPWD;			/* skip left-right and back-front */
-      do
-      {
-         ssize_t diff = (ssize_t)ep2d->hrtf[t].v4[i];
-         float v_start, v_step;
-
-         assert(diff < (ssize_t)drbd->dde_samples);
-         assert(diff > -(ssize_t)dno_samples);
-         diff = _MINMAX(diff, -(ssize_t)dno_samples,(ssize_t)drbd->dde_samples);
-
-         v_start = vstart * hrtf_volume[i];
-         v_step = ((vend - vstart) * hrtf_volume[i])/dno_samples;
-
-//       DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
-
-// TODO: add HF filtered version of sptr[ch] if (t != AAX_TRACK_LFE)
-// TODO: or add LF filtered verson of sptr[ch] if (t == AAX_TRACK_LFE)
-         drbd->add(dptr, sptr[ch]+offs-diff, dno_samples, v_start, v_step);
-      }
-      while(0);
    }
 }
 
@@ -190,10 +154,10 @@ _aaxRingBufferMixMono16SpatialSurround(_aaxRingBufferSample *drbd, CONST_MIX_PTR
        **/
       dir_fact = ep2d->speaker[t].v4[DIR_RIGHT];
       vstart = ep2d->prev_gain[t] * svol;
-      vend = gain * evol;
+      vend = gain * dir_fact * evol;
       vstep = (vend - vstart) / dno_samples;
 
-      drbd->add(dptr, sptr[ch]+offs, dno_samples, dir_fact*vstart, vstep);
+      drbd->add(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
 
       ep2d->prev_gain[t] = vend;
 
@@ -256,83 +220,74 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
 // https://www.sfu.ca/sonic-studio-webdav/handbook/Binaural_Hearing.html
 // https://web.archive.org/web/20190216004141/https://www.sfu.ca/sonic-studio-webdav/handbook/Binaural_Hearing.html
 void
-_aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float fs, float gain, UNUSED(float svol), float evol, char ctr)
+_aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float fs, float gain, float svol, float evol, char ctr)
 {
    int t;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
+   // compensate for a combined gain of 1.45 below
+// gain *= 0.69f;
+
+   /** Mix */
    for (t=0; t<drbd->no_tracks; t++)
    {
-      MIX_T *track = drbd->track[router[t]];
-      float dir_fact[3], hrtf_volume[3];
-      const MIX_T *ptr;
-      MIX_T *dptr;
-      int i;
-
-      /*
-       * ITD; Interaural Time Difference
-       */
-      dir_fact[DIR_RIGHT] = ep2d->speaker[t].v4[DIR_RIGHT];
-      dir_fact[DIR_BACK] = ep2d->speaker[t].v4[DIR_BACK];
-      dir_fact[DIR_UPWD] = ep2d->speaker[t].v4[DIR_UPWD];
-
-      /*
-       * ILD; Interaural Level Differences
-       */
-      hrtf_volume[DIR_RIGHT] = 0.4f + 0.4f*dir_fact[DIR_RIGHT];
-      hrtf_volume[DIR_BACK] = _MAX(0.175f + 0.25f*dir_fact[DIR_BACK], 0.1f);
-      hrtf_volume[DIR_UPWD] = _MAX(-0.125f*dir_fact[DIR_UPWD], 0.1f);
-
-#if 0
- printf("t: %i, lr: % -3.2f, ud: % -3.2f, bf: % -3.2f, fc: %7.1f Hz\n", t,
-              hrtf_volume[DIR_RIGHT],
-              hrtf_volume[DIR_UPWD],
-              hrtf_volume[DIR_BACK],
-              MAX_CUTOFF - _log2lin(-4.278754f*_MIN(dir_fact[DIR_RIGHT], 0.0f)));
-#endif
+      MIX_T *dptr = (MIX_T*)drbd->track[router[t]] + offs;
+      float vstart, vend, vstep;
+      float dir_fact;
+      int diff, dir;
 #if 0
  printf("t: %i, lr: %5.4f ms, ud: %5.4f ms, bf: %5.4f ms\n", t,
               1000*ep2d->hrtf[t].v4[0]/44100.0f,
               1000*ep2d->hrtf[t].v4[1]/44100.0f,
               1000*ep2d->hrtf[t].v4[2]/44100.0f);
 #endif
-      gain = _MIN(gain, 0.69f);	// compensate for a combined gain of 1.45 below
 
-      dptr = track+offs;
-      ptr = sptr[ch]+offs;
-      for (i=0; i<3; i++)
-      {
-         ssize_t diff = (ssize_t)ep2d->hrtf[t].v4[i];
-         float v_start, v_end, v_step;
+      /* left-right */
+      dir = DIR_RIGHT;
+      dir_fact = 0.4f + 0.4f*ep2d->speaker[t].v4[dir];
+      vstart = ep2d->prev_gain[3*t+dir] * svol;
+      vend   = gain * dir_fact * evol;
+      vstep  = (vend - vstart) / dno_samples;
+      diff = (ssize_t)ep2d->hrtf[t].v4[dir];
+      drbd->add(dptr, sptr[ch]+offs-diff, dno_samples, vstart, vstep);
+      ep2d->prev_gain[3*t+dir] = vend;
 
-         assert(diff < (ssize_t)drbd->dde_samples);
-         assert(diff > -(ssize_t)dno_samples);
+      /* down-up */
+      dir = DIR_UPWD;
+      dir_fact = _MAX(0.175f + 0.25f*ep2d->speaker[t].v4[dir], 0.1f);
+      vstart = ep2d->prev_gain[3*t+dir] * svol;
+      vend   = gain * dir_fact * evol;
+      vstep  = (vend - vstart) / dno_samples;
 
-         v_start = ep2d->prev_gain[3*t+i];
-         v_end = gain * hrtf_volume[i] * evol;
-         v_step = (v_end - v_start)/dno_samples;
+      diff = (ssize_t)ep2d->hrtf[t].v4[dir];
+      drbd->add(dptr, sptr[ch]+offs-diff, dno_samples, vstart, vstep);
+      ep2d->prev_gain[3*t+dir] = vend;
 
-//       DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
-         drbd->add(dptr, ptr-diff, dno_samples, v_start, v_step);
+      /* front-back */
+      dir = DIR_BACK;
+      dir_fact = _MAX(0.175f + 0.25f*ep2d->speaker[t].v4[dir], 0.1f);
+      vstart = ep2d->prev_gain[3*t+dir] * svol;
+      vend   = gain * dir_fact * evol;
+      vstep  = (vend - vstart) / dno_samples;
 
-         ep2d->prev_gain[3*t+i] = v_end;
-      }
+      diff = (ssize_t)ep2d->hrtf[t].v4[dir];
+      drbd->add(dptr, sptr[ch]+offs-diff, dno_samples, vstart, vstep);
+      ep2d->prev_gain[3*t+dir] = vend;
 
       /*
        * IID; Interaural Intensitive Difference
        * HEAD shadow frequency filter
        */
-      if (dir_fact[DIR_RIGHT] < 0.0f)
+      dir_fact = ep2d->speaker[t].v4[DIR_RIGHT];
+      if (dir_fact < 0.0f)
       {
-         float dirfact = dir_fact[DIR_RIGHT];
-
 // http://www.cns.nyu.edu/~david/courses/perception/lecturenotes/localization/localization-slides/Slide18.jpg
          if (!ctr)
          {
-            // dirfact = 0.0f: 20kHz, dirfact = -1.0f: 250Hz
+            // dir_fact = 0.0f: 20kHz, dir_fact = -1.0f: 250Hz
             // log10(MAX_CUTOFF - 1000) = 4.2787541
-            float fc = MAX_CUTOFF - _log2lin(-4.278754f*dirfact);
+            float fc = MAX_CUTOFF - _log2lin(-4.278754f*dir_fact);
             ep2d->k = _aax_movingaverage_compute(fc, fs);
          }
 
