@@ -41,7 +41,7 @@
 static _intBuffers* get_backends();
 static _handle_t* _open_handle(aaxConfig);
 static _aaxConfig* _aaxReadConfig(_handle_t*, const char*, int, char);
-static void _aaxSetupHRTF(xmlId*, unsigned int);
+static void _aaxSetupHRTFfromXML(xmlId*, unsigned int);
 static void _aaxSetupSpeakersFromXML(char **, unsigned char *router, unsigned int);
 static void _aaxFreeSensor(void *);
 
@@ -1351,16 +1351,16 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode, char setup)
                _aaxMixerInfo* info = sensor->mixer->info;
                unsigned int size;
 
+               _aaxSetupHRTFfromXML(config->node[0].hrtf, 0);
+               vec4fFill(info->hrtf[0].v4, _aaxDefaultHead[0]);
+               vec4fFill(info->hrtf[1].v4, _aaxDefaultHead[1]);
+
                size = _AAX_MAX_SPEAKERS * sizeof(vec4f_t);
                if (info->mode == AAX_MODE_WRITE_HRTF)
                {
                   info->no_tracks = 2;
                   _aax_memcpy(&info->speaker, &_aaxDefaultHRTFVolume, size);
                   _aax_memcpy(info->delay, &_aaxDefaultHRTFDelay, size);
-
-                  _aaxSetupHRTF(config->node[0].hrtf, 0);
-                  vec4fFill(info->hrtf[0].v4, _aaxDefaultHead[0]);
-                  vec4fFill(info->hrtf[1].v4, _aaxDefaultHead[1]);
                }
                else
                {
@@ -1442,7 +1442,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode, char setup)
 }
 
 static void
-_aaxSetupHRTF(xmlId *xid, UNUSED(unsigned int n))
+_aaxSetupHRTFfromXML(xmlId *xid, UNUSED(unsigned int n))
 {
    if (xid)
    {
