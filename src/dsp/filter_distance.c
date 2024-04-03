@@ -450,23 +450,56 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_ptr rpos, float dist_fact,
                                     vec4f_ptr speaker, _aax2dProps *ep2d,
                                     const _aaxMixerInfo* info)
 {
-   int pos, i, t;
-   float dp, offs, fact;
+   float dp, offs, fact, gain;
+   int i, t;
 
    switch (info->mode)
    {
+   case AAX_MODE_WRITE_SPATIAL:
+      for (t=0; t<info->no_tracks; t++)
+      {					/* speaker == sensor_pos */
+         dp = vec3fDotProduct(&speaker[t].v3, rpos);
+         gain = dist_fact * fabsf(speaker[t].v4[GAIN]);
+
+         ep2d->speaker[t].v4[DIR_RIGHT] = 0.5f + gain*dp;
+      }
+      break;
+   case AAX_MODE_WRITE_SPATIAL_SURROUND:
+      for (t=0; t<info->no_tracks; t++)
+      {
+         dp = vec3fDotProduct(&speaker[t].v3, rpos);
+         gain = dist_fact * fabsf(speaker[t].v4[GAIN]);
+
+         ep2d->speaker[t].v4[DIR_RIGHT] = 0.5f + gain*dp;
+
+         i = DIR_UPWD;
+         do /* skip left-right and back-front */
+         {
+            int pos = 3*t + i;
+            dp = vec3fDotProduct(&speaker[pos].v3, rpos);
+
+            offs = info->hrtf[HRTF_OFFSET].v4[i];
+            fact = info->hrtf[HRTF_FACTOR].v4[i];
+
+            ep2d->hrtf[t].v4[i] = _MAX(offs + dp*fact, 0.0f);
+         }
+         while(0);
+      }
+      break;
    case AAX_MODE_WRITE_HRTF:
       for (t=0; t<info->no_tracks; t++)
       {
-         float gain = fabsf(speaker[t].v4[GAIN]);
+         gain = dist_fact * fabsf(speaker[t].v4[GAIN]);
+
          for (i=0; i<3; i++)
          {
+            int pos = 3*t + i;
+            dp = vec3fDotProduct(&speaker[pos].v3, rpos);
+
             /*
              * ILD; Interaural Level Difference
              */
-            pos = 3*t + i;
-            dp = vec3fDotProduct(&speaker[pos].v3, rpos);
-            ep2d->speaker[t].v4[i] = gain * dp*dist_fact;	/* -1 .. +1 */
+            ep2d->speaker[t].v4[i] = gain*dp;	/* -1 .. +1 */
 
             /*
              * ITD; Interaural Time Difference
@@ -474,59 +507,14 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_ptr rpos, float dist_fact,
             offs = info->hrtf[HRTF_OFFSET].v4[i];
             fact = info->hrtf[HRTF_FACTOR].v4[i];
 
-            pos = _AAX_MAX_SPEAKERS + 3*t + i;
+            pos = _AAX_MAX_SPEAKERS + pos;
             ep2d->hrtf[t].v4[i] = _MAX(offs + dp*fact, 0.0f);
          }
       }
       break;
    case AAX_MODE_WRITE_SURROUND:
-      for (t=0; t<info->no_tracks; t++)
-      {
-         vec3fMulVec3(&ep2d->speaker[t].v3, &speaker[t].v3, rpos);
-         vec3fScalarMul(&ep2d->speaker[t].v3, &ep2d->speaker[t].v3, dist_fact);
-         i = DIR_UPWD;
-         do                             /* skip left-right and back-front */
-         {
-            offs = info->hrtf[HRTF_OFFSET].v4[i];
-            fact = info->hrtf[HRTF_FACTOR].v4[i];
-
-            pos = _AAX_MAX_SPEAKERS + 3*t + i;
-            dp = vec3fDotProduct(&speaker[pos].v3, rpos);
-            ep2d->hrtf[t].v4[i] = _MAX(offs + dp*fact, 0.0f);
-         }
-         while(0);
-      }
-      break;
-   case AAX_MODE_WRITE_SPATIAL:
-      for (t=0; t<info->no_tracks; t++)
-      {                                         /* speaker == sensor_pos */
-         dp = vec3fDotProduct(&speaker[t].v3, rpos);
-         dp *= fabsf(speaker[t].v4[GAIN]);
-
-         ep2d->speaker[t].v4[DIR_RIGHT] = 0.5f + dp*dist_fact;
-      }
-      break;
-   case AAX_MODE_WRITE_SPATIAL_SURROUND:
-      for (t=0; t<info->no_tracks; t++)
-      {
-         dp = vec3fDotProduct(&speaker[t].v3, rpos);
-         dp *= fabsf(speaker[t].v4[GAIN]);
-
-         ep2d->speaker[t].v4[DIR_RIGHT] = 0.5f + dp*dist_fact;
-         i = DIR_UPWD;
-         do                             /* skip left-right and back-front */
-         {
-            offs = info->hrtf[HRTF_OFFSET].v4[i];
-            fact = info->hrtf[HRTF_FACTOR].v4[i];
-
-            pos = _AAX_MAX_SPEAKERS + 3*t + i;
-            dp = vec3fDotProduct(&speaker[pos].v3, rpos);
-            ep2d->hrtf[t].v4[i] = _MAX(offs + dp*fact, 0.0f);
-         }
-         while(0);
-      }
-      break;
-   default: /* AAX_MODE_WRITE_STEREO */
+   case AAX_MODE_WRITE_STEREO:
+   default:
       for (t=0; t<info->no_tracks; t++)
       {
          vec3fMulVec3(&ep2d->speaker[t].v3, &speaker[t].v3, rpos);

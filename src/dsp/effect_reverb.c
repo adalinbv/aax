@@ -903,7 +903,7 @@ _reflections_run(const _aaxRingBufferReverbData *reverb,
          for(; q<snum; ++q)
          {
             volume = reflections->delay[q].gain;
-            volume /= (1 + (track+q) % tracks);
+//          volume /= (1 + (track+q) % tracks);
             if (fabsf(volume) > LEVEL_60DB)
             {
                ssize_t offs = reflections->delay[q].sample_offs[track] + dst;
@@ -921,7 +921,7 @@ _reflections_run(const _aaxRingBufferReverbData *reverb,
          for(q=0; q<snum; ++q)
          {
             volume = reflections->delay[q].gain;
-            volume /= (1 + (track+q) % tracks);
+//          volume /= (1 + (track+q) % tracks);
             if (fabsf(volume) > LEVEL_60DB)
             {
                ssize_t offs = reflections->delay[q].sample_offs[track] + dst;
