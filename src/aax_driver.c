@@ -1011,6 +1011,8 @@ _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
 
    if (flt[0])
    {
+      float fc;
+
       /* 20 Hz high-pass filter */
       flt[0]->no_stages = 2;
       flt[0]->state = AAX_BUTTERWORTH;
@@ -1019,7 +1021,8 @@ _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
       flt[0]->high_gain = 1.0f;
       flt[0]->low_gain = 0.01f;
       flt[0]->fs = fs;
-      _aax_butterworth_compute(20.0f, flt[0]);
+      fc = MINIMUM_CUTOFF;
+      _aax_butterworth_compute(fc, flt[0]);
 
       /* 90% of half the sample rate low-pass filter */
       flt[1]->no_stages = 2;
@@ -1029,7 +1032,8 @@ _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
       flt[1]->high_gain = 1.0f;
       flt[1]->low_gain = 0.05f;
       flt[1]->fs = fs;
-      _aax_butterworth_compute(0.9f*0.5f*fs, flt[1]);
+      fc = CLIP_FREQUENCY(MAXIMUM_CUTOFF, fs);
+      _aax_butterworth_compute(fc, flt[1]);
    }
 }
 

@@ -619,7 +619,7 @@ _aax_butterworth_compute(float fc, void *flt)
       {
          k *= a2;
          b1 = a1/a2;
-         b2 = 1/a2;
+         b2 = 1.0f/a2;
       }
 
       _aax_bilinear_s2z(&a0, &a1, &a2, &b0, &b1, &b2, fc, fs, &k, coef);
@@ -859,10 +859,8 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
 
    if (filter->lfo && !ctr)
    {
-      float fc = filter->fc;
-
-      fc = _MINMAX(filter->lfo->get(filter->lfo, env, s, track, dmax),
-                   20.0f, 0.9f*0.5f*filter->fs);
+      float fc = filter->lfo->get(filter->lfo, env, s, track, dmax);
+      fc = CLIP_FREQUENCY(fc, filter->fs);
 
       if (filter->resonance > 0.0f) {
          if (filter->type > BANDPASS) { // HIGHPASS

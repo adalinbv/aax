@@ -37,7 +37,7 @@ extern "C" {
 
 #define MINIMUM_CUTOFF	50.0f
 #define MAXIMUM_CUTOFF	20000.0f
-#define CLIP_FREQUENCY(f, fs) _MINMAX(f, MINIMUM_CUTOFF, _MIN(0.5f*fs, MAXIMUM_CUTOFF))
+#define CLIP_FREQUENCY(f, fs) _MINMAX(f, MINIMUM_CUTOFF, _MIN(0.8f*0.5f*fs, MAXIMUM_CUTOFF))
 
 #define PRINT_EFF_T(e) { int s; \
  printf("%s\n", __func__); \

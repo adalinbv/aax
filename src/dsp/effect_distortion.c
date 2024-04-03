@@ -333,10 +333,8 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       lfo_fact = lfo->get(lfo, env, sptr, track, no_samples);
       if (flt) // && !ctr
       {
-         float fc = flt->fc;
-
-         fc = _MINMAX(flt->fc_low + lfo_fact*(flt->fc_high-flt->fc_low),
-                      20.0f, 0.9f*0.5f*flt->fs);
+         float fc = flt->fc_low + lfo_fact*(flt->fc_high-flt->fc_low);
+         fc = CLIP_FREQUENCY(fc, flt->fs);
 
          if (flt->resonance > 0.0f) {
             if (flt->type > BANDPASS) { // HIGHPASS

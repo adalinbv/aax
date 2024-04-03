@@ -993,10 +993,8 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
             if (flt)
             {
                float fact = lfo_fact/effect->lfo.max;
-               float fc = flt->fc;
-
-               fc = _MINMAX(flt->fc_low + fact*(flt->fc_high-flt->fc_low),
-                            20.0f, 0.9f*0.5f*flt->fs);
+               float fc = flt->fc_low + fact*(flt->fc_high-flt->fc_low);
+               fc = CLIP_FREQUENCY(fc, flt->fs);
 
                if (flt->resonance > 0.0f) {
                   if (flt->type > BANDPASS) { // HIGHPASS
