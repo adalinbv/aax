@@ -268,9 +268,11 @@ typedef ALIGN16  struct {
 #define MAX_ENCODING    32
 typedef ALIGN16 struct
 {
+   // head delays
    vec4f_t hrtf[2];
-   vec4f_t speaker[2*_AAX_MAX_SPEAKERS];
 
+   // speaker volume (first _AAX_MAX_SPEAKERS) and speaker delays
+   vec4f_t speaker[2*_AAX_MAX_SPEAKERS];
    vec4f_t *delay;
 
    unsigned char router[_AAX_MAX_SPEAKERS];

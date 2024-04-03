@@ -141,7 +141,9 @@ _aaxRingBufferMixMono16SpatialSurround(_aaxRingBufferSample *drbd, CONST_MIX_PTR
 {
    int t;
 
-   _AAX_LOG(LOG_DEBUG, __func__);   for (t=0; t<drbd->no_tracks; t++)
+   _AAX_LOG(LOG_DEBUG, __func__);
+
+   for (t=0; t<drbd->no_tracks; t++)
    {
       MIX_T *dptr = (MIX_T*)drbd->track[router[t]] + offs;
       float vstart, vend, vstep;

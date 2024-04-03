@@ -45,8 +45,8 @@ _aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
    info = *inf;
 
    // hrtf
-   size = 2*sizeof(vec4f_t);
-   _aax_memcpy(&info->hrtf, &_aaxDefaultHead, size);
+   vec4fFill(info->hrtf[0].v4, _aaxDefaultHead[0]);
+   vec4fFill(info->hrtf[1].v4, _aaxDefaultHead[1]);
 
    // speaker
    size = _AAX_MAX_SPEAKERS * sizeof(vec4f_t);
