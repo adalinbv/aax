@@ -268,6 +268,7 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
 
       tracks = rbd->no_tracks;
       offs = tracks * sizeof(void*);
+
       ptr = _aax_calloc(&ptr2, offs, tracks, tracksize);
       if (ptr)
       {
@@ -460,7 +461,7 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
 
       _aaxRingBufferInit(drb, add_scratchbuf);
 
-      if (copy || dde)
+      if ((copy || dde) && drbd->track)
       {
          size_t t, ds, tracksize;
 
