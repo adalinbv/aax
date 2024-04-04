@@ -1856,8 +1856,8 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
 
                      if (!m && iface)
                      {
-                        iface = strchr(iface+2, '\n');
-                        *iface = 0;
+                        char *end = strchr(iface+2, '\n');
+                        if (end) *end = 0;
                      }
                      found = 1;
                   }
@@ -2210,6 +2210,7 @@ detect_devname(_driver_t *handle, int m)
    static const char* dev_prefix[] = {
          "hw:", "front:", "surround40:", "surround51:", "surround71:"
    };
+   static char rvname[1025];
    unsigned int tracks = handle->no_tracks;
    char *devname = _aax_strdup(handle->name);
    char vmix = handle->shared;
@@ -2255,8 +2256,10 @@ detect_devname(_driver_t *handle, int m)
                      i++;
                   }
 
-                  if (!strcmp(devname, "pulse")) {
-                     rv = strdup(devname);
+                  if (!strcmp(devname, "pulse"))
+                  {
+                     snprintf(rvname, 1024, "%s", devname);
+                     rv = rvname;
                   }
                   else if (ifname_prefix[i] && !STRCMP(devname, name))
                   {
@@ -2306,7 +2309,7 @@ detect_devname(_driver_t *handle, int m)
                      {
                         if (ifname)
                         {
-                           if (!strcasecmp(ifname, iface) ||
+                           if ((iface && !strcasecmp(ifname, iface)) ||
                                (description && !strcasecmp(ifname, description)))
                            {
                               size_t dlen = strlen(name)+1;
