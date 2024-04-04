@@ -302,7 +302,9 @@ _aaxDriverBackendSetConfigSettings(_intBuffers *bs, char** devname, _aaxConfig *
       if (!devname[0])
       {
          be = _aaxGetDriverBackendDefault(bs, &pos);
-         config->backend.driver = _aax_strdup(be->driver);
+         if (be) {
+            config->backend.driver = _aax_strdup(be->driver);
+         }
       }
    }
 
