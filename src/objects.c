@@ -35,7 +35,7 @@ void
 _aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
 {
    char *env = getenv("AAX_RENDER_MODE");
-   unsigned int i, size;
+   unsigned int size;
    _aaxMixerInfo *info;
 
    assert(inf);
@@ -98,17 +98,20 @@ _aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
    if (info->locale == NULL)
    {
       char *locale = strdup(setlocale(LC_CTYPE, ""));
-      const char *ptr = strrchr(locale, '.');
+      if (locale)
+      {
+         const char *ptr = strrchr(locale, '.');
 
-      info->locale = newlocale(LC_CTYPE_MASK, locale, 0);
+         info->locale = newlocale(LC_CTYPE_MASK, locale, 0);
 
 # if defined(HAVE_ICONV_H) || defined(WIN32)
-      if (!ptr) ptr = locale; // tocode
-      else ++ptr;
-      snprintf(info->encoding, MAX_ENCODING, "UTF-8"); // fromcode
-      info->cd = iconv_open(ptr, info->encoding);
+         if (!ptr) ptr = locale; // tocode
+         else ++ptr;
+         snprintf(info->encoding, MAX_ENCODING, "UTF-8"); // fromcode
+         info->cd = iconv_open(ptr, info->encoding);
 # endif
-      free(locale);
+         free(locale);
+      }
    }
 #endif
 }
