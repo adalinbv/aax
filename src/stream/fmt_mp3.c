@@ -1042,7 +1042,7 @@ _mp3_set(_fmt_t *fmt, int type, off_t value)
 
 /* -------------------------------------------------------------------------- */
 #define MAX_ID3V1_GENRES	192
-#define __DUP(a, b)	if ((b) != NULL && (b)->fill) a = strdup((b)->p);
+#define __DUP(a, b)	if ((b) != NULL && (b)->fill) { if (a) free(a); a = strdup((b)->p); }
 #define __COPY(a, b)	do { int s = sizeof(b); \
       a = calloc(1, s+1); if (a) memcpy(a,b,s); \
    } while(0);
