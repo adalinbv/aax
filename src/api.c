@@ -493,8 +493,11 @@ _aaxConnectorDeviceToDeviceConnector(char *iface)
 void
 _aaxURLSplit(char *url, char **protocol, char **server, char **path, char **extension, int *port)
 {
-   char *params = strchr(url, '?');
+   char *params;
    char *ptr;
+
+   if (!url) return;
+   params = strchr(url, '?');
 
    if (params) *params = '\0';
 
