@@ -1352,9 +1352,9 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
    if (data)
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(buffer, buffer->root, level);
-
-      /* the internal buffer format for .aaxs files is signed 24-bit */
+      if (rb)
       {
+         /* the internal buffer format for .aaxs files is signed 24-bit */
          char **ndata;
          char *ptr;
 
@@ -1366,22 +1366,22 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
             free(data);
             data = ndata;
          }
+
+         info->fmt = AAX_PCM24S;
+//       rb->set_format(rb, fmt, false);
+         rb->set_parami(rb, RB_NO_LAYERS, info->no_tracks);
+         rb->set_parami(rb, RB_NO_TRACKS, info->no_tracks);
+         rb->set_paramf(rb, RB_FREQUENCY, info->rate);
+         rb->set_parami(rb, RB_NO_SAMPLES, info->no_samples);
+
+         rv = aaxBufferSetData(buffer, data[0]);
+         free(data);
+
+         rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->rate);
+         rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->rate);
+         rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
+         rb->set_parami(rb, RB_LOOPING, info->loop_count);
       }
-
-      info->fmt = AAX_PCM24S;
-//    rb->set_format(rb, fmt, false);
-      rb->set_parami(rb, RB_NO_LAYERS, info->no_tracks);
-      rb->set_parami(rb, RB_NO_TRACKS, info->no_tracks);
-      rb->set_paramf(rb, RB_FREQUENCY, info->rate);
-      rb->set_parami(rb, RB_NO_SAMPLES, info->no_samples);
-
-      rv = aaxBufferSetData(buffer, data[0]);
-      free(data);
-
-      rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->rate);
-      rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->rate);
-      rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
-      rb->set_parami(rb, RB_LOOPING, info->loop_count);
    }
 
    return rv;
@@ -1839,23 +1839,27 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
    for (b=0; b<handle->mip_levels; ++b)
    {
       _aaxRingBuffer *rb = _bufGetRingBuffer(handle, handle->root, b);
-      float mul = (float)(1 << b);
-      float frequency = mul*freq;
-      float pitch_fact = 1.0f/mul;
-
-      if (duration >= 0.099f)
+      if (rb)
       {
-         float f = pitch_fact*rb->get_paramf(rb, RB_FREQUENCY);
-         size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
+         float mul = (float)(1 << b);
+         float pitch_fact = 1.0f/mul;
 
-         rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
-         rb->set_parami(rb, RB_NO_TRACKS, handle->info.no_tracks);
-         rb->set_parami(rb, RB_NO_LAYERS, handle->info.no_tracks);
-         handle->ringbuffer[b] = rb;
+         if (duration >= 0.099f)
+         {
+            float f = pitch_fact*rb->get_paramf(rb, RB_FREQUENCY);
+            size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
+
+            rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
+            rb->set_parami(rb, RB_NO_TRACKS, handle->info.no_tracks);
+            rb->set_parami(rb, RB_NO_LAYERS, handle->info.no_tracks);
+            handle->ringbuffer[b] = rb;
+         }
       }
 
       for (layer=0; layer<no_layers; ++layer)
       {
+         float mul = (float)(1 << b);
+         float frequency = mul*freq;
          float pitch = 1.0f;
          float ratio = 1.0f;
          int num, waves;
@@ -2209,6 +2213,7 @@ _bufAAXSThread(void *d)
    assert(handle);
    assert(aaxs);
 
+   if (handle->aaxs) free(handle->aaxs);
    handle->aaxs = strdup(aaxs);
    if (!handle->aaxs) {
       return false;
