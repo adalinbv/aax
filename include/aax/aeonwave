@@ -111,7 +111,7 @@ public:
 
     virtual ~Tieable() { untie(); }
 
-    Tieable(T v, enum aaxType t = AAX_LINEAR) : val(v), type(t) {}
+    Tieable(T v, enum aaxType t = AAX_LINEAR) : val(v), type(t) { fire(); }
 
     Tieable(const Tieable& v) { val = v.val; fire(); }
 
@@ -237,13 +237,14 @@ protected:
     }
 
 private:
-    T val, prev = 0;
+    T val = 0;
+    T prev = -1;
     enum aaxType type = AAX_LINEAR;
     bool tied = 0;
     int param = 0;
     bool filter = false;
     bool enabled = false;
-    void* obj = nullptr;
+    void *obj = nullptr;
 
     union handle {
         aaxFilter filter = nullptr;
