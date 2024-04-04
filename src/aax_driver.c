@@ -1263,11 +1263,14 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode, char setup)
             }
 
             handle->devname[0] = name;
-            ptr = strstr(name, " on ");
-            if (ptr)
+            if (name)
             {
-               *ptr = 0;
-               handle->devname[1] = ptr+4;		/* 4 = strlen(" on ") */
+               ptr = strstr(name, " on ");
+               if (ptr)
+               {
+                  *ptr = 0;
+                  handle->devname[1] = ptr+4;	/* 4 = strlen(" on ") */
+               }
             }
          }
 
