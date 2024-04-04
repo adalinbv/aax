@@ -169,72 +169,75 @@ _opus_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t fsi
       }
    }
 
-   if (!handle->opusBuffer) {
-      handle->opusBuffer = _aaxDataCreate(1, OPUS_BUFFER_SIZE, 1);
-   }
-
-   if (!handle->pcmBuffer) {
-      handle->pcmBuffer = _aaxDataCreate(1, MAX_PCMBUFSIZE, 1);
-   }
-
-   if (handle && handle->opusBuffer && handle->pcmBuffer)
+   if (handle)
    {
-      if (handle->capturing)
+      if (!handle->opusBuffer) {
+         handle->opusBuffer = _aaxDataCreate(1, OPUS_BUFFER_SIZE, 1);
+      }
+
+      if (!handle->pcmBuffer) {
+         handle->pcmBuffer = _aaxDataCreate(1, MAX_PCMBUFSIZE, 1);
+      }
+
+      if (handle->opusBuffer && handle->pcmBuffer)
       {
-         if (handle && buf && bufsize)
+         if (handle->capturing)
          {
-            int res, err = OPUS_OK;
-
-            res = _opus_fill(fmt, buf, bufsize);
-            if (res <= 0)
+            if (handle && buf && bufsize)
             {
-//             *bufsize = res;
-               if (!handle->id)
-               {
-                  int tracks = handle->no_tracks;
-                  int32_t freq = handle->frequency;
+               int res, err = OPUS_OK;
 
-                  handle->id = popus_decoder_create(freq, tracks, &err);
+               res = _opus_fill(fmt, buf, bufsize);
+               if (res <= 0)
+               {
+//                *bufsize = res;
                   if (!handle->id)
                   {
-                     *bufsize = 0;
-                     switch (err)
+                     int tracks = handle->no_tracks;
+                     int32_t freq = handle->frequency;
+
+                     handle->id = popus_decoder_create(freq, tracks, &err);
+                     if (!handle->id)
                      {
-                     case OPUS_BAD_ARG:
-                        _AAX_FILEDRVLOG("OPUS: argument invalid or out of range");
-                        break;
-                     case OPUS_BUFFER_TOO_SMALL:
-                        _AAX_FILEDRVLOG("OPUS: invalid mode struct");
-                        break;
-                     case OPUS_INTERNAL_ERROR:
-                        _AAX_FILEDRVLOG("OPUS: internal error");
-                        break;
-                     case OPUS_INVALID_PACKET:
-                        _AAX_FILEDRVLOG("OPUS: corrupted compressed data");
-                        break;
-                     case OPUS_UNIMPLEMENTED:
-                        _AAX_FILEDRVLOG("OPUS: unimplemented request");
-                        break;
-                     case OPUS_INVALID_STATE:
-                        _AAX_FILEDRVLOG("OPUS: id is invalid or already freed");
-                        break;
-                     case OPUS_ALLOC_FAIL:
-                        _AAX_FILEDRVLOG("OPUS: insufficient memory");
-                        break;
-                     default:
-                        _AAX_FILEDRVLOG(popus_strerror(err));
-                        break;
+                        *bufsize = 0;
+                        switch (err)
+                        {
+                        case OPUS_BAD_ARG:
+                           _AAX_FILEDRVLOG("OPUS: argument invalid or out of range");
+                           break;
+                        case OPUS_BUFFER_TOO_SMALL:
+                           _AAX_FILEDRVLOG("OPUS: invalid mode struct");
+                           break;
+                        case OPUS_INTERNAL_ERROR:
+                           _AAX_FILEDRVLOG("OPUS: internal error");
+                           break;
+                        case OPUS_INVALID_PACKET:
+                           _AAX_FILEDRVLOG("OPUS: corrupted compressed data");
+                           break;
+                        case OPUS_UNIMPLEMENTED:
+                           _AAX_FILEDRVLOG("OPUS: unimplemented request");
+                           break;
+                        case OPUS_INVALID_STATE:
+                           _AAX_FILEDRVLOG("OPUS: id is invalid or already freed");
+                           break;
+                        case OPUS_ALLOC_FAIL:
+                           _AAX_FILEDRVLOG("OPUS: insufficient memory");
+                           break;
+                        default:
+                           _AAX_FILEDRVLOG(popus_strerror(err));
+                           break;
+                        }
                      }
-                  }
-               } // !handle->id
-            } // _buf_fill() != 0
-         } // handle && buf && bufsize
-      } // handle->capturing
-   }
-   else if (handle && (!handle->opusBuffer || !handle->pcmBuffer))
-   {
-      _AAX_FILEDRVLOG("OPUS: Unable to allocate the audio buffer");
-      rv = buf; // try again
+                  } // !handle->id
+               } // _buf_fill() != 0
+            } // handle && buf && bufsize
+         } // handle->capturing
+      }
+      else if (handle->opusBuffer || !handle->pcmBuffer)
+      {
+         _AAX_FILEDRVLOG("OPUS: Unable to allocate the audio buffer");
+         rv = buf; // try again
+      }
    }
    else {
       _AAX_FILEDRVLOG("OPUS: Internal error: handle id equals 0");

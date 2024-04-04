@@ -174,103 +174,105 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
       }
    }
 
-   if (!handle->vorbisBuffer) {
-      handle->vorbisBuffer = _aaxDataCreate(1, VORBIS_BUFFER_SIZE, 1);
-   }
-
-   if (handle && handle->vorbisBuffer)
+   if (handle)
    {
-      if (handle->capturing)
-      {
-         if (buf && bufsize)
-         {
-            int err = VORBIS__no_error;
-            int used = 0;
-
-            handle->no_samples = 0;
-
-            if (_vorbis_fill(fmt, buf, bufsize) > 0)
-            {
-               buf = _aaxDataGetData(handle->vorbisBuffer, 0);
-
-               if (!handle->id)
-               {
-                  int max = _aaxDataGetDataAvail(handle->vorbisBuffer, 0);
-                  handle->id=stb_vorbis_open_pushdata(buf, max, &used, &err, 0);
-               }
-
-               if (handle->id)
-               {
-                  _detect_vorbis_song_info(handle);
-                  _aaxDataMove(handle->vorbisBuffer, 0, NULL, used);
-                  // we're done decoding, return NULL
-               }
-               else if (err == VORBIS_need_more_data) {
-                  rv = buf;
-               }
-               else
-               {
-                  *bufsize = 0;
-                  switch (err)
-                  {
-                  case VORBIS_missing_capture_pattern:
-                     _AAX_FILEDRVLOG("VORBIS: missing capture pattern");
-                     break;
-                  case VORBIS_invalid_stream_structure_version:
-                     _AAX_FILEDRVLOG("VORBIS: invalid stream structure version");
-                     break;
-                  case VORBIS_continued_packet_flag_invalid:
-                     _AAX_FILEDRVLOG("VORBIS: continued packet flag invalid");
-                     break;
-                  case VORBIS_incorrect_stream_serial_number:
-                     _AAX_FILEDRVLOG("VORBIS: incorrect stream serial number");
-                     break;
-                  case VORBIS_invalid_first_page:
-                     _AAX_FILEDRVLOG("VORBIS: invalid first page");
-                     break;
-                  case VORBIS_bad_packet_type:
-                     _AAX_FILEDRVLOG("VORBIS: bad packet type");
-                     break;
-                  case VORBIS_cant_find_last_page:
-                     _AAX_FILEDRVLOG("VORBIS: cant find last page");
-                     break;
-                  case VORBIS_invalid_setup:
-                     _AAX_FILEDRVLOG("VORBIS: invalid setup");
-                     break;
-                  case VORBIS_invalid_stream:
-                     _AAX_FILEDRVLOG("VORBIS: corrupt/invalid stream");
-                     break;
-                  case VORBIS_outofmem:
-                     _AAX_FILEDRVLOG("VORBIS: insufficient memory");
-                     break;
-                  case VORBIS_invalid_api_mixing:
-                  case VORBIS_feature_not_supported:
-                  case VORBIS_too_many_channels:
-                  case VORBIS_file_open_failure:
-                  case VORBIS_seek_without_length:
-                  case VORBIS_unexpected_eof:
-                  case VORBIS_seek_failed:
-                  default:
-                     _AAX_FILEDRVLOG("VORBIS: unknown initialization error");
-                     break;
-                  }
-               }
-            } /* _buf_fill() != 0 */
-         }
+      if (!handle->vorbisBuffer) {
+         handle->vorbisBuffer = _aaxDataCreate(1, VORBIS_BUFFER_SIZE, 1);
       }
-      else	// playback
-      {
-         if (buf && *bufsize == sizeof(ogg_packet[3]))
-         {
-            int ret;
 
-            // quality mode with approximate bitrate
-            ret = pvorbis_encode_setup_managed(&handle->info,
-                                               handle->info.channels,
-                                               handle->info.rate,
-                                               handle->info.bitrate_lower,
-                                               handle->info.bitrate_nominal,
-                                               handle->info.bitrate_upper);
+      if (handle->vorbisBuffer)
+      {
+         if (handle->capturing)
+         {
+            if (buf && bufsize)
+            {
+               int err = VORBIS__no_error;
+               int used = 0;
+
+               handle->no_samples = 0;
+
+               if (_vorbis_fill(fmt, buf, bufsize) > 0)
+               {
+                  buf = _aaxDataGetData(handle->vorbisBuffer, 0);
+
+                  if (!handle->id)
+                  {
+                     int max = _aaxDataGetDataAvail(handle->vorbisBuffer, 0);
+                     handle->id=stb_vorbis_open_pushdata(buf, max, &used, &err, 0);
+                  }
+
+                  if (handle->id)
+                  {
+                     _detect_vorbis_song_info(handle);
+                     _aaxDataMove(handle->vorbisBuffer, 0, NULL, used);
+                     // we're done decoding, return NULL
+                  }
+                  else if (err == VORBIS_need_more_data) {
+                     rv = buf;
+                  }
+                  else
+                  {
+                     *bufsize = 0;
+                     switch (err)
+                     {
+                     case VORBIS_missing_capture_pattern:
+                        _AAX_FILEDRVLOG("VORBIS: missing capture pattern");
+                        break;
+                     case VORBIS_invalid_stream_structure_version:
+                        _AAX_FILEDRVLOG("VORBIS: invalid stream structure version");
+                        break;
+                     case VORBIS_continued_packet_flag_invalid:
+                        _AAX_FILEDRVLOG("VORBIS: continued packet flag invalid");
+                        break;
+                     case VORBIS_incorrect_stream_serial_number:
+                        _AAX_FILEDRVLOG("VORBIS: incorrect stream serial number");
+                        break;
+                     case VORBIS_invalid_first_page:
+                        _AAX_FILEDRVLOG("VORBIS: invalid first page");
+                        break;
+                     case VORBIS_bad_packet_type:
+                        _AAX_FILEDRVLOG("VORBIS: bad packet type");
+                        break;
+                     case VORBIS_cant_find_last_page:
+                        _AAX_FILEDRVLOG("VORBIS: cant find last page");
+                        break;
+                     case VORBIS_invalid_setup:
+                        _AAX_FILEDRVLOG("VORBIS: invalid setup");
+                        break;
+                     case VORBIS_invalid_stream:
+                        _AAX_FILEDRVLOG("VORBIS: corrupt/invalid stream");
+                        break;
+                     case VORBIS_outofmem:
+                        _AAX_FILEDRVLOG("VORBIS: insufficient memory");
+                        break;
+                     case VORBIS_invalid_api_mixing:
+                     case VORBIS_feature_not_supported:
+                     case VORBIS_too_many_channels:
+                     case VORBIS_file_open_failure:
+                     case VORBIS_seek_without_length:
+                     case VORBIS_unexpected_eof:
+                     case VORBIS_seek_failed:
+                     default:
+                        _AAX_FILEDRVLOG("VORBIS: unknown initialization error");
+                        break;
+                     }
+                  }
+               } /* _buf_fill() != 0 */
+            }
+         }
+         else	// playback
+         {
+            if (buf && *bufsize == sizeof(ogg_packet[3]))
+            {
+               int ret;
+
+               // quality mode with approximate bitrate
+               ret = pvorbis_encode_setup_managed(&handle->info,
+                                                  handle->info.channels,
+                                                  handle->info.rate,
+                                                  handle->info.bitrate_lower,
+                                                  handle->info.bitrate_nominal,
+                                                  handle->info.bitrate_upper);
 #if 0
  printf("channels: %i\n", handle->info.channels);
  printf("rate: %li\n", handle->info.rate);
@@ -279,41 +281,42 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
  printf("bitrate_upper: %li\n", handle->info.bitrate_upper);
  printf("vorbis_encode_setup_managed: %i\n", ret);
 #endif
-            if (!ret) {
-               ret = pvorbis_encode_ctl(&handle->info,
-                                        OV_ECTL_RATEMANAGE2_SET, NULL);
-            }
-            if (!ret) {
-               ret = pvorbis_encode_setup_init(&handle->info);
-            }
+               if (!ret) {
+                  ret = pvorbis_encode_ctl(&handle->info,
+                                           OV_ECTL_RATEMANAGE2_SET, NULL);
+               }
+               if (!ret) {
+                  ret = pvorbis_encode_setup_init(&handle->info);
+               }
 
-            if (!ret)
-            {
-               ogg_packet *header = (ogg_packet*)buf;
+               if (!ret)
+               {
+                  ogg_packet *header = (ogg_packet*)buf;
 
-               pvorbis_comment_init(&handle->out->vc);
-               pvorbis_comment_add_tag(&handle->out->vc,
-                                   "ENCODER", aaxGetString(AAX_VERSION_STRING));
+                  pvorbis_comment_init(&handle->out->vc);
+                  pvorbis_comment_add_tag(&handle->out->vc,
+                                      "ENCODER", aaxGetString(AAX_VERSION_STRING));
 
-               pvorbis_analysis_init(&handle->out->vd, &handle->info);
-               pvorbis_block_init(&handle->out->vd, &handle->out->vb);
+                  pvorbis_analysis_init(&handle->out->vd, &handle->info);
+                  pvorbis_block_init(&handle->out->vd, &handle->out->vb);
 
-               pvorbis_analysis_headerout(&handle->out->vd, &handle->out->vc,
-                                      &header[0], &header[1], &header[2]);
-            }
-            else
-            {
-               _AAX_FILEDRVLOG("VORBIS: Unable to create a handle for writing")
-               free(handle->out);
-               handle->out = NULL;
+                  pvorbis_analysis_headerout(&handle->out->vd, &handle->out->vc,
+                                         &header[0], &header[1], &header[2]);
+               }
+               else
+               {
+                  _AAX_FILEDRVLOG("VORBIS: Unable to create a handle for writing")
+                  free(handle->out);
+                  handle->out = NULL;
+               }
             }
          }
       }
-   }
-   else if (handle)
-   {
-      _AAX_FILEDRVLOG("VORBIS: Unable to allocate the audio buffer");
-      rv = buf;	// try again
+      else
+      {
+         _AAX_FILEDRVLOG("VORBIS: Unable to allocate the audio buffer");
+         rv = buf;	// try again
+      }
    }
    else {
       _AAX_FILEDRVLOG("VORBIS: Internal error: handle id equals 0");
