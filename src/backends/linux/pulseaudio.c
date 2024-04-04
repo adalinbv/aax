@@ -1153,6 +1153,10 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
             memmove(rv, s, MAX_DEVICES_LIST-sl);;
          }
       }
+
+      if (handle != id) {
+         free(handle);
+      }
    }
 
    return rv;
