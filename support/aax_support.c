@@ -1099,8 +1099,11 @@ aaxFilterGetByName(const char *name)
    }
 
    end = strchr(name, '.');
-   while (end > name && *end != '_') --end;
-   if (end) type[end-name] = 0;
+   if (end)
+   {
+      while (end > name && *end != '_') --end;
+      if (end) type[end-name] = 0;
+   }
 
    end = strrchr(name, '_');
    if (end && !strcasecmp(end+1, "FILTER")) {
@@ -1171,8 +1174,11 @@ aaxEffectGetByName(const char *name)
    }
 
    end = strchr(name, '.');
-   while (end > name && *end != '_') --end;
-   if (end) type[end-name] = 0;
+   if (end)
+   {
+      while (end > name && *end != '_') --end;
+      if (end) type[end-name] = 0;
+   }
 
    end = strrchr(name, '_');
    if (end && !strcasecmp(end+1, "EFFECT")) {
