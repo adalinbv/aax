@@ -362,6 +362,7 @@ _aaxStreamDriverConnect(void *config, const void *id, xmlId *xid, const char *de
          }
       }
    }
+   else if (s != default_renderer) free(s);
 
    return handle;
 }
