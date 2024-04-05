@@ -1506,7 +1506,7 @@ _aaxSetupSpeakersFromXML(char **speaker, unsigned char *router, unsigned int n)
             _aaxDefaultSpeakersVolume[channel][GAIN] = 1.0f;
          }
 
-         v.v3[0] = -(float)xmlNodeGetDouble(xsid, "pos-x");
+         v.v3[0] = (float)xmlNodeGetDouble(xsid, "pos-x");
          v.v3[1] = -(float)xmlNodeGetDouble(xsid, "pos-y");
          v.v3[2] = (float)xmlNodeGetDouble(xsid, "pos-z");
          vec3fFill(_aaxDefaultSpeakersVolume[channel], v.v3);
