@@ -241,13 +241,13 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
             handle->sampled_release = buffer->info.sampled_release;
 
             _intBufAddData(src->buffers, _AAX_EMITTER_BUFFER, embuf);
+            _emitterCreateEFFromRingbuffer(handle, embuf);
          }
          else
          {
             _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
             rv = false;
          }
-         _emitterCreateEFFromRingbuffer(handle, embuf);
          _emitterSetPitch(src, ep2d);
 
 #if 0
