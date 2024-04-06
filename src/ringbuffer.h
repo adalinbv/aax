@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2005-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2005-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2009-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -301,16 +301,18 @@ typedef struct
    _aaxRingBufferOcclusionData *occlusion;
    _aaxRingBufferReflectionData *reflections;
    _aaxRingBufferLoopbackData *loopbacks;
-   _aaxRingBufferFreqFilterData *freq_filter;
+   _aaxRingBufferFreqFilterData *freq_filter; // low-pass
+   _aaxRingBufferFreqFilterData *freq_filter_hp; // high-pass
    _aaxRingBufferHistoryData *direct_path;
    void** track_prev;
 
-   float initial_delay;
-   float loopback_delay;
+   float reflections_delay;
+   float decay_delay;
    float direct_path_gain;
    size_t no_samples;
    float damping;
-   float fc;
+   float fc_lp;
+   float fc_hp;
 
 } _aaxRingBufferReverbData;
 

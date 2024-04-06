@@ -710,8 +710,6 @@ aaxGetSourceTypeByName(const char *wave)
                rv |= AAX_DENSE_ROOM;
             } else if (!strncasecmp(name, "damped", len)) {
                rv |= AAX_DAMPED_ROOM;
-            } else if (!strncasecmp(name, "high-pass", len)) {
-               rv |= AAX_ROOOM_HIGH_PASS;
             }
             else /* frequency filter, delay effects */
             {
@@ -958,10 +956,6 @@ aaxGetSourceNameByType(enum aaxSourceType type, bool freqfilter, bool delay, boo
           SRC_ADD(p, l, m, "dense");
       } else if (order == AAX_DAMPED_ROOM) {
           SRC_ADD(p, l, m, "damped");
-      }
-
-      if (type & AAX_ROOOM_HIGH_PASS) {
-          SRC_ADD(p, l, m, "high-pass");
       }
    }
    else /* not a delay effect nor a frequency filter */
