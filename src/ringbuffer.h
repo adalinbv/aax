@@ -301,7 +301,8 @@ typedef struct
    _aaxRingBufferOcclusionData *occlusion;
    _aaxRingBufferReflectionData *reflections;
    _aaxRingBufferLoopbackData *loopbacks;
-   _aaxRingBufferFreqFilterData *freq_filter;
+   _aaxRingBufferFreqFilterData *freq_filter; // low-pass
+   _aaxRingBufferFreqFilterData *freq_filter_hp; // high-pass
    _aaxRingBufferHistoryData *direct_path;
    void** track_prev;
 

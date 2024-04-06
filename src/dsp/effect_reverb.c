@@ -167,6 +167,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          float reflections_delay, decay_delay;
          float lb_depth, decay_level;
          float depth, reverb_gain;
+         float fc;
 
          reverb->damping = 1.0f+0.25f*((state & AAX_ROOM_MASK) >> 8);
          reverb->reflections_prepare = _reflections_prepare;
@@ -273,8 +274,6 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 
          if (flt)
          {
-            float fc;
-
             /* set up a frequency filter between 100Hz and 15000Hz
              * for the reflections. The lower the cut-off frequency,
              * the more the low frequencies get exaggerated.
@@ -369,6 +368,46 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
                   }
                } /* flt->lfo */
             }
+         }
+
+         // high-pass
+         fc = effect->slot[2]->param[AAX_CUTOFF_FREQUENCY];
+         fc = CLIP_FREQUENCY(fc, fs);
+         if (fc > MINIMUM_CUTOFF)
+         {
+            _aaxRingBufferFreqFilterData *flt_hp = reverb->freq_filter_hp;
+            if (!flt_hp)
+            {
+               flt_hp = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterData));
+               if (flt_hp)
+               {
+                  memset(flt_hp, 0, sizeof(_aaxRingBufferFreqFilterData));
+                  flt_hp->freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
+                  if (flt_hp->freqfilter) {
+                     memset(flt_hp->freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
+                  }
+                  else
+                  {
+                     _aax_aligned_free(flt_hp);
+                     flt_hp = NULL;
+                  }
+               }
+               reverb->freq_filter_hp = flt_hp;
+            }
+
+            reverb->fc_hp = fc;
+
+            flt_hp->run = _freqfilter_run;
+            flt_hp->fs = fs;
+            flt_hp->Q = 1.0f;
+            flt_hp->low_gain = 0.0f;
+            flt_hp->high_gain = 1.0f;
+            flt_hp->no_stages = 1;
+
+            flt_hp->k = flt_hp->low_gain/flt_hp->high_gain;
+            flt_hp->type = (flt_hp->high_gain >= flt_hp->low_gain) ? LOWPASS : HIGHPASS;
+
+            _aax_butterworth_compute(reverb->fc_hp, flt_hp);
          }
 
          reverb->state = order_state;
@@ -541,6 +580,9 @@ _reverb_destroy(void *ptr)
    {
       _occlusion_destroy(reverb->occlusion);
       _freqfilter_destroy(reverb->freq_filter);
+      if (reverb->freq_filter_hp) {
+         _freqfilter_destroy(reverb->freq_filter_hp);
+      }
       if (reverb->direct_path) free(reverb->direct_path);
       if (reverb->reflections)
       {
@@ -852,11 +894,12 @@ _loopbacks_destroy_delays(_aaxRingBufferReverbData *reverb)
 static int
 _reflections_run(const _aaxRingBufferReverbData *reverb,
                 _aaxRingBufferSample *rbd, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr,
-                MIX_PTR_T scratch, _aaxRingBufferFreqFilterData *filter,
-                size_t no_samples, size_t ds, unsigned int track, float dst,
-                unsigned char mono, int state)
+                MIX_PTR_T scratch, size_t no_samples, size_t ds,
+                unsigned int track, float dst, unsigned char mono, int state)
 {
    const _aaxRingBufferReflectionData *reflections = reverb->reflections;
+   _aaxRingBufferFreqFilterData *filter = reverb->freq_filter; // low-pass
+   _aaxRingBufferFreqFilterData *filter_hp = reverb->freq_filter_hp;// high-pass
    int snum, tracks;
    int rv = false;
    float volume;
@@ -933,6 +976,10 @@ _reflections_run(const _aaxRingBufferReverbData *reverb,
             }
          }
       }
+      if (filter_hp) {
+         filter_hp->run(rbd, scratch, scratch, 0, no_samples, 0, track,
+                     filter_hp, NULL, 1.0f, 0);
+      }
       filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter,
                   NULL, 1.0f, 0);
       rbd->add(dptr, scratch, no_samples, 1.0f, 0.0f);
@@ -946,8 +993,7 @@ _reflections_run(const _aaxRingBufferReverbData *reverb,
 
 static int
 _loopbacks_run(const _aaxRingBufferReverbData *reverb, void *rb,
-               _aaxRingBufferFreqFilterData *filter, MIX_PTR_T dptr,
-               MIX_PTR_T scratch, size_t no_samples, size_t ds,
+               MIX_PTR_T dptr, MIX_PTR_T scratch, size_t no_samples, size_t ds,
                unsigned int track, unsigned int no_tracks, float dst, int state)
 {
    _aaxRingBufferLoopbackData *loopbacks = reverb->loopbacks;
@@ -1105,7 +1151,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          _aax_butterworth_compute(_MAX(fc, 20.0f), filter);
       }
 
-      _reflections_run(reverb, rb, dptr, sptr, scratch, filter, no_samples, ds,
+      _reflections_run(reverb, rb, dptr, sptr, scratch, no_samples, ds,
                        track, dst, mono, state);
    }
    else {
@@ -1117,8 +1163,8 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    {
       int no_tracks = reverb->info->no_tracks;
 
-      _loopbacks_run(reverb, rb, filter, dptr, scratch, no_samples,
-                     ds, track, no_tracks, dst, state);
+      _loopbacks_run(reverb, rb, dptr, scratch, no_samples, ds, track,
+                     no_tracks, dst, state);
       memcpy(reverb->track_prev[track], dptr, no_samples*sizeof(MIX_T));
    }
 
