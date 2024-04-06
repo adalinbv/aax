@@ -2,8 +2,8 @@
 
 
 <!--
- * Copyright (C) 2017-2023 by Erik Hofman.
- * Copyright (C) 2017-2023 by Adalin B.V.
+ * Copyright (C) 2017-2024 by Erik Hofman.
+ * Copyright (C) 2017-2024 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -16,24 +16,30 @@
 
  <info>
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2023" by="Adalin B.V."/>
-  <copyright from="2017" until="2023" by="Erik Hofman"/>
+  <copyright from="2017" until="2024" by="Adalin B.V."/>
+  <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
  </info>
 
  <audioframe mode="append">
-  <effect type="reverb">
+  <effect type="reverb" src="empty">
    <slot n="0">
-    <param n="0">1280.0</param>
-    <param n="1">0.0300</param>
-    <param n="2">0.622</param>
-    <param n="3">0.374</param>
+    <param n="0">3200.0</param>
+    <param n="1">0.0042</param>
+    <param n="2" type="sec">5.500</param>
+    <param n="3">0.5500</param>
    </slot>
    <slot n="1">
     <param n="0">9.1</param>
     <param n="1">14.5</param>
     <param n="2">19.7</param>
-    <param n="3">0.000</param>
+    <param n="3">0.0</param>
+   </slot>
+   <slot n="2">
+    <param n="0">20.0000</param>
+    <param n="1">0.0300</param>
+    <param n="2">0.7</param>
+    <param n="3">0.0616</param>
    </slot>
   </effect>
  </audioframe>
