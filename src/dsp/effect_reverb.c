@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2007-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2007-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2009-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -164,7 +164,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       {
          _aaxRingBufferFreqFilterData *flt = reverb->freq_filter;
          _aaxMixerInfo *info = effect->info;
-         float initial_delay, loopback_delay;
+         float reflections_delay, decay_delay;
          float lb_depth, decay_level;
          float depth, reverb_gain;
 
@@ -205,27 +205,27 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          decay_level = effect->slot[0]->param[AAX_DECAY_LEVEL];
          reverb_gain = effect->slot[2]->param[AAX_REVERB_GAIN & 0xF];
 
-         initial_delay = effect->slot[2]->param[AAX_INITIAL_DELAY];
-         if (initial_delay == 0.0f) { // backwards compatible
-            initial_delay = 0.005f+0.045f*depth;
+         reflections_delay =effect->slot[2]->param[AAX_REFLECTIONS_DELAY & 0xF];
+         if (reflections_delay == 0.0f) { // backwards compatible
+            reflections_delay = 0.005f+0.045f*depth;
          }
-         if (initial_delay+depth > DELAY_EFFECTS_TIME)
+         if (reflections_delay+depth > DELAY_EFFECTS_TIME)
          {
-             float diff = (initial_delay+depth) - DELAY_EFFECTS_TIME;
-             initial_delay -= 0.5f*diff;
+             float diff = (reflections_delay+depth) - DELAY_EFFECTS_TIME;
+             reflections_delay -= 0.5f*diff;
              depth -= 0.5f*diff;
          }
 
-         loopback_delay = effect->slot[2]->param[AAX_REVERB_LOOPBACK_DELAY & 0xF];
-         if (loopback_delay == 0.0f) { // backwards compatible
-             loopback_delay = 0.01f+lb_depth*REVERB_EFFECTS_TIME;
+         decay_delay = effect->slot[2]->param[AAX_DECAY_DELAY & 0xF];
+         if (decay_delay == 0.0f) { // backwards compatible
+             decay_delay = 0.01f+lb_depth*REVERB_EFFECTS_TIME;
          } else {
-            loopback_delay += initial_delay;
+            decay_delay += reflections_delay;
          }
-         if (loopback_delay+lb_depth > REVERB_EFFECTS_TIME)
+         if (decay_delay+lb_depth > REVERB_EFFECTS_TIME)
          {
-            float diff = (loopback_delay+lb_depth) - REVERB_EFFECTS_TIME;
-            loopback_delay -= 0.5f*diff;
+            float diff = (decay_delay+lb_depth) - REVERB_EFFECTS_TIME;
+            decay_delay -= 0.5f*diff;
             lb_depth -= 0.5f*diff;
          }
 
@@ -236,8 +236,8 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          // limit the decay level to make sure it always dies out
          if (decay_level > 0.98f) decay_level = 0.98f;
 
-         reverb->initial_delay = initial_delay;
-         reverb->loopback_delay = loopback_delay;
+         reverb->reflections_delay = reflections_delay;
+         reverb->decay_delay = decay_delay;
 
          if (reflections) {
             _reverb_add_reflections(reverb, fs, no_tracks, depth, state, decay_level, info);
@@ -288,7 +288,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
              */
             fc = effect->slot[0]->param[AAX_CUTOFF_FREQUENCY];
             fc = CLIP_FREQUENCY(fc, fs);
-            reverb->fc = fc;
+            reverb->fc_lp = fc;
 
             flt->run = _freqfilter_run;
             flt->fs = fs;
@@ -311,14 +311,14 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             }
             else
             {
-               float dfact = powf(reverb->fc*0.00005f, 0.2f);
+               float dfact = powf(reverb->fc_lp*0.00005f, 0.2f);
                flt->low_gain = _MIN(1.75f-0.75f*dfact, 1.0f);
                flt->high_gain = (reverb_gain) ? reverb_gain : 1.0f - 0.33f*dfact;
             }
             flt->k = flt->low_gain/flt->high_gain;
             flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
 
-            _aax_butterworth_compute(reverb->fc, flt);
+            _aax_butterworth_compute(reverb->fc_lp, flt);
 
             if ((state & AAX_SOURCE_MASK) == AAX_ENVELOPE_FOLLOW)
             {
@@ -410,8 +410,10 @@ _aaxNewReverbEffectHandle(const aaxConfig config, enum aaxEffectType type, UNUSE
       {
          _occlusion_to_effect(rv->slot[1], reverb->occlusion);
 
-         rv->slot[2]->param[0] = reverb->initial_delay;
-         rv->slot[2]->param[2] = reverb->freq_filter->high_gain;
+         rv->slot[2]->param[AAX_CUTOFF_FREQUENCY_HP & 0xF] = reverb->fc_hp;
+         rv->slot[2]->param[AAX_REFLECTIONS_DELAY & 0xF] = reverb->reflections_delay;
+         rv->slot[2]->param[AAX_REVERB_GAIN & 0xF] = reverb->freq_filter->high_gain;
+         rv->slot[2]->param[AAX_DECAY_DELAY & 0xF] = reverb->decay_delay;
       }
       _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
       rv->slot[0]->destroy = _reverb_destroy;
@@ -479,7 +481,7 @@ _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
    {    /* min[4] */                  /* max[4] */
     { { 50.0f, 0.001f, 0.0f, 0.001f }, { 22000.0f,    MAX1,    2.0f, MAX2 } },
     { {  0.1f,   0.1f, 0.1f,   0.0f }, {  FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
-    { {  0.0f,   0.0f,-1.0f,   0.0f }, {     MAX1,    MAX2,    1.0f, 0.0f } },
+    { { 50.0f,   0.0f, 0.0f,  -1.0f }, { 22000.0f,    MAX1,    1.0f, MAX2 } },
     { {  0.0f,   0.0f, 0.0f,   0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } }
    };
 
@@ -575,9 +577,9 @@ _reverb_prepare(_aaxEmitter *src, const _aax3dProps *fp3d, void *data)
       _occlusion_prepare(src, fp3d, occlusion);
 
       l = 1.0f - occlusion->level;
-      reverb->fc = _MINMAX(l*22000.0f, 100.0f, reverb->fc);
-      if (reverb->fc > 100.0f) {
-          _aax_butterworth_compute(reverb->fc, filter);
+      reverb->fc_lp = _MINMAX(l*22000.0f, 100.0f, reverb->fc_lp);
+      if (reverb->fc_lp > 100.0f) {
+          _aax_butterworth_compute(reverb->fc_lp, filter);
       }
    }
 }
@@ -669,7 +671,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       assert(7 <= NUM_REFLECTIONS_MAX);
 
       // depth definies the initial delay of the first reflections
-      delay_offs = reverb->initial_delay;
+      delay_offs = reverb->reflections_delay;
       delay_depth = depth;
 
       vs = info->unit_m*343.0f;
@@ -785,7 +787,7 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
  printf(" loopback[%i].gain: %f\n", i,  loopbacks->loopback[i].gain);
 #endif
 
-         lb_delay_offs = reverb->loopback_delay;
+         lb_delay_offs = reverb->decay_delay;
          lb_delay_depth = lb_depth;
 
          lb_delay_offs *= fs;
@@ -1081,7 +1083,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    if (occlusion)
    {
       float l = 1.0f - occlusion->level;
-      float fc = _MINMAX(l*22000.0f, 100.0f, reverb->fc);
+      float fc = _MINMAX(l*22000.0f, 100.0f, reverb->fc_lp);
       if (fc > 100.0f) {
          _aax_butterworth_compute(fc, filter);
       }
