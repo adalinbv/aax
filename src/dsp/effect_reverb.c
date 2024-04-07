@@ -966,10 +966,6 @@ _reflections_run(const _aaxRingBufferReverbData *reverb,
             }
          }
       }
-      if (filter_hp) {
-         filter_hp->run(rbd, scratch, scratch, 0, no_samples, 0, track,
-                     filter_hp, NULL, 1.0f, 0);
-      }
       filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter,
                   NULL, 1.0f, 0);
       rbd->add(dptr, scratch, no_samples, 1.0f, 0.0f);
