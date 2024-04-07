@@ -53,8 +53,6 @@
 #define NUM_REFLECTIONS_MIN	3
 #define NUM_REFLECTIONS_MAX	6
 
-#define REVERB_MASK 	(AAX_ROOM_MASK|AAX_ROOOM_HIGH_PASS)
-
 
 static void _reverb_swap(void*,void*);
 static void _reverb_destroy(void*);
@@ -119,10 +117,10 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
    int order_state, istate;
    aaxEffect rv = false;
 
-   if (state == AAX_INVERSE || (state & ~REVERB_MASK) == 0) {
+   if (state == AAX_INVERSE || (state & ~AAX_ROOM_MASK) == 0) {
       state |= AAX_TRUE; // add AAX_TRUE if only AAX_INVRESE is defined
    }
-   if ((state & REVERB_MASK) == 0) {
+   if ((state & AAX_ROOM_MASK) == 0) {
       state |= AAX_AVERAGE_ROOM; // default to average room response
    }
 
@@ -131,7 +129,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       order_state |= AAX_EFFECT_ORDER_MASK; // default to 1st and 2nd order
    }
 
-   istate = state & ~(REVERB_MASK|AAX_INVERSE);
+   istate = state & ~(AAX_ROOM_MASK|AAX_INVERSE);
    switch (istate)
    {
    case AAX_TRUE:
@@ -297,16 +295,8 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 
             if (reverb_gain != 0.0f) // user defined
             {
-               if (reverb_gain > 0.0f && (state & AAX_ROOOM_HIGH_PASS) == 0)
-               {
-                  flt->low_gain = 1.0f;
-                  flt->high_gain = reverb_gain;
-               }
-               else
-               {
-                  flt->low_gain = fabsf(reverb_gain);
-                  flt->high_gain = 1.0f;
-               }
+               flt->low_gain = 1.0f;
+               flt->high_gain = reverb_gain;
             }
             else
             {
@@ -315,7 +305,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
                flt->high_gain = (reverb_gain) ? reverb_gain : 1.0f - 0.33f*dfact;
             }
             flt->k = flt->low_gain/flt->high_gain;
-            flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
+            flt->type = (flt->high_gain < flt->low_gain) ? LOWPASS : HIGHPASS;
 
             _aax_butterworth_compute(reverb->fc_lp, flt);
 
@@ -405,7 +395,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             flt_hp->no_stages = 1;
 
             flt_hp->k = flt_hp->low_gain/flt_hp->high_gain;
-            flt_hp->type = (flt_hp->high_gain >= flt_hp->low_gain) ? LOWPASS : HIGHPASS;
+            flt_hp->type = (flt_hp->high_gain < flt_hp->low_gain) ? LOWPASS : HIGHPASS;
 
             _aax_butterworth_compute(reverb->fc_hp, flt_hp);
          }
@@ -520,7 +510,7 @@ _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
    {    /* min[4] */                  /* max[4] */
     { { 50.0f, 0.001f, 0.0f, 0.001f }, { 22000.0f,    MAX1,    2.0f, MAX2 } },
     { {  0.1f,   0.1f, 0.1f,   0.0f }, {  FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
-    { { 50.0f,   0.0f, 0.0f,  -1.0f }, { 22000.0f,    MAX1,    1.0f, MAX2 } },
+    { { 50.0f,   0.0f, 0.0f,   0.0f }, { 22000.0f,    MAX1,    1.0f, MAX2 } },
     { {  0.0f,   0.0f, 0.0f,   0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } }
    };
 
@@ -1178,6 +1168,8 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    }
    else // This is the final mixer
    {
+      _aaxRingBufferFreqFilterData *filter_hp = reverb->freq_filter_hp;
+
       if (reverb->track_prev) // loop-backs are enabled
       {
          int no_tracks = reverb->info->no_tracks;
@@ -1186,6 +1178,11 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          if (track == (no_tracks-1)) {
             _loopbacks_2nd_run(reverb, rb, no_samples, no_tracks, ds, dst);
          }
+      }
+
+      if (filter_hp) { // high-pass
+         filter_hp->run(rbd, dptr, dptr, 0, no_samples, 0, track,
+                     filter_hp, NULL, 1.0f, 0);
       }
 
       rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
