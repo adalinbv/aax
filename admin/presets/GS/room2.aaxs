@@ -24,13 +24,13 @@
  <audioframe mode="append">
   <effect type="reverb">
    <slot n="0">
-    <param n="0">571.9</param>
+    <param n="0">1600.0</param>
     <param n="1">0.100</param>
     <param n="2" type="sec">1.492</param>
     <param n="3">0.149</param>
    </slot>
    <slot n="2">
-    <param n="0">0.0000</param>
+    <param n="0">100.0000</param>
     <param n="1">0.0110</param>
     <param n="2">0.3</param>
     <param n="3">0.0000</param>
