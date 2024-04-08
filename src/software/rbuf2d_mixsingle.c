@@ -130,7 +130,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       pitch *= _aaxEnvelopeGet(pslide, srbi->stopped, &pnvel, NULL);
    }
 
-   min = 1e-3f;
+   min = LEVEL_60DB;
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch*ep2d->pitch_factor, min, max);
 
@@ -180,7 +180,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    /* Apply envelope filter */
    gnvel = ep2d->note.velocity;
    gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv);
-   if (gain <= -1e-3f)
+   if (gain <= -LEVEL_60DB)
    {
       if (srbi->sampled_release) {
          gain = 1.0f/gnvel;
@@ -239,18 +239,19 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
          float mix = lfo->get(lfo, genv, s, 0, dno_samples);
 
          mix = _MINMAX(mix, 0.0f, 1.0f);
-         if (mix == 1.0) {
+         if (mix > (1.0-LEVEL_60DB)) { // use layer 1
             track = mix_layer;
          }
-         else if (mix > 0.0f)
+         else if (mix > LEVEL_60DB) // mix layer 0 and layer 1
          {
             drbd->multiply(s, s, sizeof(MIX_T), dno_samples, 1.0f - mix);
             drbd->add(s, sptr[mix_layer]+offs, dno_samples, mix, 0.0f);
          }
+         // else use layer 0
       }
    }
 
-// if (!ep2d->final.silence)
+   if (gain > LEVEL_60DB) // !ep2d->final.silence)
    {
       float svol, evol;
 

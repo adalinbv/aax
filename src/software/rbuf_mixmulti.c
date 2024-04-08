@@ -113,7 +113,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
       pitch *= _aaxEnvelopeGet(pslide, srbi->stopped, &pnvel, NULL);
    }
 
-   min = 1e-3f;
+   min = LEVEL_60DB;
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch*ep2d->pitch_factor, min, max);
 
@@ -164,7 +164,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
    /* apply envelope filter */
    gnvel = ep2d->note.velocity;
    gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv); // gain0;
-   if (gain <= -1e-3f) {
+   if (gain <= -LEVEL_60DB) {
       ret = -2;
    }
    gain *= ep2d->note.soft * ep2d->note.pressure;
@@ -200,7 +200,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
    gain *= gain_emitter;
    ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? false : true;
 
-// if (!ep2d->final.silence)
+   if (gain > LEVEL_60DB) // !ep2d->final.silence)
    {
       float svol, evol;
 
