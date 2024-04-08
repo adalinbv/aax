@@ -1021,7 +1021,7 @@ _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
       flt[0]->high_gain = 1.0f;
       flt[0]->low_gain = 0.01f;
       flt[0]->fs = fs;
-      fc = MINIMUM_CUTOFF;
+      fc = 0.5f*MINIMUM_CUTOFF;
       _aax_butterworth_compute(fc, flt[0]);
 
       /* 90% of half the sample rate low-pass filter */
@@ -1030,9 +1030,9 @@ _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
       flt[1]->Q = 1.0f;
       flt[1]->type = LOWPASS;
       flt[1]->high_gain = 1.0f;
-      flt[1]->low_gain = 0.05f;
+      flt[1]->low_gain = 0.01f;
       flt[1]->fs = fs;
-      fc = CLIP_FREQUENCY(MAXIMUM_CUTOFF, fs);
+      fc = MAXIMUM_CUTOFF;
       _aax_butterworth_compute(fc, flt[1]);
    }
 }
