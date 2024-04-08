@@ -151,7 +151,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 
             fc = filter->slot[s]->param[AAX_CUTOFF_FREQUENCY];
             fc = CLIP_FREQUENCY(fc, fs);
-            if (fc >= MAXIMUM_CUTOFF)
+            if (fc >= HIGHEST_CUTOFF(fs))
             {
                int i;
 
@@ -182,7 +182,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             int ostate = state & AAX_ORDER_MASK;
 
             fc = CLIP_FREQUENCY(fc, fs);
-            if (fc >= MAXIMUM_CUTOFF) stages = 0;
+            if (fc >= HIGHEST_CUTOFF(fs)) stages = 0;
             else if (ostate == AAX_48DB_OCT) stages = 4;
             else if (ostate == AAX_36DB_OCT) stages = 3;
             else if (ostate == AAX_24DB_OCT) stages = 2;
@@ -199,13 +199,17 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          }
 #if 0
  for (s=0; s<_AAX_EQFILTERS; ++s) {
-  printf("Filter: %i\n", s);
-  printf(" Fc: % 7.1f Hz, ", filter->slot[s]->param[AAX_CUTOFF_FREQUENCY]);
-  printf(" k: %5.4f, ", flt[s]->k);
-  printf(" type: %s\n", flt[s]->type == LOWPASS ? "low-pass" : "high-pass");
-  printf(" Q: %3.1f\n", flt[s]->Q);
-  printf(" low gain:  %5.4f\n high gain: %5.4f\n", flt[s]->low_gain, flt[s]->high_gain);
-  printf(" no. stages: %i\n", flt[s]->no_stages);
+  if (flt[s]->no_stages) {
+   printf("Filter: %i\n", s);
+   printf(" Fc: % 7.1f Hz\n", filter->slot[s]->param[AAX_CUTOFF_FREQUENCY]);
+   printf(" no. stages: %i\n", flt[s]->no_stages);
+   printf(" state: %s\n", (flt[s]->state == AAX_BUTTERWORTH) ? "Butterworth" : "Bessel");
+   printf(" type: %s\n", flt[s]->type == LOWPASS ? "low-pass" : "high-pass");
+   printf(" Fs: % 7.1f Hz\n", flt[s]->fs);
+   printf(" low gain:  %5.4f\n high gain: %5.4f\n", flt[s]->low_gain, flt[s]->high_gain);
+   printf(" Q: %3.1f\n", flt[s]->Q);
+   printf(" k: %5.4f\n ", flt[s]->k);
+  }
  }
  printf("\n");
 #endif

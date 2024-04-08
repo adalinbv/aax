@@ -132,8 +132,8 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
          fc = CLIP_FREQUENCY(fc, fs);
          fmax = CLIP_FREQUENCY(fmax, fs);
 
-         if ((fc > MINIMUM_CUTOFF && fc < MAXIMUM_CUTOFF) ||
-             (fmax > MINIMUM_CUTOFF && fmax < MAXIMUM_CUTOFF))
+         if ((fc > MINIMUM_CUTOFF && fc < HIGHEST_CUTOFF(fs)) ||
+             (fmax > MINIMUM_CUTOFF && fmax < HIGHEST_CUTOFF(fs)))
          {
             if ((state & AAX_ORDER_MASK) == 0) {
                state |= AAX_2ND_ORDER;

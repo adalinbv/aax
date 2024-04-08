@@ -114,7 +114,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
          data->run = _distortion_run;
 
          flt = data->freq_filter;
-         if (fc > MINIMUM_CUTOFF && fc < MAXIMUM_CUTOFF) 
+         if (fc > MINIMUM_CUTOFF && fc < HIGHEST_CUTOFF(fs))
          {
             if (!flt)
             {
