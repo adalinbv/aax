@@ -1101,6 +1101,7 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
    if (t_now > (t_previous[m]+5))
    {
       _driver_t *handle = (_driver_t *)id;
+      _driver_t *ptr = NULL;
 
       t_previous[m] = t_now;
       if (handle) {
@@ -1108,7 +1109,7 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
       }
       else
       {
-         handle = calloc(1, sizeof(_driver_t));
+         ptr = handle = calloc(1, sizeof(_driver_t));
          if (handle) {
             _aaxPulseAudioContextConnect(handle);
          }
@@ -1143,7 +1144,7 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
          }
          ppa_threaded_mainloop_unlock(handle->ml);
 
-         if (!id) {
+         if (ptr) {
             _aaxPulseAudioDriverDisconnect(handle);
          }
 
@@ -1152,10 +1153,6 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
          if (*s != '\0') {
             memmove(rv, s, MAX_DEVICES_LIST-sl);;
          }
-      }
-
-      if (handle != id) {
-         free(handle);
       }
    }
 
