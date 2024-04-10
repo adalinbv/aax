@@ -58,6 +58,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    _aaxDelayed3dProps *pdp3d_m = NULL;
    _aaxMixerInfo *info = fmixer->info;
    _aaxLFOData *lfo;
+   float fp2d_lfo;
    bool ssr = true;
    bool process;
 
@@ -101,20 +102,19 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
       }
    }
 
+   fp2d_lfo = 1.0f;
    lfo = _EFFECT_GET_DATA(fp2d, DYNAMIC_PITCH_EFFECT);
-   if (lfo)
-   {
-      fp2d->final.pitch_lfo = 1.0f + lfo->get(lfo, NULL, NULL, 0, 0);
-      fp2d->final.pitch_lfo -= lfo->min;
-   } else {
-      fp2d->final.pitch_lfo = 1.0f;
+   if (lfo) {
+      fp2d_lfo = 1.0f + lfo->get(lfo, NULL, NULL, 0, 0) - lfo->min;
    }
+   fp2d->final.pitch_lfo *= fp2d_lfo;
+
+   fp2d_lfo = 1.0f;
    lfo = _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER);
    if (lfo && !lfo->envelope) {
-      fp2d->final.gain_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
-   } else {
-      fp2d->final.gain_lfo = 1.0f;
+      fp2d_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
    }
+   fp2d->final.gain_lfo *= fp2d_lfo;
 
    // Only do distance attenuation frequency filtering if the frame is
    // registered at the mixer or when the parent-frame is defined indoor.
@@ -370,7 +370,6 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
       _PROP_CLEAR(sfmixer->props3d);
       _intBufReleaseData(dptr, _AAX_FRAME);
 
-
       /* read-only data */
       _aax_memcpy(&sfp2d.speaker, fp2d->speaker, sizeof(sfp2d.speaker));
       _aax_memcpy(&sfp2d.hrtf, fp2d->hrtf, sizeof(sfp2d.hrtf));
@@ -378,6 +377,12 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
       /* clear the buffer for use by the subframe */
       dest_rb->set_state(frame_rb, RB_CLEARED);
       dest_rb->set_state(frame_rb, RB_STARTED);
+
+      /* update final stages */
+      sfp2d.final.gain *= fp2d->final.gain;
+      sfp2d.final.pitch *= fp2d->final.pitch;
+      sfp2d.final.gain_lfo *= fp2d->final.gain_lfo;
+      sfp2d.final.pitch_lfo *= fp2d->final.pitch_lfo;
 
       /*
        * frames render in the ringbuffer of their parent and mix with

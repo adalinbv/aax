@@ -181,27 +181,26 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
          {
             _aaxRingBuffer *ssr_rb = _intBufGetDataPtr(sptr_rb);
             _aaxRendererData renderer;
+            float fp2d_lfo;
             size_t res = 0;
 
             do
             {
                _aaxLFOData *lfo;
 
+               fp2d_lfo = 1.0f;
                lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
-               if (lfo)
-               {
-                  p2d->final.pitch_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
-                  p2d->final.pitch_lfo -= lfo->min;
-               } else {
-                  p2d->final.pitch_lfo = 1.0f;
+               if (lfo) {
+                  fp2d_lfo = lfo->get(lfo, NULL, NULL, 0, 0) - lfo->min;
                }
+               p2d->final.pitch_lfo *= fp2d_lfo;
 
+               fp2d_lfo = 1.0f;
                lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
                if (lfo && !lfo->envelope) {
-                  p2d->final.gain_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
-               } else {
-                  p2d->final.gain_lfo = 1.0f;
+                  fp2d_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
                }
+               p2d->final.gain_lfo *= fp2d_lfo;
 
                renderer.info = smixer->info;
                renderer.fp2d = p2d;
