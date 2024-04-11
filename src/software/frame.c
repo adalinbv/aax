@@ -62,6 +62,21 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    bool ssr = true;
    bool process;
 
+   // Bail out if there is nothing to render
+   _intBuffers *e2d = fmixer->emitters_2d;
+   _intBuffers *e3d = fmixer->emitters_3d;
+   bool active_emitters = ((e2d && _intBufGetNumNoLock(e2d, _AAX_EMITTER)) ||
+                           (e3d && _intBufGetNumNoLock(e3d, _AAX_EMITTER)));
+
+   _intBuffers *sensors = fmixer->devices;
+   bool active_sensors = (sensors && _intBufGetNumNoLock(sensors, _AAX_SENSOR));
+
+   _intBuffers *frames = fmixer->frames;
+   bool active_frames = ((frames && _intBufGetNumNoLock(frames, _AAX_FRAME)) ||
+                         (fmixer->reverb_dt > 0.0f));
+
+// if (!active_emitters && !active_sensors && !active_frames) return false;
+
    /* Update the model-view matrix based on our own and that of out parent. */
    /* fp3d->parent == NULL means this is the sensor frame so no math there. */
    if (fp3d->parent)
@@ -128,12 +143,16 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    }
 
    /** process possible registered emitters */
-   process = _aaxEmittersProcess(dest_rb, info, ssv, sdf, fp2d, fp3d,
-                                 fmixer->emitters_2d, fmixer->emitters_3d,
-                                 be, be_handle);
+   process = false;
+   if (active_emitters)
+   {
+      process = _aaxEmittersProcess(dest_rb, info, ssv, sdf, fp2d, fp3d,
+                                    fmixer->emitters_2d, fmixer->emitters_3d,
+                                    be, be_handle);
+   }
 
    /** process registered devices */
-   if (fmixer->devices)
+   if (active_sensors)
    {
       _aaxMixerInfo* info = fmixer->info;
       process |= _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d, info->track,
@@ -141,7 +160,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    }
 
    /** process registered sub-frames */
-   if (fmixer->frames)
+   if (active_frames)
    {
       _aaxRingBuffer *frame_rb = fmixer->ringbuffer;
 
