@@ -58,7 +58,6 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    _aaxDelayed3dProps *pdp3d_m = NULL;
    _aaxMixerInfo *info = fmixer->info;
    _aaxLFOData *lfo;
-   float fp2d_lfo;
    bool ssr = true;
    bool process;
 
@@ -117,19 +116,15 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
       }
    }
 
-   fp2d_lfo = 1.0f;
    lfo = _EFFECT_GET_DATA(fp2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) {
-      fp2d_lfo = 1.0f + lfo->get(lfo, NULL, NULL, 0, 0) - lfo->min;
+      fp2d->final.pitch_lfo *= lfo->get(lfo, NULL, NULL, 0, 0);
    }
-   fp2d->final.pitch_lfo *= fp2d_lfo;
 
-   fp2d_lfo = 1.0f;
    lfo = _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER);
    if (lfo && !lfo->envelope) {
-      fp2d_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
+      fp2d->final.gain_lfo *= lfo->get(lfo, NULL, NULL, 0, 0);
    }
-   fp2d->final.gain_lfo *= fp2d_lfo;
 
    // Only do distance attenuation frequency filtering if the frame is
    // registered at the mixer or when the parent-frame is defined indoor.
