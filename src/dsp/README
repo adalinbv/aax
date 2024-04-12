@@ -4,7 +4,7 @@ be relying on _aaxFilterCreateHandle and _aaxEffectCreateHandle to do so.
 
 Adding another slot to filters and effects:
 * Increase the third parameter of the call to the _aaxFilterCreateHandle function
-  in the _aax[MAME]FilterCreate and _aaxNew[NAME]FilterHandle function.
+  in the _aax[NAME]FilterCreate and _aaxNew[NAME]FilterHandle function.
 
 * Parameter for slots > 0 should be kept in a private data structure and these parameters
   should be assigned in the _aax[NAME]SetState function. Likewise whould the slot[n]

@@ -506,22 +506,20 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
       int type = filter->pos;
       switch (filter->type)
       {
+      case AAX_COMPRESSOR:
+      case AAX_DYNAMIC_GAIN_FILTER:
+         p2d->final.gain_lfo = 1.0f;
+         // intentional fallthrough
+      case AAX_FREQUENCY_FILTER:
+      case AAX_BITCRUSHER_FILTER:
+         _FILTER_SWAP_SLOT(p2d, type, filter, 0);
+         break;
 //    case AAX_GRAPHIC_EQUALIZER:
       case AAX_EQUALIZER:
          handle->mutex = _aaxMutexCreate(NULL);
          _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_LF, filter, 0);
          _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_MF, filter, 1);
          _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_HF, filter, 2);
-         break;
-      case AAX_FREQUENCY_FILTER:
-      case AAX_DYNAMIC_GAIN_FILTER:
-      case AAX_BITCRUSHER_FILTER:
-      case AAX_COMPRESSOR:
-         _FILTER_SWAP_SLOT(p2d, type, filter, 0);
-         if (filter->type == AAX_DYNAMIC_GAIN_FILTER ||
-             filter->type == AAX_COMPRESSOR) {
-            p2d->final.gain_lfo = 1.0f;
-         }
          break;
       case AAX_DISTANCE_FILTER:
          _FILTER_SWAP_SLOT(p3d, type, filter, 0);
@@ -624,18 +622,17 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
       int type = effect->pos;
       switch (effect->type)
       {
-      case AAX_PITCH_EFFECT:
       case AAX_DYNAMIC_PITCH_EFFECT:
+         p2d->final.pitch_lfo = 1.0f;
+         // intentional fallthrough
+      case AAX_PITCH_EFFECT:
          _PROP_PITCH_SET_CHANGED(p3d);
-         if ((enum aaxEffectType)effect->type == AAX_DYNAMIC_PITCH_EFFECT) {
-            p2d->final.pitch_lfo = 1.0f;
-         }
          // intentional fallthrough
       case AAX_DISTORTION_EFFECT:
-      case AAX_RINGMODULATOR_EFFECT:
-      case AAX_FLANGING_EFFECT:
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
+      case AAX_FLANGING_EFFECT:
+      case AAX_RINGMODULATOR_EFFECT:
       case AAX_DELAY_EFFECT:
          _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
          break;
@@ -658,8 +655,6 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
             }
             _PROP_OCCLUSION_SET_DEFINED(p3d);
          }
-
-         // TODO: add _aaxRingBufferReflectionData to all registered emitters
          break;
       }
       default:
@@ -687,9 +682,9 @@ aaxAudioFrameGetEffect(aaxFrame frame, enum aaxEffectType type)
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
-      case AAX_DELAY_EFFECT:
-      case AAX_RINGMODULATOR_EFFECT:
       case AAX_REVERB_EFFECT:
+      case AAX_RINGMODULATOR_EFFECT:
+      case AAX_DELAY_EFFECT:
       {
          _aaxAudioFrame* fmixer = handle->submix;
          rv = new_effect_handle(frame, type, fmixer->props2d, fmixer->props3d);
