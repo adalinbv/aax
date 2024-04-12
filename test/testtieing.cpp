@@ -19,6 +19,12 @@ const char *sine = "<?xml version='1.0'?>	\
   </sound>					\
  </aeonwave>";
 
+#define TEST(a, b, c) \
+ if ((a) != (b)) printf("%s differs: %lx should be: %lx\n", (c), (a), (b));
+
+#define TEST_FP(a, b, c) \
+ if ((a) != (b)) printf("%s differs: %f should be: %f\n", (c), (a), (b))
+
 int main()
 {
    // sensor state
@@ -38,9 +44,9 @@ int main()
    emitter.set(AAX_PLAYING);
    aax.add(emitter);
 
-   aax::Param tremolo_freq = 5.0f;
+   aax::Param tremolo_freq = 1.0f;
    aax::Param tremolo_depth = 0.0f;
-   aax::Param tremolo_offset = 1.0f;
+   aax::Param tremolo_offset = 0.0f;
    aax::Status tremolo_state = false;
 
    emitter.tie(tremolo_freq, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_FREQUENCY);
@@ -48,11 +54,27 @@ int main()
    emitter.tie(tremolo_offset, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_OFFSET);
    emitter.tie(tremolo_state, AAX_DYNAMIC_GAIN_FILTER);
 
-   tremolo_freq = 0.5f;
+   // update
+   aax.set(AAX_UPDATE);
+
+   tremolo_freq = 5.0f;
+   tremolo_depth = 0.05;
+   tremolo_offset = 0.95;
    tremolo_state = AAX_SINE;
 
    // update
    aax.set(AAX_UPDATE);
+
+   aax::dsp dsp = emitter.get(AAX_DYNAMIC_GAIN_FILTER);
+   float freq = dsp.get(AAX_LFO_FREQUENCY);
+   float depth = dsp.get(AAX_LFO_DEPTH);
+   float offset = dsp.get(AAX_LFO_OFFSET);
+   uint64_t state = dsp.state();
+
+   TEST_FP(freq, float(tremolo_freq), "frequency");
+   TEST_FP(depth, float(tremolo_depth), "depth");
+   TEST_FP(offset, float(tremolo_offset), "offset");
+   TEST(state, uint64_t(tremolo_state), "state");
 
    return 0;
 }
