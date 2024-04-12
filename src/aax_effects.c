@@ -137,7 +137,8 @@ aaxEffectSetParam(const aaxEffect e, int p, int ptype, float value)
    if (rv)
    {
       _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-      effect->slot[slot]->param[param] = eff->get(value, ptype, p);
+      effect->slot[slot]->param[param] =
+                              eff->limit(eff->get(value, ptype, p), slot, param);
       
       if TEST_FOR_TRUE(effect->state) {
          aaxEffectSetState(effect, effect->state);

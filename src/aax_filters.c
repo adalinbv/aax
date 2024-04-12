@@ -134,7 +134,10 @@ aaxFilterSetParam(const aaxFilter f, int p, int ptype, float value)
    if (rv)
    {
       _flt_function_tbl *flt = _aaxFilters[filter->type-1];
-      filter->slot[slot]->param[param] = flt->get(value, ptype, p);
+      filter->slot[slot]->param[param] =
+                              flt->limit(flt->get(value, ptype, p), slot, param);
+
+
       if TEST_FOR_TRUE(filter->state) {
          aaxFilterSetState(filter, filter->state);
       }
