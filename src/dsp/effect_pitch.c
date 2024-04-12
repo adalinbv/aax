@@ -70,8 +70,12 @@ _aaxPitchEffectSetState(_effect_t* effect, int state)
       if (env == NULL)
       {
          env =  _aax_aligned_alloc(DSIZE);
-         effect->slot[0]->data = env;
-         if (env) memset(env, 0, DSIZE);
+         if (env)
+         {
+            effect->slot[0]->data = env;
+            effect->slot[0]->data_size = DSIZE;
+            memset(env, 0, DSIZE);
+         }
       }
 
       if (env)

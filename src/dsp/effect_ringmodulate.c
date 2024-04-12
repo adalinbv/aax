@@ -91,8 +91,12 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
       if (modulator == NULL)
       {
          modulator = _aax_aligned_alloc(DSIZE);
-         effect->slot[0]->data = modulator;
-         if (modulator) memset(modulator, 0, DSIZE);
+         if (modulator)
+         {
+            effect->slot[0]->data = modulator;
+            effect->slot[0]->data_size = DSIZE;
+            memset(modulator, 0, DSIZE);
+         }
       }
 
       if (modulator)

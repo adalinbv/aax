@@ -88,7 +88,12 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
 
       if (data) effect->slot[0]->destroy(data);
       data = _aax_aligned_alloc(DSIZE + sizeof(_aaxLFOData));
-      effect->slot[0]->data = data;
+      if (data)
+      {
+         effect->slot[0]->data = data;
+         effect->slot[0]->data_size = DSIZE;
+      }
+
       if (data)
       {
          float fc = effect->slot[1]->param[AAX_WET_CUTOFF_FREQUENCY & 0xF];

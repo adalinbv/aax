@@ -79,8 +79,12 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
       if (!convolution)
       {
          convolution = _aax_aligned_alloc(DSIZE);
-         effect->slot[0]->data = convolution;
-         if (convolution) memset(convolution, 0, DSIZE);
+         if (convolution)
+         {
+            effect->slot[0]->data = convolution;
+            effect->slot[0]->data_size = DSIZE;
+            memset(convolution, 0, DSIZE);
+         }
       }
 
       if (convolution)

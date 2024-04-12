@@ -114,8 +114,12 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
       bool fbhist = (feedback_gain > LEVEL_32DB) ? true : false;
 
       data = _delay_create(data, effect->info, fbhist, state, max_delay);
+      if (data)
+      {
+         effect->slot[0]->data = data;
+         effect->slot[0]->data_size = DSIZE;
+      }
 
-      effect->slot[0]->data = data;
       if (data)
       {
          _aaxRingBufferFreqFilterData *flt = data->freq_filter;
@@ -126,6 +130,7 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
          float fs = 48000.0f;
          int t, constant;
 
+         effect->slot[0]->data_size = DSIZE;
          if (effect->info) {
             fs = effect->info->frequency;
          }

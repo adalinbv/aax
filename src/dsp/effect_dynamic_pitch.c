@@ -78,8 +78,10 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
    case AAX_TIMED_TRANSITION:
    {
       _aaxLFOData* lfo = effect->slot[0]->data;
-      if (lfo == NULL) {
+      if (lfo == NULL)
+      {
          effect->slot[0]->data = lfo = _lfo_create();
+         if (lfo) effect->slot[0]->data_size = DSIZE;
       }
 
       if (lfo)

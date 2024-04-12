@@ -80,8 +80,10 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
    case AAX_TIMED_TRANSITION:
    {
       _aaxLFOData* lfo = filter->slot[0]->data;
-      if (lfo == NULL) {
+      if (lfo == NULL)
+      {
          filter->slot[0]->data = lfo = _lfo_create();
+         if (lfo) filter->slot[0]->data_size = DSIZE;
       }
 
       if (lfo)
