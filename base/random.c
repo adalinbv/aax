@@ -95,8 +95,9 @@ xoshiro128plus(void)
 float
 _aax_rand_sample()
 {
-   float r = (double)(int64_t)xoroshiro128plus()/(double)INT64_MAX;
-   return r;
+   // prefered method for conversion to float:
+   // https://prng.di.unimi.it/
+   return (xoroshiro128plus() >> 11) * 0x1.0p-53;
 }
 
 void
