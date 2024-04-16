@@ -586,7 +586,7 @@ _mp3_setup(_fmt_t *fmt, UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_f
       }
       else
       {
-          plame_set_VBR(handle->id, vbr_off); // vbr_default);
+          plame_set_VBR(handle->id, vbr_off); //vbr_default);
           plame_set_brate(handle->id, 320);
       }
       plame_set_quality(handle->id, 2); // 2=high  5 = medium  7=low
@@ -808,11 +808,18 @@ _mp3_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    _driver_t *handle = fmt->id;
    void *buf = _aaxDataGetData(handle->mp3Buffer, 0);
    size_t bufsize = _aaxDataGetSize(handle->mp3Buffer);
-   int res;
+   int t, res;
 
    assert(scratchlen >= *num*handle->no_tracks*sizeof(int32_t));
 
    handle->no_samples += *num;
+#if 1
+   for (t=0; t<handle->no_tracks; t++)
+   {
+      int32_t *ptr = (int32_t*)sptr[t]+offs;
+      _batch_imul_value(ptr, ptr, sizeof(int32_t), *num, 0.5f);
+   }
+#endif
    _batch_cvt16_intl_24(scratch, sptr, offs, handle->no_tracks, *num);
    res = plame_encode_buffer_interleaved(handle->id, scratch, *num,
                                          buf, bufsize);
