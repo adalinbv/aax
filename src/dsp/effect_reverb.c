@@ -167,7 +167,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          float depth, reverb_gain;
          float fc;
 
-         reverb->damping = 1.0f+0.25f*((state & AAX_ROOM_MASK) >> 8);
+         reverb->damping = 1.0f+0.25f*(((state & AAX_ROOM_MASK) >> 8) - 1);
          reverb->reflections_prepare = _reflections_prepare;
          reverb->prepare = _reverb_prepare;
          reverb->run = _reverb_run;
@@ -684,8 +684,6 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       /* initial delay in seconds (should be between 10ms en 70 ms) */
       /* initial gains, defining a direct path is not necessary     */
       /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)       */
-      // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
-
       num = NUM_REFLECTIONS_MIN;
       if (info->capabilities & AAX_SIMD256) {
          num = NUM_REFLECTIONS_MAX;
@@ -693,14 +691,26 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
 
       decay_level /= (num*reverb->damping);
 
-      gains[3] =  0.9484f*decay_level;      // conrete/brick = 0.95
-      gains[5] = -0.8935f*decay_level;      // wood floor    = 0.90
-      gains[1] = -0.8254f*decay_level;      // carpet        = 0.853
-      gains[0] =  0.8997f*decay_level;
-      gains[4] =  0.8346f*decay_level;
-      gains[2] = -0.7718f*decay_level;
-      gains[6] =  0.7946f*decay_level;
-      assert(7 <= NUM_REFLECTIONS_MAX);
+      // https://web.archive.org/web/20150416071915/http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
+      // material     125Hz  250Hz  500Hz   1kHz   2kHz   4 kHz     Avg   1-Avg
+      // --------------------------------------------------------------- ------
+      // Carpet        0.01   0.02   0.06   0.15   0.25    0.45   0.157   0.843
+      // Wood parquet  0.04   0.04   0.07   0.06   0.06    0.07   0.057   0.943
+      // Brick         0.03   0.03   0.03   0.04   0.05    0.07   0.042   0.958
+      // Plywood       0.15   0.25   0.12   0.08   0.08    0.08   0.127   0.873
+      // Drapery       0.04   0.05   0.11   0.18   0.3     0.35   0.172   0.828
+      // Plasterboard  0.15   0.11   0.04   0.04   0.07    0.08   0.082   0.918
+      // Seats         0.49   0.66   0.8    0.88   0.82    0.7    0.725   0.275
+      // People        0.25   0.35   0.42   0.46   0.5     0.5    0.413   0.587
+      //
+      // Remember that full absorption is 1.0 whilst full reflection is 0.0
+      gains[0] =  0.958f*decay_level; // left: brick
+      gains[1] = -0.958f*decay_level; // right: brick
+      gains[2] = -0.843f*decay_level; // down: carpet
+      gains[3] =  0.918f*decay_level; // up: plaster
+      gains[4] =  0.873f*decay_level; // front: playwood
+      gains[5] = -0.828f*decay_level; // back: drapery
+      assert(6 <= NUM_REFLECTIONS_MAX);
 
       // depth definies the initial delay of the first reflections
       delay_offs = reverb->reflections_delay;
@@ -729,13 +739,12 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       }
       else
       {
-         delays[5] = delay_offs + delay_depth/1.0f;
-         delays[4] = delay_offs + delay_depth/2.0f;
-         delays[3] = delay_offs + delay_depth/3.0f;
-         delays[2] = delay_offs + delay_depth/5.0f;
-         delays[1] = delay_offs + delay_depth/7.0f;
-         delays[0] = delay_offs + delay_depth/11.0f;
-         delays[6] = delay_offs + delay_depth/13.0f;
+         delays[0] = delay_offs + delay_depth/3.0f;  // left
+         delays[1] = delay_offs + delay_depth/3.0f;  // right
+         delays[2] = delay_offs + delay_depth/11.0f; // down
+         delays[3] = delay_offs + delay_depth/7.0f;  // up
+         delays[4] = delay_offs + delay_depth/5.0f;  // front
+         delays[5] = delay_offs + delay_depth/1.0f;  // back
       }
 
       reflections->no_delays = num;
@@ -889,7 +898,6 @@ _reflections_run(const _aaxRingBufferReverbData *reverb,
 {
    const _aaxRingBufferReflectionData *reflections = reverb->reflections;
    _aaxRingBufferFreqFilterData *filter = reverb->freq_filter; // low-pass
-   _aaxRingBufferFreqFilterData *filter_hp = reverb->freq_filter_hp;// high-pass
    int snum, tracks;
    int rv = false;
    float volume;
