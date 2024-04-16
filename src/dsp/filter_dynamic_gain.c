@@ -118,8 +118,8 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
          }
          else
          {
-            float offset = filter->slot[0]->param[AAX_LFO_OFFSET];
             float depth = filter->slot[0]->param[AAX_LFO_DEPTH];
+            float offset = 1.0f - depth;
             int constant;
 
             if (offset == 0.0f && depth == 0.0f) {
