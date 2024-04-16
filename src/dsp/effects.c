@@ -155,7 +155,7 @@ _aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
    case REVERB_EFFECT:
       if (slot == 0)
       {
-         effect->param[AAX_CUTOFF_FREQUENCY] = MAXIMUM_CUTOFF;
+         effect->param[AAX_CUTOFF_FREQUENCY] = 0.5f*MAXIMUM_CUTOFF;
          effect->param[AAX_DELAY_DEPTH] = 0.027f;
          effect->param[AAX_DECAY_LEVEL] = 0.3f;
          effect->param[AAX_DECAY_DEPTH] = 0.7f;
