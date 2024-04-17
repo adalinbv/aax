@@ -76,5 +76,8 @@ int main()
    TEST_FP(offset, float(tremolo_offset), "offset");
    TEST(state, uint64_t(tremolo_state), "state");
 
+   emitter.set(AAX_PROCESSED);
+   aax.remove(emitter);
+
    return 0;
 }
