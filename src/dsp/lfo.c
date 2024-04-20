@@ -758,12 +758,16 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, bool stopped, float *velocity, _aaxEnvelo
 
          if ((fabsf(step) > LEVEL_128DB) && (env->state & AAX_LFO_EXPONENTIAL))
          {
-             if (rv > 1.0f) {
+             if (penv) // gain: exponential
+             {
                 fact = _MIN(powf(rv, GMATH_E1), GMATH_E1);
-             } else if (rv > 0.0f) {
-                fact = powf(rv, GMATH_1_E1);
-             }
-             if (step > 0.0f) fact = 1.0f/fact;
+                if (step > 0.0f) fact = 1.0f/fact;
+            }
+            else // pitch: logarithmic
+            {
+                fact = powf(rv, 10.0f);
+                if (step > 0.0f) fact = 1.0f/fact;
+            }
          }
 
          if (stopped && !env->sustain) env->value += env->step_finish*fact;

@@ -69,7 +69,7 @@ _aaxPitchEffectSetState(_effect_t* effect, int state)
       _aaxEnvelopeData* env = effect->slot[0]->data;
       if (env == NULL)
       {
-         env =  _aax_aligned_alloc(DSIZE);
+         env = _aax_aligned_alloc(DSIZE);
          if (env)
          {
             effect->slot[0]->data = env;
@@ -93,6 +93,7 @@ _aaxPitchEffectSetState(_effect_t* effect, int state)
          env->value0 = env->value = 1.0f;
          env->value = value;
          env->max_stages = 1;
+         env->state |= AAX_LFO_EXPONENTIAL;
 
          max_pos = rintf(dt * period);
          env->step[0] = fabsf(nextval - value)/max_pos;
