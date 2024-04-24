@@ -444,7 +444,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          if (_IS_PLAYING(src->props3d))
          {
             if (!handle->sampled_release &&
-                !_PROP_DISTDELAY_IS_DEFINED(src->props3d))
+                !_PROP_TIMED_GAIN_IS_DEFINED(src->props3d))
             {
 #if 0
                _SET_PROCESSED(src->props3d);
@@ -1418,7 +1418,7 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
    switch (filter->type)
    {
    case AAX_TIMED_GAIN_FILTER:
-      _PROP_DISTDELAY_SET_DEFINED(src->props3d);
+      _PROP_TIMED_GAIN_SET_DEFINED(src->props3d);
       _FILTER_SWAP_SLOT(p2d, type, filter, 0);
       break;
    case AAX_VOLUME_FILTER:
