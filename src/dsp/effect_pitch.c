@@ -92,6 +92,7 @@ _aaxPitchEffectSetState(_effect_t* effect, int state)
          env->sustain = true;
          env->value0 = env->value = 1.0f;
          env->value = value;
+         env->value_max = nextval;
          env->max_stages = 1;
          env->state |= AAX_LFO_EXPONENTIAL;
 
