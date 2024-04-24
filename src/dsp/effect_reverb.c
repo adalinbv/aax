@@ -707,9 +707,9 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       gains[0] =  0.958f*decay_level; // left: brick
       gains[1] = -0.958f*decay_level; // right: brick
       gains[2] = -0.843f*decay_level; // down: carpet
-      gains[3] =  0.918f*decay_level; // up: plaster
-      gains[4] =  0.873f*decay_level; // front: playwood
-      gains[5] = -0.828f*decay_level; // back: drapery
+      gains[3] =  0.873f*decay_level; // front: playwood
+      gains[4] = -0.828f*decay_level; // back: drapery
+      gains[5] =  0.918f*decay_level; // up: plaster
       assert(6 <= NUM_REFLECTIONS_MAX);
 
       // depth definies the initial delay of the first reflections
@@ -733,18 +733,18 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
          delays[0] = delay_offs + mul*left;
          delays[1] = delay_offs + mul*right;
          delays[2] = delay_offs + mul*down;
-         delays[3] = delay_offs + mul*up;
-         delays[4] = delay_offs + mul*front;
-         delays[5] = delay_offs + mul*back;
+         delays[3] = delay_offs + mul*front;
+         delays[4] = delay_offs + mul*back;
+         delays[5] = delay_offs + mul*up;
       }
       else
       {
          delays[0] = delay_offs + delay_depth/3.0f;  // left
          delays[1] = delay_offs + delay_depth/3.0f;  // right
          delays[2] = delay_offs + delay_depth/11.0f; // down
-         delays[3] = delay_offs + delay_depth/7.0f;  // up
-         delays[4] = delay_offs + delay_depth/5.0f;  // front
-         delays[5] = delay_offs + delay_depth/1.0f;  // back
+         delays[3] = delay_offs + delay_depth/5.0f;  // front
+         delays[4] = delay_offs + delay_depth/1.0f;  // back
+         delays[5] = delay_offs + delay_depth/7.0f;  // up
       }
 
       reflections->no_delays = num;
