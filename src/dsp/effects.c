@@ -69,6 +69,21 @@ _aaxEffectCreateHandle(_aaxMixerInfo *info, enum aaxEffectType type, unsigned sl
    return rv;
 }
 
+bool
+_aaxEffectDestroy(aaxEffect* dsp)
+{
+   _effect_t* eff = (_effect_t*)dsp;
+   if (eff->slot[0]->data)
+   {
+      eff->slot[0]->destroy(eff->slot[0]->data);
+      eff->slot[0]->data_size = 0;
+      eff->slot[0]->data = NULL;
+   }
+   free(eff);
+
+   return true;
+}
+
 _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX] =
 {
    &_aaxPitchEffect,

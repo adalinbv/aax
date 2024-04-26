@@ -53,19 +53,6 @@ _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    return rv;
 }
 
-static int
-_aaxDistanceFilterDestroy(_filter_t* filter)
-{
-   if (filter->slot[0]->data)
-   {
-      filter->slot[0]->destroy(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
-   }
-   free(filter);
-
-   return true;
-}
-
 static aaxFilter
 _aaxDistanceFilterSetState(_filter_t* filter, int state)
 {
@@ -203,14 +190,14 @@ _aaxDistanceFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxDistanceFilter =
 {
    "AAX_distance_filter_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxFilterCreate*)&_aaxDistanceFilterCreate,
-   (_aaxFilterDestroy*)&_aaxDistanceFilterDestroy,
+   (_aaxFilterCreateFn*)&_aaxDistanceFilterCreate,
+   (_aaxFilterDestroyFn*)&_aaxFilterDestroy,
    NULL,
-   (_aaxFilterSetState*)&_aaxDistanceFilterSetState,
-   (_aaxNewFilterHandle*)&_aaxNewDistanceFilterHandle,
-   (_aaxFilterConvert*)&_aaxDistanceFilterSet,
-   (_aaxFilterConvert*)&_aaxDistanceFilterGet,
-   (_aaxFilterConvert*)&_aaxDistanceFilterMinMax
+   (_aaxFilterSetStateFn*)&_aaxDistanceFilterSetState,
+   (_aaxNewFilterHandleFn*)&_aaxNewDistanceFilterHandle,
+   (_aaxFilterConvertFn*)&_aaxDistanceFilterSet,
+   (_aaxFilterConvertFn*)&_aaxDistanceFilterGet,
+   (_aaxFilterConvertFn*)&_aaxDistanceFilterMinMax
 };
 
 void

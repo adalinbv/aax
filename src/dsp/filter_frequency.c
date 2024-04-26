@@ -47,20 +47,6 @@ _aaxFrequencyFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    return rv;
 }
 
-static int
-_aaxFrequencyFilterDestroy(_filter_t* filter)
-{
-   if (filter->slot[0]->data)
-   {
-      filter->slot[0]->destroy(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
-      filter->slot[1]->data = NULL;
-   }
-   free(filter);
-
-   return true;
-}
-
 static aaxFilter
 _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 {
@@ -266,6 +252,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
+         filter->slot[0]->data_size = 0;
          filter->slot[0]->data = NULL;
          filter->slot[1]->data = NULL;
       }
@@ -357,14 +344,14 @@ _aaxFrequencyFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxFrequencyFilter =
 {
    "AAX_frequency_filter_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxFilterCreate*)&_aaxFrequencyFilterCreate,
-   (_aaxFilterDestroy*)&_aaxFrequencyFilterDestroy,
-   (_aaxFilterReset*)&_freqfilter_reset,
-   (_aaxFilterSetState*)&_aaxFrequencyFilterSetState,
-   (_aaxNewFilterHandle*)&_aaxNewFrequencyFilterHandle,
-   (_aaxFilterConvert*)&_aaxFrequencyFilterSet,
-   (_aaxFilterConvert*)&_aaxFrequencyFilterGet,
-   (_aaxFilterConvert*)&_aaxFrequencyFilterMinMax
+   (_aaxFilterCreateFn*)&_aaxFrequencyFilterCreate,
+   (_aaxFilterDestroyFn*)&_aaxFilterDestroy,
+   (_aaxFilterResetFn*)&_freqfilter_reset,
+   (_aaxFilterSetStateFn*)&_aaxFrequencyFilterSetState,
+   (_aaxNewFilterHandleFn*)&_aaxNewFrequencyFilterHandle,
+   (_aaxFilterConvertFn*)&_aaxFrequencyFilterSet,
+   (_aaxFilterConvertFn*)&_aaxFrequencyFilterGet,
+   (_aaxFilterConvertFn*)&_aaxFrequencyFilterMinMax
 };
 
 void
@@ -423,8 +410,8 @@ _freqfilter_destroy(void *ptr)
    {
       _lfo_destroy(data->lfo);
       _aax_aligned_free(data->freqfilter);
+      _aax_aligned_free(data);
    }
-   _aax_dsp_destroy(ptr);
 }
 
 // first order allpass:

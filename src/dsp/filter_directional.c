@@ -38,14 +38,6 @@ _aaxDirectionalFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    return rv;
 }
 
-static int
-_aaxDirectionalFilterDestroy(_filter_t* filter)
-{
-   free(filter);
-
-   return true;
-}
-
 static aaxFilter
 _aaxDirectionalFilterSetState(UNUSED(_filter_t* filter), UNUSED(int state))
 {
@@ -120,14 +112,14 @@ _aaxDirectionalFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxDirectionalFilter =
 {
    "AAX_directional_filter_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxFilterCreate*)&_aaxDirectionalFilterCreate,
-   (_aaxFilterDestroy*)&_aaxDirectionalFilterDestroy,
+   (_aaxFilterCreateFn*)&_aaxDirectionalFilterCreate,
+   (_aaxFilterDestroyFn*)&_aaxFilterDestroy,
    NULL,
-   (_aaxFilterSetState*)&_aaxDirectionalFilterSetState,
-   (_aaxNewFilterHandle*)&_aaxNewDirectionalFilterHandle,
-   (_aaxFilterConvert*)&_aaxDirectionalFilterSet,
-   (_aaxFilterConvert*)&_aaxDirectionalFilterGet,
-   (_aaxFilterConvert*)&_aaxDirectionalFilterMinMax
+   (_aaxFilterSetStateFn*)&_aaxDirectionalFilterSetState,
+   (_aaxNewFilterHandleFn*)&_aaxNewDirectionalFilterHandle,
+   (_aaxFilterConvertFn*)&_aaxDirectionalFilterSet,
+   (_aaxFilterConvertFn*)&_aaxDirectionalFilterGet,
+   (_aaxFilterConvertFn*)&_aaxDirectionalFilterMinMax
 };
 
 /*

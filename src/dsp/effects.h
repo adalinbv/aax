@@ -31,6 +31,7 @@ extern "C" {
 #define MAX_EFFECTS_TIME	_MAX(DELAY_LINE_EFFECTS_TIME,REVERB_EFFECTS_TIME)
 
 aaxEffect _aaxEffectCreateHandle(_aaxMixerInfo*, enum aaxEffectType, unsigned, size_t);
+bool _aaxEffectDestroy(aaxEffect*);
 
 void _aaxSetDefaultEffect2d(_aaxEffectInfo*, unsigned int, unsigned slot);
 void _aaxSetDefaultEffect3d(_aaxEffectInfo*, unsigned int, unsigned slot);
@@ -58,28 +59,28 @@ void reset_effect(_aax2dProps*, enum _aax2dFiltersEffects);
 extern const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX];
 
 
-typedef aaxEffect _aaxEffectCreate(_aaxMixerInfo*, enum aaxEffectType);
-typedef int _aaxEffectDestroy(_effect_t*);
-typedef void _aaxEffectReset(_effect_t*);
-typedef aaxEffect _aaxEffectSetState(_effect_t*, int);
-typedef aaxEffect _aaxEffectSetData(_effect_t*, aaxBuffer);
-typedef _effect_t* _aaxNewEffectHandle(const void*, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
-typedef float _aaxEffectConvert(float, int, unsigned char);
+typedef aaxEffect _aaxEffectCreateFn(_aaxMixerInfo*, enum aaxEffectType);
+typedef bool _aaxEffectDestroyFn(aaxEffect*);
+typedef void _aaxEffectResetFn(_effect_t*);
+typedef aaxEffect _aaxEffectSetStateFn(_effect_t*, int);
+typedef aaxEffect _aaxEffectSetDataFn(_effect_t*, aaxBuffer);
+typedef _effect_t* _aaxNewEffectHandleFn(const void*, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
+typedef float _aaxEffectConvertFn(float, int, unsigned char);
 
 typedef struct
 {
    const char *name;
    float version;
-   _aaxEffectCreate *create;
-   _aaxEffectDestroy *destroy;
-   _aaxEffectReset *reset;
-   _aaxEffectSetState *state;
-   _aaxEffectSetData *data;
-   _aaxNewEffectHandle *handle;
+   _aaxEffectCreateFn *create;
+   _aaxEffectDestroyFn *destroy;
+   _aaxEffectResetFn *reset;
+   _aaxEffectSetStateFn *state;
+   _aaxEffectSetDataFn *data;
+   _aaxNewEffectHandleFn *handle;
 
-   _aaxEffectConvert *set;
-   _aaxEffectConvert *get;
-   _aaxEffectConvert *limit;
+   _aaxEffectConvertFn *set;
+   _aaxEffectConvertFn *get;
+   _aaxEffectConvertFn *limit;
 
 } _eff_function_tbl;
 

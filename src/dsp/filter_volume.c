@@ -52,19 +52,6 @@ _aaxVolumeFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    return rv;
 }
 
-static int
-_aaxVolumeFilterDestroy(_filter_t* filter)
-{
-   if (filter->slot[0]->data)
-   {
-      filter->slot[0]->destroy(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
-   }
-   free(filter);
-
-   return true;
-}
-
 static aaxFilter
 _aaxVolumeFilterSetState(_filter_t* filter, int state)
 {
@@ -81,6 +68,7 @@ _aaxVolumeFilterSetState(_filter_t* filter, int state)
    else
    {
       filter->slot[0]->destroy(filter->slot[0]->data);
+      filter->slot[0]->data_size = 0;
       filter->slot[0]->data = NULL;
    }
 
@@ -152,14 +140,14 @@ _aaxVolumeFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxVolumeFilter =
 {
    "AAX_volume_filter_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxFilterCreate*)&_aaxVolumeFilterCreate,
-   (_aaxFilterDestroy*)&_aaxVolumeFilterDestroy,
+   (_aaxFilterCreateFn*)&_aaxVolumeFilterCreate,
+   (_aaxFilterDestroyFn*)&_aaxFilterDestroy,
    NULL,
-   (_aaxFilterSetState*)&_aaxVolumeFilterSetState,
-   (_aaxNewFilterHandle*)&_aaxNewVolumeFilterHandle,
-   (_aaxFilterConvert*)&_aaxVolumeFilterSet,
-   (_aaxFilterConvert*)&_aaxVolumeFilterGet,
-   (_aaxFilterConvert*)&_aaxVolumeFilterMinMax
+   (_aaxFilterSetStateFn*)&_aaxVolumeFilterSetState,
+   (_aaxNewFilterHandleFn*)&_aaxNewVolumeFilterHandle,
+   (_aaxFilterConvertFn*)&_aaxVolumeFilterSet,
+   (_aaxFilterConvertFn*)&_aaxVolumeFilterGet,
+   (_aaxFilterConvertFn*)&_aaxVolumeFilterMinMax
 };
 
 
@@ -456,9 +444,10 @@ _occlusion_destroy(void *ptr)
    if (ptr)
    {
       _aaxRingBufferOcclusionData *occlusion = ptr;
+      _lfo_destroy(occlusion->freq_filter.lfo);
       _aax_aligned_free(occlusion->freq_filter.freqfilter);
+      _aax_aligned_free(occlusion);
    }
-   _aax_dsp_destroy(ptr);
 }
 
 int

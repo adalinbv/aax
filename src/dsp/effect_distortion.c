@@ -44,19 +44,6 @@ _aaxDistortionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 }
 
 static int
-_aaxDistortionEffectDestroy(_effect_t* effect)
-{
-   if (effect->slot[0]->data)
-   {
-      effect->slot[0]->destroy(effect->slot[0]->data);
-      effect->slot[0]->data = NULL;
-   }
-   free(effect);
-
-   return true;
-}
-
-static int
 _aaxDistortionEffectReset(void *data)
 {
    return true;
@@ -87,6 +74,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
       _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
 
       if (data) effect->slot[0]->destroy(data);
+
       data = _aax_aligned_alloc(DSIZE + sizeof(_aaxLFOData));
       if (data)
       {
@@ -220,6 +208,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
          _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
 
          if (data) effect->slot[0]->destroy(data);
+
          data = _aax_aligned_alloc(DSIZE);
          effect->slot[0]->data = data;
          if (data)
@@ -287,15 +276,15 @@ _aaxDistortionEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxDistortionEffect =
 {
    "AAX_distortion_effect_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxEffectCreate*)&_aaxDistortionEffectCreate,
-   (_aaxEffectDestroy*)&_aaxDistortionEffectDestroy,
-   (_aaxEffectReset*)&_aaxDistortionEffectReset,
-   (_aaxEffectSetState*)&_aaxDistortionEffectSetState,
+   (_aaxEffectCreateFn*)&_aaxDistortionEffectCreate,
+   (_aaxEffectDestroyFn*)&_aaxEffectDestroy,
+   (_aaxEffectResetFn*)&_aaxDistortionEffectReset,
+   (_aaxEffectSetStateFn*)&_aaxDistortionEffectSetState,
    NULL,
-   (_aaxNewEffectHandle*)&_aaxNewDistortionEffectHandle,
-   (_aaxEffectConvert*)&_aaxDistortionEffectSet,
-   (_aaxEffectConvert*)&_aaxDistortionEffectGet,
-   (_aaxEffectConvert*)&_aaxDistortionEffectMinMax
+   (_aaxNewEffectHandleFn*)&_aaxNewDistortionEffectHandle,
+   (_aaxEffectConvertFn*)&_aaxDistortionEffectSet,
+   (_aaxEffectConvertFn*)&_aaxDistortionEffectGet,
+   (_aaxEffectConvertFn*)&_aaxDistortionEffectMinMax
 };
 
 static int

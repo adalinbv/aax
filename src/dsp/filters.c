@@ -61,14 +61,31 @@ _aaxFilterCreateHandle(_aaxMixerInfo *info, enum aaxFilterType type, unsigned sl
       if (dsize)
       {
          flt->slot[0]->data = _aax_aligned_alloc(dsize);
-         if (flt->slot[0]->data) {
+         if (flt->slot[0]->data)
+         {
             memset(flt->slot[0]->data, 0, dsize);
+            flt->slot[0]->data_size = dsize;
          }
       }
 
       rv = (aaxFilter)flt;
    }
    return rv;
+}
+
+bool
+_aaxFilterDestroy(aaxFilter* dsp)
+{  
+   _filter_t* flt = (_filter_t*)dsp;
+   if (flt->slot[0]->data)
+   {
+      flt->slot[0]->destroy(flt->slot[0]->data);
+      flt->slot[0]->data_size = 0;
+      flt->slot[0]->data = NULL;
+   }
+   free(flt);
+
+   return true;
 }
 
 _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX] =

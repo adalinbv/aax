@@ -44,19 +44,6 @@ _aaxPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    return rv;
 }
 
-static int
-_aaxPitchEffectDestroy(_effect_t* effect)
-{
-   if (effect->slot[0]->data)
-   {
-      effect->slot[0]->destroy(effect->slot[0]->data);
-      effect->slot[0]->data = NULL;
-   }
-   free(effect);
-
-   return true;
-}
-
 static aaxEffect
 _aaxPitchEffectSetState(_effect_t* effect, int state)
 {
@@ -107,6 +94,7 @@ _aaxPitchEffectSetState(_effect_t* effect, int state)
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
+         effect->slot[0]->data_size = 0;
          effect->slot[0]->data = NULL;
       }
    }
@@ -168,14 +156,14 @@ _aaxPitchEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxPitchEffect =
 {
    "AAX_pitch_effect_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxEffectCreate*)&_aaxPitchEffectCreate,
-   (_aaxEffectDestroy*)&_aaxPitchEffectDestroy,
-   (_aaxEffectReset*)&_env_reset,
-   (_aaxEffectSetState*)&_aaxPitchEffectSetState,
+   (_aaxEffectCreateFn*)&_aaxPitchEffectCreate,
+   (_aaxEffectDestroyFn*)&_aaxEffectDestroy,
+   (_aaxEffectResetFn*)&_env_reset,
+   (_aaxEffectSetStateFn*)&_aaxPitchEffectSetState,
    NULL,
-   (_aaxNewEffectHandle*)&_aaxNewPitchEffectHandle,
-   (_aaxEffectConvert*)&_aaxPitchEffectSet,
-   (_aaxEffectConvert*)&_aaxPitchEffectGet,
-   (_aaxEffectConvert*)&_aaxPitchEffectMinMax
+   (_aaxNewEffectHandleFn*)&_aaxNewPitchEffectHandle,
+   (_aaxEffectConvertFn*)&_aaxPitchEffectSet,
+   (_aaxEffectConvertFn*)&_aaxPitchEffectGet,
+   (_aaxEffectConvertFn*)&_aaxPitchEffectMinMax
 };
 

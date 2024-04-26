@@ -44,18 +44,6 @@ _aaxVelocityEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    return rv;
 }
 
-static int
-_aaxVelocityEffectDestroy(_effect_t* effect)
-{
-   if (effect->slot[0]->data)
-   {
-      effect->slot[0]->destroy(effect->slot[0]->data);
-      effect->slot[0]->data = NULL;
-   }
-   free(effect);
-   return true;
-}
-
 static aaxEffect
 _aaxVelocityEffectSetState(_effect_t* effect, UNUSED(int state))
 {
@@ -134,15 +122,15 @@ _aaxVelocityEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxVelocityEffect =
 {
    "AAX_velocity_effect", VERSION,
-   (_aaxEffectCreate*)&_aaxVelocityEffectCreate,
-   (_aaxEffectDestroy*)&_aaxVelocityEffectDestroy,
+   (_aaxEffectCreateFn*)&_aaxVelocityEffectCreate,
+   (_aaxEffectDestroyFn*)&_aaxEffectDestroy,
    NULL,
-   (_aaxEffectSetState*)&_aaxVelocityEffectSetState,
-   (_aaxEffectSetData*)&_aaxVelocityEffectSetData,
-   (_aaxNewEffectHandle*)&_aaxNewVelocityEffectHandle,
-   (_aaxEffectConvert*)&_aaxVelocityEffectSet,
-   (_aaxEffectConvert*)&_aaxVelocityEffectGet,
-   (_aaxEffectConvert*)&_aaxVelocityEffectMinMax
+   (_aaxEffectSetStateFn*)&_aaxVelocityEffectSetState,
+   (_aaxEffectSetDataFn*)&_aaxVelocityEffectSetData,
+   (_aaxNewEffectHandleFn*)&_aaxNewVelocityEffectHandle,
+   (_aaxEffectConvertFn*)&_aaxVelocityEffectSet,
+   (_aaxEffectConvertFn*)&_aaxVelocityEffectGet,
+   (_aaxEffectConvertFn*)&_aaxVelocityEffectMinMax
 };
 
 static _aaxPitchShiftFn _aaxDopplerShift;

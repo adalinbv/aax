@@ -28,8 +28,9 @@
 #include "arch.h"
 #include "common.h"
 
-void _aax_dsp_destroy(void *ptr) { if (ptr) _aax_aligned_free(ptr); }
-void _aax_dsp_aligned_destroy(void *ptr) { if (ptr) _aax_aligned_free(ptr); }
+void _aax_dsp_destroy(void *ptr) {
+    if (ptr) _aax_aligned_free(ptr);
+}
 void _aax_dsp_copy(void *d, void *s) {
    _aaxFilterInfo *dst = d, *src = s;
    dst->state = src->state;

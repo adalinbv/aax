@@ -44,19 +44,6 @@ _aaxCompressorCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    return rv;
 }
 
-static int
-_aaxCompressorDestroy(_filter_t* filter)
-{
-   if (filter->slot[0]->data)
-   {
-      filter->slot[0]->destroy(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
-   }
-   free(filter);
-
-   return true;
-}
-
 static aaxFilter
 _aaxCompressorSetState(_filter_t* filter, int state)
 {
@@ -205,6 +192,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
+         filter->slot[0]->data_size = 0;
          filter->slot[0]->data = NULL;
       }
       break;
@@ -270,13 +258,13 @@ _aaxCompressorMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxCompressor =
 {
    "AAX_compressor", VERSION,
-   (_aaxFilterCreate*)&_aaxCompressorCreate,
-   (_aaxFilterDestroy*)&_aaxCompressorDestroy,
+   (_aaxFilterCreateFn*)&_aaxCompressorCreate,
+   (_aaxFilterDestroyFn*)&_aaxFilterDestroy,
    NULL,
-   (_aaxFilterSetState*)&_aaxCompressorSetState,
-   (_aaxNewFilterHandle*)&_aaxNewCompressorHandle,
-   (_aaxFilterConvert*)&_aaxCompressorSet,
-   (_aaxFilterConvert*)&_aaxCompressorGet,
-   (_aaxFilterConvert*)&_aaxCompressorMinMax
+   (_aaxFilterSetStateFn*)&_aaxCompressorSetState,
+   (_aaxNewFilterHandleFn*)&_aaxNewCompressorHandle,
+   (_aaxFilterConvertFn*)&_aaxCompressorSet,
+   (_aaxFilterConvertFn*)&_aaxCompressorGet,
+   (_aaxFilterConvertFn*)&_aaxCompressorMinMax
 };
 

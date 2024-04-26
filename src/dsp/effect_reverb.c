@@ -96,19 +96,6 @@ _aaxReverbEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    return rv;
 }
 
-static int
-_aaxReverbEffectDestroy(_effect_t* effect)
-{
-   if (effect->slot[0]->data)
-   {
-      effect->slot[0]->destroy(effect->slot[0]->data);
-      effect->slot[0]->data = NULL;
-   }
-   free(effect);
-
-   return true;
-}
-
 static aaxEffect
 _aaxReverbEffectSetState(_effect_t* effect, int state)
 {
@@ -403,7 +390,9 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          reverb->state = order_state;
          reverb->info = effect->info;
          reverb->freq_filter = flt;
-         reverb->occlusion = _occlusion_create(reverb->occlusion, effect->slot[1], state, fs);
+         if (!reverb->occlusion) {
+            reverb->occlusion = _occlusion_create(reverb->occlusion, effect->slot[1], state, fs);
+         }
       }
 
       break;
@@ -415,6 +404,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
+         effect->slot[0]->data_size = 0;
          effect->slot[0]->data = NULL;
       }
       break;
@@ -526,15 +516,15 @@ _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxReverbEffect =
 {
    "AAX_reverb_effect_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxEffectCreate*)&_aaxReverbEffectCreate,
-   (_aaxEffectDestroy*)&_aaxReverbEffectDestroy,
+   (_aaxEffectCreateFn*)&_aaxReverbEffectCreate,
+   (_aaxEffectDestroyFn*)&_aaxEffectDestroy,
    NULL,
-   (_aaxEffectSetState*)&_aaxReverbEffectSetState,
+   (_aaxEffectSetStateFn*)&_aaxReverbEffectSetState,
    NULL,
-   (_aaxNewEffectHandle*)&_aaxNewReverbEffectHandle,
-   (_aaxEffectConvert*)&_aaxReverbEffectSet,
-   (_aaxEffectConvert*)&_aaxReverbEffectGet,
-   (_aaxEffectConvert*)&_aaxReverbEffectMinMax
+   (_aaxNewEffectHandleFn*)&_aaxNewReverbEffectHandle,
+   (_aaxEffectConvertFn*)&_aaxReverbEffectSet,
+   (_aaxEffectConvertFn*)&_aaxReverbEffectGet,
+   (_aaxEffectConvertFn*)&_aaxReverbEffectMinMax
 };
 
 void
@@ -815,14 +805,13 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
          }
 
          decay_level /= (num*reverb->damping);
-         gains[5] = -0.9484f*decay_level;      // conrete/brick = 0.95
-         gains[2] =  0.8935f*decay_level;      // wood floor    = 0.90
-         gains[4] = -0.8254f*decay_level;      // carpet        = 0.853
-         gains[6] =  0.8997f*decay_level;
-         gains[1] = -0.8346f*decay_level;
-         gains[3] =  0.7718f*decay_level;
          gains[0] = -0.7946f*decay_level;
-         assert(7 < _AAX_MAX_LOOPBACKS);
+         gains[1] = -0.8346f*decay_level;
+         gains[2] =  0.8935f*decay_level;      // wood floor    = 0.90
+         gains[3] =  0.7718f*decay_level;
+         gains[4] = -0.8254f*decay_level;      // carpet        = 0.853
+         gains[5] = -0.9484f*decay_level;      // conrete/brick = 0.95
+         gains[6] =  0.8997f*decay_level;
 #if 0
  for (int i=0; i<7; ++i)
  printf(" loopback[%i].gain: %f\n", i,  loopbacks->loopback[i].gain);
@@ -836,22 +825,22 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
          if (state & AAX_INVERSE)
          {
             delays[0] = lb_delay_offs + lb_delay_depth/1.0f;
-            delays[2] = lb_delay_offs + lb_delay_depth/2.0f;
             delays[1] = lb_delay_offs + lb_delay_depth/3.0f;
-            delays[6] = lb_delay_offs + lb_delay_depth/5.0f;
+            delays[2] = lb_delay_offs + lb_delay_depth/2.0f;
+            delays[3] = lb_delay_offs + lb_delay_depth/13.0f;
             delays[4] = lb_delay_offs + lb_delay_depth/7.0f;
             delays[5] = lb_delay_offs + lb_delay_depth/11.0f;
-            delays[3] = lb_delay_offs + lb_delay_depth/13.0f;
+            delays[6] = lb_delay_offs + lb_delay_depth/5.0f;
          }
          else
          {
-            delays[5] = lb_delay_offs + lb_delay_depth/1.0f;
-            delays[3] = lb_delay_offs + lb_delay_depth/2.0f;
-            delays[1] = lb_delay_offs + lb_delay_depth/3.0f;
-            delays[6] = lb_delay_offs + lb_delay_depth/5.0f;
-            delays[4] = lb_delay_offs + lb_delay_depth/7.0f;
-            delays[2] = lb_delay_offs + lb_delay_depth/11.0f;
             delays[0] = lb_delay_offs + lb_delay_depth/13.0f;
+            delays[1] = lb_delay_offs + lb_delay_depth/3.0f;
+            delays[2] = lb_delay_offs + lb_delay_depth/11.0f;
+            delays[3] = lb_delay_offs + lb_delay_depth/2.0f;
+            delays[4] = lb_delay_offs + lb_delay_depth/7.0f;
+            delays[5] = lb_delay_offs + lb_delay_depth/1.0f;
+            delays[6] = lb_delay_offs + lb_delay_depth/5.0f;
          }
 
          loopbacks->no_loopbacks = num;

@@ -41,19 +41,6 @@ _aaxDynamicPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    return rv;
 }
 
-static int
-_aaxDynamicPitchEffectDestroy(_effect_t* effect)
-{
-   if (effect->slot[0]->data)
-   {
-      effect->slot[0]->destroy(effect->slot[0]->data);
-      effect->slot[0]->data = NULL;
-   }
-   free(effect);
-
-   return true;
-}
-
 static aaxEffect
 _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
 {
@@ -112,6 +99,7 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
+         effect->slot[0]->data_size = 0;
          effect->slot[0]->data = NULL;
       }
       break;
@@ -173,14 +161,14 @@ _aaxDynamicPitchEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxDynamicPitchEffect =
 {
    "AAX_dynamic_pitch_effect_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxEffectCreate*)&_aaxDynamicPitchEffectCreate,
-   (_aaxEffectDestroy*)&_aaxDynamicPitchEffectDestroy,
-   (_aaxEffectReset*)&_lfo_reset,
-   (_aaxEffectSetState*)&_aaxDynamicPitchEffectSetState,
+   (_aaxEffectCreateFn*)&_aaxDynamicPitchEffectCreate,
+   (_aaxEffectDestroyFn*)&_aaxEffectDestroy,
+   (_aaxEffectResetFn*)&_lfo_reset,
+   (_aaxEffectSetStateFn*)&_aaxDynamicPitchEffectSetState,
    NULL,
-   (_aaxNewEffectHandle*)&_aaxNewDynamicPitchEffectHandle,
-   (_aaxEffectConvert*)&_aaxDynamicPitchEffectSet,
-   (_aaxEffectConvert*)&_aaxDynamicPitchEffectGet,
-   (_aaxEffectConvert*)&_aaxDynamicPitchEffectMinMax
+   (_aaxNewEffectHandleFn*)&_aaxNewDynamicPitchEffectHandle,
+   (_aaxEffectConvertFn*)&_aaxDynamicPitchEffectSet,
+   (_aaxEffectConvertFn*)&_aaxDynamicPitchEffectGet,
+   (_aaxEffectConvertFn*)&_aaxDynamicPitchEffectMinMax
 };
 

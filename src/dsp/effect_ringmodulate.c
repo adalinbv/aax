@@ -42,19 +42,6 @@ _aaxModulatorEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    return rv;
 }
 
-static int
-_aaxModulatorEffectDestroy(_effect_t* effect)
-{
-   if (effect->slot[0]->data)
-   {
-      effect->slot[0]->destroy(effect->slot[0]->data);
-      effect->slot[0]->data = NULL;
-   }
-   free(effect);
-
-   return true;
-}
-
 static void
 _aaxModulatorEffectReset(void *data)
 {
@@ -141,6 +128,7 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
+         effect->slot[0]->data_size = 0;
          effect->slot[0]->data = NULL;
       }
       break;
@@ -201,15 +189,15 @@ _aaxModulatorEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxModulatorEffect =
 {
    "AAX_ringmodulator_effect_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxEffectCreate*)&_aaxModulatorEffectCreate,
-   (_aaxEffectDestroy*)&_aaxModulatorEffectDestroy,
-   (_aaxEffectReset*)&_aaxModulatorEffectReset,
-   (_aaxEffectSetState*)&_aaxModulatorEffectSetState,
+   (_aaxEffectCreateFn*)&_aaxModulatorEffectCreate,
+   (_aaxEffectDestroyFn*)&_aaxEffectDestroy,
+   (_aaxEffectResetFn*)&_aaxModulatorEffectReset,
+   (_aaxEffectSetStateFn*)&_aaxModulatorEffectSetState,
    NULL,
-   (_aaxNewEffectHandle*)&_aaxNewModulatorEffectHandle,
-   (_aaxEffectConvert*)&_aaxModulatorEffectSet,
-   (_aaxEffectConvert*)&_aaxModulatorEffectGet,
-   (_aaxEffectConvert*)&_aaxModulatorEffectMinMax
+   (_aaxNewEffectHandleFn*)&_aaxNewModulatorEffectHandle,
+   (_aaxEffectConvertFn*)&_aaxModulatorEffectSet,
+   (_aaxEffectConvertFn*)&_aaxModulatorEffectGet,
+   (_aaxEffectConvertFn*)&_aaxModulatorEffectMinMax
 };
 
 static int

@@ -43,19 +43,6 @@ _aaxDynamicTimbreFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    return rv;
 }
 
-static int
-_aaxDynamicTimbreFilterDestroy(_filter_t* filter)
-{
-   if (filter->slot[0]->data)
-   {
-      filter->slot[0]->destroy(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
-   }
-   free(filter);
-
-   return true;
-}
-
 static aaxFilter
 _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
 {
@@ -118,6 +105,7 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
+         filter->slot[0]->data_size = 0;
          filter->slot[0]->data = NULL;
       }
       break;
@@ -179,13 +167,13 @@ _aaxDynamicTimbreFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxDynamicTimbreFilter =
 {
    "AAX_dynamic_layer_filter", VERSION,
-   (_aaxFilterCreate*)&_aaxDynamicTimbreFilterCreate,
-   (_aaxFilterDestroy*)&_aaxDynamicTimbreFilterDestroy,
-   (_aaxFilterReset*)&_lfo_reset,
-   (_aaxFilterSetState*)&_aaxDynamicTimbreFilterSetState,
-   (_aaxNewFilterHandle*)&_aaxNewDynamicTimbreFilterHandle,
-   (_aaxFilterConvert*)&_aaxDynamicTimbreFilterSet,
-   (_aaxFilterConvert*)&_aaxDynamicTimbreFilterGet,
-   (_aaxFilterConvert*)&_aaxDynamicTimbreFilterMinMax
+   (_aaxFilterCreateFn*)&_aaxDynamicTimbreFilterCreate,
+   (_aaxFilterDestroyFn*)&_aaxFilterDestroy,
+   (_aaxFilterResetFn*)&_lfo_reset,
+   (_aaxFilterSetStateFn*)&_aaxDynamicTimbreFilterSetState,
+   (_aaxNewFilterHandleFn*)&_aaxNewDynamicTimbreFilterHandle,
+   (_aaxFilterConvertFn*)&_aaxDynamicTimbreFilterSet,
+   (_aaxFilterConvertFn*)&_aaxDynamicTimbreFilterGet,
+   (_aaxFilterConvertFn*)&_aaxDynamicTimbreFilterMinMax
 };
 

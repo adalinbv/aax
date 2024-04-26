@@ -79,12 +79,16 @@ _aaxNewDSPHandle(const aaxConfig config, enum aaxDSPType type, _aax2dProps* p2d,
    return rv;
 }
 
+// Note: If your Destroy function looks exactly like the following code then
+// it's better to reference aaxFilteDestroy or aaxEffectDestroy in the
+// _dsp_function_tbl function table below.
 static int
 _aaxDSPDestroy(_dsp_t* dsp)
 {
    if (dsp->slot[0]->data)
    {
       dsp->slot[0]->destroy(dsp->slot[0]->data);
+      dsp->slot[0]->data_size = 0;
       dsp->slot[0]->data = NULL;
    }
    free(dsp);

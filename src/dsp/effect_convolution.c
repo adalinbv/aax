@@ -36,7 +36,7 @@ static int _convolution_run(const _aaxDriverBackend*, const void*, void*, void*)
 static aaxEffect
 _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 2, DSIZE);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 2, 0);
    aaxEffect rv = NULL;
 
    if (eff)
@@ -49,19 +49,6 @@ _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
       rv = (aaxEffect)eff;
    }
    return rv;
-}
-
-static int
-_aaxConvolutionEffectDestroy(_effect_t* effect)
-{
-   if (effect->slot[0]->data)
-   {
-      effect->slot[0]->destroy(effect->slot[0]->data);
-      effect->slot[0]->data = NULL;
-   }
-   free(effect);
-
-   return true;
 }
 
 static aaxEffect
@@ -154,6 +141,7 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
+         effect->slot[0]->data_size = 0;
          effect->slot[0]->data = NULL;
       }
       break;
@@ -173,7 +161,11 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
    {
       convolution = _aax_aligned_alloc(DSIZE);
       effect->slot[0]->data = convolution;
-      if (convolution) memset(convolution, 0, DSIZE);
+      if (convolution)
+      {
+         memset(convolution, 0, DSIZE);
+         effect->slot[0]->data_size = DSIZE;
+      }
    }
 
    if (convolution && info)
@@ -310,15 +302,15 @@ _aaxConvolutionEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxConvolutionEffect =
 {
    "AAX_convolution_effect", VERSION,
-   (_aaxEffectCreate*)&_aaxConvolutionEffectCreate,
-   (_aaxEffectDestroy*)&_aaxConvolutionEffectDestroy,
+   (_aaxEffectCreateFn*)&_aaxConvolutionEffectCreate,
+   (_aaxEffectDestroyFn*)&_aaxEffectDestroy,
    NULL,
-   (_aaxEffectSetState*)&_aaxConvolutionEffectSetState,
-   (_aaxEffectSetData*)&_aaxConvolutionEffectSetData,
-   (_aaxNewEffectHandle*)&_aaxNewConvolutionEffectHandle,
-   (_aaxEffectConvert*)&_aaxConvolutionEffectSet,
-   (_aaxEffectConvert*)&_aaxConvolutionEffectGet,
-   (_aaxEffectConvert*)&_aaxConvolutionEffectMinMax
+   (_aaxEffectSetStateFn*)&_aaxConvolutionEffectSetState,
+   (_aaxEffectSetDataFn*)&_aaxConvolutionEffectSetData,
+   (_aaxNewEffectHandleFn*)&_aaxNewConvolutionEffectHandle,
+   (_aaxEffectConvertFn*)&_aaxConvolutionEffectSet,
+   (_aaxEffectConvertFn*)&_aaxConvolutionEffectGet,
+   (_aaxEffectConvertFn*)&_aaxConvolutionEffectMinMax
 };
 
 void

@@ -42,19 +42,6 @@ _aaxDynamicGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    return rv;
 }
 
-static int
-_aaxDynamicGainFilterDestroy(_filter_t* filter)
-{
-   if (filter->slot[0]->data)
-   {
-      filter->slot[0]->destroy(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
-   }
-   free(filter);
-
-   return true;
-}
-
 static aaxFilter
 _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
 {
@@ -154,6 +141,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
+         filter->slot[0]->data_size = 0;
          filter->slot[0]->data = NULL;
       }
       break;
@@ -215,13 +203,13 @@ _aaxDynamicGainFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxDynamicGainFilter =
 {
    "AAX_dynamic_gain_filter_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxFilterCreate*)&_aaxDynamicGainFilterCreate,
-   (_aaxFilterDestroy*)&_aaxDynamicGainFilterDestroy,
-   (_aaxFilterReset*)&_lfo_reset,
-   (_aaxFilterSetState*)&_aaxDynamicGainFilterSetState,
-   (_aaxNewFilterHandle*)&_aaxNewDynamicGainFilterHandle,
-   (_aaxFilterConvert*)&_aaxDynamicGainFilterSet,
-   (_aaxFilterConvert*)&_aaxDynamicGainFilterGet,
-   (_aaxFilterConvert*)&_aaxDynamicGainFilterMinMax
+   (_aaxFilterCreateFn*)&_aaxDynamicGainFilterCreate,
+   (_aaxFilterDestroyFn*)&_aaxFilterDestroy,
+   (_aaxFilterResetFn*)&_lfo_reset,
+   (_aaxFilterSetStateFn*)&_aaxDynamicGainFilterSetState,
+   (_aaxNewFilterHandleFn*)&_aaxNewDynamicGainFilterHandle,
+   (_aaxFilterConvertFn*)&_aaxDynamicGainFilterSet,
+   (_aaxFilterConvertFn*)&_aaxDynamicGainFilterGet,
+   (_aaxFilterConvertFn*)&_aaxDynamicGainFilterMinMax
 };
 

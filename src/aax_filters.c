@@ -57,7 +57,7 @@ aaxFilterDestroy(aaxFilter f)
    if (filter)
    {
      _flt_function_tbl *flt = _aaxFilters[filter->type-1];
-      rv = flt->destroy(filter);
+      rv = flt->destroy(f);
    }
    return rv;
 }

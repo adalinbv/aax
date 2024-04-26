@@ -31,6 +31,7 @@ extern "C" {
 #define MAX_CUTOFF		20000.0f
 
 aaxFilter _aaxFilterCreateHandle(_aaxMixerInfo*, enum aaxFilterType, unsigned, size_t);
+bool _aaxFilterDestroy(aaxFilter*);
 
 void _aaxSetDefaultFilter2d(_aaxFilterInfo*, unsigned int, unsigned slot);
 void _aaxSetDefaultFilter3d(_aaxFilterInfo*, unsigned int, unsigned slot);
@@ -59,26 +60,26 @@ _filter_t* get_filter(aaxFilter);
 void reset_filter(_aax2dProps*, enum _aax2dFiltersEffects);
 
 
-typedef aaxFilter _aaxFilterCreate(_aaxMixerInfo*, enum aaxFilterType);
-typedef int _aaxFilterDestroy(_filter_t*);
-typedef void _aaxFilterReset(_filter_t*);
-typedef aaxFilter _aaxFilterSetState(_filter_t*, int);
-typedef _filter_t* _aaxNewFilterHandle(const void*, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
-typedef float _aaxFilterConvert(float, int, unsigned char);
+typedef aaxFilter _aaxFilterCreateFn(_aaxMixerInfo*, enum aaxFilterType);
+typedef bool _aaxFilterDestroyFn(aaxFilter*);
+typedef void _aaxFilterResetFn(_filter_t*);
+typedef aaxFilter _aaxFilterSetStateFn(_filter_t*, int);
+typedef _filter_t* _aaxNewFilterHandleFn(const void*, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
+typedef float _aaxFilterConvertFn(float, int, unsigned char);
 
 typedef struct
 {
    const char *name;
    float version;
-   _aaxFilterCreate *create;
-   _aaxFilterDestroy *destroy;
-   _aaxFilterReset *reset;
-   _aaxFilterSetState *state;
-   _aaxNewFilterHandle *handle;
+   _aaxFilterCreateFn *create;
+   _aaxFilterDestroyFn *destroy;
+   _aaxFilterResetFn *reset;
+   _aaxFilterSetStateFn *state;
+   _aaxNewFilterHandleFn *handle;
 
-   _aaxFilterConvert *set;
-   _aaxFilterConvert *get;
-   _aaxFilterConvert *limit;
+   _aaxFilterConvertFn *set;
+   _aaxFilterConvertFn *get;
+   _aaxFilterConvertFn *limit;
 
 } _flt_function_tbl;
 

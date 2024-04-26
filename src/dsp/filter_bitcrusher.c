@@ -45,19 +45,6 @@ _aaxBitCrusherFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 }
 
 static int
-_aaxBitCrusherFilterDestroy(_filter_t* filter)
-{
-   if (filter->slot[0]->data)
-   {
-      filter->slot[0]->destroy(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
-   }
-   free(filter);
-
-   return true;
-}
-
-static int
 _bitcrusher_reset(void *data)
 {
    _aaxRingBufferBitCrusherData *bitcrush = data;
@@ -244,6 +231,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
+         filter->slot[0]->data_size = 0;
          filter->slot[0]->data = NULL;
       }
       break;
@@ -326,14 +314,14 @@ _aaxBitCrusherFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxBitCrusherFilter =
 {
    "AAX_bitcrusher_filter_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxFilterCreate*)&_aaxBitCrusherFilterCreate,
-   (_aaxFilterDestroy*)&_aaxBitCrusherFilterDestroy,
-   (_aaxFilterReset*)&_bitcrusher_reset,
-   (_aaxFilterSetState*)&_aaxBitCrusherFilterSetState,
-   (_aaxNewFilterHandle*)&_aaxNewBitCrusherFilterHandle,
-   (_aaxFilterConvert*)&_aaxBitCrusherFilterSet,
-   (_aaxFilterConvert*)&_aaxBitCrusherFilterGet,
-   (_aaxFilterConvert*)&_aaxBitCrusherFilterMinMax
+   (_aaxFilterCreateFn*)&_aaxBitCrusherFilterCreate,
+   (_aaxFilterDestroyFn*)&_aaxFilterDestroy,
+   (_aaxFilterResetFn*)&_bitcrusher_reset,
+   (_aaxFilterSetStateFn*)&_aaxBitCrusherFilterSetState,
+   (_aaxNewFilterHandleFn*)&_aaxNewBitCrusherFilterHandle,
+   (_aaxFilterConvertFn*)&_aaxBitCrusherFilterSet,
+   (_aaxFilterConvertFn*)&_aaxBitCrusherFilterGet,
+   (_aaxFilterConvertFn*)&_aaxBitCrusherFilterMinMax
 };
 
 int

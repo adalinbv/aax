@@ -66,19 +66,6 @@ _aaxDelayEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    return rv;
 }
 
-static int
-_aaxDelayEffectDestroy(_effect_t* effect)
-{
-   if (effect->slot[0]->data)
-   {
-      effect->slot[0]->destroy(effect->slot[0]->data);
-      effect->slot[0]->data = NULL;
-   }
-   free(effect);
-
-   return true;
-}
-
 static aaxEffect
 _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float feedback_gain, float max_delay)
 {
@@ -130,7 +117,6 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
          float fs = 48000.0f;
          int t, constant;
 
-         effect->slot[0]->data_size = DSIZE;
          if (effect->info) {
             fs = effect->info->frequency;
          }
@@ -324,6 +310,7 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
+         effect->slot[0]->data_size = 0;
          effect->slot[0]->data = NULL;
       }
       break;
@@ -442,15 +429,15 @@ _aaxDelayEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxDelayLineEffect =
 {
    "AAX_delay_effect_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxEffectCreate*)&_aaxDelayEffectCreate,
-   (_aaxEffectDestroy*)&_aaxDelayEffectDestroy,
-   (_aaxEffectReset*)&_delay_reset,
-   (_aaxEffectSetState*)&_aaxDelayLineEffectSetState,
+   (_aaxEffectCreateFn*)&_aaxDelayEffectCreate,
+   (_aaxEffectDestroyFn*)&_aaxEffectDestroy,
+   (_aaxEffectResetFn*)&_delay_reset,
+   (_aaxEffectSetStateFn*)&_aaxDelayLineEffectSetState,
    NULL,
-   (_aaxNewEffectHandle*)&_aaxNewDelayEffectHandle,
-   (_aaxEffectConvert*)&_aaxDelayEffectSet,
-   (_aaxEffectConvert*)&_aaxDelayEffectGet,
-   (_aaxEffectConvert*)&_aaxDelayEffectMinMax
+   (_aaxNewEffectHandleFn*)&_aaxNewDelayEffectHandle,
+   (_aaxEffectConvertFn*)&_aaxDelayEffectSet,
+   (_aaxEffectConvertFn*)&_aaxDelayEffectGet,
+   (_aaxEffectConvertFn*)&_aaxDelayEffectMinMax
 };
 
 /* -- Chorus ---------------------------------------------------------------- */
@@ -548,15 +535,15 @@ _aaxChorusEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxChorusEffect =
 {
    "AAX_chorus_effect_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxEffectCreate*)&_aaxDelayEffectCreate,
-   (_aaxEffectDestroy*)&_aaxDelayEffectDestroy,
-   (_aaxEffectReset*)&_delay_reset,
-   (_aaxEffectSetState*)&_aaxChorusEffectSetState,
+   (_aaxEffectCreateFn*)&_aaxDelayEffectCreate,
+   (_aaxEffectDestroyFn*)&_aaxEffectDestroy,
+   (_aaxEffectResetFn*)&_delay_reset,
+   (_aaxEffectSetStateFn*)&_aaxChorusEffectSetState,
    NULL,
-   (_aaxNewEffectHandle*)&_aaxNewDelayEffectHandle,
-   (_aaxEffectConvert*)&_aaxChorusEffectSet,
-   (_aaxEffectConvert*)&_aaxChorusEffectGet,
-   (_aaxEffectConvert*)&_aaxChorusEffectMinMax
+   (_aaxNewEffectHandleFn*)&_aaxNewDelayEffectHandle,
+   (_aaxEffectConvertFn*)&_aaxChorusEffectSet,
+   (_aaxEffectConvertFn*)&_aaxChorusEffectGet,
+   (_aaxEffectConvertFn*)&_aaxChorusEffectMinMax
 };
 
 /* -- Phasing --------------------------------------------------------------- */
@@ -624,15 +611,15 @@ _aaxPhasingEffectSet(float val, int ptype, unsigned char param)
 _eff_function_tbl _aaxPhasingEffect =
 {
    "AAX_phasing_effect_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxEffectCreate*)&_aaxDelayEffectCreate,
-   (_aaxEffectDestroy*)&_aaxDelayEffectDestroy,
-   (_aaxEffectReset*)&_delay_reset,
-   (_aaxEffectSetState*)&_aaxChorusEffectSetState,
+   (_aaxEffectCreateFn*)&_aaxDelayEffectCreate,
+   (_aaxEffectDestroyFn*)&_aaxEffectDestroy,
+   (_aaxEffectResetFn*)&_delay_reset,
+   (_aaxEffectSetStateFn*)&_aaxChorusEffectSetState,
    NULL,
-   (_aaxNewEffectHandle*)&_aaxNewDelayEffectHandle,
-   (_aaxEffectConvert*)&_aaxPhasingEffectSet,
-   (_aaxEffectConvert*)&_aaxPhasingEffectGet,
-   (_aaxEffectConvert*)&_aaxChorusEffectMinMax
+   (_aaxNewEffectHandleFn*)&_aaxNewDelayEffectHandle,
+   (_aaxEffectConvertFn*)&_aaxPhasingEffectSet,
+   (_aaxEffectConvertFn*)&_aaxPhasingEffectGet,
+   (_aaxEffectConvertFn*)&_aaxChorusEffectMinMax
 };
 
 /* -- Flanger --------------------------------------------------------------- */
@@ -653,15 +640,15 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
 _eff_function_tbl _aaxFlangingEffect =
 {
    "AAX_flanging_effect_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxEffectCreate*)&_aaxDelayEffectCreate,
-   (_aaxEffectDestroy*)&_aaxDelayEffectDestroy,
-   (_aaxEffectReset*)&_delay_reset,
-   (_aaxEffectSetState*)&_aaxFlangingEffectSetState,
+   (_aaxEffectCreateFn*)&_aaxDelayEffectCreate,
+   (_aaxEffectDestroyFn*)&_aaxEffectDestroy,
+   (_aaxEffectResetFn*)&_delay_reset,
+   (_aaxEffectSetStateFn*)&_aaxFlangingEffectSetState,
    NULL,
-   (_aaxNewEffectHandle*)&_aaxNewDelayEffectHandle,
-   (_aaxEffectConvert*)&_aaxChorusEffectSet,
-   (_aaxEffectConvert*)&_aaxChorusEffectGet,
-   (_aaxEffectConvert*)&_aaxChorusEffectMinMax
+   (_aaxNewEffectHandleFn*)&_aaxNewDelayEffectHandle,
+   (_aaxEffectConvertFn*)&_aaxChorusEffectSet,
+   (_aaxEffectConvertFn*)&_aaxChorusEffectGet,
+   (_aaxEffectConvertFn*)&_aaxChorusEffectMinMax
 };
 
 /* -------------------------------------------------------------------------- */
@@ -678,7 +665,7 @@ _delay_create(void *d, void *i, bool feedback, int state, float delay_time)
 
    if (data == NULL)
    {
-      data  = _aax_aligned_alloc(DSIZE);
+      data = _aax_aligned_alloc(DSIZE);
       if (data) memset(data, 0, DSIZE);
    }
 
@@ -817,8 +804,8 @@ _delay_destroy(void *ptr)
          _freqfilter_destroy(data->freq_filter);
          data->freq_filter = NULL;
       }
+      _aax_aligned_free(data);
    }
-   _aax_dsp_destroy(ptr);
 }
 
 static void
