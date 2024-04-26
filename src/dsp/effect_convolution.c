@@ -220,7 +220,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
             no_samples += convolution->no_samples;
 
-            if (convolution->sample_ptr) _aax_aligned_free(convolution->sample_ptr);
+            if (convolution->sample_ptr) free(convolution->sample_ptr);
             convolution->sample_ptr = data;
             convolution->sample = *data;
 
