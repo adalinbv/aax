@@ -230,8 +230,12 @@ _aaxGetSIMDSupportLevel()
       init = false;
       rv = _aaxArchDetectFeatures();
 
-      support_simd = _info->capabilities & 0xF00;
-      support_simd256 = _info->capabilities & (AAX_SIMD256|AAX_SIMD256_2);
+      if (_info)
+      {
+         support_simd = _info->capabilities & 0xF00;
+         support_simd256 = _info->capabilities & (AAX_SIMD256|AAX_SIMD256_2);
+      }
+
       if (_aax_arch_capabilities & AAX_ARCH_VFPV3)
       {
          _aax_generate_waveform_float = _aax_generate_waveform_vfpv3;
