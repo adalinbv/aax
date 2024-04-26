@@ -136,6 +136,7 @@ extern _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX];
 
 #define _FILTER_SWAP_SLOT_DATA(P, t, F, s) do {                                \
  if (F->slot[s]->swap) F->slot[s]->swap(&P->filter[t], F->slot[s]);            \
+ P->filter[t].destroy = F->slot[s]->destroy;                                   \
  if (!s) aaxFilterSetState(F, P->filter[t].state); } while (0)
 
 #define _FILTER_SWAP_SLOT(P, t, F, s)                                          \

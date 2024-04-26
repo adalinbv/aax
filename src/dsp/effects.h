@@ -141,6 +141,7 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 
 #define _EFFECT_SWAP_SLOT_DATA(P, t, E, s) do {                                \
  if (E->slot[s]->swap) E->slot[s]->swap(&P->effect[t], E->slot[s]);            \
+ P->effect[t].destroy = E->slot[s]->destroy;                                   \
  if (!s) aaxEffectSetState(E, P->effect[t].state); } while (0)
 
 #define _EFFECT_SWAP_SLOT(P, t, E, s)                                          \
