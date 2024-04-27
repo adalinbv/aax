@@ -159,9 +159,12 @@ aaxAudioFrameDestroy(aaxFrame frame)
 
    if (rv)
    {
+      _aaxAudioFrame* fmixer = handle->submix;
       int i;
 
-      _aaxAudioFrame* fmixer = handle->submix;
+      _aaxMutexLock(handle->mutex);
+      _FILTER_FREE_DATA(fmixer, EQUALIZER_LF);
+      _aaxMutexDestroy(handle->mutex);
 
       for (i=0; i<MAX_STEREO_FILTER; ++i) {
          _FILTER_FREE2D_DATA(fmixer, i);
@@ -193,15 +196,6 @@ aaxAudioFrameDestroy(aaxFrame frame)
                    _aaxRingBufferFree);
       if (fmixer->ringbuffer) {
          _aaxRingBufferFree(fmixer->ringbuffer);
-      }
-
-      /* frees EQUALIZER_LF, EQUALIZER_MF and EQUALIZER_HF */
-      if (fmixer->filter[0].data)
-      {
-         if (fmixer->filter[EQUALIZER_LF].data) {
-            _aaxMutexDestroy(handle->mutex);
-         }
-         _FILTER_FREE_DATA(fmixer, EQUALIZER_LF);
       }
 
       /* safeguard against using already destroyed handles */
@@ -516,10 +510,12 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          break;
 //    case AAX_GRAPHIC_EQUALIZER:
       case AAX_EQUALIZER:
-         handle->mutex = _aaxMutexCreate(NULL);
+         if (!handle->mutex) handle->mutex = _aaxMutexCreate(NULL);
+         _aaxMutexLock(handle->mutex);
          _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_LF, filter, 0);
          _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_MF, filter, 1);
          _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_HF, filter, 2);
+         _aaxMutexUnLock(handle->mutex);
          break;
       case AAX_DISTANCE_FILTER:
          _FILTER_SWAP_SLOT(p3d, type, filter, 0);
