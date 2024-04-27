@@ -267,8 +267,11 @@ _aaxNewBitCrusherFilterHandle(const aaxConfig config, enum aaxFilterType type, _
       rv->slot[0]->swap = _bitcrusher_swap;
 
       bitcrush = (_aaxRingBufferBitCrusherData*)p2d->filter[rv->pos].data;
-      rv->slot[1]->param[AAX_SAMPLE_RATE & 0xF] = bitcrush->fs;
-      rv->slot[1]->param[AAX_STATICITY & 0xF] = bitcrush->staticity;
+      if (bitcrush)
+      {
+         rv->slot[1]->param[AAX_SAMPLE_RATE & 0xF] = bitcrush->fs;
+         rv->slot[1]->param[AAX_STATICITY & 0xF] = bitcrush->staticity;
+      }
       rv->state = p2d->filter[rv->pos].state;
    }
    return rv;
