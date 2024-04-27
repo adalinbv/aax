@@ -111,7 +111,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
                lfo->max = offs + depth;
             }
          }
-         else 
+         else
          {
             lfo->min = offs;
             lfo->max = offs + depth;

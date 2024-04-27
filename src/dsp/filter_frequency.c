@@ -123,7 +123,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          {
             float lfc2 = _lin2log(fmax);
             float lfc1 = _lin2log(fc);
-            
+
             lfc2 -= 0.1f*(lfc2 - lfc1)*_aax_random();
             fmax = _log2lin(lfc2);
 

@@ -290,7 +290,7 @@ _aaxDistNone(UNUSED(void *data))
  *
  * Lp = sound pressure level (dB)
  * Ln = sound power level source in decibel (dB)
- * Q = Q coefficient 
+ * Q = Q coefficient
  *     1 if uniform spherical
  *     2 if uniform half spherical (single reflecting surface)
  *     4 if uniform radiation over 1/4 sphere (two reflecting surfaces, corner)

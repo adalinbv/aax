@@ -138,14 +138,14 @@ _aaxNewDynamicPitchEffectHandle(const aaxConfig config, enum aaxEffectType type,
 
 static float
 _aaxDynamicPitchEffectSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
-{  
+{
    float rv = val;
    return rv;
 }
-   
+
 static float
 _aaxDynamicPitchEffectGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
-{  
+{
    float rv = val;
    return rv;
 }
@@ -160,10 +160,10 @@ _aaxDynamicPitchEffectMinMax(float val, int slot, unsigned char param)
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } },
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } }
    };
-   
+
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
-   
+
    return _MINMAX(val, _aaxDynamicPitchRange[slot].min[param],
                        _aaxDynamicPitchRange[slot].max[param]);
 }

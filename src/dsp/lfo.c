@@ -521,7 +521,7 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
          lfo->value[track] += 0.5f*step;
       }
       else
-      {  
+      {
          rv = (lfo->value[track] - lfo->min)/max;
          rv = _aaxLFODelay(lfo, rv);
 

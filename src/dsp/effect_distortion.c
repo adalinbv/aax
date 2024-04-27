@@ -252,14 +252,14 @@ _aaxNewDistortionEffectHandle(const aaxConfig config, enum aaxEffectType type, _
 
 static float
 _aaxDistortionEffectSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
-{  
+{
    float rv = val;
    return rv;
 }
-   
+
 static float
 _aaxDistortionEffectGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
-{  
+{
    float rv = val;
    return rv;
 }
@@ -274,10 +274,10 @@ _aaxDistortionEffectMinMax(float val, int slot, unsigned char param)
     { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f,  0.0f,  0.0f } },
     { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f,  0.0f,  0.0f } }
    };
-   
+
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
-   
+
    return _MINMAX(val, _aaxDistortionRange[slot].min[param],
                        _aaxDistortionRange[slot].max[param]);
 }
@@ -386,7 +386,7 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       rbd->multiply(dptr, dptr, bps, no_samples, mix_factor);
       if (mix < 0.99f) {
          rbd->add(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
-      }  
+      }
 
       rv = true;
    }

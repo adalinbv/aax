@@ -170,7 +170,7 @@ _aaxNewDynamicGainFilterHandle(const aaxConfig config, enum aaxFilterType type, 
    _filter_t* rv = _aaxFilterCreateHandle(info, type, 1, 0);
 
    if (rv)
-   { 
+   {
       _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
       rv->slot[0]->destroy = _lfo_destroy;
       rv->state = p2d->filter[rv->pos].state;
@@ -202,10 +202,10 @@ _aaxDynamicGainFilterMinMax(float val, int slot, unsigned char param)
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } },
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } }
    };
-   
+
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
-   
+
    return _MINMAX(val, _aaxDynamicGainRange[slot].min[param],
                        _aaxDynamicGainRange[slot].max[param]);
 }

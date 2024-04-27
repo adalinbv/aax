@@ -135,14 +135,14 @@ _aaxVolumeFilterMinMax(float val, int slot, unsigned char param)
   static const _flt_minmax_tbl_t _aaxVolumeRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
     { { 0.0f, 0.0f, 0.0f, 0.0f }, {   10.0f,    1.0f,    10.0f, 10.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { FLT_MAX, FLT_MAX,  FLT_MAX,  1.0f } }, 
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { FLT_MAX, FLT_MAX,  FLT_MAX,  1.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,    0.0f,     0.0f,  0.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,    0.0f,     0.0f,  0.0f } }
    };
-   
+
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
-   
+
    return _MINMAX(val, _aaxVolumeRange[slot].min[param],
                        _aaxVolumeRange[slot].max[param]);
 }
@@ -180,7 +180,7 @@ _occlusion_lfo(void* data, UNUSED(void *env), UNUSED(const void *ptr), UNUSED(un
 
   gain = occlusion->gain;
   occlusion->freq_filter.low_gain = gain;
-  
+
   rv = _linear(1.0f - gain, lfo);
 
   return rv;
@@ -254,10 +254,10 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
             lfo->state = true;
             lfo->fs = fs;
             lfo->period_rate = 1.0f/fs;
-         
+
             lfo->min = 100.0f;
             lfo->max = MAX_CUTOFF;
-         
+
             lfo->min_sec = lfo->min/lfo->fs;
             lfo->max_sec = lfo->max/lfo->fs;
             lfo->depth = 1.0f;

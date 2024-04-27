@@ -166,14 +166,14 @@ _aaxNewModulatorEffectHandle(const aaxConfig config, enum aaxEffectType type, _a
 
 static float
 _aaxModulatorEffectSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
-{  
+{
    float rv = val;
    return rv;
 }
-   
+
 static float
 _aaxModulatorEffectGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
-{  
+{
    float rv = val;
    return rv;
 }
@@ -188,10 +188,10 @@ _aaxModulatorEffectMinMax(float val, int slot, unsigned char param)
     { { 0.0f,   0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,     0.0f,     0.0f } },
     { { 0.0f,   0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,     0.0f,     0.0f } }
    };
-   
+
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
-   
+
    return _MINMAX(val, _aaxModulatorRange[slot].min[param],
                        _aaxModulatorRange[slot].max[param]);
 }
