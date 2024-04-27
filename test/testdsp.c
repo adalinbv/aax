@@ -3,7 +3,10 @@
 #include <stdlib.h>
 #include <aax/aax.h>
 
-#define TRY(a) if ((a) == 0) { printf("%i: %s\n", __LINE__, aaxGetErrorString(aaxGetErrorNo())); exit(-1); }
+#define TRY(a) if ((a) == 0) { \
+  printf("%i: %s\n", __LINE__, aaxGetErrorString(aaxGetErrorNo())); \
+  aaxDriverDestroy(config); exit(-1); \
+}
 
 static const char* aaxs = \
 " <aeonwave>					\
@@ -25,6 +28,13 @@ int main()
       aaxFrame frame;
       int i;
 
+      for (int i=AAX_EQUALIZER; i<AAX_FILTER_MAX; ++i) {
+         aaxFilterDestroy(aaxMixerGetFilter(config, i));
+      }
+      for (int i=AAX_PITCH_EFFECT; i<AAX_EFFECT_MAX; ++i) {
+         aaxEffectDestroy(aaxMixerGetEffect(config, i));
+      }
+
       TRY( buffer = aaxBufferCreate(config, 1, 1, AAX_AAXS16S) );
       TRY( aaxBufferSetSetup(buffer, AAX_FREQUENCY, 22050.0f) );
       TRY( aaxBufferSetData(buffer, aaxs) );
@@ -36,10 +46,24 @@ int main()
       TRY( aaxEmitterAddBuffer(emitter, buffer) );
       TRY( aaxEmitterSetState(emitter, AAX_PLAYING) );
 
+      for (int i=AAX_EQUALIZER; i<AAX_FILTER_MAX; ++i) {
+         aaxFilterDestroy(aaxEmitterGetFilter(emitter, i));
+      }
+      for (int i=AAX_PITCH_EFFECT; i<AAX_EFFECT_MAX; ++i) {
+         aaxEffectDestroy(aaxEmitterGetEffect(emitter, i));
+      }
+
       TRY( frame = aaxAudioFrameCreate(config) );
       TRY( aaxAudioFrameSetState(frame, AAX_PLAYING) );
       TRY( aaxMixerRegisterAudioFrame(config, frame) );
       TRY( aaxAudioFrameRegisterEmitter(frame, emitter) );
+
+      for (int i=AAX_EQUALIZER; i<AAX_FILTER_MAX; ++i) {
+         aaxFilterDestroy(aaxAudioFrameGetFilter(frame, i));
+      }
+      for (int i=AAX_PITCH_EFFECT; i<AAX_EFFECT_MAX; ++i) {
+         aaxEffectDestroy(aaxAudioFrameGetEffect(frame, i));
+      }
 
       for (i=AAX_VOLUME_FILTER; i<AAX_GRAPHIC_EQUALIZER; i++)
       {
@@ -141,6 +165,7 @@ int main()
 
          if (i == AAX_TIMED_PITCH_EFFECT) continue;
          if (i == AAX_VELOCITY_EFFECT) break;
+         if (i == AAX_CONVOLUTION_EFFECT) break;
 
          printf("frame effect: %-32s: ", aaxEffectGetNameByType(config, i));
          TRY( effect = aaxEffectCreate(config, i) );
@@ -269,7 +294,7 @@ int main()
 
       TRY( aaxEmitterSetState(emitter, AAX_PROCESSED) );
       TRY( aaxAudioFrameSetState(frame, AAX_STOPPED) );
-      TRY( aaxMixerSetState(config, AAX_STOPPED) );
+//    TRY( aaxMixerSetState(config, AAX_STOPPED) );
 
       TRY( aaxAudioFrameDeregisterEmitter(frame, emitter) );
       TRY( aaxMixerDeregisterAudioFrame(config, frame) );
