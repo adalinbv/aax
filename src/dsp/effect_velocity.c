@@ -30,7 +30,7 @@ static aaxEffect _aaxVelocityEffectSetState(_effect_t*, int state);
 static aaxEffect
 _aaxVelocityEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, DSIZE);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, 0);
    aaxEffect rv = NULL;
 
    if (eff)
