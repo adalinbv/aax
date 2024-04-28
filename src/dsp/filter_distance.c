@@ -100,7 +100,7 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
    {
       _aaxRingBufferDistanceData *data;
 
-      _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
+      _aax_dsp_copy(rv->slot[0], &p3d->filter[rv->pos]);
 
       data = rv->slot[0]->data;
       data->prev.unit_m = rv->info->unit_m;

@@ -63,19 +63,23 @@ _aaxNewVelocityEffectHandle(const aaxConfig config, enum aaxEffectType type, UNU
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, DSIZE);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, 0);
 
    if (rv)
    {
-      _aaxRingBufferVelocityEffectData *data = rv->slot[0]->data;
+      _aaxRingBufferVelocityEffectData *data;
 
-      data->dopplerfn = _aaxDopplerFn[0];
-      data->prepare = _velocity_prepare;
-      data->run = _velocity_run;
-
-      _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
+      _aax_dsp_copy(rv->slot[0], &p3d->effect[rv->pos]);
       rv->slot[0]->destroy = _velocity_destroy;
       rv->slot[0]->swap = _velocity_swap;
+
+      data = rv->slot[0]->data;
+      if (data)
+      {
+         data->dopplerfn = _aaxDopplerFn[0];
+         data->prepare = _velocity_prepare;
+         data->run = _velocity_run;
+      }
 
       rv->state = p3d->effect[rv->pos].state;
       if (_EFFECT_GET_UPDATED(p3d, rv->pos)) {
@@ -112,7 +116,7 @@ _aaxVelocityEffectMinMax(float val, int slot, unsigned char param)
 
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
- 
+
    return _MINMAX(val, _aaxVelocityRange[slot].min[param],
                        _aaxVelocityRange[slot].max[param]);
 }

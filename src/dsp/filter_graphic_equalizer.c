@@ -39,7 +39,7 @@ static void _grapheq_swap(void*,void*);
 static aaxFilter
 _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX, DSIZE);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX, 0);
    aaxFilter rv = NULL;
 
    if (flt)

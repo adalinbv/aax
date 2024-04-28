@@ -76,7 +76,7 @@ _aaxVolumeFilterSetState(_filter_t* filter, int state)
 }
 
 static _filter_t*
-_aaxNewVolumeFilterHandle(const aaxConfig config, enum aaxFilterType type, UNUSED(_aax2dProps* p2d), _aax3dProps* p3d)
+_aaxNewVolumeFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
@@ -86,8 +86,9 @@ _aaxNewVolumeFilterHandle(const aaxConfig config, enum aaxFilterType type, UNUSE
    {
       _aaxRingBufferOcclusionData *occlusion;
 
-      occlusion = (_aaxRingBufferOcclusionData*)p2d->effect[rv->pos].data;
+      occlusion = (_aaxRingBufferOcclusionData*)p3d->effect[rv->pos].data;
       _occlusion_to_effect(rv->slot[1], occlusion);
+
       _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
       rv->slot[0]->destroy = _occlusion_destroy;
       rv->slot[0]->swap = _occlusion_swap;

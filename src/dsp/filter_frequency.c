@@ -367,16 +367,21 @@ _freqfilter_reset(void *data)
 void
 _freqfilter_data_swap( _aaxRingBufferFreqFilterData *dflt, _aaxRingBufferFreqFilterData *sflt)
 {
-   _lfo_swap(dflt->lfo, sflt->lfo);
-   memcpy(dflt->coeff, sflt->coeff, sizeof(float[4*_AAX_MAX_STAGES]));
-   dflt->Q = sflt->Q;
-   dflt->k = sflt->k;
-   dflt->fs = sflt->fs;
-   dflt->high_gain = sflt->high_gain;
-   dflt->low_gain = sflt->low_gain;
-   dflt->state = sflt->state;
-   dflt->no_stages = sflt->no_stages;
-   dflt->type = sflt->type;
+   if (dflt && sflt)
+   {
+      if (dflt->lfo && sflt->lfo) {
+         _lfo_swap(dflt->lfo, sflt->lfo);
+      }
+      memcpy(dflt->coeff, sflt->coeff, sizeof(float[4*_AAX_MAX_STAGES]));
+      dflt->Q = sflt->Q;
+      dflt->k = sflt->k;
+      dflt->fs = sflt->fs;
+      dflt->high_gain = sflt->high_gain;
+      dflt->low_gain = sflt->low_gain;
+      dflt->state = sflt->state;
+      dflt->no_stages = sflt->no_stages;
+      dflt->type = sflt->type;
+   }
 }
 
 void

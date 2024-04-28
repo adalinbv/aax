@@ -85,8 +85,8 @@ enum _aax2dFiltersEffects
      * filters blow and hence do not interfere with eachtoher.
      */
     EQUALIZER_LF = 0,
-    EQUALIZER_MF,
     EQUALIZER_HF,
+    EQUALIZER_MF,
     HRTF_HEADSHADOW,
     SURROUND_CROSSOVER_LP = HRTF_HEADSHADOW,
     EQUALIZER_MAX,

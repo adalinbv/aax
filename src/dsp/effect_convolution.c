@@ -241,7 +241,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 }
 
 _effect_t*
-_aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
+_aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
@@ -249,12 +249,18 @@ _aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, 
 
    if (rv)
    {
-      _aax_dsp_copy(rv->slot[1], &p2d->effect[rv->pos]);
+      _aaxRingBufferConvolutionData *convolution;
+
       _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
       rv->slot[0]->destroy = _convolution_destroy;
       rv->slot[0]->swap = _convolution_swap;
 
-      rv->state = p2d->effect[rv->pos].state;
+      convolution = p3d->effect[rv->pos].data;
+      if (convolution) {
+         _occlusion_to_effect(rv->slot[1], convolution->occlusion);
+      }
+
+      rv->state = p3d->effect[rv->pos].state;
    }
    return rv;
 }

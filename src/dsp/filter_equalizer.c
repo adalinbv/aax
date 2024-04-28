@@ -35,7 +35,7 @@ static void _equalizer_swap(void*, void*);
 static aaxFilter
 _aaxEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, _AAX_EQFILTERS, DSIZE);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, _AAX_EQFILTERS, 0);
    aaxFilter rv = NULL;
 
    if (flt)
@@ -56,10 +56,11 @@ _aaxEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxEqualizerDestroy(_filter_t* filter)
 {
-   if (filter->slot[EQUALIZER_LF]->data)
+   _aaxRingBufferFreqFilterData *flt = filter->slot[EQUALIZER_LF]->data;
+   if (flt)
    {
       unsigned s;
-      filter->slot[EQUALIZER_LF]->destroy(filter->slot[EQUALIZER_LF]->data);
+      filter->slot[EQUALIZER_LF]->destroy(flt);
       for (s=0; s<_AAX_EQFILTERS; ++s) {
          filter->slot[s]->data = NULL;
       }
@@ -86,6 +87,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 
       if (flt[0] == NULL)
       {
+         // flt[0] holds the data for all slots
          flt[0] = _aax_aligned_alloc(DSIZE);
          if (!flt[0]) return rv;
 

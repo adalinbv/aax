@@ -166,8 +166,6 @@ aaxAudioFrameDestroy(aaxFrame frame)
       _FILTER_FREE_DATA(fmixer, EQUALIZER_LF);
       _aaxMutexDestroy(handle->mutex);
 
-      _FILTER_FREE_DATA(fmixer, EQUALIZER_LF);
-
       for (i=0; i<MAX_STEREO_FILTER; ++i) {
          _FILTER_FREE2D_DATA(fmixer, i);
       }
