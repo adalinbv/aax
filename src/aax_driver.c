@@ -1549,8 +1549,9 @@ _aaxFreeSensor(void *ssr)
       sensor->filter[0] = NULL;
    }
 
-   _aaxMutexDestroy(sensor->mutex);
+   _aaxMutexLock(sensor->mutex);
    _FILTER_FREE_DATA(sensor->mixer, EQUALIZER_LF);
+   _aaxMutexDestroy(sensor->mutex);
    _FILTER_FREE_DATA(sensor->mixer, HRTF_HEADSHADOW);
 
    for (i=0; i<MAX_STEREO_FILTER; ++i) {
