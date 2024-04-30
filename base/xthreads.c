@@ -390,6 +390,7 @@ _aaxThreadSetPriority(_aaxThread *t, int prio)
 }
 
 /** Mutex **/
+#if defined(NDEBUGTHREADS)
 void*
 _aaxMutexCreate(_aaxMutex *m)
 {
@@ -406,6 +407,27 @@ _aaxMutexCreate(_aaxMutex *m)
    }
    return m;
 }
+#else
+void *
+_aaxMutexCreateDebug(_aaxMutex *m, const char *name, const char *fn)
+{
+   if (!m)
+   {
+      m = calloc(1, sizeof(_aaxMutex));
+      if (m)
+      {
+         int status = mtx_init(&m->mutex, mtx_timed|mtx_recursive);
+         if (status == thrd_success) {
+            m->status = AAX_THREAD_INITIALIZED;
+         }
+         m->name = (char *)name;
+         m->function = fn;
+      }
+   }
+
+   return m;
+}
+#endif
 
 void
 _aaxMutexDestroy(_aaxMutex *m)
@@ -418,6 +440,7 @@ _aaxMutexDestroy(_aaxMutex *m)
    }
 }
 
+#if defined(NDEBUGTHREADS)
 int
 _aaxMutexLock(_aaxMutex *m)
 {
@@ -429,6 +452,83 @@ _aaxMutexLock(_aaxMutex *m)
    }
    return r;
 }
+#else
+int
+_aaxMutexLockDebug(_aaxMutex *m, char *file, int line)
+{
+   int r = EINVAL;
+   if (m)
+   {
+      if (m->status == AAX_THREAD_INITIALIZED ||
+          m->status == AAX_THREAD_UNLOCKED ||
+          m->status == AAX_THREAD_LOCKED)
+      {
+         struct timespec to;
+         int res;
+#ifdef __GNUC__
+         unsigned int mtx_count;
+
+         /* only works for recursive locks */
+         pthread_mutex_t *mutex = (pthread_mutex_t*)&m->mutex;
+         mtx_count = mutex->__data.__count;
+         if (mtx_count != 0 && mtx_count != 1) {
+            printf("1. lock mutex = %i\n  %s line %i, for: %s in %s\n"
+                   "last called from: %s line %zu\n", mtx_count, file, line,
+                   m->name, m->function, m->last_file, m->last_line);
+            r = -mtx_count;
+            abort();
+         }
+#endif
+
+         to.tv_sec = time(NULL) + DEBUG_TIMEOUT;
+         to.tv_nsec = 0;
+
+         res = mtx_timedlock(&m->mutex, &to);
+         if (res == thrd_success) {
+            m->status = AAX_THREAD_LOCKED;
+         }
+         else if (res == thrd_timedout)
+         {
+            printf("mutex timed out after %i seconds\n  %s line %i\n"
+                   "  last call from\n  %s line %zu\n",
+                   DEBUG_TIMEOUT, file, line,
+                   m->last_file, m->last_line);
+            abort();
+         }
+         else if (res == thrd_busy)
+         {
+            printf("dealock in %s line %i\n", file, line);
+            abort();
+         }
+         else if (res == thrd_error) {
+            printf("mutex lock error %i in %s line %i\n", r, file, line);
+         } else if (res == thrd_nomem) {
+            printf("out of memory error %i in %s line %i\n", r, file, line);
+         }
+
+#ifdef __GNUC__
+         /* only works for recursive locks */
+         mtx_count = mutex->__data.__count;
+         if (mtx_count != 1) {
+            printf("2. lock mutex != 1 (%i)\n  %s line %i, for: %s in %s\n"
+                    "last called from: %s line %zu\n", mtx_count, file,
+                    line, m->name, m->function, m->last_file, m->last_line);
+            r = -mtx_count;
+            abort();
+         }
+#endif
+         m->last_file = file;
+         m->last_line = line;
+      }
+      else
+      {
+         printf("locking an uninitialized mutex in %s line %i\n", file, line);
+         abort();
+      }
+   }
+   return r;
+}
+#endif
 
 int
 _aaxMutexLockTimed(_aaxMutex *m, float dt)
@@ -451,6 +551,7 @@ _aaxMutexLockTimed(_aaxMutex *m, float dt)
    return r;
 }
 
+#if defined(NDEBUGTHREADS)
 int
 _aaxMutexUnLock(_aaxMutex *m)
 {
@@ -462,6 +563,42 @@ _aaxMutexUnLock(_aaxMutex *m)
    }
    return r;
 }
+#else
+int
+_aaxMutexUnLockDebug(_aaxMutex *m, char *file, int line)
+{
+   int r = EINVAL;
+   if (m)
+   {
+# ifdef __GNUC__
+      unsigned int mtx_count;
+      pthread_mutex_t *mutex = (pthread_mutex_t*)&m->mutex;
+      mtx_count = mutex->__data.__count;
+      if (mtx_count != 1) {
+         if (mtx_count == 0) {
+            printf("mutex already unlocked in %s line %i, for: %s\n"
+                    "last called from: %s line %zu\n",
+                     file, line, m->name, m->last_file, m->last_line);
+         } else {
+            printf("unlock mutex != 1 (%i) in %s line %i, for: %s in %s\n"
+                    "last called from: %s line %zu\n",
+                    mtx_count, file, line, m->name, m->function,
+                    m->last_file, m->last_line);
+         }
+         r = -mtx_count;
+         abort();
+      }
+# endif
+
+      r = (mtx_unlock(&m->mutex) != thrd_success);
+      if (!r) m->status = AAX_THREAD_UNLOCKED;
+
+      m->last_file = file;
+      m->last_line = line;
+   }
+   return r;
+}
+#endif
 
 /** Conditions/Signals **/
 _aaxSignal*

@@ -102,7 +102,7 @@ int _aaxThreadJoin(_aaxThread*);
    ((a) == AAX_THREAD_UNLOCKED) ? "unlocked" : \
     ((a) == AAX_THREAD_DESTROYED) ? "destroyed" : "unkown"
 typedef struct _aaxMutex
-{ 
+{
    int status;
    mtx_t mutex;
 
@@ -114,9 +114,22 @@ typedef struct _aaxMutex
 #endif
 } _aaxMutex;
 
-void*_aaxMutexCreate(_aaxMutex *);
+#ifndef NDEBUGTHREADS
+void *_aaxMutexCreateDebug(_aaxMutex *, const char *, const char *);
+int _aaxMutexUnLockDebug(_aaxMutex *, char *, int);
+# define _aaxMutexCreate(a) _aaxMutexCreateDebug(a, __FILE__, __func__)
+# define _aaxMutexLock(a) _aaxMutexLockDebug(a, __FILE__, __LINE__)
+# define _aaxMutexUnLock(a) _aaxMutexUnLockDebug(a, __FILE__, __LINE__)
+#else
+# ifdef TIMED_MUTEX
+#  define _aaxMutexLock(a) _aaxMutexLockDebug(a, __FILE__, __LINE__)
+# else
 int _aaxMutexLock(_aaxMutex *);
 int _aaxMutexUnLock(_aaxMutex *);
+# endif
+void*_aaxMutexCreate(_aaxMutex *);
+int _aaxMutexLock(_aaxMutex *);
+#endif
 int _aaxMutexLockTimed(_aaxMutex*, float);
 int _aaxMutexLockDebug(_aaxMutex*, char *, int);
 void _aaxMutexDestroy(_aaxMutex*);
