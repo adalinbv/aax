@@ -185,6 +185,13 @@ aaxSceneryGetEffect(aaxConfig config, enum aaxEffectType type)
             rv = new_effect_handle(config, type, mixer->props2d,
                                                  mixer->props3d);
             _intBufReleaseData(dptr, _AAX_SENSOR);
+            if (rv)
+            {
+                _effect_t *eff = (_effect_t*)rv;
+                float unit_m = handle->info->unit_m;
+                float c_mps = _FILTER_GET_SLOT(eff, 0, AAX_LIGHT_VELOCITY);
+               _FILTER_SET_SLOT(eff, 0, AAX_LIGHT_VELOCITY, c_mps/unit_m);
+            }
          }
          break;
       default:
