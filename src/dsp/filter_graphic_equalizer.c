@@ -39,7 +39,7 @@ static void _grapheq_swap(void*,void*);
 static aaxFilter
 _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX, 0);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, _MAX_GRAPH_EQ, 0);
    aaxFilter rv = NULL;
 
    if (flt)
@@ -207,7 +207,7 @@ _aaxNewGraphicEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX, 0);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, _MAX_GRAPH_EQ, 0);
 
    if (rv)
    {

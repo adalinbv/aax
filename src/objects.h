@@ -419,7 +419,7 @@ typedef struct
    bool capturing;
 
    /* parametric and graphic equalizer **/
-   _aaxFilterInfo filter[EQUALIZER_MAX];
+   _aaxFilterInfo filter[MAX_FILTERS];
  
 } _aaxAudioFrame;
 

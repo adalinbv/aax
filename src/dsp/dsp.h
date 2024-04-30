@@ -35,6 +35,7 @@ void _freqfilter_data_swap( _aaxRingBufferFreqFilterData *dflt, _aaxRingBufferFr
 void _freqfilter_destroy(void*);
 
 // equalizers
+void _equalizer_swap(void*, void*);
 int _equalizer_run(void*, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, void*, void*, void*);
 int _grapheq_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, _aaxRingBufferEqualizerData*);
 

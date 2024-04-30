@@ -89,7 +89,10 @@ enum _aax2dFiltersEffects
     EQUALIZER_MF,
     HRTF_HEADSHADOW,
     SURROUND_CROSSOVER_LP = HRTF_HEADSHADOW,
-    EQUALIZER_MAX,
+    MAX_FILTERS,
+
+    _MAX_GRAPH_EQ = 2,
+    _MAX_PARAM_EQ,
 
     /* stereo filters */
     VOLUME_FILTER = 0,		// must be the same as OCCLUSION_FILTER
@@ -110,7 +113,7 @@ enum _aax2dFiltersEffects
     DELAY_EFFECT,               /* phasing, chorus or flanging  */
     RINGMODULATE_EFFECT,
     DELAY_LINE_EFFECT,		/* delay-line  */
-    MAX_STEREO_EFFECT,
+    MAX_STEREO_EFFECT
 };
 
 enum _aaxLimiterType

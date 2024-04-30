@@ -27,22 +27,20 @@
 #include "api.h"
 
 #define VERSION	1.1
-#define DSIZE	_AAX_EQFILTERS*(sizeof(_aaxRingBufferFreqFilterData)+MEMALIGN)
-#define EQBANDS	(_AAX_EQFILTERS+1)
-
-static void _equalizer_swap(void*, void*);
+#define DSIZE	_MAX_PARAM_EQ*(sizeof(_aaxRingBufferFreqFilterData)+MEMALIGN)
+#define EQBANDS	(_MAX_PARAM_EQ+1)
 
 static aaxFilter
 _aaxEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, _AAX_EQFILTERS, 0);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, _MAX_PARAM_EQ, 0);
    aaxFilter rv = NULL;
 
    if (flt)
    {
       unsigned s;
 
-      for (s=0; s<_AAX_EQFILTERS; ++s)
+      for (s=0; s<_MAX_PARAM_EQ; ++s)
       {
          _aaxSetDefaultFilter2d(flt->slot[s], flt->pos, s);
          flt->slot[s]->swap = _equalizer_swap;
@@ -61,7 +59,7 @@ _aaxEqualizerDestroy(_filter_t* filter)
    {
       unsigned s;
       filter->slot[EQUALIZER_LF]->destroy(flt);
-      for (s=0; s<_AAX_EQFILTERS; ++s) {
+      for (s=0; s<_MAX_PARAM_EQ; ++s) {
          filter->slot[s]->data = NULL;
       }
    }
@@ -78,7 +76,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 
    if (state == true)
    {
-      _aaxRingBufferFreqFilterData *flt[_AAX_EQFILTERS];
+      _aaxRingBufferFreqFilterData *flt[_MAX_PARAM_EQ];
       unsigned s;
 
       flt[0] = filter->slot[EQUALIZER_LF]->data;
@@ -98,7 +96,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 
       if (!flt[0]->freqfilter)
       {
-         size_t dsize= _AAX_EQFILTERS*(sizeof(_aaxRingBufferFreqFilterHistoryData)+MEMALIGN);
+         size_t dsize= _MAX_PARAM_EQ*(sizeof(_aaxRingBufferFreqFilterHistoryData)+MEMALIGN);
          flt[0]->freqfilter = _aax_aligned_alloc(dsize);
          if (flt[0]->freqfilter) {
             memset(flt[0]->freqfilter, 0, dsize);
@@ -115,7 +113,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          size_t tmp;
          char *ptr;
 
-         for (s=1; s<_AAX_EQFILTERS; ++s)
+         for (s=1; s<_MAX_PARAM_EQ; ++s)
          {
             ptr = (char*)flt[s-1];
             ptr += sizeof(_aaxRingBufferFreqFilterData);
@@ -147,7 +145,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          float gain[EQBANDS], gprev;
 
          gprev = fabsf(filter->slot[0]->param[AAX_LF_GAIN]);
-         for (s=0; s<_AAX_EQFILTERS; ++s)
+         for (s=0; s<_MAX_PARAM_EQ; ++s)
          {
             float fc;
 
@@ -157,7 +155,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             {
                int i;
 
-               for (i=s; i<_AAX_EQFILTERS; ++i) {
+               for (i=s; i<_MAX_PARAM_EQ; ++i) {
                   gain[i] = gprev;
                }
                s = i;
@@ -176,7 +174,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          if (fabsf(gain[s] - 1.0f) < LEVEL_128DB) gain[s] = 1.0f;
          else if (gain[s] < LEVEL_128DB) gain[s] = 0.0f;
 
-         for (s=0; s<_AAX_EQFILTERS; ++s)
+         for (s=0; s<_MAX_PARAM_EQ; ++s)
          {
             float fc = filter->slot[s]->param[AAX_CUTOFF_FREQUENCY];
             int lp = (gain[s] >= gain[s+1]) ? true : false;
@@ -200,7 +198,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             _aax_butterworth_compute(fc, flt[s]);
          }
 #if 0
- for (s=0; s<_AAX_EQFILTERS; ++s) {
+ for (s=0; s<_MAX_PARAM_EQ; ++s) {
   if (flt[s]->no_stages) {
    printf("Filter: %i\n", s);
    printf(" Fc: % 7.1f Hz\n", filter->slot[s]->param[AAX_CUTOFF_FREQUENCY]);
@@ -226,7 +224,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          unsigned s;
 
          filter->slot[EQUALIZER_LF]->destroy(filter->slot[EQUALIZER_LF]->data);
-         for (s=0; s<_AAX_EQFILTERS; ++s) {
+         for (s=0; s<_MAX_PARAM_EQ; ++s) {
             filter->slot[s]->data = NULL;
          }
       }
@@ -244,12 +242,12 @@ _aaxNewEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _aax2dPr
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, _AAX_EQFILTERS, 0);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, _MAX_PARAM_EQ, 0);
 
    if (rv)
    {
       unsigned s;
-      for (s=0; s<_AAX_EQFILTERS; ++s)
+      for (s=0; s<_MAX_PARAM_EQ; ++s)
       {
          _aax_dsp_copy(rv->slot[s], &p2d->filter[rv->pos]);
          rv->slot[s]->swap = _equalizer_swap;
@@ -308,7 +306,7 @@ _flt_function_tbl _aaxEqualizer =
    (_aaxFilterConvertFn*)&_aaxEqualizerMinMax
 };
 
-static void
+void
 _equalizer_swap(void *d, void *s)
 {
    _aaxFilterInfo *dst = d, *src = s;
@@ -336,7 +334,7 @@ _equalizer_run(void *rb, MIX_PTR_T dptr, UNUSED(MIX_PTR_T scratch),
                void *data_lf, void *data_mf, void *data_hf)
 {
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
-   _aaxRingBufferFreqFilterData *filter[_AAX_EQFILTERS];
+   _aaxRingBufferFreqFilterData *filter[_MAX_PARAM_EQ];
    int s;
 
    assert(dptr != 0);
@@ -353,7 +351,7 @@ _equalizer_run(void *rb, MIX_PTR_T dptr, UNUSED(MIX_PTR_T scratch),
    dptr += dmin;
    dmax -= dmin;
 
-   for (s=0; s<_AAX_EQFILTERS; ++s) {
+   for (s=0; s<_MAX_PARAM_EQ; ++s) {
       if (filter[s]->no_stages) {
          rbd->freqfilter(dptr, dptr, track, dmax, filter[s]);
       }

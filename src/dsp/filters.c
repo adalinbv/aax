@@ -143,12 +143,12 @@ reset_filter(_aax2dProps* p2d, enum _aax2dFiltersEffects type)
 }
 
 void
-_aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX])
+_aaxSetDefaultEqualizer(_aaxFilterInfo filter[MAX_FILTERS])
 {
    int i;
 
    /* parametric equalizer */
-   for (i=0; i<_AAX_EQFILTERS; i++)
+   for (i=0; i<_MAX_PARAM_EQ; i++)
    {
       filter[i].param[AAX_CUTOFF_FREQUENCY] = MAXIMUM_CUTOFF;
       filter[i].param[AAX_LF_GAIN] = 1.0f;

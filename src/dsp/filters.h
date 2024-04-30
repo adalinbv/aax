@@ -25,8 +25,6 @@ extern "C" {
 #include "common.h"
 #include "api.h"
 
-#define _AAX_MAX_FILTERS	2
-#define _AAX_EQFILTERS		3
 #define MIN_CUTOFF		20.0f
 #define MAX_CUTOFF		20000.0f
 
@@ -35,7 +33,7 @@ bool _aaxFilterDestroy(aaxFilter*);
 
 void _aaxSetDefaultFilter2d(_aaxFilterInfo*, unsigned int, unsigned slot);
 void _aaxSetDefaultFilter3d(_aaxFilterInfo*, unsigned int, unsigned slot);
-void _aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX]);
+void _aaxSetDefaultEqualizer(_aaxFilterInfo filter[MAX_FILTERS]);
 
 typedef struct
 {
