@@ -43,7 +43,7 @@ _aaxVolumeFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 
    if (flt)
    {
-      _aaxSetDefaultFilter3d(flt->slot[0], flt->pos, 0);
+      _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
       _aaxSetDefaultFilter3d(flt->slot[1], flt->pos, 1);
       flt->slot[0]->destroy = _occlusion_destroy;
       flt->slot[0]->swap = _aax_dsp_swap;
@@ -102,7 +102,7 @@ static float
 _aaxVolumeFilterSet(float val, int ptype, UNUSED(unsigned char param))
 {
    float rv = val;
-   if (ptype == AAX_DECIBEL) {
+   if (param < 3 && ptype == AAX_DECIBEL) {
       rv = _lin2db(val);
    }
    return rv;
