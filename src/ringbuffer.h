@@ -342,18 +342,6 @@ typedef struct
 
    void *tid[RB_MAX_TRACKS];
 
-#if 0
-#if __LINUX__
-   int fd;
-   struct gbm_device *gbm;
-#endif
-   EGLDisplay display;
-   GLuint shader;
-   GLuint cptr;
-   GLuint hptr[RB_MAX_TRACKS];
-   GLuint sptr[RB_MAX_TRACKS];
-#endif
-
 } _aaxRingBufferConvolutionData;
 
 typedef struct
