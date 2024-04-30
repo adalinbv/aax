@@ -78,7 +78,7 @@ static float
 _aaxDirectionalFilterSet(float val, int ptype, unsigned char param)
 {
    float rv = val;
-   if (param < 4)
+   if (param < 2)
    {
       if (ptype == AAX_DEGREES) {
          rv = _2acos_rad2deg(val);
