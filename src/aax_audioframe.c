@@ -570,9 +570,22 @@ aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
    aaxFilter rv = false;
    if (handle)
    {
+      _aaxAudioFrame *submix = handle->submix;
       switch(type)
       {
       case AAX_EQUALIZER:
+         rv = _aaxFilterCreateHandle(submix->info, type, _MAX_PARAM_EQ, 0);
+         if (rv)
+         {
+            _filter_t *flt = (_filter_t*)rv;
+            _aax_dsp_copy(flt->slot[0], &submix->filter[EQUALIZER_LF]);
+            _aax_dsp_copy(flt->slot[1], &submix->filter[EQUALIZER_MF]);
+            _aax_dsp_copy(flt->slot[2], &submix->filter[EQUALIZER_HF]);
+            flt->state = submix->filter[EQUALIZER_LF].state;
+            flt->slot[0]->destroy = _freqfilter_destroy;
+            flt->slot[0]->swap = _equalizer_swap;
+         }
+         break;
       case AAX_FREQUENCY_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:
       case AAX_BITCRUSHER_FILTER:
@@ -580,11 +593,8 @@ aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
       case AAX_DISTANCE_FILTER:
       case AAX_DIRECTIONAL_FILTER:
       case AAX_COMPRESSOR:
-      {
-         _aaxAudioFrame* submix = handle->submix;
          rv = new_filter_handle(frame, type, submix->props2d, submix->props3d);
          break;
-      }
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }

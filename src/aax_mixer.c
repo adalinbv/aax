@@ -612,16 +612,18 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
             break;
          case AAX_GRAPHIC_EQUALIZER:
             _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_LF, filter, 0);
-            _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_HF, filter, 2);
+            _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_HF, filter, 1);
             break;
          default:
-            _aaxErrorSet(AAX_INVALID_ENUM);
             rv = false;
+            break;
          }
          _intBufReleaseData(dptr, _AAX_SENSOR);
+         if (!rv) {
+            rv = aaxScenerySetFilter(config, f);
+         }
       }
-      else
-      {
+      else {
          _aaxErrorSet(AAX_INVALID_STATE);
          rv = false;
       }
@@ -645,8 +647,6 @@ aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
       case AAX_TIMED_GAIN_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:
       case AAX_BITCRUSHER_FILTER:
-      case AAX_GRAPHIC_EQUALIZER:
-      case AAX_EQUALIZER:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {
@@ -657,8 +657,48 @@ aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
          break;
+      case AAX_EQUALIZER:
+         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+         if (dptr)
+         {
+            _sensor_t* sensor = _intBufGetDataPtr(dptr);
+            _aaxAudioFrame *mixer = sensor->mixer;
+            rv = _aaxFilterCreateHandle(mixer->info, type, _MAX_PARAM_EQ, 0);
+            if (rv)
+            {
+               _filter_t *flt = (_filter_t*)rv;
+               _aax_dsp_copy(flt->slot[0], &mixer->filter[EQUALIZER_LF]);
+               _aax_dsp_copy(flt->slot[1], &mixer->filter[EQUALIZER_MF]);
+               _aax_dsp_copy(flt->slot[2], &mixer->filter[EQUALIZER_HF]);
+               flt->state = mixer->filter[EQUALIZER_LF].state;
+               flt->slot[0]->destroy = _freqfilter_destroy;
+               flt->slot[0]->swap = _equalizer_swap;
+            }
+            _intBufReleaseData(dptr, _AAX_SENSOR);
+         }
+         break;
+      case AAX_GRAPHIC_EQUALIZER:
+         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+         if (dptr)
+         {
+            _sensor_t* sensor = _intBufGetDataPtr(dptr);
+            _aaxAudioFrame *mixer = sensor->mixer;
+            rv = _aaxFilterCreateHandle(mixer->info, type, _MAX_GRAPH_EQ, 0);
+            if (rv)
+            {
+               _filter_t *flt = (_filter_t*)rv;
+               _aax_dsp_copy(flt->slot[0], &mixer->filter[EQUALIZER_LF]);
+               _aax_dsp_copy(flt->slot[1], &mixer->filter[EQUALIZER_HF]);
+               flt->state = mixer->filter[EQUALIZER_LF].state;
+               flt->slot[EQUALIZER_HF]->destroy = _freqfilter_destroy;
+               flt->slot[EQUALIZER_HF]->swap = _equalizer_swap;
+            }
+            _intBufReleaseData(dptr, _AAX_SENSOR);
+         }
+         break;
       default:
-         _aaxErrorSet(AAX_INVALID_ENUM);
+         rv = aaxSceneryGetFilter(config, type);
+         break;
       }
    }
    return rv;
