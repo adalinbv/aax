@@ -1,7 +1,7 @@
 /* -*-c++-*-
  *
- * SPDX-FileCopyrightText: Copyright © 2015-2024 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2015-2024 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2015-2023 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2015-2023 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -212,8 +212,6 @@ public:
 protected:
     void fire() {
         if (!tied || val == prev) return;
-        if (filter) handle.filter = get.filter(obj, dsptype.filter);
-        else handle.effect = get.effect(obj, dsptype.effect);
         if (std::is_same<T, float>::value) {
             if (filter) {
                 if (aaxFilterSetParam(handle.filter, param, type, val)) {
@@ -467,7 +465,7 @@ public:
         return (filter) ? aaxFilterSetState(ptr, s) : aaxEffectSetState(ptr, s);
     }
 
-    uint64_t state() {
+    int state() {
         return (filter) ? aaxFilterGetState(ptr) : aaxEffectGetState(ptr);
     }
 
