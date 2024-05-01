@@ -4,7 +4,6 @@
 
 #include <aax/aeonwave>
 
-namespace aax = aeonwave;
 
 // Note:
 // Absolue means absolute values for position and velocity and direction
@@ -25,29 +24,47 @@ const char *sine = "<?xml version='1.0'?>	\
 #define TEST_FP(a, b, c) \
  if ((a) != (b)) printf("%s differs: %f should be: %f\n", (c), (a), (b))
 
+
+class test : public aeonwave::Mixer
+{
+public:
+   test() {
+      tie(depth, AAX_REVERB_EFFECT, AAX_DECAY_DEPTH);
+      tie(status, AAX_REVERB_EFFECT);
+   }
+   ~test() = default;
+
+   void set(float v) { depth = v; }
+   void state(int s) { status = s; }
+
+private:
+   aeonwave::Param depth = 1.0f;
+   aeonwave::Status status = false;
+};
+
 int main()
 {
    // sensor state
-   aax::AeonWave aax(AAX_MODE_WRITE_STEREO);
+   aeonwave::AeonWave aax(AAX_MODE_WRITE_STEREO);
    aax.set(AAX_INITIALIZED);
    aax.set(AAX_PLAYING);
    aax.set(AAX_SUSPENDED);
 
    // emitter state
-   aax::Buffer buf(aax, 1600, 1, AAX_AAXS16S);
+   aeonwave::Buffer buf(aax, 1600, 1, AAX_AAXS16S);
    buf.set(AAX_FREQUENCY, 16000);
    buf.fill(sine);
 
-   aax::Emitter emitter(MODE);
+   aeonwave::Emitter emitter(MODE);
    emitter.set(AAX_INITIALIZED);
    emitter.add(buf);
    emitter.set(AAX_PLAYING);
    aax.add(emitter);
 
-   aax::Param tremolo_freq = 1.0f;
-   aax::Param tremolo_depth = 0.0f;
-   aax::Param tremolo_offset = 0.0f;
-   aax::Status tremolo_state = false;
+   aeonwave::Param tremolo_freq = 1.0f;
+   aeonwave::Param tremolo_depth = 0.0f;
+   aeonwave::Param tremolo_offset = 0.0f;
+   aeonwave::Status tremolo_state = false;
 
    emitter.tie(tremolo_freq, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_FREQUENCY);
    emitter.tie(tremolo_depth, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_DEPTH);
@@ -65,7 +82,7 @@ int main()
    // update
    aax.set(AAX_UPDATE);
 
-   aax::dsp dsp = emitter.get(AAX_DYNAMIC_GAIN_FILTER);
+   aeonwave::dsp dsp = emitter.get(AAX_DYNAMIC_GAIN_FILTER);
    float freq = dsp.get(AAX_LFO_FREQUENCY);
    float depth = dsp.get(AAX_LFO_DEPTH);
    float offset = dsp.get(AAX_LFO_OFFSET);
@@ -78,6 +95,11 @@ int main()
 
    emitter.set(AAX_PROCESSED);
    aax.remove(emitter);
+
+   test *t = new test();
+   t->set(0.5f);
+   t->state(true);
+   delete t;
 
    return 0;
 }
