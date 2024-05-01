@@ -813,7 +813,7 @@ _mp3_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    assert(scratchlen >= *num*handle->no_tracks*sizeof(int32_t));
 
    handle->no_samples += *num;
-#if 1
+#if 0
    for (t=0; t<handle->no_tracks; t++)
    {
       int32_t *ptr = (int32_t*)sptr[t]+offs;
