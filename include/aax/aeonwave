@@ -1,7 +1,7 @@
 /* -*-c++-*-
  *
- * SPDX-FileCopyrightText: Copyright © 2015-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2015-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2015-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2015-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -95,13 +95,13 @@ inline void free(void *ptr) {
 }
 
 
-union dsptype
+union dsp_t
 {
-    dsptype(enum aaxFilterType f=AAX_FILTER_NONE) : filter(f) {};
-    dsptype(enum aaxEffectType e) : effect(e) {};
+    dsp_t(enum aaxFilterType f=AAX_FILTER_NONE) : filter(f) {};
+    dsp_t(enum aaxEffectType e) : effect(e) {};
     enum aaxFilterType filter;
     enum aaxEffectType effect;
-    int eftype;
+    int eftype; // either filter or effect
 };
 
 template <typename T>
@@ -112,7 +112,7 @@ public:
 
     virtual ~Tieable() { untie(); }
 
-    Tieable(T v, enum aaxType t = AAX_LINEAR) : val(v), type(t) { fire(); }
+    Tieable(T v, enum aaxType t = AAX_LINEAR) : val(v), cvt_type(t) { fire(); }
 
     Tieable(const Tieable& v) { val = v.val; fire(); }
 
@@ -214,11 +214,11 @@ protected:
         if (!tied || val == prev) return;
         if (std::is_same<T, float>::value) {
             if (filter) {
-                if (aaxFilterSetParam(handle.filter, param, type, val)) {
+                if (aaxFilterSetParam(handle.filter, param, cvt_type, val)) {
                      set.filter(obj, handle.filter);
                 }
             } else {
-                if (aaxEffectSetParam(handle.effect, param, type, val)) {
+                if (aaxEffectSetParam(handle.effect, param, cvt_type, val)) {
                     set.effect(obj, handle.effect);
                 }
             }
@@ -240,7 +240,7 @@ protected:
 private:
     T val = 0;
     T prev = -1;
-    enum aaxType type = AAX_LINEAR;
+    enum aaxType cvt_type = AAX_LINEAR;
     bool tied = 0;
     int param = 0;
     bool filter = false;
@@ -259,7 +259,7 @@ private:
         get_filter* filter = nullptr;
         get_effect* effect;
     } get;
-    union dsptype dsptype;
+    union dsp_t dsptype;
 };
 using Param = Tieable<float>;
 using Status = Tieable<uint64_t>;
@@ -508,7 +508,7 @@ public:
 
 private:
     bool filter = true;
-    union dsptype dsptype;
+    union dsp_t dsptype;
 };
 
 
