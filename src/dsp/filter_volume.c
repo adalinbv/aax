@@ -46,7 +46,7 @@ _aaxVolumeFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
       _aaxSetDefaultFilter3d(flt->slot[1], flt->pos, 1);
       flt->slot[0]->destroy = _occlusion_destroy;
-      flt->slot[0]->swap = _aax_dsp_swap;
+      flt->slot[0]->swap = _occlusion_swap;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -86,12 +86,12 @@ _aaxNewVolumeFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2
    {
       _aaxRingBufferOcclusionData *occlusion;
 
-      occlusion = (_aaxRingBufferOcclusionData*)p3d->effect[rv->pos].data;
+      occlusion = (_aaxRingBufferOcclusionData*)p2d->effect[rv->pos].data;
       _occlusion_to_effect(rv->slot[1], occlusion);
 
       _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
       rv->slot[0]->destroy = _occlusion_destroy;
-      rv->slot[0]->swap = _aax_dsp_swap;
+      rv->slot[0]->swap = _occlusion_swap;
 
       rv->state = p3d->filter[rv->pos].state;
    }
@@ -422,6 +422,21 @@ _occlusion_prepare(_aaxEmitter *src, const _aax3dProps *fp3d, void *data)
       }
       while (nfp3d);
    } /* pdp3d_m != NULL */
+}
+
+void
+_occlusion_swap(void *d, void *s)
+{
+   _aaxRingBufferConvolutionData *docc;
+   _aaxFilterInfo *dst = d;
+   void *ffhist = NULL;
+
+   docc = dst->data;
+   if (docc) ffhist = docc->freq_filter->freqfilter;
+
+   _aax_dsp_swap(d, s);
+
+   if (ffhist) docc->freq_filter->freqfilter = ffhist;
 }
 
 void
