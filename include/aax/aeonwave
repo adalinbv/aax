@@ -104,6 +104,11 @@ union dsp_t
     int eftype; // either filter or effect
 };
 
+using set_filter_t = bool(void*, aaxFilter);
+using set_effect_t = bool(void*, aaxEffect);
+using get_filter_t = aaxFilter(void*, aaxFilterType);
+using get_effect_t = aaxEffect(void*, aaxEffectType);
+
 template <typename T>
 class Tieable
 {
@@ -176,12 +181,8 @@ public:
     operator const T*() const { return &val; }
     operator T() { return val; }
 
-    using set_filter = bool(void*, aaxFilter);
-    using set_effect = bool(void*, aaxEffect);
-    using get_filter = aaxFilter(void*, aaxFilterType);
-    using get_effect = aaxEffect(void*, aaxEffectType);
-
-    bool tie(set_filter sfn, get_filter gfn, void* o, aaxFilterType f, int p) {
+    template<class C>
+    bool tie(set_filter_t sfn, get_filter_t gfn, C& o, aaxFilterType f, int p) {
         if (!tied) {
             set.filter = sfn; get.filter = gfn;
             obj = o; dsptype.filter = f; param = p;
@@ -191,7 +192,8 @@ public:
         }
         return false;
     }
-    bool tie(set_effect sfn, get_effect gfn, void* o, aaxEffectType e, int p) {
+    template<class C>
+    bool tie(set_effect_t sfn, get_effect_t gfn, C& o, aaxEffectType e, int p) {
         if (!tied) {
             set.effect = sfn; get.effect = gfn;
             obj = o; dsptype.effect = e; param = p;
@@ -212,27 +214,28 @@ public:
 protected:
     void fire() {
         if (!tied || val == prev) return;
-        if (std::is_same<T, float>::value) {
-            if (filter) {
+        if (filter) {
+            if (std::is_same<T, float>::value) {
                 if (aaxFilterSetParam(handle.filter, param, cvt_type, val)) {
-                     set.filter(obj, handle.filter);
+                    set.filter(obj, handle.filter);
                 }
-            } else {
-                if (aaxEffectSetParam(handle.effect, param, cvt_type, val)) {
-                    set.effect(obj, handle.effect);
-                }
-            }
-        } else if (std::is_same<T, uint64_t>::value) {
-            if (filter) {
+            } else if (std::is_same<T, uint64_t>::value) {
                 if (aaxFilterSetState(handle.filter, val)) {
                     set.filter(obj, handle.filter);
                 }
-            } else {
+                enabled = tied;
+            }
+        } else { // effect
+            if (std::is_same<T, float>::value) {
+                if (aaxEffectSetParam(handle.effect, param, cvt_type, val)) {
+                    set.effect(obj, handle.effect);
+                }
+            } else if (std::is_same<T, uint64_t>::value) {
                 if (aaxEffectSetState(handle.effect, val)) {
                     set.effect(obj, handle.effect);
                 }
+                enabled = tied;
             }
-            enabled = tied;
         }
         prev = val;
     }
@@ -245,19 +248,19 @@ private:
     int param = 0;
     bool filter = false;
     bool enabled = false;
-    void *obj = nullptr;
+    aaxDSP obj = nullptr;
 
     union handle {
         aaxFilter filter = nullptr;
         aaxEffect effect;
     } handle;
     union setter {
-        set_filter* filter = nullptr;
-        set_effect* effect;
+        set_filter_t* filter = nullptr;
+        set_effect_t* effect;
     } set;
     union getter {
-        get_filter* filter = nullptr;
-        get_effect* effect;
+        get_filter_t* filter = nullptr;
+        get_effect_t* effect;
     } get;
     union dsp_t dsptype;
 };
@@ -465,7 +468,7 @@ public:
         return (filter) ? aaxFilterSetState(ptr, s) : aaxEffectSetState(ptr, s);
     }
 
-    int state() {
+    int64_t state() {
         return (filter) ? aaxFilterGetState(ptr) : aaxEffectGetState(ptr);
     }
 
@@ -499,12 +502,8 @@ public:
     }
 
     // ** support ******
-    int type() {
-        return dsptype.eftype;
-    }
-    bool is_filter() {
-        return filter;
-    }
+    int type() { return dsptype.eftype; }
+    bool is_filter() { return filter; }
 
 private:
     bool filter = true;
@@ -568,12 +567,14 @@ public:
     }
 
     template <typename T>
-    bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) { ties_add(pm);
-        return pm.tie(set_filter, get_filter, ptr, f, p);
+    bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) {
+        ties_add(pm);
+        return pm.tie(set_filter, get_filter, *this, f, p);
     }
     template <typename T>
-    bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) { ties_add(pm);
-        return pm.tie(set_effect, get_effect, ptr, e, p);
+    bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) {
+        ties_add(pm);
+        return pm.tie(set_effect, get_effect, *this, e, p);
     }
 
     // ** position and orientation ******
@@ -710,38 +711,27 @@ public:
 
     // ** filters and effects ******
     bool set(dsp& dsp) {
-        return dsp.is_filter()
-               ? (scenery_filter(dsp.type()) ? aaxScenerySetFilter(ptr, dsp)
-                                             : aaxMixerSetFilter(ptr, dsp))
-               : (scenery_effect(dsp.type()) ? aaxScenerySetEffect(ptr, dsp)
-                                             : aaxMixerSetEffect(ptr, dsp));
+        return dsp.is_filter() ? aaxMixerSetFilter(ptr, dsp)
+                               : aaxMixerSetEffect(ptr, dsp);
     }
     dsp get(enum aaxFilterType t) {
-        aaxFilter f = scenery_filter(t) ? aaxSceneryGetFilter(ptr, t)
-                                        : aaxMixerGetFilter(ptr, t);
+        aaxFilter f = aaxMixerGetFilter(ptr, t);
         return dsp(f, t);
     }
     dsp get(enum aaxEffectType t) {
-        aaxEffect e = scenery_effect(t) ? aaxSceneryGetEffect(ptr, t)
-                                        : aaxMixerGetEffect(ptr, t);
+        aaxEffect e = aaxMixerGetEffect(ptr, t);
         return dsp(e, t);
     }
 
     template <typename T>
-    bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) { ties_add(pm);
-        if (scenery_filter(f)) {
-            return pm.tie(set_scenery_filter, get_scenery_filter, ptr, f, p);
-        } else {
-            return pm.tie(set_mixer_filter, get_scenery_filter, ptr, f, p);
-        }
+    bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) {
+        ties_add(pm);
+        return pm.tie(set_filter, get_filter, *this, f, p);
     }
     template <typename T>
-    bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) { ties_add(pm);
-        if (scenery_effect(e)) {
-            return pm.tie(set_scenery_effect, get_scenery_effect, ptr, e, p);
-        } else {
-            return pm.tie(set_mixer_effect, get_mixer_effect, ptr, e, p);
-        }
+    bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) {
+        ties_add(pm);
+        return pm.tie(set_effect, get_effect, *this, e, p);
     }
 
     // ** position and orientation ******
@@ -812,40 +802,16 @@ protected:
     enum aaxRenderMode mode = AAX_MODE_READ;
 
 private:
-    static bool scenery_filter(enum aaxFilterType type) {
-        return (type == AAX_DISTANCE_FILTER || type == AAX_FREQUENCY_FILTER);
-    }
-    static bool scenery_filter(int type) {
-        return scenery_filter(aaxFilterType(type));
-    }
-    static bool scenery_effect(enum aaxEffectType type) {
-        return (type == AAX_VELOCITY_EFFECT);
-    }
-    static bool scenery_effect(int type) {
-        return scenery_effect(aaxEffectType(type));
-    }
-    static int set_scenery_filter(void* c, aaxFilter f) {
-        return aaxScenerySetFilter((aaxConfig)c, f);
-    }
-    static int set_mixer_filter(void* c, aaxFilter f) {
+    static int set_filter(void* c, aaxFilter f) {
         return aaxMixerSetFilter((aaxConfig)c, f);
     }
-    static aaxFilter get_scenery_filter(void* c, enum aaxFilterType f) {
-        return aaxSceneryGetFilter((aaxConfig)c, f);
-    }
-    static aaxFilter get_mixer_filter(void* c, enum aaxFilterType f)  {
+    static aaxFilter get_filter(void* c, enum aaxFilterType f)  {
         return aaxMixerGetFilter((aaxConfig)c, f);
     }
-    static int set_scenery_effect(void* c, aaxEffect e) {
-        return aaxScenerySetEffect((aaxConfig)c, e);
-    }
-    static int set_mixer_effect(void* c, aaxEffect e) {
+    static int set_effect(void* c, aaxEffect e) {
         return aaxMixerSetEffect((aaxConfig)c, e);
     }
-    static aaxEffect get_scenery_effect(void* c, enum aaxEffectType e) {
-        return aaxSceneryGetEffect((aaxConfig)c, e);
-    }
-    static aaxEffect get_mixer_effect(void* c, enum aaxEffectType e) {
+    static aaxEffect get_effect(void* c, enum aaxEffectType e) {
         return aaxMixerGetEffect((aaxConfig)c, e);
     }
 };
@@ -922,12 +888,14 @@ public:
     }
 
     template <typename T>
-    bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) { ties_add(pm);
-        return pm.tie(set_filter, get_filter, ptr, f, p);
+    bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) {
+        ties_add(pm);
+        return pm.tie(set_filter, get_filter, *this, f, p);
     }
     template <typename T>
-    bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) { ties_add(pm);
-        return pm.tie(set_effect, get_effect, ptr, e, p);
+    bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) {
+        ties_add(pm);
+        return pm.tie(set_effect, get_effect, *this, e, p);
     }
 
     // ** sub-mixing ******
