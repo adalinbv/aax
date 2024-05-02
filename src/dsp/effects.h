@@ -111,7 +111,7 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 #define _EFFECT_GET_STATE(P, e)         P->effect[e].state
 #define _EFFECT_GET_UPDATED(P, e)	P->effect[e].updated
 #define _EFFECT_GET_DATA(P, e)          P->effect[e].data
-#define _EFFECT_FREE_DATA(P, e)         if (P->effect[e].destroy) P->effect[e].destroy(P->effect[e].data)
+#define _EFFECT_FREE_DATA(P, e)         if (P->effect[e].destroy && P->effect[e].data_size) { P->effect[e].destroy(P->effect[e].data); P->effect[e].data_size = 0; }
 #define _EFFECT_SET(P, e, p, v)         P->effect[e].param[p] = v
 #define _EFFECT_SET_STATE(P, e, v)      P->effect[e].state = v
 #define _EFFECT_SET_UPDATED(P, e, v)    P->effect[e].updated = v
