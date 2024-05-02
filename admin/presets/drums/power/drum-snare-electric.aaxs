@@ -34,7 +34,7 @@
  <emitter looping="true">
   <filter type="dynamic-layer" src="inverse-envelope">
    <slot n="0">
-    <param n="0">0.05</param>
+    <param n="0">0.0</param>
     <param n="1">16.0</param>
     <param n="2">1.0</param>
     <param n="3">0.3</param>
