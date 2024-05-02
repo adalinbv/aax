@@ -808,18 +808,17 @@ _mp3_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    _driver_t *handle = fmt->id;
    void *buf = _aaxDataGetData(handle->mp3Buffer, 0);
    size_t bufsize = _aaxDataGetSize(handle->mp3Buffer);
+   float volume_fact = 0.7f;
    int t, res;
 
    assert(scratchlen >= *num*handle->no_tracks*sizeof(int32_t));
 
    handle->no_samples += *num;
-#if 0
    for (t=0; t<handle->no_tracks; t++)
    {
       int32_t *ptr = (int32_t*)sptr[t]+offs;
-      _batch_imul_value(ptr, ptr, sizeof(int32_t), *num, 0.5f);
+      _batch_imul_value(ptr, ptr, sizeof(int32_t), *num, volume_fact);
    }
-#endif
    _batch_cvt16_intl_24(scratch, sptr, offs, handle->no_tracks, *num);
    res = plame_encode_buffer_interleaved(handle->id, scratch, *num,
                                          buf, bufsize);
