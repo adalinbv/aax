@@ -20,13 +20,14 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.37" frequency="220" duration="0.8" voices="3" spread="0.57" phasing="true">
+ <sound gain="2.7" frequency="220" duration="0.5" voices="5" spread="0.57" phasing="true">
   <layer n="0">
-   <waveform src="sine" ratio="0.75"/>
-   <waveform src="sine" processing="modulate" pitch="3.0"/>
-   <waveform src="pure-sine" processing="add" ratio="0.182"/>
+   <waveform src="sine"/>
+   <waveform src="pure-sine" processing="modulate" ratio="3.0"/>
+   <waveform src="sine" processing="modulate" pitch="2.0"/>
   </layer>
  </sound>
+
 
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.5">
@@ -45,8 +46,8 @@
   </filter>
   <filter type="dynamic-gain" src="inverse-cycloid">
    <slot n="0">
-    <param n="0">0.5</param>
-    <param n="1">1.0</param>
+    <param n="0">1.5</param>
+    <param n="1">10.0</param>
     <param n="2">0.25</param>
     <param n="3">0.75</param>
    </slot>
