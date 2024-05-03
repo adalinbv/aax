@@ -347,8 +347,8 @@ void _aaxEMitterResetDistDelay(_aaxEmitter*, _aaxAudioFrame*);
 
 /* -- Filters and Effects -- */
 
-#define FILTER_ID	0x887AFE21
-#define EFFECT_ID	0x21EFA788
+#define FILTER_ID	0x88F172E1
+#define EFFECT_ID	0x21EFFEC8
 
 /* --- WaveForms --- */
 void *_bufferWaveCreateWhiteNoise(float, int, float, unsigned int*);

@@ -187,7 +187,7 @@ public:
             set.filter = sfn; get.filter = gfn;
             obj = o; dsptype.filter = f; param = p;
             filter = true; tied = enabled = true;
-            handle.filter = get.filter(obj, dsptype.filter);
+            handle.filter = aaxDSP(o.filter_get(f));
             fire(); return true;
         }
         return false;
@@ -198,18 +198,15 @@ public:
             set.effect = sfn; get.effect = gfn;
             obj = o; dsptype.effect = e; param = p;
             filter = false; tied = enabled = true;
-            handle.effect = get.effect(obj, dsptype.effect);
+            handle.effect = aaxDSP(o.effect_get(e));
             fire(); return true;
         }
         return false;
     }
-    void untie() {
-        if (tied) {
-            if (filter) aaxFilterDestroy(handle.filter);
-            else aaxEffectDestroy(handle.effect);
-        }
-        tied = false;
-    }
+    void untie() { tied = false; }
+
+    int type() { return dsptype.eftype; }
+    bool is_filter() { return filter; }
 
 protected:
     void fire() {
@@ -246,7 +243,7 @@ private:
     enum aaxType cvt_type = AAX_LINEAR;
     bool tied = 0;
     int param = 0;
-    bool filter = false;
+    bool filter = true;
     bool enabled = false;
     aaxDSP obj = nullptr;
 
@@ -271,6 +268,15 @@ using Status = Tieable<uint64_t>;
 template <typename T>
 class Obj
 {
+private:
+    template <typename DSP>
+    struct obj_dsp
+    {
+        DSP dsp;
+        std::vector<Param*> fties;
+        Status* status;
+    };
+
 public:
     using stop_fn = std::function<bool(T, enum aaxState)>;
     using close_fn = std::function<bool(T)>;
@@ -280,6 +286,8 @@ public:
     virtual ~Obj() {
         if (!!stopfn) stopfn(ptr, AAX_PROCESSED);
         if (!!closefn) closefn(ptr);
+        for (auto it : fdsp) { aaxFilterDestroy(it.second.dsp); }
+        for (auto it : edsp) { aaxEffectDestroy(it.second.dsp); }
     }
 
     Obj(T p, close_fn c) : ptr(p), closefn(c) {}
@@ -299,25 +307,47 @@ public:
         return rv;
     }
 
-    void ties_add(Param& pm) {
-        auto pi = std::find(fties.begin(), fties.end(), &pm);
-        if (pi == fties.end()) fties.push_back(&pm);
+    void ties_add(Param& pm, get_filter_t f, aaxFilterType t) {
+        auto dsp = fdsp_get(t);
+        if (!dsp.dsp) { fdsp_set(f(ptr, t), t); }
+        auto pi = std::find(dsp.fties.begin(), dsp.fties.end(), &pm);
+        if (pi == dsp.fties.end()) dsp.fties.push_back(&pm);
+    }
+    void ties_add(Param& pm, get_effect_t e, aaxEffectType t) {
+        auto dsp = edsp_get(t);
+        if (!dsp.dsp) { edsp_set(e(ptr, t), t); }
+        auto pi = std::find(dsp.fties.begin(), dsp.fties.end(), &pm);
+        if (pi == dsp.fties.end()) dsp.fties.push_back(&pm);
     }
 
-    void ties_add(Status& pm) {
-        auto pi = std::find(ities.begin(), ities.end(), &pm);
-        if (pi == ities.end()) ities.push_back(&pm);
+    void ties_add(Status& pm, get_filter_t f, aaxFilterType t) {
+        auto dsp = fdsp_get(t);
+        if (!dsp.dsp) { fdsp_set(f(ptr, t), t); }
+        dsp.status = &pm;
+    }
+    void ties_add(Status& pm, get_effect_t e, aaxEffectType t) {
+        auto dsp = edsp_get(t);
+        if (!dsp.dsp) { edsp_set(e(ptr, t), t); }
+        dsp.status = &pm;
     }
 
     void untie(Param& pm) {
-        auto pi = std::find(fties.begin(), fties.end(), &pm);
-        if (pi != fties.end()) { fties.erase(pi); } pm.untie();
+        auto dsp = pm.is_filter() ? fdsp_get(aaxFilterType(pm.type()))
+                                  : edsp_get(aaxEffectType(pm.type()));
+        auto pi = std::find(dsp.fties.begin(), dsp.fties.end(), &pm);
+        if (pi != dsp.fties.end()) { dsp.fties.erase(pi); } pm.untie();
     }
 
     void untie(Status& pm) {
-        auto pi = std::find(ities.begin(), ities.end(), &pm);
-        if (pi != ities.end()) { ities.erase(pi); } pm.untie();
+        auto dsp = pm.is_filter() ? fdsp_get(aaxFilterType(pm.type()))
+                                  : edsp_get(aaxEffectType(pm.type()));
+        dsp.status = nullptr; pm.untie();
     }
+
+    void filter_set(aaxFilter f, int t) { fdsp_set(f, aaxFilterType(t)); }
+    void effect_set(aaxEffect e, int t) { edsp_set(e, aaxEffectType(t)); }
+    aaxFilter filter_get(aaxFilterType f) { return fdsp_get(f).dsp; }
+    aaxEffect effect_get(aaxEffectType e) { return edsp_get(e).dsp; }
 
     operator T() const {
         return ptr;
@@ -331,8 +361,15 @@ protected:
     T ptr = nullptr;
     std::function<int(T, enum aaxState)> stopfn = nullptr;
     std::function<int(T)> closefn = nullptr;
-    std::vector<Param*> fties;
-    std::vector<Status*> ities;
+
+private:
+    void fdsp_set(aaxFilter f, aaxFilterType t) { fdsp[t].dsp = f; }
+    void edsp_set(aaxEffect e, aaxEffectType t) { edsp[t].dsp = e; }
+    obj_dsp<aaxFilter>& fdsp_get(aaxFilterType f) { return fdsp[f]; }
+    obj_dsp<aaxEffect>& edsp_get(aaxEffectType e) { return edsp[e]; }
+
+    std::map<enum aaxFilterType, obj_dsp<aaxFilter>> fdsp;
+    std::map<enum aaxEffectType, obj_dsp<aaxEffect>> edsp;
 };
 
 
@@ -568,12 +605,12 @@ public:
 
     template <typename T>
     bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) {
-        ties_add(pm);
+        ties_add(pm, get_filter, f);
         return pm.tie(set_filter, get_filter, *this, f, p);
     }
     template <typename T>
     bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) {
-        ties_add(pm);
+        ties_add(pm, get_effect, e);
         return pm.tie(set_effect, get_effect, *this, e, p);
     }
 
@@ -635,12 +672,13 @@ private:
 class Sensor : public Obj<aaxConfig>
 {
 public:
-    Sensor() = default;
+    Sensor() { set_dsp(); }
 
     virtual ~Sensor() = default;
 
     explicit Sensor(aaxConfig c) : Obj(c, aaxMixerSetState, aaxDriverDestroy) {
        mode = aaxRenderMode(aaxMixerGetMode(c, AAX_RENDER_MODE));
+       set_dsp();
     }
 
     explicit Sensor(const char* n, enum aaxRenderMode m=AAX_MODE_READ)
@@ -725,12 +763,12 @@ public:
 
     template <typename T>
     bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) {
-        ties_add(pm);
+        ties_add(pm, get_filter, f);
         return pm.tie(set_filter, get_filter, *this, f, p);
     }
     template <typename T>
     bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) {
-        ties_add(pm);
+        ties_add(pm, get_effect, e);
         return pm.tie(set_effect, get_effect, *this, e, p);
     }
 
@@ -802,13 +840,23 @@ protected:
     enum aaxRenderMode mode = AAX_MODE_READ;
 
 private:
-    static int set_filter(void* c, aaxFilter f) {
+    void set_dsp()
+    {
+        for (int t=AAX_EQUALIZER; t<AAX_FILTER_MAX; ++t) {
+            filter_set(aaxMixerGetFilter(ptr, aaxFilterType(t)), t);
+        }
+        for (int t=AAX_PITCH_EFFECT; t<AAX_EFFECT_MAX; ++t) {
+            effect_set(aaxMixerGetEffect(ptr, aaxEffectType(t)), t);
+        }
+    }
+
+    static bool set_filter(void* c, aaxFilter f) {
         return aaxMixerSetFilter((aaxConfig)c, f);
     }
     static aaxFilter get_filter(void* c, enum aaxFilterType f)  {
         return aaxMixerGetFilter((aaxConfig)c, f);
     }
-    static int set_effect(void* c, aaxEffect e) {
+    static bool set_effect(void* c, aaxEffect e) {
         return aaxMixerSetEffect((aaxConfig)c, e);
     }
     static aaxEffect get_effect(void* c, enum aaxEffectType e) {
@@ -820,7 +868,7 @@ private:
 class Frame : public Obj<aaxFrame>
 {
 public:
-    Frame() = default;
+    Frame() { set_dsp(); }
 
     virtual ~Frame() {
         for (size_t i=0; i<frames.size(); ++i) {
@@ -836,7 +884,7 @@ public:
 
     Frame(aaxConfig c)
       : Obj(aaxAudioFrameCreate(c), aaxAudioFrameSetState, aaxAudioFrameDestroy)
-    {}
+    { set_dsp(); }
 
     Frame(const Frame&) = delete;
     Frame(Frame&&) = default;
@@ -889,12 +937,12 @@ public:
 
     template <typename T>
     bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) {
-        ties_add(pm);
+        ties_add(pm, get_filter, f);
         return pm.tie(set_filter, get_filter, *this, f, p);
     }
     template <typename T>
     bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) {
-        ties_add(pm);
+        ties_add(pm, get_effect, e);
         return pm.tie(set_effect, get_effect, *this, e, p);
     }
 
@@ -965,6 +1013,16 @@ public:
     }
 
 private:
+    void set_dsp()
+    {
+        for (int t=AAX_EQUALIZER; t<AAX_FILTER_MAX; ++t) {
+            filter_set(aaxAudioFrameGetFilter(ptr, aaxFilterType(t)), t);
+        }
+        for (int t=AAX_PITCH_EFFECT; t<AAX_EFFECT_MAX; ++t) {
+            effect_set(aaxAudioFrameGetEffect(ptr, aaxEffectType(t)), t);
+        }
+    }
+
     static bool set_filter(void* c, aaxFilter f) {
         return aaxAudioFrameSetFilter((aaxFrame)c, f);
     }
