@@ -20,33 +20,14 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.77" frequency="440" duration="0.7">
+ <sound gain="2.77" frequency="440" duration="0.7">
   <layer n="0">
-   <waveform src="square" ratio="1.9" voices="3" spread="0.93" phasing="true"/>
-   <waveform src="sine" processing="add" ratio="-0.5"/>
+   <waveform src="square" voices="3" spread="0.93" phasing="true"/>
    <waveform src="impulse" processing="add" ratio="0.55" pitch="3.0"/>
-   <waveform src="white-noise" processing="add" ratio="0.15"/>
-   <filter type="frequency">
-    <slot n="0">
-     <param n="0" pitch="8.0">3520.0</param>
-     <param n="1">1.0</param>
-     <param n="2">0.0</param>
-     <param n="3">2.5</param>
-    </slot>
-   </filter>
   </layer>
   <layer n="1">
-   <waveform src="square" ratio="1.9" voices="3" spread="0.93" phasing="true"/>
-   <waveform src="sine" processing="add" ratio="-0.5"/>
+   <waveform src="square" voices="3" spread="0.93"/>
    <waveform src="impulse" processing="add" ratio="0.55" pitch="3.0"/>
-   <filter type="frequency">
-    <slot n="0">
-     <param n="0" pitch="25.0">11000.0</param>
-     <param n="1">1.0</param>
-     <param n="2">0.0</param>
-     <param n="3">2.5</param>
-    </slot>
-   </filter>
   </layer>
  </sound>
 
@@ -64,7 +45,7 @@
     <param n="0">0.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.4</param>
+    <param n="3">0.2</param>
    </slot>
   </filter>
   <filter type="timed-gain" src="envelope" release-time="0.5">
