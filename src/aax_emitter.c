@@ -250,13 +250,9 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
          }
          _emitterSetPitch(src, ep2d);
 
-#if 0
-         // This is done when the buffer is being used for the first time
-         // in software/emitters.c
          if (rv && buffer->aaxs) {
             rv = _emitterCreateEFFromAAXS(handle, embuf, buffer->aaxs);
          }
-#endif
       }
    }
    put_emitter(handle);
@@ -1402,19 +1398,27 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
       if (p2d->note.velocity > 1.0f)
       {
          _aaxRingBufferFreqFilterData *flt = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
-         _aaxLFOData* lfo = flt->lfo;
-         if (flt->lfo) {
-            float max = lfo->max_sec*lfo->fs;
-            lfo->max = max*(0.875f+0.125f*p2d->note.velocity);
+         if (flt)
+         {
+            _aaxLFOData* lfo = flt->lfo;
+            if (lfo)
+            {
+               float max = lfo->max_sec*lfo->fs;
+               lfo->max = max*(0.875f+0.125f*p2d->note.velocity);
+            }
          }
       }
       else if (p2d->note.release < 1.0f)
       {
          _aaxRingBufferFreqFilterData *flt = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
-         _aaxLFOData* lfo = flt->lfo;
-         if (flt->lfo) {
-            float min = lfo->min_sec*lfo->fs;
-            lfo->min = min*(0.875f+0.125f*p2d->note.release);
+         if (flt)
+         {
+            _aaxLFOData* lfo = flt->lfo;
+            if (lfo)
+            {
+               float min = lfo->min_sec*lfo->fs;
+               lfo->min = min*(0.875f+0.125f*p2d->note.release);
+            }
          }
       }
       break;
@@ -1456,7 +1460,7 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
    return rv;
 }
 
-static bool 
+static bool
 _emitterSetEffect(_emitter_t *handle, _effect_t *effect)
 {
    _aaxEmitter *src = handle->source;
@@ -1619,11 +1623,11 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
       if (depth)
       {
          if ((eff = aaxEffectCreate(config, AAX_DYNAMIC_PITCH_EFFECT)) != NULL)
-         {  
+         {
             float rate = rb->get_paramf(rb, RB_VIBRATO_RATE);
             float sweep = rb->get_paramf(rb, RB_VIBRATO_SWEEP);
             _effect_t *effect;
-    
+
             aaxEffectSetParam(eff, AAX_INITIAL_DELAY, AAX_LINEAR, sweep);
             aaxEffectSetParam(eff, AAX_LFO_FREQUENCY, AAX_LINEAR, 2.0f*rate);
             aaxEffectSetParam(eff, AAX_LFO_DEPTH, AAX_LINEAR, depth);
@@ -1632,7 +1636,7 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
 
             effect = get_effect(eff);
             rv |= _emitterSetEffect(handle, effect);
-     
+
             aaxEffectDestroy(eff);
          }
       }

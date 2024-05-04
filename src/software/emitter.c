@@ -102,12 +102,6 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
          int res = 0;
          int ctr;
 
-         if (embuf->buffer->aaxs != embuf->aaxs)
-         {
-            embuf->aaxs = embuf->buffer->aaxs;
-            _emitterCreateEFFromAAXS(emitter, embuf, embuf->aaxs);
-         }
-
          // TODO: status updates still don't get processed properly
          //       use the testposition to test.
 //       ctr = --src->update_ctr;
