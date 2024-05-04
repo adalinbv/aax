@@ -791,7 +791,9 @@ public:
 
     // ** buffer handling (AAXS only) ******
     bool add(Buffer& b) {
-        return aaxMixerAddBuffer(ptr, b);
+        bool rv = aaxMixerAddBuffer(ptr, b);
+        set_dsp();
+        return rv;
     }
 
     // ** buffer handling ******
@@ -920,7 +922,9 @@ public:
 
     // ** buffer handling (AAXS only) ******
     bool add(Buffer& b) {
-        return aaxAudioFrameAddBuffer(ptr, b);
+        bool rv = aaxAudioFrameAddBuffer(ptr, b);
+        set_dsp();
+        return rv;
     }
 
     // ** filters and effects ******
