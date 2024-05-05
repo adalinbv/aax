@@ -38,6 +38,12 @@ static void _aaxFreeEmitterBuffer(void *);
 static bool _emitterSetFilter(_emitter_t*, _filter_t*);
 static bool _emitterSetEffect(_emitter_t*, _effect_t*);
 static void _emitterSetPitch(const _aaxEmitter*, _aax2dProps *);
+static bool _emitterCreateEFFromAAXS(struct aax_emitter_t*, struct aax_embuffer_t*);
+
+struct _arg_t {
+   _emitter_t *handle;
+   _embuffer_t *embuf;
+};
 
 AAX_API aaxEmitter AAX_APIENTRY
 aaxEmitterCreate()
@@ -251,7 +257,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
          _emitterSetPitch(src, ep2d);
 
          if (rv && buffer->aaxs) {
-            rv = _emitterCreateEFFromAAXS(handle, embuf, buffer->aaxs);
+            rv = _emitterCreateEFFromAAXS(handle, embuf);
          }
       }
    }
@@ -1757,16 +1763,16 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
    return true;
 }
 
-bool
-_emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aaxs)
+int
+_emitterCreateEFFromAAXSThread(void *h)
 {
-   aaxConfig config = handle->root;
-   bool rv = true;
+   struct _arg_t *arg = (struct _arg_t*)h;
+   _emitter_t *handle = arg->handle;
+   _embuffer_t *embuf = arg->embuf;
+   _buffer_t* buffer = embuf->buffer;
+   const char *aaxs = buffer->aaxs;
+   bool rv = false;
    xmlId *xid;
-
-   if (!config) {
-      config = handle->root = embuf->buffer->root;
-   }
 
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
@@ -1780,7 +1786,6 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aax
             int len = xmlAttributeCopyString(xmid, "include", file, 1024);
             if (len < 1024-strlen(".aaxs"))
             {
-               _buffer_t* buffer = embuf->buffer;
                _buffer_info_t *info = &buffer->info;
                char **data, *url;
 
@@ -1811,10 +1816,35 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aax
       }
       xmlClose(xid);
    }
-   else
-   {
-      _aaxErrorSet(AAX_INVALID_STATE);
-      rv = false;
+   return rv;
+}
+
+bool
+_emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf)
+{
+   aaxConfig config = handle->root;
+   _aaxThread *thread;
+   bool rv = false;
+
+   if (!config) {
+      config = handle->root = embuf->buffer->root;
    }
+
+   thread = _aaxThreadCreate();
+   if (thread)
+   {
+      struct _arg_t arg = { handle, embuf };
+      int(*handler)(void*) = _emitterCreateEFFromAAXSThread;
+      int r = _aaxThreadStart(thread, handler, &arg, 0, "AAXS");
+      if (r == thrd_success)
+      {
+         r = _aaxThreadJoin(thread);
+         if (r == thrd_success) rv = true;
+      }
+      else {
+         _aaxErrorSet(AAX_INVALID_STATE);
+      }
+   }
+
    return rv;
 }

@@ -457,7 +457,6 @@ extern float _aaxDefaultSpeakersDelay[_AAX_MAX_SPEAKERS][4];
 void _aaxFreeSource(void*);
 void _aaxProcessSource(void*, _aaxEmitter*, unsigned int);
 int _emitterCreateEFFromRingbuffer(struct aax_emitter_t*, struct aax_embuffer_t*);
-bool _emitterCreateEFFromAAXS(struct aax_emitter_t*, struct aax_embuffer_t*, const char*);
 
 void _aaxSetDefaultInfo(_aaxMixerInfo**, void*);
 
