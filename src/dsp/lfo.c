@@ -637,12 +637,12 @@ _aaxLFOGetTimed(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned
 }
 
 float
-_aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, size_t num)
+_aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, size_t no_samples)
 {
    _aaxLFOData* lfo = (_aaxLFOData*)data;
    static const float div = 1.0f / (float)0x000FFFFF;
    float rv = 1.0f;
-   if (lfo && ptr && num)
+   if (lfo && (env || (ptr && no_samples)))
    {
       float olvl = lfo->value[0];
 
@@ -656,7 +656,7 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
          if (!env)
          {
             float rms, peak;
-            _batch_get_average_rms(ptr, num, &rms, &peak);
+            _batch_get_average_rms(ptr, no_samples, &rms, &peak);
             lvl = rms*div;
          }
          else
@@ -682,12 +682,12 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
 }
 
 float
-_aaxLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned track, size_t num)
+_aaxLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned track, size_t no_samples)
 {
    _aaxLFOData* lfo = (_aaxLFOData*)data;
    static const float div = 1.0f / (float)0x007fffff;
    float rv = 1.0f;
-   if (lfo && ptr && num)
+   if (lfo && ptr && no_samples)
    {
       float oavg = lfo->average[0];
       float olvl = lfo->value[0];
@@ -706,7 +706,7 @@ _aaxLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned tr
          float lvl, fact = 1.0f;
          float rms, peak;
 
-         _batch_get_average_rms(ptr, num, &rms, &peak);
+         _batch_get_average_rms(ptr, no_samples, &rms, &peak);
          lvl = _MINMAX(rms*div, 0.0f, 1.0f);
 
          fact = lfo->gate_period;
