@@ -1899,12 +1899,17 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
 
                if (!xmlNodeCompareName(xwid, "waveform"))
                {
-                  if (waves) {
-
+                  if (waves)
+                  {
+                     // mode:
+                     // 0: do limiting in _bufferMixWaveform for every sample
+                     // 1: do limiting here for all waveforms at once
+                     // 2: do both
+                     int mode = limiter & 1; // mode 0 or 1 only
                      rv = _bufCreateWaveformFromAAXS(handle, xwid, layer,
                                                      ratio, pitch, frequency,
-                                                     b, voices, spread,
-                                                     limiter & 1, version);
+                                                     b, voices, spread, mode,
+                                                     version);
                      waves--;
                   }
                }
