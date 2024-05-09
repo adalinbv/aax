@@ -46,8 +46,8 @@
 
 
 static const char *aaxs = "<aeonwave> \
- <sound frequency='440' duration='3.0'> \
-  <waveform src='sine' ratio='2.0'/> \
+ <sound ratio='3.0' frequency='440' duration='3.0'> \
+  <waveform src='pure-sine' ratio='2.0'/> \
  </sound> \
 </aeonwave>";
 
@@ -130,6 +130,22 @@ int main()
         _batch_get_average_rms(*bufdata, no_samples, &rms, &peak);
         printf("limiter\trms: %4.3f, peak: %4.3f\n", rms, peak);
         aaxFree(bufdata);
+
+#if 0
+        res = aaxBufferSetSetup(buffer, AAX_FORMAT, AAX_FLOAT);
+        testForState(res, "Unable to set the buffer format");
+
+        bufdata = (float**)aaxBufferGetData(buffer);
+        testForError(bufdata, "Could not get the buffer data");
+
+        clip = 0.0;
+        asym = 0.0f;
+//      _aaxRingBufferLimiter(*bufdata, no_samples, clip, asym);
+//      _aaxRingBufferCompress(*bufdata, no_samples, clip, asym);
+        _aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, *bufdata,
+                            no_samples, SAMPLE_FREQUENCY, 1, AAX_FLOAT);
+        aaxFree(bufdata);
+#endif
 
         res = aaxBufferDestroy(buffer);
         testForState(res, "aaxBufferDestroy");
