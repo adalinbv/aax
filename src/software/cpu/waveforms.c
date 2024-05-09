@@ -59,7 +59,7 @@ static inline float fast_atanf(float x) {
 static float
 _aax_atanf(float v) {
 // return atanf(v)*GMATH_1_PI_2;
-   return fast_atanf( _MINMAX(v*GMATH_1_PI_2, -1.94139795f, 1.94139795f) );
+   return fast_atanf( _MINMAX(v, -1.938f, 1.938f) )*GMATH_1_PI_2;
 }
 
 static inline float
@@ -471,8 +471,8 @@ _aax_add_data(int32_t* data, const_float32_ptr mix, unsigned int no_samples, cha
    const float *m = mix;
    if (bps == 1)
    {
-      static const float div = 1.0f/128.0f;
-      static const float mul = 127.0f;
+      static const float div = 1.0f/(1<<7);
+      static const float mul = (1<<7);
       int8_t *d = (int8_t*)data;
       do {
          float v = (float)*d * div + *m++ * gain;
@@ -481,8 +481,8 @@ _aax_add_data(int32_t* data, const_float32_ptr mix, unsigned int no_samples, cha
    }
    else if (bps == 2)
    {
-      static const float div = 1.0f/32768.0f;
-      static const float mul = 32767.0f;
+      static const float div = 1.0f/(1<<15);
+      static const float mul = (1<<15);
       int16_t *d = (int16_t*)data;
       do {
          float v = (float)*d * div + *m++ * gain;
