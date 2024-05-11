@@ -866,8 +866,8 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    MIX_T *sptr = s + start;
    MIX_T *nsptr = sptr;
    ssize_t offs, noffs;
-   float volume, gain;
-   float lfo_fact;
+   float dry_gain, wet_gain;
+   float volume, lfo_fact;
    int rv = false;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -899,24 +899,27 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
 
    // normalize in case of a delayed signal and/or feedback signal which
    // is higher than the source.
-   gain = 1.0f;
+   dry_gain = 1.0f;
+   wet_gain = 1.0f;
    if (effect->state & AAX_EFFECT_2ND_ORDER) {
-       gain = fabsf(effect->feedback);
+       wet_gain = fabsf(effect->feedback);
    }
    if (effect->state & AAX_EFFECT_1ST_ORDER) {
-      gain = _MAX(gain, fabsf(effect->delay.gain));
+      wet_gain = _MAX(wet_gain, fabsf(effect->delay.gain));
    }
-   if (gain > 1.0f) { // adjust the source volume
-      rbd->multiply(sptr, sptr, bps, no_samples, 1.0f/gain);
+   if (wet_gain > 1.0f) { // adjust the source volume
+      dry_gain = 1.0f/wet_gain;
+   } else {
+      wet_gain = 1.0f;
    }
 
    assert(s != d);
 
    if (effect->state & AAX_EFFECT_2ND_ORDER)
    {
-      gain = effect->feedback;
+      float gain = effect->feedback/wet_gain;
       volume = fabsf(gain);
-      if (offs && volume > LEVEL_96DB)
+      if (offs && volume > LEVEL_32DB)
       {
          ssize_t coffs, doffs;
          int i, step, sign;
@@ -968,60 +971,56 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
 
    if (effect->state & AAX_EFFECT_1ST_ORDER)
    {
-      gain =  effect->delay.gain;
+      MIX_T *dptr = d + start;
+      float gain =  effect->delay.gain/wet_gain;
       volume = fabsf(gain);
-      if (offs && volume > LEVEL_96DB)
+      if (offs && volume > LEVEL_32DB)
       {
          _aaxRingBufferFreqFilterData *flt = effect->freq_filter;
-         MIX_T *dptr = d + start;
          ssize_t doffs;
 
-         doffs = noffs - offs;
+         doffs = noffs - offs; // difference between current and new offset
 
          // first process the delayed (wet) signal
-         // then add the original (dry) signal
-         if (doffs == 0)
+         if (abs(doffs) > 1)
          {
-            if (flt)
-            {
-               float fact = lfo_fact/effect->lfo.max;
-               float fc = flt->fc_low + fact*(flt->fc_high-flt->fc_low);
-               fc = CLIP_FREQUENCY(fc, flt->fs);
+            float samples = (float)no_samples;
+            float pitch = _MAX((samples-doffs)/samples, 0.001f);
+            float smu = effect->delay.smu;
+            rbd->resample(dptr, nsptr-offs, 0, no_samples, smu, pitch);
+            rbd->multiply(dptr, dptr, bps, no_samples, gain);
+            effect->delay.smu = fmodf(smu+pitch*no_samples, 1.0f);
+         }
+         else {
+            rbd->multiply(dptr, nsptr-offs, bps, no_samples, gain);
+         }
 
-               if (flt->resonance > 0.0f) {
-                  if (flt->type > BANDPASS) { // HIGHPASS
-                      flt->Q = _MAX(flt->resonance*(flt->fc_high - fc), 1.0f);
-                  } else {
-                     flt->Q = flt->resonance*fc;
-                  }
-               }
+         if (flt)
+         {
+            float fact = lfo_fact/effect->lfo.max;
+            float fc = flt->fc_low + fact*(flt->fc_high-flt->fc_low);
+            fc = CLIP_FREQUENCY(fc, flt->fs);
 
-               if (flt->state == AAX_BESSEL) {
-                  _aax_bessel_compute(fc, flt);
+            if (flt->resonance > 0.0f) {
+               if (flt->type > BANDPASS) { // HIGHPASS
+                  flt->Q = _MAX(flt->resonance*(flt->fc_high - fc), 1.0f);
                } else {
-                  _aax_butterworth_compute(fc, flt);
+                  flt->Q = flt->resonance*fc;
                }
-
-               flt->run(rbd, dptr, nsptr-offs, 0, no_samples, 0, track, flt, env, 1.0f, 0);
-            }  else if (fabsf(volume - 1.0f) > LEVEL_96DB) {
-               rbd->multiply(dptr, nsptr-offs, bps, no_samples, gain);
             }
-         }
-         else
-         {
-            float pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
-            rbd->resample(dptr, nsptr-offs, 0, no_samples, 0.0f, pitch);
 
-            if (flt)
-            {
-               flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, flt, env, 1.0f, 0);
-            } else if (fabsf(volume - 1.0f) > LEVEL_96DB) {
-               rbd->multiply(dptr, dptr, bps, no_samples, gain);
+            if (flt->state == AAX_BESSEL) {
+               _aax_bessel_compute(fc, flt);
+            } else {
+               _aax_butterworth_compute(fc, flt);
             }
+            flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, flt, env, 1.0f, 0);
          }
-         rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
-         rv = true;
       }
+
+      // then add the original (dry) signal
+      rbd->add(dptr, sptr, no_samples, dry_gain, 0.0f);
+      rv = true;
    }
 
    return rv;

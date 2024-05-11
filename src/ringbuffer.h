@@ -214,6 +214,7 @@ typedef struct
 {
    ALIGN16 size_t sample_offs[RB_MAX_TRACKS] ALIGN16C;
   float gain;
+  float smu;
 
 } _aaxRingBufferDelayData;
 

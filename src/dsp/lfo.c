@@ -653,16 +653,16 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
          float lvl;
 
          lvl = (track % 2) ? 1.05f : 0.95f;	// stereo effect
-         if (!env)
+         if (env)
+         {
+            _aaxEnvelopeData *genv = (_aaxEnvelopeData*)env;
+            lvl = genv->value_total/genv->value_max;
+         }
+         else if (ptr && no_samples)
          {
             float rms, peak;
             _batch_get_average_rms(ptr, no_samples, &rms, &peak);
             lvl = rms*div;
-         }
-         else
-         {
-            _aaxEnvelopeData *genv = (_aaxEnvelopeData*)env;
-            lvl = genv->value_total/genv->value_max;
          }
 
          olvl = lfo->value[track];
