@@ -23,11 +23,11 @@
  <sound gain="2.77" frequency="440" duration="0.7">
   <layer n="0">
    <waveform src="square" voices="3" spread="0.93" phasing="true"/>
-   <waveform src="impulse" processing="add" ratio="0.55" pitch="3.0"/>
+   <waveform src="pure-impulse" processing="add" ratio="0.15" pitch="3.0"/>
   </layer>
   <layer n="1">
    <waveform src="square" voices="3" spread="0.93"/>
-   <waveform src="impulse" processing="add" ratio="0.55" pitch="3.0"/>
+   <waveform src="impulse" processing="add" ratio="0.35" pitch="3.0"/>
   </layer>
  </sound>
 
@@ -66,7 +66,7 @@
    <slot n="0">
     <param n="0">1.24</param>
     <param n="1">0.01</param>
-    <param n="2">1.04</param>
+    <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
