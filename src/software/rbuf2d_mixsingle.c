@@ -257,7 +257,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
 
       /* Automatic volume ramping to avoid clicking */
       svol = evol = 1.0f;
-      if (!genv && !srbi->streaming && (srbi->playing == srbi->stopped))
+      if (!srbi->streaming && (srbi->playing == srbi->stopped))
       {
          svol = (srbi->stopped || offs) ? 1.0f : 0.0f;
          evol = (srbi->stopped) ? 0.0f : 1.0f;
