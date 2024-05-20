@@ -93,6 +93,7 @@ typedef struct
    signed char stage, max_stages;
    unsigned char sustain_stage;
    bool sustain;
+   bool gain;
 } _aaxEnvelopeData;
 
 void _env_reset(_aaxEnvelopeData*);

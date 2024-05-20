@@ -169,6 +169,9 @@ void _aaxRingBufferDelaysRemove(void**);
 
 float _lin(float v);
 float _ln(float v);
+float _exp(float v);
+float _log(float v);
+float _pow(float v);
 float _lin2db(float v);
 float _db2lin(float v);
 float _square(float v);

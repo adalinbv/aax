@@ -66,8 +66,9 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
          int i, stage;
 
          stage = 0;
+         env->state = state;
          env->sustain = true;
-         env->value0 = env->value = nextval;
+         env->value0 = env->value = env->value_max = nextval;
          env->max_stages = _MAX_ENVELOPE_STAGES-1;
          for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
          {
@@ -88,6 +89,7 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
             }
 
             nextval = effect->slot[i]->param[AAX_LEVEL1];
+            if (nextval > env->value_max) env->value_max = nextval;
             env->step[stage] = (nextval - value)/max_pos;
             env->max_pos[stage] = max_pos;
             stage++;
@@ -107,6 +109,7 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
 
             value = nextval;
             nextval = (i < 2) ? effect->slot[i+1]->param[AAX_LEVEL0] : 0.0f;
+            if (nextval > env->value_max) env->value_max = nextval;
             env->step[stage] = (nextval - value)/max_pos;
             env->max_pos[stage] = max_pos;
             stage++;

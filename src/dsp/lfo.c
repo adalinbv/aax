@@ -754,24 +754,27 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, bool stopped, float *velocity, _aaxEnvelo
       if (stage <= env->max_stages)
       {
          float step = env->step[stage];
-         float fact = 1.0f;
-
-         if ((fabsf(step) > LEVEL_128DB) && (env->state & AAX_LFO_EXPONENTIAL))
+         if ((env->state == AAX_ENVELOPE_FOLLOW)  && (rv > LEVEL_60DB))
          {
-             if (penv) // gain: exponential
-             {
-                fact = _MIN(powf(rv, GMATH_E1), GMATH_E1);
-                if (step > 0.0f) fact = 1.0f/fact;
+            float fact;
+            if (penv || env->gain) // gain: exponential
+            {
+               if (rv < 1.0f)
+               {
+                  if (step < 0.0f) fact = _ln(rv);
+                  else fact = 1.0f - _exp(1.0f - rv);
+                  rv *= fact;
+               }
             }
             else // pitch: logarithmic
             {
-                fact = powf(rv, 10.0f);
-                if (step > 0.0f) fact = 1.0f/fact;
+               fact = _log(rv);
+               rv *= fact;
             }
          }
 
-         if (stopped && !env->sustain) env->value += env->step_finish*fact;
-         else env->value += step*fact;
+         if (stopped && !env->sustain) env->value += env->step_finish;
+         else env->value += step;
 
          // If the number-of-steps for this stage is reached go to the next.
          // If the duration of a stage == (uint32_t)-1 then we keep looping

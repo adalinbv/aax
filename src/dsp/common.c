@@ -62,6 +62,9 @@ void _aax_dsp_swap(void *d, void *s) {
 
 float _lin(float v) { return v; }
 float _ln(float v) { return powf(v, GMATH_1_E1); }
+float _exp(float v) { return powf(v, GMATH_E1); }
+float _log(float v) { return powf(v, 1.0f/10.0f); }
+float _pow(float v) { return powf(v, 10.0f); }
 float _square(float v) { return v*v; }
 float _lin2log(float v) { return log10f(_MAX(v, 1e-9f)); }
 float _log2lin(float v) { return powf(10.0f,v); }
