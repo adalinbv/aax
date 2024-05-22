@@ -345,14 +345,14 @@ _aaxGetSIMDSupportLevel()
 # ifndef __TINYC__
    if (init)
    {
+      int capabilities;
+
       init = false;
       rv = _aaxGetSSELevel();
 
-      if (_info)
-      {
-         support_simd = _info->capabilities & 0xF00;
-         support_simd256 = _info->capabilities & (AAX_SIMD256|AAX_SIMD256_2);
-      }
+      capabilities = _info ? _info->capabilities :  _aaxGetCapabilities(NULL);
+      support_simd = capabilities & 0xF00;
+      support_simd256 = capabilities & (AAX_SIMD256|AAX_SIMD256_2);
 
       if (support_simd)
       {
