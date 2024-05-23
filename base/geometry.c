@@ -583,6 +583,28 @@ mtx4dInverseSimple(mtx4d_ptr dst, const mtx4d_ptr mtx)
 }
 
 void
+mtx4fTranspose(mtx4f_ptr dst, const mtx4f_ptr mtx)
+{
+   int i,j;
+   for (i=0; i<4; ++i) {
+      for(j=0; j<4; ++j) {
+         dst->m4[i][j] = mtx->m4[j][i];
+      }
+   }
+}
+
+void
+mtx4dTranspose(mtx4d_ptr dst, const mtx4d_ptr mtx)
+{
+   int i,j;
+   for (i=0; i<4; ++i) {
+      for(j=0; j<4; ++j) {
+         dst->m4[i][j] = mtx->m4[j][i];
+      }
+   }
+}
+
+void
 mtx4fTranslate(mtx4f_ptr m, float x, float y, float z)
 {
    if (x || y || z)

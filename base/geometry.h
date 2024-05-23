@@ -232,16 +232,18 @@ extern mtx4dMulVec4_proc mtx4dMulVec4;
 extern mtx4fCopy_proc mtx4fCopy;
 extern mtx4dCopy_proc mtx4dCopy;
 
+void mtx4fSetIdentity(float m[4][4]);
 void mtx4fFill(float d[4][4], float m[4][4]);
 void mtx4dFillf(double d[4][4], float m[4][4]);
 void mtx4fFilld(float d[4][4], double m[4][4]);
-void mtx4fSetIdentity(float m[4][4]);
+void mtx4fTranspose(mtx4f_ptr d, const mtx4f_ptr m);
 void mtx4fTranslate(mtx4f_ptr m, float x, float y, float z);
 void mtx4fRotate(mtx4f_ptr m, float angle, float x, float y, float z);
 void mtx4fInverseSimple(mtx4f_ptr d, const mtx4f_ptr m);
 
-void mtx4dFill(double d[4][4], double m[4][4]);
 void mtx4dSetIdentity(double m[4][4]);
+void mtx4dFill(double d[4][4], double m[4][4]);
+void mtx4dTranspose(mtx4d_ptr d, const mtx4d_ptr m);
 void mtx4dTranslate(mtx4d_ptr m, double x, double y, double z);
 void mtx4dRotate(mtx4d_ptr m, double angle, double x, double y, double z);
 void mtx4dInverseSimple(mtx4d_ptr d, const mtx4d_ptr m);
