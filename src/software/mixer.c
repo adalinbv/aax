@@ -72,20 +72,18 @@ _aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *rendere
 
       assert (2*track+1 < MAX_SCRATCH_BUFFERS);
 
+      if (reverb) {
+         ddesamps = rb->get_parami(rb, RB_DDE_SAMPLES);
+      } else if (delay_line) { // longer delay line
+         ddesamps = delay_line->delay.sample_offs[track];
+      } else if (delay_effect) { // phasing, chorus, flanging
+         ddesamps = delay_effect->delay.sample_offs[track];
+      }
+
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
       tracks = (MIX_T**)rbd->track;
 
-      if (reverb) {
-         ddesamps = rb->get_parami(rb, RB_DDE_SAMPLES);
-      }
-
       dptr = (MIX_T*)tracks[track];
-      if (!ddesamps && delay_line) {
-         ddesamps = delay_line->delay.sample_offs[track];
-      }
-      if (!ddesamps && delay_effect) {
-         ddesamps = delay_effect->delay.sample_offs[track];
-      }
       memcpy(scratch0, dptr, no_samples*bps);
       rbi->effects(rbi->sample, dptr, scratch0, scratch1, 0, no_samples,
                    no_samples, ddesamps, track, p2d, 0, mono);
