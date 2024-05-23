@@ -205,11 +205,9 @@ FN(mtx4fMul,A)(mtx4f_ptr dst, const mtx4f_ptr mtx1, const mtx4f_ptr mtx2)
    const float *m20 = mtx2->m4[0], *m21 = mtx2->m4[1];
    const float *m22 = mtx2->m4[2], *m23 = mtx2->m4[3];
    float m10i, m11i, m12i, m13i;
-   int i=4;
+   int i=3;
    do
    {
-      --i;
-
       m10i = mtx1->m4[0][i];
       m11i = mtx1->m4[1][i];
       m12i = mtx1->m4[2][i];
@@ -220,7 +218,7 @@ FN(mtx4fMul,A)(mtx4f_ptr dst, const mtx4f_ptr mtx1, const mtx4f_ptr mtx2)
       dst->m4[2][i] = m10i*m22[0] + m11i*m22[1] + m12i*m22[2] + m13i*m22[3];
       dst->m4[3][i] = m10i*m23[0] + m11i*m23[1] + m12i*m23[2] + m13i*m23[3];
    }
-   while (i != 0);
+   while (i-- != 0);
 }
 
 void
@@ -229,11 +227,9 @@ FN(mtx4dMul,A)(mtx4d_ptr dst, const mtx4d_ptr mtx1, const mtx4d_ptr mtx2)
    const double *m20 = mtx2->m4[0], *m21 = mtx2->m4[1];
    const double *m22 = mtx2->m4[2], *m23 = mtx2->m4[3];
    double m10i, m11i, m12i, m13i;
-   int i=4;
+   int i=3;
    do
    {
-      --i;
-
       m10i = mtx1->m4[0][i];
       m11i = mtx1->m4[1][i];
       m12i = mtx1->m4[2][i];
@@ -244,8 +240,35 @@ FN(mtx4dMul,A)(mtx4d_ptr dst, const mtx4d_ptr mtx1, const mtx4d_ptr mtx2)
       dst->m4[2][i] = m10i*m22[0] + m11i*m22[1] + m12i*m22[2] + m13i*m22[3];
       dst->m4[3][i] = m10i*m23[0] + m11i*m23[1] + m12i*m23[2] + m13i*m23[3];
    }
-   while (i != 0);
+   while (i-- != 0);
 }
+
+#if 0
+// Multiply against a pre-transposed mtx1 which could be faster for SIMD
+void
+mtx4Mul2(double dst[4][4], double mtx1[4][4], double mtx2[4][4])
+{
+   int i=3;
+   do
+   {
+      double v10 = mtx1[i][0];
+      double v11 = mtx1[i][1];
+      double v12 = mtx1[i][2];
+      double v13 = mtx1[i][3];
+
+      dst[0][i] = v10*mtx2[0][0] + v11*mtx2[0][1] +
+                  v12*mtx2[0][2] + v13*mtx2[0][3];
+      dst[1][i] = v10*mtx2[1][0] + v11*mtx2[1][1] +
+                  v12*mtx2[1][2] + v13*mtx2[1][3];
+      dst[2][i] = v10*mtx2[2][0] + v11*mtx2[2][1] +
+                  v12*mtx2[2][2] + v13*mtx2[2][3];
+      dst[3][i] = v10*mtx2[3][0] + v11*mtx2[3][1] +
+                  v12*mtx2[3][2] + v13*mtx2[3][3];
+
+   }
+   while (i-- != 0);
+}
+#endif
 
 void
 FN(mtx4fInverseSimple,A)(mtx4f_ptr dst, const mtx4f_ptr mtx)
