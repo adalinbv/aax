@@ -21,7 +21,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.77" frequency="261.626" duration="1.3">
+ <sound mode="1" gain="2.07" frequency="261.626" duration="1.3">
   <layer n="0">
    <waveform src="sine" pitch="4.4978" voices="3" spread="0.31"/>
    <waveform src="sine" processing="add" ratio="0.311" pitch="2.4938"/>
@@ -32,14 +32,6 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="bitcrusher" src="inverse-timed|pink-noise">
-   <slot n="0">
-    <param n="0">0.5</param>
-    <param n="1">1.0</param>
-    <param n="2">0.3</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope" release-time="0.08">
    <slot n="0">
     <param n="0">0.303</param>
@@ -73,15 +65,9 @@
  <audioframe pan="-0.2">
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">850.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.25</param>
-    <param n="3">1.5</param>
-   </slot>
-   <slot n="1">
     <param n="0">3300.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.03</param>
+    <param n="2">0.1</param>
     <param n="3">1.25</param>
    </slot>
   </filter>
