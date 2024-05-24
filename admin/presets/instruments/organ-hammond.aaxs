@@ -11,74 +11,40 @@
 
 <aeonwave>
 
- <info name="Drawbar" bank="0" program="0">
+ <info name="Hammond Organ" bank="0" program="15">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <description text="A tribute to Laurens Hammond"/>
-  <note polyphony="10" min="36" max="96" step="12"/>
+  <note polyphony="10" min="24" max="104" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.06" frequency="65.4064">
+ <sound mode="1" gain="1.07" frequency="32.7032">
   <layer n="0">
-   <waveform src="white-noise" ratio="0.1"/>
-   <waveform src="sine" ratio="0.463" pitch="0.5"/>
-   <waveform src="sine" processing="add" ratio="0.463" pitch="0.75"/>
+   <waveform src="pink-noise" ratio="0.33"/>
+   <waveform src="sine" ratio="0.463" pitch="0.4987"/>
+   <waveform src="sine" processing="add" ratio="0.463" pitch="1.501"/>
    <waveform src="sine" processing="add" ratio="0.463"/>
-   <waveform src="sine" processing="add" ratio="0.463" pitch="2.0"/>
+   <waveform src="sine" processing="add" ratio="0.463" pitch="1.993"/>
   </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.184</param>
-    <param n="1">0.04</param>
-    <param n="2">1.0</param>
+    <param n="0">0.25</param>
+    <param n="1">0.08</param>
+    <param n="2">1.2</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">0.892</param>
-    <param n="1">0.1</param>
+    <param n="0">1.2</param>
+    <param n="1">0.2</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="inverse-sine" optional="true">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">1.54</param>
-    <param n="2">0.1</param>
-    <param n="3">0.9</param>
-   </slot>
-  </filter>
-  <effect type="dynamic-pitch" src="sine" optional="true">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">1.54</param>
-    <param n="2">0.01</param>
-    <param n="3">0.98</param>
-   </slot>
-  </effect>
  </emitter>
-
- <audioframe>
-  <filter type="equalizer" optional="true">
-   <slot n="0">
-    <param n="0">65.0</param>
-    <param n="1">0.5</param>
-    <param n="2">1.0</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">3700.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
- </audioframe>
 
 </aeonwave>

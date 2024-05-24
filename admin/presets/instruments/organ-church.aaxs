@@ -16,32 +16,35 @@
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="12" min="16" max="96" step="12"/>
+  <note polyphony="10" min="24" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.48" frequency="65.4064">
+ <sound mode="1" gain="2.84" frequency="32.7032" voices="3" spread="0.1">
   <layer n="0">
-   <waveform src="white-noise" ratio="0.1"/>
-   <waveform src="sine" ratio="0.577"/>
-   <waveform src="sine" processing="add" ratio="0.577" pitch="2.0"/>
-   <waveform src="sine" processing="add" ratio="0.577" pitch="4.0"/>
-   <waveform src="sine" processing="add" ratio="0.0726" pitch="6.0"/>
-   <waveform src="sine" processing="add" ratio="0.577" pitch="8.0"/>
+   <waveform src="white-noise" ratio="0.1" pitch="0.1"/>
+   <waveform src="sine" ratio="0.42" pitch="0.4987"/>
+   <waveform src="sine" processing="add" ratio="0.211"/>
+   <waveform src="sine" processing="add" ratio="0.149" pitch="1.993"/>
+   <waveform src="sine" processing="add" ratio="0.106" pitch="3.01"/>
+   <waveform src="sine" processing="add" ratio="0.149" pitch="3.997"/>
+   <waveform src="sine" processing="add" ratio="0.211" pitch="5.01"/>
+   <waveform src="sine" processing="add" ratio="0.297" pitch="5.989"/>
+   <waveform src="sine" processing="add" ratio="0.42" pitch="8.0"/>
   </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope" release-time="2.8">
    <slot n="0">
-    <param n="0">0.21</param>
-    <param n="1">0.04</param>
-    <param n="2">0.37</param>
+    <param n="0">0.25</param>
+    <param n="1">0.08</param>
+    <param n="2">1.2</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">0.35</param>
+    <param n="0">1.2</param>
+    <param n="1">0.7</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

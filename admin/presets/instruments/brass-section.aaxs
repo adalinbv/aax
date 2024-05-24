@@ -22,9 +22,8 @@
 
  <sound mode="1" gain="2.23" frequency="880" duration="0.5">
   <layer n="0">
-   <waveform src="pure-sawtooth" ratio="0.526" voices="3" spread="0.23"/>
-   <waveform src="sawtooth" processing="add" ratio="1.4" voices="3" spread="0.31"/>
-   <waveform src="pure-impulse" processing="add" ratio="0.00601" pitch="1.987"/>
+   <waveform src="sawtooth" ratio="0.526" voices="3" spread="0.23"/>
+   <waveform src="sawtooth" processing="add" voices="3" spread="0.31"/>
   </layer>
  </sound>
 
@@ -73,6 +72,15 @@
   </effect>
  </emitter>
 
- <audioframe pan="-0.4"/>
+ <audioframe pan="-0.4">
+  <filter type="equalizer" optional="true">
+   <slot n="0">
+    <param n="0">8000.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.7</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

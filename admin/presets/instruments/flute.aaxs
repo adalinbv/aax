@@ -23,21 +23,13 @@
  <sound gain="1.30" frequency="880" duration="0.3">
   <layer n="0">
    <waveform src="square" ratio="1.9"/>
-   <waveform src="sine" processing="mix" ratio="0.5" pitch="0.5"/>
-   <waveform src="sine" processing="add" ratio="0.05" pitch="2.0"/>
+   <waveform src="sine" processing="add" ratio="0.05" pitch="1.87"/>
    <waveform src="pink-noise" processing="add" ratio="0.1" pitch="0.3"/>
+   <waveform src="sine" processing="mix" ratio="0.5" pitch="0.5"/>
   </layer>
  </sound>
 
  <emitter looping="true">
-  <filter type="bitcrusher" src="timed">
-   <slot n="0">
-    <param n="0">0.25</param>
-    <param n="1">2.0</param>
-    <param n="2">0.1</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope" release-time="0.12">
    <slot n="0">
     <param n="0">0.453</param>
@@ -67,16 +59,5 @@
    </slot>
   </effect>
  </emitter>
-
- <audioframe pan="-0.2">
-  <filter type="equalizer">
-   <slot n="0">
-    <param n="0">2200.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.9</param>
-    <param n="3">3.5</param>
-   </slot>
-  </filter>
- </audioframe>
 
 </aeonwave>

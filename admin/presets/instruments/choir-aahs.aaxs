@@ -21,12 +21,12 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="4.55" frequency="130.813" voices="7" spread="0.91" ratio="3.0">
-  <layer n="0" ratio="3.0">
-   <waveform src="sine" pitch="1.4987"/>
+ <sound gain="4.55" frequency="130.813">
+  <layer n="0">
+   <waveform src="sine" pitch="1.4987" voices="5" spread="0.91"/>
    <waveform src="pink-noise" processing="add" ratio="0.3"/>
    <waveform src="sine" processing="add" ratio="0.055" pitch="3.5"/>
-   <waveform src="triangle" processing="modulate" ratio="0.818" pitch="0.5"/>
+   <waveform src="triangle" processing="modulate" pitch="0.5"/>
   </layer>
  </sound>
 

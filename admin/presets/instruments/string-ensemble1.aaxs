@@ -20,9 +20,9 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.07" frequency="220">
+ <sound gain="3.07" frequency="220" duration="2.1" voices="3" spread="0.27" phasing="true">
   <layer n="0">
-   <waveform src="sawtooth" ratio="1.4" voices="3"/>
+   <waveform src="sawtooth"/>
    <waveform src="triangle" processing="modulate" ratio="0.818" pitch="3.987"/>
    <waveform src="sawtooth" processing="add" ratio="0.28" pitch="0.991" voices="3" spread="0.5" phasing="true"/>
   </layer>
@@ -64,7 +64,7 @@
    <slot n="0">
     <param n="0">5500.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
+    <param n="2">0.1</param>
     <param n="3">1.0</param>
    </slot>
   </filter>

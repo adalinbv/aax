@@ -31,7 +31,7 @@
  <emitter looping="true">
   <filter type="timed-gain" release-time="1.2">
    <slot n="0">
-    <param n="0">1.15</param>
+    <param n="0">1.05</param>
     <param n="1">0.12</param>
     <param n="2">1.0</param>
     <param n="3">0.025</param>
@@ -45,7 +45,7 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.97</param>
+    <param n="0">1.27</param>
     <param n="1">0.01</param>
     <param n="2">0.96</param>
     <param n="3">0.1</param>
@@ -58,16 +58,5 @@
    </slot>
   </effect>
  </emitter>
-
- <audioframe>
-  <filter type="equalizer">
-   <slot n="0">
-    <param n="0">3520.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.06</param>
-    <param n="3">1.5</param>
-   </slot>
-  </filter>
- </audioframe>
 
 </aeonwave>

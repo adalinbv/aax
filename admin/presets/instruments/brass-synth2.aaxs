@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.32" frequency="880" voices="3" spread="0.15" phasing="true">
+ <sound mode="1" gain="1.02" frequency="880" voices="3" spread="0.15" phasing="true">
   <layer n="0">
    <waveform src="sawtooth" ratio="1.4" pitch="0.993"/>
    <waveform src="sawtooth" processing="add" ratio="0.35" pitch="1.4983"/>
