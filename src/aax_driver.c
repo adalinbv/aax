@@ -169,7 +169,11 @@ aaxDriverSetSetup(const aaxConfig config, enum aaxSetupType type, const char *se
       {
       case AAX_SHARED_DATA_DIR:
          free(handle->data_dir);
-         handle->data_dir = strdup(setup);
+         if (strlen(setup)) {
+            handle->data_dir = strdup(setup);
+         } else { // set to default
+            handle->data_dir = systemDataFile("");
+         }
          break;
       case AAX_MUSIC_PERFORMER_STRING:
       case AAX_MUSIC_PERFORMER_UPDATE:
