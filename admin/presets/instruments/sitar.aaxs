@@ -17,7 +17,7 @@
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="48" max="127" step="12"/>
-  <aftertouch mode="2"/>
+  <aftertouch mode="pitch|gain"/>
   <sound version="1.1"/>
  </info>
 
