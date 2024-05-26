@@ -8,6 +8,7 @@
 #define FREQ(a,b)	testFreq((a),(b),__LINE__)
 #define FLT(a,b)	testFilter((a),(b),__LINE__)
 #define EFF(a,b)	testEffect((a),(b),__LINE__)
+#define MOD(a,b)	testModulation((a),(b),__LINE__)
 
 void
 testDist(const char *name, int type, int lineno)
@@ -57,6 +58,17 @@ void
 testEffect(const char *name, int type, int lineno)
 {
     int res = aaxGetByName(name, AAX_EFFECT_NAME);
+    if (res != type)
+    {
+        printf("at line: %i, %s:\t\t0x%x != 0x%x\n", lineno, name, res, type);
+        exit(-1);
+    }
+}
+
+void
+testModulation(const char *name, int type, int lineno)
+{
+    int res = aaxGetByName(name, AAX_MODULATION_NAME);
     if (res != type)
     {
         printf("at line: %i, %s:\t\t0x%x != 0x%x\n", lineno, name, res, type);
@@ -233,6 +245,14 @@ int main()
     EFF("reverb", AAX_REVERB_EFFECT);
     EFF("convolution", AAX_CONVOLUTION_EFFECT);
     EFF("ringmodulator", AAX_RINGMODULATOR_EFFECT);
+
+    /* MIDI modulation */
+    MOD("gain", AAX_MIDI_GAIN_CONTROL);
+    MOD("pitch", AAX_MIDI_PITCH_CONTROL);
+    MOD("frequency", AAX_MIDI_FILTER_CONTROL);
+    MOD("chorus", AAX_MIDI_CHORUS_CONTROL);
+    MOD("3", AAX_MIDI_GAIN_CONTROL|AAX_MIDI_PITCH_CONTROL);
+    MOD("gain|pitch|frequency|chorus", AAX_MIDI_GAIN_CONTROL|AAX_MIDI_PITCH_CONTROL|AAX_MIDI_FILTER_CONTROL|AAX_MIDI_CHORUS_CONTROL);
 
     return 0;
 }

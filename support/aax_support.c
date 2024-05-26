@@ -592,6 +592,73 @@ aaxGetProcessingType(const char *type)
    return rv;
 }
 
+static enum aaxMIDIModulationMode
+aaxGetMIDIModulationTypeByName(const char *mod)
+{
+   enum aaxMIDIModulationMode rv = mod ? atoi(mod) : 0;
+   if (!rv && mod)
+   {
+      static const char *skip_str = "AAX_MIDI_MODULATE_";
+      int skip = strlen(skip_str);
+      char *name = (char *)mod;
+      char *end, *last;
+      size_t len;
+
+      last = strchr(name, '|');
+      if (!last) last = name+strlen(name);
+
+      do
+      {
+         len = last - name;
+         if (len > skip && !strncasecmp(name, skip_str, skip)) {
+            name += skip;
+         }
+
+         end = last;
+         while(end > name && *end != '_' && *end != '-') --end;
+         if (end > name)
+         {
+            if (!strcasecmp(end+1, "CONTROL") || !strcasecmp(end+1, "DEPTH")) {
+               len = end-name;
+            }
+            else {
+               len = last-name;
+            }
+         } else {
+            len = last-name;
+         }
+
+         if (len)
+         {
+            if (!strncasecmp(name, "gain", len)) {
+               rv |= AAX_MIDI_GAIN_CONTROL;
+            } else if (!strncasecmp(name, "pitch", len)) {
+               rv |= AAX_MIDI_PITCH_CONTROL;
+            } else if (!strncasecmp(name, "filter", len) ||
+                       !strncasecmp(name, "frequency", len)) {
+               rv |= AAX_MIDI_FILTER_CONTROL;
+            } else if (!strncasecmp(name, "chorus", len)) {
+               rv |= AAX_MIDI_CHORUS_CONTROL;
+            } else if (!strncasecmp(name, "tremolo", len)) {
+               rv |= AAX_MIDI_LFO_GAIN_DEPTH;
+            } else if (!strncasecmp(name, "vibrato", len)) {
+               rv |= AAX_MIDI_LFO_PITCH_DEPTH;
+            } else if (!strncasecmp(name, "wah", len)) {
+               rv |= AAX_MIDI_LFO_FILTER_DEPTH;
+            }
+         }
+
+         if (last == name+strlen(name)) break;
+         name = ++last;
+         last = strchr(name, '|');
+         if (!last) last = name+strlen(name);
+      }
+      while(last);
+   }
+
+   return rv;
+}
+
 static enum aaxSourceType
 aaxGetSourceTypeByName(const char *wave)
 {
@@ -1258,6 +1325,9 @@ aaxGetByName(const char* name, enum aaxTypeName type)
       break;
    case AAX_TYPE_NAME:
       rv = aaxGetTypeByName(name);
+      break;
+   case AAX_MODULATION_NAME:
+      rv = aaxGetMIDIModulationTypeByName(name);
       break;
    default:
       break;

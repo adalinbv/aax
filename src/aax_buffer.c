@@ -474,11 +474,20 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          rv = handle->info.no_patches;
          break;
       case AAX_MIDI_PRESSURE_MODE:
-         rv = handle->pressure_mode;
+         rv = handle->info.pressure.mode;
          break;
       case AAX_MIDI_RELEASE_VELOCITY_FACTOR:
-         rv = 100.0f*handle->pressure_factor;
+         rv = 100.0f*handle->info.pressure.factor;
          break;
+      case AAX_MIDI_MODULATION_MODE:
+          rv = handle->info.modulation.mode;
+          break;
+      case AAX_MIDI_MODULATION_FACTOR:
+          rv = 100.0f*handle->info.modulation.factor;
+          break;
+      case AAX_MIDI_MODULATION_RATE:
+          rv = 100.0f*handle->info.modulation.rate;
+          break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
@@ -1054,6 +1063,13 @@ _bufInitInfo(_buffer_info_t *info)
    info->blocksize = 2;
    info->pitch_fraction = 1.0f;
    info->polyphony = 88;
+
+   info->modulation.mode = AAX_MIDI_PITCH_CONTROL;
+   info->modulation.factor = 1.0f;
+   info->modulation.rate = 5.54f;
+
+   info->pressure.mode = AAX_MIDI_GAIN_CONTROL;
+   info->pressure.factor = 1.0f;
 }
 
 static _aaxRingBuffer*
@@ -2248,15 +2264,42 @@ _bufAAXSThread(void *d)
           xmlFree(a);
       }
 
-      handle->pressure_factor = 1.0f;
+      handle->info.pressure.factor = 1.0f;
       xiid = xmlNodeGet(xid, "aeonwave/info/aftertouch");
       if (xiid)
       {
-         handle->pressure_mode = xmlAttributeGetInt(xiid, "mode");
+         if (xmlAttributeExists(xiid, "mode"))
+         {
+            char *s = xmlAttributeGetString(xiid, "mode");
+            if (s)
+            {
+               handle->info.pressure.mode = aaxGetByName(s,AAX_MODULATION_NAME);
+               xmlFree(s);
+            }
+         }
          if (xmlAttributeExists(xiid, "sensitivity")) {
-            handle->pressure_factor = xmlAttributeGetDouble(xiid, "sensitivity");
+            handle->info.pressure.factor = xmlAttributeGetDouble(xiid, "sensitivity");
          }
          xmlFree(xiid);
+      }
+
+      handle->info.modulation.factor = 1.0f;
+      handle->info.modulation.rate = 5.54f; // Hz
+      xiid = xmlNodeGet(xid, "aeonwave/info/modulation");
+      if (xiid)
+      {
+         char *s = xmlAttributeGetString(xiid, "mode");
+         if (s)
+         {
+            handle->info.modulation.mode = aaxGetByName(s, AAX_MODULATION_NAME);
+            xmlFree(s);
+         }
+         if (xmlAttributeExists(xiid, "depth")) {
+            handle->info.modulation.factor = xmlAttributeGetDouble(xiid, "depth");
+         }
+         if (xmlAttributeExists(xiid, "rate")) {
+            handle->info.modulation.rate = xmlAttributeGetDouble(xiid, "rate");
+         }
       }
 
       if (have_hash)

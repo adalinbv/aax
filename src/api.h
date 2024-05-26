@@ -256,6 +256,17 @@ typedef struct
 
    char no_patches;
 
+   struct {
+      char mode;
+      float factor;
+   } pressure;
+
+   struct {
+      char mode;
+      float factor;
+      float rate;
+   } modulation;
+
    int polyphony;
 
 } _buffer_info_t;
@@ -270,13 +281,11 @@ typedef struct aax_buffer_t
 
    unsigned int pos;
    float rms, peak, gain;
-   float pressure_factor;
 
    enum aaxCapabilities midi_mode;
    bool to_mixer;
    bool mipmap;
 
-   char pressure_mode;
    char mip_levels;
    _aaxRingBuffer *ringbuffer[MAX_MIP_LEVELS];
    _aaxMixerInfo **mixer_info;
