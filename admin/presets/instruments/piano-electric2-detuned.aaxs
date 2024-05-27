@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Electric Piano 2" bank="0" program="5">
+ <info name="Detuned Electric Piano 2" bank="0" program="4">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
@@ -20,10 +20,11 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.80" frequency="110" duration="0.1">
+ <sound gain="2.40" frequency="110" duration="0.3">
   <layer n="0">
-   <waveform src="cycloid" ratio="1.05"/>
-   <waveform src="sine" processing="add" ratio="0.3" pitch="2.0"/>
+   <waveform src="cycloid"/>
+   <waveform src="triangle" processing="add" ratio="0.245" pitch="2.0"/>
+   <waveform src="sine" processing="add" ratio="0.1" pitch="3.0"/>
   </layer>
  </sound>
 
@@ -31,12 +32,12 @@
   <filter type="timed-gain" src="envelope" release-time="0.3">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">0.015</param>
+    <param n="1">0.01</param>
     <param n="2">1.0</param>
     <param n="3">0.06</param>
    </slot>
    <slot n="1">
-    <param n="0">0.892</param>
+    <param n="0">0.958</param>
     <param n="1" auto="0.74">3.25</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -44,8 +45,8 @@
   </filter>
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">1.1</param>
-    <param n="1">0.015</param>
+    <param n="0">1.08</param>
+    <param n="1">0.01</param>
     <param n="2">0.987</param>
     <param n="3">4.5</param>
    </slot>
@@ -61,10 +62,10 @@
  <audioframe pan="0.6">
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">2000.0</param>
+    <param n="0">2500.0</param>
     <param n="1">1.0</param>
     <param n="2">0.1</param>
-    <param n="3">1.1</param>
+    <param n="3">2.0</param>
    </slot>
   </filter>
  </audioframe>
