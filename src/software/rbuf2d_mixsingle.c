@@ -115,7 +115,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       pitch *= NORM_TO_PITCH(fp2d->final.pitch_lfo);
    }
 
-   if (fp2d) {
+   if (fp2d) { // parent pitch
       pitch *= _EFFECT_GET(fp2d, PITCH_EFFECT, AAX_PITCH);
    }
 

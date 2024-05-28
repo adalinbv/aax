@@ -43,6 +43,15 @@
 
 #define _AAX_MAX_ERROR		12
 
+#define SRC_ADD(p, l, m, s) { \
+    size_t sl = strlen(s); \
+    if (m && l) *p++ = '|'; \
+    if (l > sl) { \
+        memcpy(p, s, sl); \
+        p += sl; l -= sl; m = 1; *p= 0; \
+    } \
+}
+
 const char *_aax_id_s[_AAX_MAX_ID];
 const char *_aaxErrorStrings[_AAX_MAX_ERROR];
 
@@ -564,7 +573,7 @@ aaxGetTypeByName(const char *name)
 
 static enum aaxProcessingType
 aaxGetProcessingType(const char *type)
-{  
+{
    enum aaxProcessingType rv = AAX_PROCESSING_NONE;
 
    if (type)
@@ -598,7 +607,7 @@ aaxGetMIDIModulationTypeByName(const char *mod)
    enum aaxMIDIModulationMode rv = mod ? atoi(mod) : 0;
    if (!rv && mod)
    {
-      static const char *skip_str = "AAX_MIDI_MODULATE_";
+      static const char *skip_str = "AAX_MIDI_";
       int skip = strlen(skip_str);
       char *name = (char *)mod;
       char *end, *last;
@@ -657,6 +666,40 @@ aaxGetMIDIModulationTypeByName(const char *mod)
    }
 
    return rv;
+}
+
+static char*
+aaxGetMIDIModulationNameByType(enum aaxMIDIModulationMode mode)
+{
+   char rv[1024] = "none";
+   int l = 1024;
+   char *p = rv;
+   char m = 0;
+
+   if (mode & AAX_MIDI_PITCH_CONTROL) {
+      SRC_ADD(p, l, m, "gain");
+   }
+   if (mode & AAX_MIDI_GAIN_CONTROL) {
+      SRC_ADD(p, l, m, "pitch");
+   }
+   if (mode & AAX_MIDI_FILTER_CONTROL) {
+      SRC_ADD(p, l, m, "filter");
+   }
+   if (mode & AAX_MIDI_CHORUS_CONTROL) {
+      SRC_ADD(p, l, m, "chorus");
+   }
+   if (mode & AAX_MIDI_LFO_GAIN_DEPTH) {
+      SRC_ADD(p, l, m, "tremolo");
+   }
+   if (mode & AAX_MIDI_LFO_PITCH_DEPTH) {
+      SRC_ADD(p, l, m, "vibrato");
+   }
+   if (mode & AAX_MIDI_LFO_FILTER_DEPTH) {
+      SRC_ADD(p, l, m, "wah");
+   }
+
+   if (!strcmp(rv, "none")) return NULL;
+   return strdup(rv);
 }
 
 static enum aaxSourceType
@@ -866,15 +909,6 @@ aaxGetSourceTypeByName(const char *wave)
    }
 
    return rv;
-}
-
-#define SRC_ADD(p, l, m, s) { \
-    size_t sl = strlen(s); \
-    if (m && l) *p++ = '|'; \
-    if (l > sl) { \
-        memcpy(p, s, sl); \
-        p += sl; l -= sl; m = 1; *p= 0; \
-    } \
 }
 
 static char*
@@ -1547,6 +1581,9 @@ aaxGetStringByType(int type, enum aaxTypeName name)
          rv = "none";
          break;
       }
+      break;
+   case AAX_MODULATION_NAME:
+      rv = aaxGetMIDIModulationNameByType(type);
       break;
    default:
       break;
