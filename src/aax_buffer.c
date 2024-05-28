@@ -1064,7 +1064,7 @@ _bufInitInfo(_buffer_info_t *info)
    info->pitch_fraction = 1.0f;
    info->polyphony = 88;
 
-   info->modulation.mode = AAX_MIDI_PITCH_CONTROL;
+   info->modulation.mode = AAX_MIDI_LFO_PITCH_DEPTH;
    info->modulation.factor = 1.0f;
    info->modulation.rate = 5.54f;
 
