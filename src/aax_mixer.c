@@ -892,7 +892,9 @@ aaxMixerAddBuffer(aaxConfig config, aaxBuffer buf)
             rv = _mixerCreateEFFromAAXS(config, buffer);
          }
       }
-      if (!buffer->root) {
+      if (!buffer->root)
+      {
+         buffer->handle = handle->handle;
          buffer->root = handle->root;
       }
    }
@@ -1002,7 +1004,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                                               AAX_LIGHT_VELOCITY);
                      _intBufReleaseData(dptr, _AAX_SENSOR);
 
-                     sframe->root = handle;
+                     sframe->root = sframe->handle = handle;
                      sframe->parent = handle;
                      sframe->mixer_pos = pos;
                      submix->refctr++;
@@ -1091,7 +1093,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                _intBufReleaseData(dptr, _AAX_SENSOR);
             }
 
-            sframe->root = handle;
+            sframe->root = sframe->handle = handle;
             sframe->parent = handle;
             handle->file.driver = (char*)sframe;
             handle->file.handle = sframe->backend.handle;
@@ -1230,7 +1232,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
          _aaxEmitter *src = emitter->source;
          _intBufferData *dptr;
 
-         emitter->root = handle;
+         emitter->root = emitter->handle = handle;
          emitter->parent = handle;
          emitter->mixer_pos = pos;
 
@@ -1493,6 +1495,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
             rv = true;
 
             fmixer->refctr++;
+            frame->handle = handle->handle;
             frame->root = handle->root;
             frame->parent[0] = handle;
             frame->mixer_pos[0] = pos;

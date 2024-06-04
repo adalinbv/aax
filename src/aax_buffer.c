@@ -100,7 +100,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
       }
 
       buf->id = BUFFER_ID;
-      buf->root = handle;
+      buf->root = buf->handle = handle;
       buf->mixer_info = VALID_HANDLE(handle) ? &handle->info : &_info;
 
       buf->midi_mode = AAX_RENDER_NORMAL;

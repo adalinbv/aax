@@ -138,7 +138,8 @@ typedef struct aax_handle_t
    unsigned int mixer_pos;
    int registered_sensors;
    void *parent;		/* assigned when registered to a (sub)mixer  */
-   void *root;			/* reference to the mixer object             */
+   struct aax_handle_t *root;	/* reference to the mixer object             */
+   struct aax_handle_t *handle;
 
    char *devname[2];
    char *renderer;
@@ -193,6 +194,7 @@ typedef struct aax_frame_t
    /* assigned when registered to a (sub)mixer */
    void *parent[AUDIOFRAME_MAX_PARENTS];
    _handle_t *root;		/* reference to the mixer object            */
+   _handle_t *handle;
 
    _aaxAudioFrame *submix;
 
@@ -289,7 +291,8 @@ typedef struct aax_buffer_t
    char mip_levels;
    _aaxRingBuffer *ringbuffer[MAX_MIP_LEVELS];
    _aaxMixerInfo **mixer_info;
-   void *root;			/* reference to the mixer object */
+   _handle_t *root;		/* reference to the mixer object */
+   _handle_t *handle;
    void *aaxs;
    void *url;
 
@@ -332,6 +335,7 @@ typedef struct aax_emitter_t
 
    void *parent;		/* assigned when registered to a (sub)mixer */
    _handle_t *root;		/* reference to the mixer                   */
+   _handle_t *handle;
 
    _midi_t midi;
 

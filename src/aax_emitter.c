@@ -201,10 +201,14 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
       int mip_level = 0;
       _aaxRingBuffer *rb;
 
-      if (!buffer->root) {
+      if (!buffer->root)
+      {
+         buffer->handle = handle->handle;
          buffer->root = handle->root;
       }
-      if (!handle->root) {
+      if (!handle->root)
+      {
+         handle->handle = buffer->handle;
          handle->root = buffer->root;
       }
 
@@ -1819,7 +1823,8 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf)
    bool rv = false;
 
    if (!config) {
-      config = handle->root = embuf->buffer->root;
+      config = handle->handle = embuf->buffer->handle;
+      handle->root = embuf->buffer->root;
    }
 
    thread = _aaxThreadCreate();

@@ -60,6 +60,7 @@ aaxAudioFrameCreate(aaxConfig config)
          unsigned int res;
 
          frame->id = AUDIOFRAME_ID;
+         frame->handle = handle->handle;
          frame->root = handle->root;
          frame->mixer_pos[0] = UINT_MAX;
          frame->max_emitters = UINT_MAX;
@@ -870,6 +871,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
             }
             _EFFECT_COPY(sp3d, mp3d, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
 
+            ssr_config->handle = handle->handle;
             ssr_config->root = handle->root;
             ssr_config->parent = handle;
             ssr_config->mixer_pos = pos;
@@ -1070,6 +1072,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
       if (pos != UINT_MAX)
       {
          _aaxEmitter *src = emitter->source;
+         emitter->handle = handle->handle;
          emitter->root = handle->root;
          emitter->parent = handle;
          emitter->mixer_pos = pos;
@@ -1471,7 +1474,9 @@ aaxAudioFrameAddBuffer(aaxFrame frame, aaxBuffer buf)
       if (RENDER_NORMAL(fmixer->info->midi_mode)) {
          rv = _frameCreateEFFromAAXS(handle, buffer);
       }
-      if (!buffer->root) {
+      if (!buffer->root)
+      {
+         buffer->handle = handle->handle;
          buffer->root = handle->root;
       }
    }
