@@ -1940,8 +1940,8 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
 
                if (rv == false) break;
             }
-            xmlFree(xwid);
          }
+         if (xwid) xmlFree(xwid);
       } // layer
 
       if (midi_mode)

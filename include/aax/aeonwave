@@ -35,6 +35,8 @@ constexpr float inv_e = 1.0f/e1;
 
 inline float exp(float v) { return powf(v, e1); }
 inline float ln(float v) { return powf(v, inv_e); }
+inline float pow(float v) { return powf(v, 10.0f); }
+inline float log(float v) { return powf(v, 0.1f); }
 inline float lin2log(float v) { return log10f(v); }
 inline float log2lin(float v) { return powf(10.0f, v); }
 inline float db2lin(float v) { return powf(10.0f, v/20.0f); }

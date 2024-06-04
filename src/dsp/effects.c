@@ -215,6 +215,7 @@ _aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
       if (data)
       {
          effect->data = data;
+         effect->data_size = dsize;
          effect->destroy = _velocity_destroy;
          effect->swap = _velocity_swap;
 

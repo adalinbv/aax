@@ -243,6 +243,22 @@ _aax3dPropsCreate()
    return rv;
 }
 
+void
+_aax3dPropsDestory(_aax3dProps *props3d)
+{
+   unsigned int pos;
+
+   for (pos=0; pos<MAX_3D_FILTER; ++pos) {
+      _FILTER_FREE_DATA(props3d, pos);
+   }
+   for (pos=0; pos<MAX_3D_EFFECT; ++pos) {
+      _EFFECT_FREE_DATA(props3d, pos);
+   }
+
+   _aax_aligned_free(props3d->dprops3d);
+   free(props3d);
+}
+
 _aaxDelayed3dProps *
 _aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
 {

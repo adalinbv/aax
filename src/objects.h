@@ -464,6 +464,7 @@ void _aaxSetDefault2dProps(_aax2dProps*);
 void _aaxSetDefault2dFiltersEffects(_aax2dProps*);
 
 _aax3dProps* _aax3dPropsCreate();
+void _aax3dPropsDestory(_aax3dProps*);
 _aaxDelayed3dProps* _aaxDelayed3dPropsDup(_aaxDelayed3dProps*);
 void _aaxSetDefaultDelayed3dProps(_aaxDelayed3dProps*);
 

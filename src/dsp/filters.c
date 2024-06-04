@@ -214,6 +214,7 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
       if (data)
       {
          filter->data = data;
+         filter->data_size = dsize;
 
          memset(data, 0, dsize);
          data->run = _aaxDistanceFn[1];
@@ -225,7 +226,6 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
 
       filter->destroy = _distance_destroy;
       filter->swap = _distance_swap;
-      filter->data_size = dsize;
 
       filter->param[AAX_REF_DISTANCE] = 1.0f;
       filter->param[AAX_MAX_DISTANCE] = FLT_MAX;

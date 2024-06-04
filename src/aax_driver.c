@@ -1565,16 +1565,8 @@ _aaxFreeSensor(void *ssr)
       _EFFECT_FREE2D_DATA(smixer, i);
    }
 
-   for (i=0; i<MAX_3D_FILTER; ++i) {
-      _FILTER_FREE3D_DATA(smixer, i);
-   }
-   for (i=0; i<MAX_3D_EFFECT; ++i) {
-      _EFFECT_FREE3D_DATA(smixer, i);
-   }
-
    _intBufErase(&smixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
-   _aax_aligned_free(smixer->props3d->dprops3d);
-   free(smixer->props3d);
+   _aax3dPropsDestory(smixer->props3d);
 
    if (smixer->ringbuffer) {
       _aaxRingBufferFree(smixer->ringbuffer);

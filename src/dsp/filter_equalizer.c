@@ -92,6 +92,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          memset(flt[0], 0, DSIZE);
          flt[0]->no_stages = 1;
          filter->slot[EQUALIZER_LF]->data = flt[0];
+         filter->slot[EQUALIZER_LF]->data_size = DSIZE;
       }
 
       if (!flt[0]->freqfilter)

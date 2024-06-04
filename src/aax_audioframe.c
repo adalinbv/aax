@@ -173,16 +173,8 @@ aaxAudioFrameDestroy(aaxFrame frame)
          _EFFECT_FREE2D_DATA(fmixer, i);
       }
 
-      for (i=0; i<MAX_3D_FILTER; ++i) {
-         _FILTER_FREE3D_DATA(fmixer, i);
-      }
-      for (i=0; i<MAX_3D_EFFECT; ++i) {
-         _EFFECT_FREE3D_DATA(fmixer, i);
-      }
-
       _intBufErase(&fmixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
-      _aax_aligned_free(fmixer->props3d->dprops3d);
-      free(fmixer->props3d);
+      _aax3dPropsDestory(fmixer->props3d);
 
       /* handle->ringbuffer gets removed by the frame thread */
       /* be->destroy_ringbuffer(handle->ringbuffer); */
@@ -1094,6 +1086,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
             _filter_t *filter = (_filter_t *)f;
             aaxFilterSetState(f, filter->slot[0]->state);
             aaxEmitterSetFilter(emitter, f);
+            aaxFilterDestroy(f);
          }
 
          src->info = fmixer->info;
@@ -1794,11 +1787,12 @@ _frameCreateBodyFromAAXS(aaxFrame frame, _frame_t* handle, _buffer_t *buffer, xm
       {
          if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
          {
-            aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq, 0.0f, 0.0f, NULL);
-            if (flt)
+            aaxFilter f;
+            f = _aaxGetFilterFromAAXS(config, xfid, freq, 0.0f, 0.0f, NULL);
+            if (f)
             {
-               aaxAudioFrameSetFilter(frame, flt);
-               aaxFilterDestroy(flt);
+               aaxAudioFrameSetFilter(frame, f);
+               aaxFilterDestroy(f);
             }
          }
       }

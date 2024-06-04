@@ -133,16 +133,8 @@ aaxEmitterDestroy(aaxEmitter emitter)
             _EFFECT_FREE2D_DATA(src, i);
          }
 
-         for (i=0; i<MAX_3D_FILTER; ++i) {
-            _FILTER_FREE3D_DATA(src, i);
-         }
-         for (i=0; i<MAX_3D_EFFECT; ++i) {
-            _EFFECT_FREE3D_DATA(src, i);
-         }
-
          _intBufErase(&src->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
-         _aax_aligned_free(src->props3d->dprops3d);
-         free(src->props3d);
+         _aax3dPropsDestory(src->props3d);
 
          /* safeguard against using already destroyed handles */
          handle->id = FADEDBAD;
@@ -1844,6 +1836,7 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf)
       else {
          _aaxErrorSet(AAX_INVALID_STATE);
       }
+      _aaxThreadDestroy(thread);
    }
 
    return rv;
