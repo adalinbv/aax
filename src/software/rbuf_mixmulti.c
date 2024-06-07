@@ -164,8 +164,13 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
    /* apply envelope filter */
    gnvel = ep2d->note.velocity;
    gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv); // gain0;
-   if (gain <= -LEVEL_60DB) {
-      ret = -2;
+   if (gain <= -LEVEL_60DB)
+   {
+      if (srbi->sampled_release) {
+         gain = 1.0f/gnvel;
+      } else {
+         ret = -2;
+      }
    }
    gain *= ep2d->note.soft * ep2d->note.pressure;
 
@@ -179,7 +184,13 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
    lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
    if (lfo)
    {
-      if (!lfo->envelope) {
+      if (lfo->envelope)
+      {
+         float g = lfo->get(lfo, genv, sptr[0]+offs, 0, dno_samples);
+         if (lfo->inverse) g = 1.0f/g;
+         gain *= g;
+      }
+      else {
          max *= lfo->get(lfo, genv, NULL, 0, 0);
       }
       if (fp2d) max *= fp2d->final.gain_lfo;
@@ -199,6 +210,32 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
    gain = _square(gain)*ep2d->final.gain;
    gain *= gain_emitter;
    ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? false : true;
+
+#if 0
+   lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_LAYER_FILTER);
+   if (lfo)
+   {
+      unsigned char no_layers = srb->get_parami(srb, RB_NO_LAYERS);
+      if (no_layers > 1)
+      {
+         unsigned char track = 0;
+         unsigned char mix_layer = 1;
+         MIX_PTR_T s = (MIX_PTR_T)sptr[track] + offs;
+         float mix = lfo->get(lfo, genv, s, 0, dno_samples);
+
+         mix = _MINMAX(mix, 0.0f, 1.0f);
+         if (mix > (1.0-LEVEL_60DB)) { // use layer 1
+            track = mix_layer;
+         }
+         else if (mix > LEVEL_60DB) // mix layer 0 and layer 1
+         {
+            drbd->multiply(s, s, sizeof(MIX_T), dno_samples, 1.0f - mix);
+            drbd->add(s, sptr[mix_layer]+offs, dno_samples, mix, 0.0f);
+         }
+         // else use layer 0
+      }
+   }
+#endif
 
    if (gain > LEVEL_60DB) // !ep2d->final.silence)
    {
