@@ -181,9 +181,9 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
                   int state, float fs)
 {
    if (state != false &&
-       ((slot->param[0] >= 0.1f && slot->param[1] >= 0.1f) ||
-        (slot->param[0] >= 0.1f && slot->param[2] >= 0.1f) ||
-        (slot->param[1] >= 0.1f && slot->param[2] >= 0.1f)))
+       ((slot->param[0] > 0.1f && slot->param[1] > 0.1f) ||
+        (slot->param[0] > 0.1f && slot->param[2] > 0.1f) ||
+        (slot->param[1] > 0.1f && slot->param[2] > 0.1f)))
    {
       if (!occlusion)
       {
