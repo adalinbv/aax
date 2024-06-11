@@ -1091,12 +1091,18 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
             const void *parent_data, _aaxMixerInfo *info, unsigned char mono,
             int state, void *env, unsigned char ctr)
 {
-   float dst = info ? _MAX(info->speaker[track].v4[DIR_RIGHT]*info->frequency*track/343.0,0.0f) : 0;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    const _aaxRingBufferReverbData *reverb = data;
    _aaxRingBufferOcclusionData *occlusion;
    _aaxRingBufferFreqFilterData *filter;
+   float dst = 0.0f;
    MIX_T *direct;
+
+   if (info)
+   {
+      float dir_fact = info->speaker[track].v4[DIR_RIGHT];
+      dst = _MAX(dir_fact*info->frequency*track/343.0,0.0f);
+   }
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
