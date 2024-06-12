@@ -2378,16 +2378,17 @@ _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
 
    // Using a thread here might spawn wavweform generation on another CPU
    // core freeing the current (possibly busy) CPU core from doing the work.
-   if (!handle->aaxs_thread.ptr) {
-      handle->aaxs_thread.ptr = _aaxThreadCreate();
+   if (!handle->buffer_thread.ptr) {
+      handle->buffer_thread.ptr = _aaxThreadCreate();
    }
 
-   if (handle->aaxs_thread.ptr)
+   if (handle->buffer_thread.ptr)
    {
-      rv = _aaxThreadStart(handle->aaxs_thread.ptr, _bufAAXSThread, &data, 0,
-		           "aaxCreateAAXS");
-      if (!rv) {
-         _aaxThreadJoin(handle->aaxs_thread.ptr);
+      int r = _aaxThreadStart(handle->buffer_thread.ptr, _bufAAXSThread, &data,
+		              0, "aaxBufferAAXS");
+      if (r == thrd_success) {
+         _aaxThreadJoin(handle->buffer_thread.ptr);
+         if (r == thrd_success) rv = true;
       }
       else {
          _bufAAXSThread(&data);

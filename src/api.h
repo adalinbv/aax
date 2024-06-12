@@ -163,11 +163,14 @@ typedef struct aax_handle_t
    _aaxTimer *timer;
    float elapsed;
 
-   /* for AAXS defined filters and effects */
+   /* buffer for AAXS defined filters and effects */
    aaxBuffer buffer;
 
+   /* emitter thread for AAXS defined waveform generation */
+   struct threat_t buffer_thread;
+
    /* thread for AAXS defined waveform generation */
-   struct threat_t aaxs_thread;
+   struct threat_t emitter_thread;
 
 } _handle_t;
 

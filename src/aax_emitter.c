@@ -1818,8 +1818,8 @@ _emitterCreateEFFromAAXSThread(void *h)
 bool
 _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf)
 {
-   aaxConfig config = handle->root;
-   _aaxThread *thread;
+   _handle_t *config = handle->root;
+   struct _arg_t arg;
    bool rv = false;
 
    if (!config) {
@@ -1827,21 +1827,27 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf)
       handle->root = embuf->buffer->root;
    }
 
-   thread = _aaxThreadCreate();
-   if (thread)
+   arg.handle = handle;
+   arg.embuf = embuf;
+   if (!config->emitter_thread.ptr) {
+      config->emitter_thread.ptr = _aaxThreadCreate();
+   }
+   if (config->emitter_thread.ptr)
    {
-      struct _arg_t arg = { handle, embuf };
-      int(*handler)(void*) = _emitterCreateEFFromAAXSThread;
-      int r = _aaxThreadStart(thread, handler, &arg, 0, "AAXS");
+      int r = _aaxThreadStart(config->emitter_thread.ptr,
+                              _emitterCreateEFFromAAXSThread, &arg, 0,
+                              "aaxEmitterAAXS");
       if (r == thrd_success)
       {
-         r = _aaxThreadJoin(thread);
+         r = _aaxThreadJoin(config->emitter_thread.ptr);
          if (r == thrd_success) rv = true;
       }
       else {
-         _aaxErrorSet(AAX_INVALID_STATE);
+         _emitterCreateEFFromAAXSThread(&arg);
       }
-      _aaxThreadDestroy(thread);
+   }
+   else {
+      _emitterCreateEFFromAAXSThread(&arg);
    }
 
    return rv;
