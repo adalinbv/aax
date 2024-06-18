@@ -1014,7 +1014,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
             } else {
                _aax_butterworth_compute(fc, flt);
             }
-            flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, flt, env, 1.0f, 0);
+            flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, flt, env, 1.0f);
          }
       }
 

@@ -54,14 +54,9 @@
  * @param ep2d 3d positioning information structure of the source
  * @param fp2f 3d positioning information structure of the parents frame
  * @param ch channel to use from the source buffer if it is multi-channel
- * #param ctr update-rate counter:
- *     - Rendering to the destination buffer is done every frame at the
- *       interval rate. Updating of 3d properties and the like is done
- *       once every 'ctr' frame updates. so if ctr == 1, updates are
- *       done every frame.
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *renderer, unsigned char track, unsigned char ctr, float buffer_gain, _history_t history)
+_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *renderer, unsigned char track, float buffer_gain, _history_t history)
 {
    _aaxRendererData *data = renderer;
    const _aaxMixerInfo *info =  data->info;
@@ -143,8 +138,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       offs = drbi->sample->dde_samples;
    }
 
-   sptr = drbi->mix(scratch, drb, srb, ep2d, pitch, &offs, &dno_samples,
-                    ctr, history);
+   sptr = drbi->mix(scratch, drb, srb, ep2d, pitch, &offs, &dno_samples, history);
    if (sptr == NULL || dno_samples == 0)
    {
       if (!dno_samples || (srbi->playing == 0 && srbi->stopped == 1)) {
@@ -278,12 +272,12 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       if (_PROP3D_MONO_IS_DEFINED(fdp3d_m))
       {
          drbd->mix1(drbd, sptr, info->router, ep2d, track, offs, dno_samples,
-                    info->frequency, gain, svol, evol, ctr);
+                    info->frequency, gain, svol, evol);
       }
       else
       {
          drbd->mix1n(drbd, sptr, info->router, ep2d, track, offs, dno_samples,
-                     info->frequency, gain, svol, evol, ctr);
+                     info->frequency, gain, svol, evol);
       }
    }
 

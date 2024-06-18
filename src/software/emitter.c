@@ -100,18 +100,9 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
          _aaxRingBuffer *srb = embuf->ringbuffer;
          float buffer_gain = embuf->buffer->gain;
          int res = 0;
-         int ctr;
 
-         // TODO: status updates still don't get processed properly
-         //       use the testposition to test.
-//       ctr = --src->update_ctr;
-         ctr = 0;
-         if (ctr == 0)
-         {
-            if (stage == 2) {
-               data->be->prepare3d(src, data);
-            }
-            src->update_ctr = src->update_rate;
+         if (stage == 2) {
+            data->be->prepare3d(src, data);
          }
 
          do
@@ -139,7 +130,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
 
                res = false;
                if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec) {
-                  res = drb->mix3d(drb, srb, ep2d, data, emitter->track, ctr,
+                  res = drb->mix3d(drb, srb, ep2d, data, emitter->track,
                                              buffer_gain, src->history);
 //                if (ep2d->final.silence) rv = false;
                }
@@ -147,8 +138,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
             else
             {
                assert(!_IS_POSITIONAL(src->props3d));
-               res = drb->mix2d(drb, srb, data, ep2d, ctr,
-                                          buffer_gain, src->history);
+               res = drb->mix2d(drb, srb, data, ep2d, buffer_gain,src->history);
             }
 
             /*

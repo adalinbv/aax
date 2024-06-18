@@ -851,7 +851,6 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
             }
             smixer->info->period_rate = fmixer->info->period_rate;
             smixer->info->refresh_rate = fmixer->info->refresh_rate;
-            smixer->info->update_rate = fmixer->info->update_rate;
             smixer->info->unit_m = fmixer->info->unit_m;
             if (_FILTER_GET_STATE(sp3d, DISTANCE_FILTER) == false)
             {
@@ -1096,10 +1095,6 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
          if (!emitter->midi.mode) {
             emitter->midi.mode = fmixer->info->midi_mode;
          }
-         if (src->update_rate == 0) {
-            src->update_rate = fmixer->info->update_rate;
-         }
-         src->update_ctr = 1;
 
          if (positional)
          {

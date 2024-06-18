@@ -58,7 +58,7 @@ static void _reverb_swap(void*,void*);
 static void _reverb_destroy(void*);
 
 static void _reverb_prepare(_aaxEmitter*, const _aax3dProps*, void*);
-static int _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, const void*, _aaxMixerInfo*, unsigned char, int, void*, unsigned char);
+static int _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, const void*, _aaxMixerInfo*, unsigned char, int, void*);
 
 static void _reflections_prepare(MIX_PTR_T, MIX_PTR_T, size_t, void*, unsigned int);
 static void _reverb_add_reflections(_aaxRingBufferReverbData*, float, unsigned int, float, int, float, _aaxMixerInfo*);
@@ -965,7 +965,7 @@ _reflections_run(const _aaxRingBufferReverbData *reverb,
          }
       }
       filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter,
-                  NULL, 1.0f, 0);
+                  NULL, 1.0f);
       rbd->add(dptr, scratch, no_samples, 1.0f, 0.0f);
 
       rv = true;
@@ -1093,7 +1093,7 @@ static int
 _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
             size_t no_samples, size_t ds, unsigned int track, const void *data,
             const void *parent_data, _aaxMixerInfo *info, unsigned char mono,
-            int state, void *env, unsigned char ctr)
+            int state, void *env)
 {
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    const _aaxRingBufferReverbData *reverb = data;
@@ -1137,7 +1137,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    /* Add reflections */
    if (reverb->state & AAX_EFFECT_1ST_ORDER)
    {
-      if (filter->lfo && !ctr)
+      if (filter->lfo)
       {
          float fc;
 
@@ -1186,7 +1186,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 
       if (filter_hp) { // high-pass
          filter_hp->run(rbd, dptr, dptr, 0, no_samples, 0, track,
-                     filter_hp, NULL, 1.0f, 0);
+                     filter_hp, NULL, 1.0f);
       }
 
       rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);

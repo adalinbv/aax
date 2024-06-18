@@ -410,7 +410,6 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_LOOP_END:
          rv = roundf(handle->info.loop_end);
          break;
-//    case AAX_UPDATE_RATE: /* deprecated */
       case AAX_BASE_FREQUENCY:
          rv = (unsigned int)roundf(handle->info.base_frequency);
          break;
@@ -420,7 +419,6 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_HIGH_FREQUENCY:
          rv = (unsigned int)roundf(handle->info.high_frequency);
          break;
-//    case AAX_REFRESH_RATE: /* deprecated */
       case AAX_PITCH_FRACTION:
          rv = AAX_TO_INT(handle->info.pitch_fraction);
          break;

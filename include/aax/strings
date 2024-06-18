@@ -170,7 +170,6 @@ static inline std::string to_string(enum aaxSetupType type)
     case AAX_STEREO_EMITTERS: return "number of multi-track emitters";
     case AAX_BLOCK_ALIGNMENT: return "block alignment";
     case AAX_AUDIO_FRAMES: return "number of audio frames";
-    case AAX_UPDATE_RATE: return "4D parameter update rate";
     case AAX_LATENCY: return "audio latency";
     case AAX_TRACK_LAYOUT: return "track layout";
     case AAX_BIT_RATE: return" bit rate";

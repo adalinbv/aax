@@ -294,7 +294,6 @@ typedef ALIGN16 struct
    unsigned int max_registered;		/* per (sub)mixer */
 
    int capabilities;			/* CPU capabilities */
-   uint8_t update_rate;	/* how many frames get processed before an update */
    bool batched_mode;
 
    unsigned int id;
@@ -434,9 +433,6 @@ typedef struct
    _intBuffers *p3dq;			/* 3d properties delay queue     */
    _intBuffers *buffers;		/* audio buffer queue            */
    unsigned int buffer_pos;		/* audio buffer queue pos        */
-
-   uint8_t update_rate;
-   uint8_t update_ctr;
 
    float curr_pos_sec;
 

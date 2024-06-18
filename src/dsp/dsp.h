@@ -29,7 +29,7 @@ extern "C" {
 void _aax_bessel_compute(float, void*);
 void _aax_butterworth_compute(float, void*);
 
-int _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, float, unsigned char);
+int _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, float);
 void _freqfilter_reset(void*);
 void _freqfilter_data_swap( _aaxRingBufferFreqFilterData *dflt, _aaxRingBufferFreqFilterData *sflt);
 void _freqfilter_destroy(void*);

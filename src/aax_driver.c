@@ -1343,14 +1343,6 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode, char setup)
             info->period_rate = iv;
             info->refresh_rate = iv;
             info->frequency = fq;
-            if (config->node[0].update) {
-               info->update_rate = (uint8_t)rintf(iv/config->node[0].update);
-            } else {
-               info->update_rate = (uint8_t)rintf(iv/50);
-            }
-            if (info->update_rate < 1) {
-               info->update_rate = 1;
-            }
 
             handle->valid = HANDLE_ID;
          }

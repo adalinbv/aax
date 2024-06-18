@@ -1494,23 +1494,10 @@ _emitterSetEffect(_emitter_t *handle, _effect_t *effect)
 
       _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
       lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
-      if (lfo) /* enabled */
-      {
-         float lfo_val = _EFFECT_GET_SLOT(effect, 0, AAX_LFO_FREQUENCY);
+      if (lfo) { /* enabled */
          _PROP_DYNAMIC_PITCH_SET_DEFINED(src->props3d);
-          /*
-           * The vibrato effect is not gradual like tremolo but is
-           * adjusted every update and stays constant which requires
-           * the fastest update rate when the LFO is faster than 1Hz.
-           */
-         if ((lfo_val > 1.0f) && (src->update_rate < 4*lfo_val)) {
-            src->update_rate = 1;
-         }
-      }
-      else
-      {
+      } else {
          _PROP_DYNAMIC_PITCH_CLEAR_DEFINED(src->props3d);
-         src->update_rate = 0;
       }
       break;
    }

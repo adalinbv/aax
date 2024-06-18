@@ -29,7 +29,7 @@
 #include "software/rbuf_int.h"
 
 void
-_aaxRingBufferMixMono16Mono(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, UNUSED(const unsigned char *router), _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol, UNUSED(char ctr))
+_aaxRingBufferMixMono16Mono(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, UNUSED(const unsigned char *router), _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol)
 {
    MIX_T *dptr = (MIX_T*)drbd->track[0] + offs;
    float vstart, vend, vstep;
@@ -45,7 +45,7 @@ _aaxRingBufferMixMono16Mono(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
 }
 
 void
-_aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol, UNUSED(char ctr))
+_aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol)
 {
    int t;
 
@@ -81,7 +81,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T spt
 }
 
 void
-_aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol, UNUSED(char ctr))
+_aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol)
 {
    int t;
 
@@ -137,7 +137,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
 }
 
 void
-_aaxRingBufferMixMono16SpatialSurround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol, UNUSED(char ctr))
+_aaxRingBufferMixMono16SpatialSurround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol)
 {
    int t;
 
@@ -194,7 +194,7 @@ _aaxRingBufferMixMono16SpatialSurround(_aaxRingBufferSample *drbd, CONST_MIX_PTR
 }
 
 void
-_aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol, UNUSED(char ctr))
+_aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol)
 {
    int t;
 
@@ -222,7 +222,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
 // https://www.sfu.ca/sonic-studio-webdav/handbook/Binaural_Hearing.html
 // https://web.archive.org/web/20190216004141/https://www.sfu.ca/sonic-studio-webdav/handbook/Binaural_Hearing.html
 void
-_aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float fs, float gain, float svol, float evol, char ctr)
+_aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float fs, float gain, float svol, float evol)
 {
    int t;
 
@@ -285,13 +285,10 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
       if (dir_fact < 0.0f)
       {
 // http://www.cns.nyu.edu/~david/courses/perception/lecturenotes/localization/localization-slides/Slide18.jpg
-         if (!ctr)
-         {
-            // dir_fact = 0.0f: 20kHz, dir_fact = -1.0f: 250Hz
-            // log10(MAX_CUTOFF - 1000) = 4.2787541
-            float fc = MAX_CUTOFF - _log2lin(-4.278754f*dir_fact);
-            ep2d->k = _aax_movingaverage_compute(fc, fs);
-         }
+         // dir_fact = 0.0f: 20kHz, dir_fact = -1.0f: 250Hz
+         // log10(MAX_CUTOFF - 1000) = 4.2787541
+         float fc = MAX_CUTOFF - _log2lin(-4.278754f*dir_fact);
+         ep2d->k = _aax_movingaverage_compute(fc, fs);
 
          if (ep2d->k <= 0.8f)
          {

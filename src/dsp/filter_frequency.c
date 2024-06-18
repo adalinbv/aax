@@ -828,9 +828,8 @@ _aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int s
 
 int
 _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
-                size_t dmin, size_t dmax, size_t ds,
-                unsigned int track, void *data, void *env,
-                float velocity, unsigned char ctr)
+                size_t dmin, size_t dmax, size_t ds, unsigned int track,
+                void *data, void *env, float velocity)
 {
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferFreqFilterData *filter = data;
@@ -849,7 +848,7 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
    d += dmin;
    dmax -= dmin;
 
-   if (filter->lfo && !ctr)
+   if (filter->lfo)
    {
       float fc = filter->lfo->get(filter->lfo, env, s, track, dmax);
       fc = CLIP_FREQUENCY(fc, filter->fs);

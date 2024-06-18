@@ -86,7 +86,7 @@ _aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *rendere
       dptr = (MIX_T*)tracks[track];
       memcpy(scratch0, dptr, no_samples*bps);
       rbi->effects(rbi->sample, dptr, scratch0, scratch1, 0, no_samples,
-                   no_samples, ddesamps, track, p2d, 0, mono);
+                   no_samples, ddesamps, track, p2d, mono);
    }
 
    /*

@@ -42,7 +42,7 @@
  */
 
 CONST_MIX_PTRPTR_T
-_aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *p2d, FLOAT pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr, _history_t history)
+_aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *p2d, FLOAT pitch_norm, size_t *start, size_t *no_samples, _history_t history)
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *srbd, *drbd;
@@ -290,7 +290,7 @@ memcpy(dptr+dest_pos, dst+dest_pos, dno_samples*sizeof(MIX_T));
                DBG_TESTZERO(dst, dno_samples);
                srbi->effects(srbi->sample, dptr, dst, scratch0,
                              dest_pos, dend, dno_samples, ddesamps, t,
-                             p2d, ctr, false);
+                             p2d, false);
 #endif
                DBG_TESTNAN(dptr-ddesamps+dest_pos, dno_samples+ddesamps);
             }

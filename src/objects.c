@@ -88,7 +88,6 @@ _aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
    info->max_registered = 0;
 
    info->capabilities = _aaxGetCapabilities(NULL);
-   info->update_rate = 0;
    info->batched_mode = false;
 
    info->id = INFO_ID;

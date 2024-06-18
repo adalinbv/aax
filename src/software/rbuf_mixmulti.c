@@ -43,12 +43,11 @@
  * @info aeonwaves info structure
  * @ep2d 2d emitter/sensor 2d properties
  * @fp2d mixer 2d properties
- * @ctr update-rate counter as number of instanced of the refresh-rate
  * @buffer_gain gain as specified in the sources aaxBuffer
  * @history source history buffer
  */
 int
-_aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *renderer, _aax2dProps *ep2d, unsigned char ctr, float buffer_gain, _history_t history)
+_aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *renderer, _aax2dProps *ep2d, float buffer_gain, _history_t history)
 {
     const _aaxRendererData *data = (const _aaxRendererData*)renderer;
     const _aaxMixerInfo *info = data->info;
@@ -126,8 +125,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
       offs = drbi->sample->dde_samples;
    }
 
-   sptr = drbi->mix(scratch, drb, srb, ep2d, pitch, &offs, &dno_samples,
-                    ctr, history);
+   sptr = drbi->mix(scratch, drb, srb, ep2d, pitch, &offs, &dno_samples, history);
    if (sptr == NULL || dno_samples == 0)
    {
       if (!dno_samples || (srbi->playing == 0 && srbi->stopped == 1)) {
@@ -252,7 +250,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
 
       gain *= gnvel;
       drbd->mixmn(drbd, srbd, sptr, info->router, ep2d, offs, dno_samples,
-                  gain, svol, evol, ctr);
+                  gain, svol, evol);
    }
 
    if (ret >= -1 && drbi->playing == 0 && drbi->stopped == 1) {

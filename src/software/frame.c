@@ -331,7 +331,7 @@ _aaxAudioFrameMix3D(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
          fp2d->prev_gain[t] = 1.0f;
       }
       drbd->mix1n(drbd, sptr, info->router, fp2d, 0, 0, no_samples,
-                  info->frequency, 1.0f, 1.0f, 1.0f, 0);
+                  info->frequency, 1.0f, 1.0f, 1.0f);
       /*
        * push the ringbuffer to the back of the stack so it can
        * be used without the need to delete this one now and 

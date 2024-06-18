@@ -33,7 +33,7 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
           MIX_PTR_T dst, MIX_PTR_T src, MIX_PTR_T scratch,
           size_t start, size_t end, size_t no_samples,
           size_t ddesamps, unsigned int track, _aax2dProps *p2d,
-          unsigned char ctr, unsigned char mono)
+          unsigned char mono)
 {
    static const size_t bps = sizeof(MIX_T);
    void *env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
@@ -125,7 +125,7 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
       if (freq)
       {
          float v = p2d->note.velocity;
-         r = freq->run(rbd, pdst, psrc, 0, end, ds, track, freq, env, v, ctr);
+         r = freq->run(rbd, pdst, psrc, 0, end, ds, track, freq, env, v);
          if (r) BUFSWAP(pdst, psrc);
       }
    }
@@ -206,8 +206,7 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
          }
 
          r = reverb->run(rbd, pdst, psrc, scratch, no_samples, ddesamps, track,
-                         reverb, parent_reverb, NULL, mono, reverb->state, env,
-                         ctr);
+                         reverb, parent_reverb, NULL, mono, reverb->state, env);
          if (r) BUFSWAP(pdst, psrc);
       }
    }

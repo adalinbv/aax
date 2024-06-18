@@ -467,7 +467,7 @@ _occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, UNUSED(MIX_PTR_T 
    rv = true;
 
    freq_flt = &occlusion->freq_filter;
-   freq_flt->run(rbd, scratch, sptr, 0, samples, 0, track, freq_flt, NULL, 1.0f, 0);
+   freq_flt->run(rbd, scratch, sptr, 0, samples, 0, track, freq_flt, NULL, 1.f);
    rbd->add(dptr, scratch, samples, 1.0f, 0.0f);
 
    return rv;

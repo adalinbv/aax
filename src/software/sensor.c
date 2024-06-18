@@ -204,7 +204,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
 
                renderer.info = smixer->info;
                renderer.fp2d = p2d;
-               res = drb->mix2d(drb, ssr_rb, &renderer, smixer->props2d, 0, 1.0f, NULL);
+               res = drb->mix2d(drb, ssr_rb, &renderer, smixer->props2d, 1.0f, NULL);
                _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
 
                if (res) /* true if a new buffer is required */
