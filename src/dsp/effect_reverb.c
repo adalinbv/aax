@@ -988,16 +988,18 @@ _loopbacks_run(const _aaxRingBufferReverbData *reverb, void *rb,
    if (snum > 0)
    {
       _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
+      MIX_PTR_T history = loopbacks->reverb->history[track];
       const vec4f_ptr speaker = reverb->info->speaker;
+      size_t history_bytes = ds*sizeof(MIX_T);
       float gain = speaker[track].v4[GAIN];
-      size_t bytes = ds*sizeof(MIX_T);
       int q = 0;
 
-      memcpy(dptr-ds, loopbacks->reverb->history[track], bytes);
-      if ((reverb->info->mode == AAX_MODE_WRITE_SPATIAL ||
-           reverb->info->mode == AAX_MODE_WRITE_SPATIAL_SURROUND ||
-           reverb->info->mode == AAX_MODE_WRITE_HRTF)
-          && rbd->no_tracks == 2)
+      // copy the history buffer
+      memcpy(dptr-ds, history, history_bytes);
+
+      if (rbd->no_tracks == 2 && // spatial, spatial-surround or HRTF
+          reverb->info->mode >= AAX_MODE_WRITE_SPATIAL &&
+          reverb->info->mode <= AAX_MODE_WRITE_HRTF)
       {
          int diff;
 
@@ -1033,7 +1035,7 @@ _loopbacks_run(const _aaxRingBufferReverbData *reverb, void *rb,
             }
          }
       }
-      else
+      else // stereo, surround or more than 2 tracks
       {
          for(; q<snum; ++q)
          {
@@ -1049,7 +1051,9 @@ _loopbacks_run(const _aaxRingBufferReverbData *reverb, void *rb,
             }
          }
       }
-      memcpy(loopbacks->reverb->history[track], dptr+no_samples-ds, bytes);
+
+      // copy back the new history buffer
+      memcpy(history, dptr-ds+no_samples, history_bytes);
    }
 
    return rv;

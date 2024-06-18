@@ -220,8 +220,10 @@ typedef struct
 
 typedef struct
 {
+   size_t size;
    MIX_T* history[RB_MAX_TRACKS];
    void* ptr;
+
 } _aaxRingBufferHistoryData;
 
 typedef ALIGN16 struct

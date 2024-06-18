@@ -1656,6 +1656,7 @@ _aaxRingBufferCreateHistoryBuffer(_aaxRingBufferHistoryData **data, size_t size,
    {
       _aaxRingBufferHistoryData *history = (_aaxRingBufferHistoryData*)ptr;
       *data = history;
+      history->size = size;
       history->ptr = ptr;
       for (i=0; i<tracks; ++i)
       {
