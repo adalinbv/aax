@@ -4,7 +4,7 @@
  * Switch to 64-bit only.
  * API Changes:
    + All non 64-bit matrix functions are removed.
-   + Replace aaxWaveformType with aaxSourceType; both types are incompattible.
+   + Merge aaxWaveformType and aaxFrequencyFilterType into aaxSourceType;
      + This also removes support for combining multiple waveforms,
        but the new definition is much more flexible.
      + Remove the _WAVE suffix from waveforms and add support for pure waveforms
@@ -22,8 +22,42 @@
      this function by constructing an AAXS string which can be assigned to a 
      buffer. AAXS files remain forward and backward compatible.
    + remove AAX_CONFIG_HD; use AAX_CONFIG instead.
- * Implement seconds, milliseconds and microseconds for the type specifier of
-   the time parameters for the timed-gain filter and delay effect.
+ * Rename aeonwave.hpp to aeonwave
+   + Optimize the way tied filter and effects are handled, which fixes tieing of
+     multiple parameters from the same filter or effect.
+   + Add a number of useful math functions and constants to the math namespace.
+   + Do not push back emitters, sensors or audio-frames to the cache when they
+     fail to register (maybe because they where already registered).
+ * Buffer changes:
+   + Make it possible to get all buffer info.
+   + Get the correct sample rate from the stream and properly return
+     AAX_SAMPLE_RATE for .aaxs files.
+   + Make it possible to get the number of patches in a sound file.
+   + Implement tremolo and vibrato from audio file provided settings.
+   * Add the option to define modulation mode (gain, pitch, frequency, chorus
+     or any combination), factor and frequency using a modulation tag in the
+     info section of AAXS files. Add the option to retrieve these values using
+     aaxBufferGetSetup.
+ * Filters and Effects changes:
+   + Accept 0.0 as a valid value for the volume filter response time parameter.
+     Prevent occlusion to get enabled based on the default dimensions.
+   + Calculate offset ourselves and ignore the AAX_LFO_OFFSET parameter for
+     the dynamic gain filter.
+   + Implement seconds, milliseconds and microseconds for the type specifier of
+     the time parameters for the timed-gain filter and delay effect.
+   + Add support for AAX_RANDOM_SELECT to the dynamic layer filter.
+   + Fix AAX_RANDOM_SELECT for the frequency filter and delay effects.
+     Fix a possible problem where Fc is too close to 0.5*Fs
+   + Bump reverb version to 1.2 and add support for initial delay, diffusion
+     and high damp (hf gain) to reverb. Fix reverb frequency filtering.
+     Support 8 types of room damping which can be parsed as a status.
+     Add support for defining the decay-level in seconds, making it reverb-time.
+     Implement a high-pass filter for reverb.
+   + Implement a frequency filter on the wet signal of the distortion effect
+     and add support for waveform driven distortion.
+   + Calculate the peak value and the average value for every band in the
+     graphic equalizer. Add the option to get these values from aaxSenorGetSetup
+     and aaxMixerGetSetup.
  * Fix a segmentation fault when the state was not set for the equalizer.
  * Fix a possible pipewire segmentation fault.
  * Fix numerous problems, mistakes and omissions.
