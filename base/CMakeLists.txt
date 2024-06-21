@@ -7,6 +7,7 @@ set(BASE_HEADERS
   gmath.h
   logging.h
   memory.h
+  c11threads.h
   xthreads.h
   timer.h
   types.h
@@ -22,6 +23,7 @@ set(BASE_SOURCES
   gmath.c
   logging.c
   memory.c
+  c11threads.c
   xthreads.c
   timer.c
   types.c

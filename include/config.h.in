@@ -15,6 +15,8 @@
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
 
+#cmakedefine HAVE_THREADS_H @HAVE_THREADS_H@
+
 /* Define to 1 if you have the <arm_neon.h> header file. */
 #undef HAVE_ARM_NEON_H
 

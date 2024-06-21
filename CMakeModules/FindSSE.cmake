@@ -2,7 +2,8 @@
 # the project is compiled.
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-   EXEC_PROGRAM(cat ARGS "/proc/cpuinfo" OUTPUT_VARIABLE CPUINFO)
+#  exec_program(cat ARGS "/proc/cpuinfo" OUTPUT_VARIABLE CPUINFO)
+   execute_process(COMMAND cat "/proc/cpuinfo" OUTPUT_VARIABLE CPUINFO)
 
    STRING(REGEX REPLACE "^.*(asimd).*$" "\\1" ASIMD_THERE "${CPUINFO}")
    STRING(COMPARE EQUAL "asimd" "${ASIMD_THERE}" ASIMD_TRUE)

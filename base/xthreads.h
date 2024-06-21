@@ -22,7 +22,7 @@ extern "C" {
 #include <time.h>
 #endif
 
-#include <threads.h>
+#include <c11threads.h>
 #include <stdatomic.h>
 
 #include "types.h"
