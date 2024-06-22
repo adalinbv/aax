@@ -299,7 +299,7 @@ typedef ALIGN16 struct
    unsigned int id;
    void *backend;
 
-#if defined(HAVE_LOCALE_H) && !defined(WIN32)
+#ifdef HAVE_LOCALE_H
     locale_t locale;
 # if defined(HAVE_ICONV_H) || defined(WIN32)
     iconv_t cd;

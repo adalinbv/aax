@@ -266,8 +266,8 @@ else(MSVC)
       set(C_FLAGS "${C_FLAGS} -fPIC -Wpointer-arith -Wparentheses")
      endif(GCC OR CLANG)
    else(NOT MINGW)
-     add_definitions(-U__STRICT_ANSI__)
-     set(C_FLAGS "${C_FLAGS} -static-libgcc")
+     add_definitions(-D__STRICT_ANSI__)
+     set(C_FLAGS "${C_FLAGS} -g -Werror=format-security -std=c11 -Wall -fvisibility=hidden -funroll-loops -static-libgcc")
      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--out-implib,${LIBAEONWAVE}.lib")
      foreach(flag_var
              CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE

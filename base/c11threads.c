@@ -6,17 +6,31 @@
 #ifndef HAVE_THREADS_H
 # if defined(WIN32)
 
+#include <c11threads.h>
+#include <stdbool.h>
+#include <math.h>
+
 /* Threads
  *
  * Work on Windows thread handles directly so they can be used by other
  * functions that manipulate thread behavior.
  */
+static DWORD WINAPI
+_callback_handler(LPVOID t)
+{
+    struct callback_data *thread = t;
+    return thread->callback_fn(thread->data);
+}
+
 int
 thrd_create(thrd_t *thr, thrd_start_t func, void *arg)
 {
+    struct callback_data cb;
     int res = thrd_error;
 
-    *thr = CreateThread(NULL, 0, func, arg, 0, NULL);
+    cb.callback_fn = func;
+    cb.data = arg;
+    *thr = CreateThread(NULL, 0, _callback_handler, &cb, 0, NULL);
     if (*thr) res = thrd_success;
     else if (GetLastError() == ERROR_NOT_ENOUGH_MEMORY) res = thrd_nomem;
     else res = thrd_error;
@@ -27,7 +41,7 @@ thrd_create(thrd_t *thr, thrd_start_t func, void *arg)
 int
 thrd_equal(thrd_t thr0, thrd_t thr1)
 {
-    return (thr0 == thr1) : true : false;
+    return (thr0 == thr1) ? true : false;
 }
 
 thrd_t
@@ -38,11 +52,11 @@ thrd_current(void)
 
 int
 thrd_sleep(const struct timespec *ts, struct timespec *tsr)
-
+{
     int dwMilliseconds;
     int res;
 
-    dwMilliseconds = 1000*ts.tv_sec + ts.tv_nsec/1000000;
+    dwMilliseconds = 1000*ts->tv_sec + ts->tv_nsec/1000000;
     if (tsr)
     {
         LARGE_INTEGER start, end, freq;
@@ -55,9 +69,9 @@ thrd_sleep(const struct timespec *ts, struct timespec *tsr)
 
         // return the remaining time on interruption.
         dt = ((end.QuadPart - start.QuadPart) / (double)freq.QuadPart);
-        tsr.tv_sec = floor(dt);
-        dt -= (double)tsr.tv_sec;
-        tsr.tv_nsec = dt*1e9f;
+        tsr->tv_sec = floor(dt);
+        dt -= (double)tsr->tv_sec;
+        tsr->tv_nsec = dt*1e9f;
     }
     else {
         res = WaitForSingleObject(GetCurrentThread(), dwMilliseconds);
@@ -102,7 +116,7 @@ thrd_join(thrd_t thr, int *result)
 {
     int res;
 
-    res = WaitForSingleObject(handle, INFINITE);
+    res = WaitForSingleObject(thr, INFINITE);
     switch (res)
     {
     case WAIT_OBJECT_0:
@@ -112,13 +126,13 @@ thrd_join(thrd_t thr, int *result)
     case WAIT_ABANDONED:
     case WAIT_FAILED:
     default:
-        ret = thrd_error;
+        res = thrd_error;
     }
 
     if (result)
     {
         DWORD lpExitCode;
-        GetExitCodeThread(handle, &lpExitCode);
+        GetExitCodeThread(thr, &lpExitCode);
         *result = (int)lpExitCode;
     }
 
@@ -136,7 +150,7 @@ mtx_init(mtx_t *mtx, int type)
     if (mutex)
     {
         mutex->type = type;
-        mutex->mtx = SRWLOCK_INIT;
+        InitializeSRWLock(&mutex->mtx);
         InitializeConditionVariable(&mutex->cond);
         return thrd_success;
     }
@@ -161,9 +175,9 @@ mtx_timedlock(mtx_t *restrict mtx, const struct timespec *restrict ts)
     ULONG Flags;
     int res;
 
-    dwMilliseconds = 1000*ts.tv_sec + ts.tv_nsec/1000000;
+    dwMilliseconds = 1000*ts->tv_sec + ts->tv_nsec/1000000;
     Flags = (mtx->type & mtx_recursive)? CONDITION_VARIABLE_LOCKMODE_SHARED : 0;
-    res = SleepConditionVariableSRW(mtx->cond,&mtx->mtx, dwMilliseconds, Flags);
+    res = SleepConditionVariableSRW(&mtx->cond,&mtx->mtx, dwMilliseconds, Flags);
     switch(res)
     {
     case 0:
@@ -171,7 +185,7 @@ mtx_timedlock(mtx_t *restrict mtx, const struct timespec *restrict ts)
         else res = thrd_error;
         break;
     default:
-        res = thrd_succes;
+        res = thrd_success;
         break;
     };
 
@@ -186,7 +200,7 @@ mtx_trylock(mtx_t *mtx)
     if (mtx->type & mtx_recursive) {
         res = TryAcquireSRWLockShared(&mtx->mtx) ? thrd_success : thrd_busy;
     } else {
-        res = TryAcquireSRWLockExclusive(&mtx->mtx) ? thrd_success : thrd_busy
+        res = TryAcquireSRWLockExclusive(&mtx->mtx) ? thrd_success : thrd_busy;
     }
     return res;
 }
@@ -242,7 +256,7 @@ cnd_wait(cnd_t *cond, mtx_t *mtx)
     Flags = (mtx->type & mtx_recursive)? CONDITION_VARIABLE_LOCKMODE_SHARED : 0;
     res = SleepConditionVariableSRW(cond, &mtx->mtx, INFINITE, Flags);
 
-    return res ? thrd_succes : thrd_error;
+    return res ? thrd_success : thrd_error;
 }
 
 int
@@ -253,11 +267,11 @@ cnd_timedwait(cnd_t *restrict cond, mtx_t *restrict mtx,
     ULONG Flags;
     int res;
 
-    dwMilliseconds = 1000*ts.tv_sec + ts.tv_nsec/1000000;
+    dwMilliseconds = 1000*ts->tv_sec + ts->tv_nsec/1000000;
     Flags = (mtx->type & mtx_recursive)? CONDITION_VARIABLE_LOCKMODE_SHARED : 0;
     res = SleepConditionVariableSRW(cond, &mtx->mtx, dwMilliseconds, Flags);
 
-    return res ? thrd_succes : thrd_error;
+    return res ? thrd_success : thrd_error;
 }
 
 void

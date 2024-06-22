@@ -192,7 +192,7 @@ aaxSensorGetVelocity(const aaxConfig config, aaxVec3f velocity)
    return rv;
 }
 
-AAX_API unsigned long AAX_APIENTRY
+AAX_API size_t AAX_APIENTRY
 aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
 {
    _handle_t *handle = get_handle(config, __func__);
@@ -240,7 +240,7 @@ aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
 }
 
 AAX_API bool AAX_APIENTRY
-aaxSensorSetOffset(aaxConfig config, unsigned long offs, enum aaxType type)
+aaxSensorSetOffset(aaxConfig config, size_t offs, enum aaxType type)
 {
    _handle_t *handle = get_handle(config, __func__);
    bool rv = false;

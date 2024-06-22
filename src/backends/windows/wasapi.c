@@ -30,7 +30,7 @@
 #include <base/dlsym.h>
 #include <base/timer.h>
 #include <base/logging.h>
-#include <base/threads.h>
+#include <base/xthreads.h>
 #include <base/memory.h>
 
 #include <software/renderer.h>

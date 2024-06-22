@@ -256,7 +256,10 @@ _aaxThreadStart(_aaxThread *t,  int(*handler)(void*), void *arg, UNUSED(unsigned
       pthread_t *id = t;
       pthread_setname_np(*id, name);
 #elif defined(WIN32)
-      SetThreadDescription(thread->handle, name);
+      const size_t BUFSIZE = 100;
+      wchar_t buf[BUFSIZE];
+      MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, name, -1, buf, BUFSIZE);
+      SetThreadDescription(t, buf);
 #else
 # pragma waring implement me
 #endif
@@ -282,12 +285,13 @@ _aaxThreadJoin(_aaxThread *t)
 int
 _aaxThreadSetAffinity(_aaxThread *t, int core)
 {
+   int rv = 0;
+
 #if defined(WIN32)
    rv = SetThreadAffinityMask(*t, 1<<core) ? 0 : EINVAL;
 #elif defined(CPU_ZERO) && defined(CPU_SET)
    pthread_t *id = t;
    cpu_set_t cpus;
-   int rv;
 
    CPU_ZERO(&cpus);
    CPU_SET(core, &cpus);
@@ -298,11 +302,10 @@ _aaxThreadSetAffinity(_aaxThread *t, int core)
    {
       _TH_SYSLOG("setting thread affinity failed");
    }
-
-   return rv;
 #else
 # pragma waring implement me
 #endif
+   return rv;
 }
 
 int
@@ -378,7 +381,7 @@ _aaxThreadSetPriority(_aaxThread *t, int prio)
       new_priority = THREAD_PRIORITY_IDLE;
    }
 
-   SetThreadPriority(thread, new_priority);
+   SetThreadPriority(t, new_priority);
    if (!rv) {
       rv = GetLastError();
    }
@@ -538,7 +541,11 @@ _aaxMutexLockTimed(_aaxMutex *m, float dt)
    {
       struct timespec to;
 
+#ifdef __MINGW32__
+      clock_gettime(CLOCK_REALTIME, &to);
+#else
       timespec_get(&to, TIME_UTC);
+#endif
       to.tv_nsec += dt*1e9f;
       if (to.tv_nsec >= 1000000000LL) {
          to.tv_nsec -= 1000000000LL;
@@ -690,7 +697,11 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float dt)
       _aaxMutex *m = signal->mutex;
       struct timespec to;
 
+#ifdef __MINGW32__
+      clock_gettime(CLOCK_REALTIME, &to);
+#else
       timespec_get(&to, TIME_UTC);
+#endif
       to.tv_nsec += dt*1e9f;
       if (to.tv_nsec >= 1000000000LL) {
          to.tv_nsec -= 1000000000LL;

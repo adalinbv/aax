@@ -26,6 +26,7 @@
 
 
 #ifdef _WIN32
+#include <timeapi.h>
 /*
    Implementation as per:
    The Open Group Base Specifications, Issue 6

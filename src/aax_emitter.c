@@ -806,7 +806,7 @@ aaxEmitterGetVelocity(const aaxEmitter emitter, aaxVec3f velocity)
 }
 
 AAX_API bool AAX_APIENTRY
-aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
+aaxEmitterSetOffset(aaxEmitter emitter, size_t offs, enum aaxType type)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    bool rv = false;
@@ -1032,7 +1032,7 @@ aaxEmitterGetState(const aaxEmitter emitter)
    return ret;
 }
 
-AAX_API unsigned long AAX_APIENTRY
+AAX_API size_t AAX_APIENTRY
 aaxEmitterGetOffset(const aaxEmitter emitter, enum aaxType type)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);

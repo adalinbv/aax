@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+#pragma once
+
 #include <config.h>
 
 #if HAVE_THREADS_H
@@ -15,12 +17,11 @@ extern "C" {
 
 # if defined(WIN32)
 
-// https://en.cppreference.com/w/c/thread
-struct timespec {
-    int tv_sec;
-    long int tv_nsec;
-}
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <time.h>
 
+// https://en.cppreference.com/w/c/thread
 /* Threads */
 enum {
     thrd_success,
@@ -32,6 +33,11 @@ enum {
 
 typedef HANDLE thrd_t;
 typedef int(*thrd_start_t)(void*);
+
+struct callback_data {
+    thrd_start_t callback_fn;
+    void *data;
+};
 
 int thrd_create(thrd_t *thr, thrd_start_t func, void *arg);
 int thrd_equal(thrd_t thr0, thrd_t thr1);
@@ -50,7 +56,7 @@ enum mtx_e {
     mtx_recursive
 };
 
-typedef enum {
+typedef struct {
     SRWLOCK mtx;
     CONDITION_VARIABLE cond;
     enum mtx_e type;

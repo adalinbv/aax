@@ -101,7 +101,11 @@ _aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
       {
          const char *ptr = strrchr(locale, '.');
 
+#if defined(WIN32)
+	 info->locale = _create_locale(LC_CTYPE, locale);
+#else
          info->locale = newlocale(LC_CTYPE_MASK, locale, 0);
+#endif
 
 # if defined(HAVE_ICONV_H) || defined(WIN32)
          if (!ptr) ptr = locale; // tocode
