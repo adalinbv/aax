@@ -114,7 +114,7 @@ _aaxStringCompare(const iconv_t cd, const char *s1, const char *s2, int *s2len)
     }
     return rv;
 #else
-    return strncmp(s1, s2, *s2len);
+    return strncmp(s1, s2, *slen);
 #endif
 }
 
@@ -136,38 +136,41 @@ _aaxStringConv(const iconv_t cd, const char *inbuf, size_t inbytesleft,
     int rv = STRING_NO_ERROR;
 
 #if (defined(HAVE_ICONV_H) || defined(WIN32))
-    outbuf[0] = 0;
     if (cd != (iconv_t)-1)
     {
-        char *ptr = (char*)inbuf;
-        size_t nconv;
-        iconv(cd, NULL, NULL, NULL, NULL);
-        nconv = iconv(cd, &ptr, &inbytesleft, &outbuf, &outbytesleft);
-        if (nconv != (size_t)-1)
+        outbuf[0] = 0;
+        if (cd != (iconv_t)-1)
         {
-            iconv(cd, NULL, NULL, &outbuf, &outbytesleft);
-            outbuf[0] = 0;
-            cvt = true;
-        }
-        else
-        {
-            outbuf[outbytesleft] = 0;
-            switch (errno)
+            char *ptr = (char*)inbuf;
+            size_t nconv;
+            iconv(cd, NULL, NULL, NULL, NULL);
+            nconv = iconv(cd, &ptr, &inbytesleft, &outbuf, &outbytesleft);
+            if (nconv != (size_t)-1)
             {
-            case EILSEQ:
-                rv = STRING_INVALID_MULTIBYTE_SEQUENCE;
-                break;
-            case EINVAL:
-                rv = STRING_INVALID_MULTIBYTE_SEQUENCE;
-                break;
-            case E2BIG:
-                rv = STRING_TRUNCATE_RESULT;
-                break;
-            default:
-                break;
+                iconv(cd, NULL, NULL, &outbuf, &outbytesleft);
+                outbuf[0] = 0;
+                cvt = true;
+            }
+            else
+            {
+                outbuf[outbytesleft] = 0;
+                switch (errno)
+                {
+                case EILSEQ:
+                    rv = STRING_INVALID_MULTIBYTE_SEQUENCE;
+                    break;
+                case EINVAL:
+                    rv = STRING_INVALID_MULTIBYTE_SEQUENCE;
+                    break;
+                case E2BIG:
+                    rv = STRING_TRUNCATE_RESULT;
+                    break;
+                default:
+                    break;
+                }
             }
         }
-    }
+    } /* LOCALIZED(rid) */
 #endif
 
     if (cvt == false)
@@ -220,7 +223,6 @@ charset_to_identifier(const char *charset)
     return identifier;
 }
 
-# if 0
 size_t
 iconv(iconv_t cd, char **inbuf, size_t *inbytesleft,
                   char **outbuf, size_t *outbytesleft)
@@ -267,6 +269,5 @@ iconv(iconv_t cd, char **inbuf, size_t *inbytesleft,
     }
     return 0;
 }
-# endif
 #endif /* def WIN32 */
 
