@@ -59,6 +59,7 @@ static inline std::string to_string(enum aaxFormat fmt)
     case AAX_PCM32S_LE: return "signed, 32-bits per sample little-endian";
     case AAX_FLOAT_LE: return "32-bit floating point little-endian: -1.0 to 1.0";
     case AAX_DOUBLE_LE: return "64-bit floating point little-endian: -1.0 to 1.0";
+    case AAX_PCM24S_PACKED_LE: return "signed, 24-bits per sample, 24-bit encoded little-endian";
 
     case AAX_PCM16U_LE: return "unsigned, 16-bits per sample little-endian";
     case AAX_PCM24U_LE: return "unsigned, 24-bits per sample, 32-bit encoded little-endian";
@@ -69,6 +70,8 @@ static inline std::string to_string(enum aaxFormat fmt)
     case AAX_PCM32S_BE: return "signed, 32-bits per sample big-endian";
     case AAX_FLOAT_BE: return "32-bit floating point big-endian: -1.0 to 1.0";
     case AAX_DOUBLE_BE: return "64-bit floating point big-endian: -1.0 to 1.0";
+    case AAX_PCM24S_PACKED_BE: return "signed, 24-bits per sample, 24-bit encoded big-endian";
+
 
     case AAX_PCM16U_BE: return "unsigned, 16-bits per sample big-endian";
     case AAX_PCM24U_BE: return "unsigned, 24-bits per sample, 32-bit encoded big-endian";
@@ -164,16 +167,24 @@ static inline std::string to_string(enum aaxSetupType type)
     case AAX_REFRESH_RATE: return "audio refresh rate";
     case AAX_TRACK_SIZE: return "track size";
     case AAX_NO_SAMPLES: return "number of samples";
-    case AAX_LOOP_START: return "loop start point";
-    case AAX_LOOP_END: return "loop end point";
     case AAX_MONO_EMITTERS: return "number of mono emitters";
     case AAX_STEREO_EMITTERS: return "number of multi-track emitters";
     case AAX_BLOCK_ALIGNMENT: return "block alignment";
     case AAX_AUDIO_FRAMES: return "number of audio frames";
+    case AAX_SAMPLE_RATE: return "buffer sample rate";
     case AAX_LATENCY: return "audio latency";
     case AAX_TRACK_LAYOUT: return "track layout";
     case AAX_BIT_RATE: return" bit rate";
     case AAX_FRAME_TIMING: return "frame timing";
+    case AAX_BUFFER_FILL: return "stream buffer fill";
+    case AAX_VERSION_MAJOR: return "major version number";
+    case AAX_VERSION_MINOR: return "minor version number";
+    case AAX_VERSION_MICRO: return "micro version number";
+    case AAX_RELEASE_NUMBER: return "version release number";
+    case AAX_ERROR_NUMBER: return "error number";
+    case AAX_MAX_FILTER: return "maximum number of filters";
+    case AAX_MAX_EFFECT: return "maximum number of effects";
+    case AAX_BALANCE: return "balance";
     case AAX_PEAK_VALUE: return "track peak value";
     case AAX_AVERAGE_VALUE: return "track average value";
     case AAX_COMPRESSION_VALUE: return "track compression value";
@@ -189,6 +200,37 @@ static inline std::string to_string(enum aaxSetupType type)
     case AAX_FREQUENCY_MIN: return "minimum supported playback frequency";
     case AAX_FREQUENCY_MAX: return "maximum supported playback frequency";
     case AAX_SAMPLES_MAX: return "maximum number of capture samples";
+    case AAX_LOOP_COUNT: return "loop count";
+    case AAX_LOOP_START: return "loop start";
+    case AAX_LOOP_END: return "loop end";
+    case AAX_BASE_FREQUENCY: return "base frequency";
+    case AAX_LOW_FREQUENCY: return "lowest frequency";
+    case AAX_HIGH_FREQUENCY: return "highest frequency";
+    case AAX_PITCH_FRACTION: return "pitch fraction";
+    case AAX_TREMOLO_RATE: return "tremolo rate";
+    case AAX_TREMOLO_DEPTH: return "tremolo depth";
+    case AAX_TREMOLO_SWEEP: return "tremolo sweep";
+    case AAX_VIBRATO_RATE: return "vibrato rate";
+    case AAX_VIBRATO_DEPTH: return "vibrato depth";
+    case AAX_VIBRATO_SWEEP: return "vibrato sweep";
+    case AAX_ENVELOPE_LEVEL0: return "envelope level 0";
+    case AAX_ENVELOPE_RATE0: return "envelope rate 0";
+    case AAX_ENVELOPE_LEVEL1: return "envelope level 1";
+    case AAX_ENVELOPE_RATE1: return "envelope rate 1";
+    case AAX_ENVELOPE_LEVEL2: return "envelope level 2";
+    case AAX_ENVELOPE_RATE2: return "envelope rate 2";
+    case AAX_ENVELOPE_LEVEL3: return "envelope level 3";
+    case AAX_ENVELOPE_RATE3: return "envelope rate 3";
+    case AAX_ENVELOPE_LEVEL4: return "envelope level 4";
+    case AAX_ENVELOPE_RATE4: return "envelope rate 4";
+    case AAX_ENVELOPE_LEVEL5: return "envelope level 5";
+    case AAX_ENVELOPE_RATE5: return "envelope rate 5";
+    case AAX_ENVELOPE_LEVEL6: return "envelope level 6";
+    case AAX_ENVELOPE_RATE6: return "envelope rate 6";
+    case AAX_ENVELOPE_SUSTAIN: return "envelope sustian";
+    case AAX_FAST_RELEASE: return "fast release";
+    case AAX_POLYPHONY: return "polyphony";
+    case AAX_MAX_PATCHES: return "max number of patches";
     case AAX_COVER_IMAGE_DATA: return "album cover art";
     case AAX_MUSIC_PERFORMER_STRING: return "music performer string";
     case AAX_MUSIC_GENRE_STRING: return "music genre string";
@@ -204,15 +246,23 @@ static inline std::string to_string(enum aaxSetupType type)
     case AAX_MUSIC_PERFORMER_UPDATE: return "updated music performer string";
     case AAX_TRACK_TITLE_UPDATE: return "updated song title string";
     case AAX_RELEASE_MODE: return "release mode";
-    case AAX_SAMPLED_RELEASE: return "samples release";
+    case AAX_SAMPLED_RELEASE: return "sampled release";
     case AAX_CAPABILITIES: return "capabilities";
     case AAX_MIDI_RELEASE_FACTOR: return "midi release factor";
     case AAX_MIDI_ATTACK_FACTOR: return "midi attack factor";
     case AAX_MIDI_DECAY_FACTOR: return "midi decay factor";
     case AAX_MIDI_ATTACK_VELOCITY_FACTOR: return "midi velocity factor";
     case AAX_MIDI_RELEASE_VELOCITY_FACTOR: return "midi pressure factor";
-    case AAX_SETUP_TYPE_MAX:
-    case AAX_SETUP_TYPE_NONE:
+    case AAX_MIDI_PRESSURE_MODE: return "midi pressure mode";
+    case AAX_MIDI_PRESSURE_FACTOR: return "midi pressure factor";
+    case AAX_MIDI_MODULATION_MODE: return "midi modulation mode";
+    case AAX_MIDI_MODULATION_FACTOR: return "midi modulation factor";
+    case AAX_MIDI_MODULATION_RATE: return "midi modulation rate";
+    case AAX_MIDI_SOFT_FACTOR: return "midi soft factor";
+    case AAX_SETUP_TYPE_MAX: return "maximum setup type";
+    case AAX_SETUP_TYPE_NONE: return "none setuv value";
+
+    case DEPRECATED_AAX_UPDATE_RATE:
         break;
     }
     return "unknown setup type";
@@ -309,7 +359,7 @@ static inline std::string to_string(enum aaxSourceType type)
     bool m = false;
     std::string result;
 
-    if (type & AAX_REPEAT_MASK);
+    if (type & AAX_REPEAT_MASK)
     {
         /* timed gain filter */
         result += "repeat: ";
@@ -425,8 +475,6 @@ static inline std::string to_string(enum aaxCapabilities type)
         break;
     case AAX_RENDER_ARCADE:
         mode.append("70's Arcade Game Console mode");
-        break;
-    default:
         break;
     }
     return mode;
