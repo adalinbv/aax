@@ -223,6 +223,7 @@ charset_to_identifier(const char *charset)
     return identifier;
 }
 
+#if 0
 size_t
 iconv(iconv_t cd, char **inbuf, size_t *inbytesleft,
                   char **outbuf, size_t *outbytesleft)
@@ -269,5 +270,7 @@ iconv(iconv_t cd, char **inbuf, size_t *inbytesleft,
     }
     return 0;
 }
+#endif
+
 #endif /* def WIN32 */
 
