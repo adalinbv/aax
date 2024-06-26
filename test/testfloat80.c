@@ -3,6 +3,9 @@
 #include <string.h>
 #include <math.h>
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 #include <base/memory.h>
 
 #define PRINTFP80	1
@@ -21,7 +24,7 @@ int main()
 #if PRINTFP80
    d = ld;
    memcpy(&i, &d, sizeof(d));
-   printf(" double: %8lx - ", i);
+   printf(" double: %8" PRIx64 " - ", i);
    printf("  fp80: ");
    ch = (uint8_t*)&fp80;
    for (i=0; i<10; ++i) {
@@ -46,7 +49,7 @@ int main()
    
 #if PRINTFP80
    memcpy(&i, &d, sizeof(d));
-   printf(" double: %8lx - ", i);
+   printf(" double: %8" PRIx64 " - ", i);
    printf(" nfp80: ");
    ch = (uint8_t*)&nfp80;
    for (i=0; i<10; ++i) {
@@ -61,7 +64,7 @@ int main()
    d = readfp80le(&ch, &size);
 #if PRINTFP80
    memcpy(&i, &d, sizeof(d));
-   printf(" double: %8lx - ", i);
+   printf(" double: %8" PRIx64 " - ", i);
 #endif
    printf("writefp80le: %lf\n", d);
 

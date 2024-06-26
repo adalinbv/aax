@@ -1,4 +1,7 @@
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 #include <cstdio>
 #include <cstring>
 
@@ -19,7 +22,7 @@ const char *sine = "<?xml version='1.0'?>	\
  </aeonwave>";
 
 #define TEST(a, b, c) \
- if ((a) != (b)) printf("%s differs: %lx should be: %lx\n", (c), (a), (b));
+ if ((a) != (b)) printf("%s differs: %" PRIx64 " should be: %" PRIx64 "\n", (c), (a), (b));
 
 #define TEST_FP(a, b, c) \
  if ((a) != (b)) printf("%s differs: %f should be: %f\n", (c), (a), (b))
