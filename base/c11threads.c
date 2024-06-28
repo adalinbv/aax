@@ -7,6 +7,7 @@
 # if defined(WIN32)
 
 #include <c11threads.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <math.h>
 
@@ -220,6 +221,17 @@ void
 mtx_destroy(mtx_t *mtx)
 {
     free(mtx);
+}
+
+/* Call once */
+void
+call_once(once_flag* flag, void (*func)(void))
+{
+    if (atomic_fetch_add(flag, 1) == 1) {
+        func ();
+    } else {
+        atomic_fetch_sub(flag, 1);
+    }
 }
 
 /* Condition variables */

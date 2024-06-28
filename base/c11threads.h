@@ -70,6 +70,12 @@ int mtx_trylock(mtx_t *mtx);
 int mtx_unlock(mtx_t *mtx);
 void mtx_destroy(mtx_t *mtx);
 
+/* Call once */
+#define ONCE_FLAG_INIT 0
+
+typedef int once_flag;
+void call_once(once_flag* flag, void (*func)(void));
+
 /* Condition variables */
 typedef CONDITION_VARIABLE cnd_t;
 
