@@ -1,3 +1,6 @@
+C11threads - Public domain C11 threads over POSIX threads and Win32 threads.
+ - https://github.com/jtsiomb/c11threads/tree/master
+
 PDMP3 - Public domain mp3 decoder:
 - https://github.com/adalinbv/PDMP3
   forked from https://github.com/technosaurus/PDMP3
