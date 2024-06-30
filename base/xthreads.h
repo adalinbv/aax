@@ -83,7 +83,19 @@ extern AvSetMmThreadPriority_proc pAvSetMmThreadPriority;
 
 
 /* -- Threads ---------------------------------------------------------- */
+#ifdef __MINGW32__
+ typedef struct _aaxThread
+ {
+   HANDLE handle;
+   HANDLE task;
+   LONG ms;
+
+   int(*callback_fn)(void*);
+   void *callback_data;
+ } _aaxThread;
+#else
 typedef thrd_t	_aaxThread;
+#endif
 
 void *_aaxThreadCreate();
 int _aaxThreadSetAffinity(_aaxThread*, int);
@@ -106,8 +118,15 @@ int _aaxThreadJoin(_aaxThread*);
     ((a) == AAX_THREAD_DESTROYED) ? "destroyed" : "unkown"
 typedef struct _aaxMutex
 {
+#ifdef __MINGW32__
+   char initialized;
+   char waiting;
+   HANDLE mutex;
+   CRITICAL_SECTION crit;
+#else
    int status;
    mtx_t mutex;
+#endif
 
 #ifndef NDEBUGTHREADS
    const char *name;

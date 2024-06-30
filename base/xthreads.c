@@ -225,10 +225,15 @@ _aaxProcessSetPriority(int prio)
    return rv;
 }
 
+#ifdef __MINGW32__
+# include "xthreads_win32.c"
+#endif
+
 #else
 # error "threads not implemented for this platform"
 #endif /* HAVE_PTHREAD_H */
 
+#ifndef __MINGW32__
 /** Threads */
 void *
 _aaxThreadCreate()
@@ -754,3 +759,4 @@ _aaxSignalTrigger(_aaxSignal *signal)
 
    return (rv == thrd_success) ? 0 : EINVAL;
 }
+#endif /* __MINGW32__ */

@@ -1,5 +1,6 @@
 /* Test program for c11threads. */
 
+#ifndef __MINGW32__
 /* Needed for memory leak detection. */
 #ifdef _WIN32
 #define _CRTDBG_MAP_ALLOC
@@ -345,3 +346,6 @@ void run_call_once_test(void)
 
 	CHK_EXPECTED(flag, 1);
 }
+#else
+int main() { return 0; };
+#endif /* __MINGW32__ */
