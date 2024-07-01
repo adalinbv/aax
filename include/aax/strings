@@ -461,12 +461,26 @@ static inline std::string to_string(enum aaxCapabilities type)
 {
     int midi_mode = (type & AAX_RENDER_MASK);
     int cores = (type & AAX_CPU_CORES);
+    int simd = (type & AAX_SIMD_MASK);
+    int bits64 = (type & AAX_64BIT);
     std::string mode;
 
     if (cores) {
         mode.append(std::to_string(cores+1));
         mode.append(" cores");
         if (midi_mode) mode.append(" - ");
+    }
+    if (bits64) {
+        mode.append(" 64-bit");
+    }
+    if (simd & AAX_SIMD512) {
+        mode.append(" AVX512");
+    } else if (simd & AAX_SIMD256_2) {
+        mode.append(" AVX2");
+    } else if (simd & AAX_SIMD256) {
+        mode.append(" AVX");
+    } else if (simd & AAX_SIMD) {
+        mode.append(" SSE2");
     }
     switch(midi_mode)
     {
