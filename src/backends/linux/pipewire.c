@@ -631,12 +631,26 @@ _aaxPipeWireDriverSetup(const void *id, float *refresh_rate, int *fmt,
       handle->spec = req;
       handle->period_frames = period_samples;
 
-      // NOTE: The PW_STREAM_FLAG_RT_PROCESS flag can be set to call the stream
-      //       processing callback from the realtime thread. However, it comes
-      //       with some caveats: no file IO, allocations, locking or other
-      //       blocking operations must occur in the mixer callback.
+// https://docs.pipewire.org/group__pw__stream.html#ga058907c2dffbb8fb5ede8a53d7604106
+      // NOTE:
+      // * PW_STREAM_FLAG_RT_PROCESS
+      //   flag can be set to call the stream processing callback from the
+      //   realtime thread. However, it comes with some caveats: no file IO,
+      //   allocations, locking or other blocking operations must occur in the
+      //   mixer callback.
       //
-      // PW_STREAM_FLAG_EXCLUSIVE 		// require exclusive access
+      // * PW_STREAM_FLAG_ASYNC 	
+      //   Buffers will not be dequeued/queued from the realtime process()
+      //   function.
+      //   This is assumed when RT_PROCESS is unset but can also be the case
+      //   when the process() function does a trigger_process() that will then
+      //   dequeue/queue a buffer from another process() function.
+      //
+      // * PW_STREAM_FLAG_EXCLUSIVE
+      //   require exclusive access
+      //
+      // * PW_STREAM_FLAG_NO_CONVERT
+      //   don't convert format
       flags = PW_STREAM_FLAG_AUTOCONNECT |	// try to automatically connect
               PW_STREAM_FLAG_MAP_BUFFERS;  	// mmap the buffers
       if (handle->mode != AAX_MODE_READ) {
