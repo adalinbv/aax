@@ -128,7 +128,7 @@ else(WIN32)
   set(CPACK_RPM_PACKAGE_LICENSE "GPL")
   set(CPACK_RPM_PACKAGE_GROUP "System/Libraries")
   set(CPACK_RPM_PACKAGE_PROVIDES "libaax4-bin, libaax4-dev, libaax4-data")
-  set(CPACK_RPM_PACKAGE_SUGGESTS "libpipewire-0.3 libmpg123-0, libopus0")
+# set(CPACK_RPM_PACKAGE_SUGGESTS "libpipewire-0.3 libmpg123-0, libopus0")
 endif(WIN32)
 
 # ZIP
