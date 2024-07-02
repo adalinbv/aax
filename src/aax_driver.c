@@ -1138,7 +1138,7 @@ _open_handle(aaxConfig config)
                   {
                      unsigned int num = _AAX_MAX_SOURCES_AVAIL;
                      sensor->mixer->info->max_emitters = num;
-                     num = _AAX_MAX_MIXER_REGISTERED;
+                     num = _AAX_MAX_SOURCES_AVAIL;
                      sensor->mixer->info->max_registered = num;
 
                      _PROP_PITCH_SET_CHANGED(smixer->props3d);

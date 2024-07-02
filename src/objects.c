@@ -84,7 +84,7 @@ _aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
          info->midi_mode = AAX_RENDER_DEFAULT;
       }
    }
-   info->max_emitters = _AAX_MAX_MIXER_REGISTERED;
+   info->max_emitters = _AAX_MAX_SOURCES_AVAIL;
    info->max_registered = 0;
 
    info->capabilities = _aaxGetCapabilities(NULL);
@@ -376,7 +376,7 @@ float _aaxDefaultSpeakersDelay[_AAX_MAX_SPEAKERS][4] =
 unsigned int
 _aaxGetNoEmitters(const _aaxDriverBackend *be) {
    if (!be) be = &_aaxLoopbackDriverBackend;
-   return _MAX(be->getset_sources(0, 0), _AAX_MAX_MIXER_REGISTERED);
+   return _MAX(be->getset_sources(0, 0), _AAX_MAX_SOURCES_AVAIL);
 }
 
 unsigned int

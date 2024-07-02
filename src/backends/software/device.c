@@ -883,18 +883,20 @@ _aaxSoftwareDriverGetSetSources(unsigned int max, int num)
 
    if (max)
    {
-//    static int capabilites = _aaxGetCapabilities(NULL);
-//    static int cores = (capabilites & AAX_CPU_CORES)+1;
-//    static int simd256 = (capabilites & AAX_SIMD256);
+#if 0
+      static int capabilites = _aaxGetCapabilities(NULL);
+      static int cores = (capabilites & AAX_CPU_CORES)+1;
+      static int simd256 = (capabilites & AAX_SIMD256);
 
-//    if (!simd256) max = 64*cores;
+      if (!simd256) max = 64*cores;
+#endif
 
       _aaxAtomicIntSet(&_max_sources, max);     // _max_sources = max;
       _aaxAtomicIntSet(&_sources, max);         // _sources = max;
       ret = max;
    }
 
-   if (abs_num && (abs_num < _AAX_MAX_MIXER_REGISTERED))
+   if (abs_num && (abs_num < _AAX_MAX_SOURCES_AVAIL))
    {
       unsigned int _src = _sources - num;
       if ((_sources >= (unsigned int)num) && (_src < _max_sources))

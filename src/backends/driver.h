@@ -30,8 +30,6 @@ extern "C" {
 
 #define _AAX_MAX_SOURCES_AVAIL		UINT_MAX
 
-#define _AAX_MAX_MIXER_REGISTERED	256
-
 #define AAX_NAME_STR			PACKAGE_NAME
 #define AAX_VENDOR_STR			"Adalin B.V."
 #define AAX_WEBSITE_STR			"https://www.adalin.com"
