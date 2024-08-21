@@ -65,7 +65,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd;
    _aaxEnvelopeData *penv, *pslide;
-   _aaxEnvelopeData *genv;
+   _aaxEnvelopeData *genv, *lenv;
    _aaxLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
    MIX_T **scratch;
@@ -97,8 +97,12 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    pitch = ep2d->final.pitch; /* Doppler effect */
    pitch *= _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
 
-   pslide = _EFFECT_GET_DATA(ep2d, PITCH_EFFECT);
    penv = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
+   pnvel = 1.0f;
+   if (penv) {
+      pitch *= _aaxEnvelopeGet(penv, srbi->stopped, &pnvel, NULL);
+   }
+
    lfo = _EFFECT_GET_DATA(ep2d, DYNAMIC_PITCH_EFFECT);
    if (lfo) 
    {
@@ -114,11 +118,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       pitch *= _EFFECT_GET(fp2d, PITCH_EFFECT, AAX_PITCH);
    }
 
-   pnvel = 1.0f;
-   if (penv) {
-      pitch *= _aaxEnvelopeGet(penv, srbi->stopped, &pnvel, NULL);
-   }
-
+   pslide = _EFFECT_GET_DATA(ep2d, PITCH_EFFECT);
    if (pslide && _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH_RATE) > 0.0f)
    {
       pnvel = 1.0f;
@@ -127,7 +127,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
 
    min = LEVEL_60DB;
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
-   pitch = _MINMAX(pitch*ep2d->pitch_factor, min, max);
+   pitch = _MINMAX(pitch*ep2d->mip_pitch_factor, min, max);
 
    /** DECODE, resample and apply effects */
    offs = 0;
@@ -223,14 +223,19 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? false : true;
 
    lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_LAYER_FILTER);
-   if (lfo)
+   lenv = _FILTER_GET_DATA(ep2d, TIMED_LAYER_FILTER);
+   if (lfo || lenv)
    {
       unsigned char no_layers = srb->get_parami(srb, RB_NO_LAYERS);
       if (no_layers > 1)
       {
          unsigned char mix_layer = (track + 1) % no_layers;
          MIX_PTR_T s = (MIX_PTR_T)sptr[track] + offs;
-         float mix = lfo->get(lfo, genv, s, 0, dno_samples);
+         float lnvel = 1.0f;
+         float mix = 1.0f;
+
+         if (lfo) mix *= lfo->get(lfo, genv, s, 0, dno_samples);
+         if (lenv) mix *= _aaxEnvelopeGet(lenv, srbi->stopped, &lnvel, NULL);
 
          mix = _MINMAX(mix, 0.0f, 1.0f);
          if (mix > (1.0-LEVEL_60DB)) { // use layer 1

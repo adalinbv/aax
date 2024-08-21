@@ -13,7 +13,7 @@
 
 #include <math.h>	/* for floorf */
 
-
+#include "base/random.h"
 #include "software/rbuf_int.h"
 #include "arch2d_simd.h"
 
@@ -78,6 +78,152 @@ fast_atan4_sse2(__m128 x)
   __m128 offs = _mm_set1_ps(GMATH_PI_4+0.273f);
   __m128 mul = _mm_set1_ps(-0.273f);
   return _mm_mul_ps(x, _mm_add_ps(offs, _mm_mul_ps(mul, _mm_abs_ps(x))));
+}
+
+static inline __m128
+copysign_sse2(__m128 x, __m128 y)
+{
+    __m128 sign_mask = _mm_set1_ps(-0.0f); // This is 0x80000000 in binary
+    __m128 y_sign = _mm_and_ps(y, sign_mask);
+    __m128 abs_x = _mm_andnot_ps(sign_mask, x);
+    return _mm_or_ps(abs_x, y_sign);
+}
+
+void
+_batch_dc_shift_sse2(float32_ptr d, const_float32_ptr s, size_t num, float offset)
+{
+   size_t i, step;
+   size_t dtmp, stmp;
+
+   if (!num || offset == 0.0f) return;
+
+   dtmp = (size_t)d & MEMMASK16;
+   stmp = (size_t)s & MEMMASK16;
+   if (dtmp || stmp)                    /* improperly aligned,            */
+   {                                    /* let the compiler figure it out */
+      _batch_dc_shift_cpu(d, s, num, offset);
+      return;
+   }
+
+   if (num)
+   {
+      __m128 *dptr = (__m128*)d;
+      __m128* sptr = (__m128*)s;
+
+      step = sizeof(__m128)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         __m128 xoffs = _mm_set1_ps(offset);
+         __m128 one = _mm_set1_ps(1.0f);
+
+         num -= i*step;
+         d += i*step;
+         s += i*step;
+         do
+         {
+             __m128 xsamp = _mm_load_ps((const float*)sptr++);
+             __m128 xdptr, xfact;
+
+             xfact = copysign_sse2(xoffs, xsamp);
+             xfact = _mm_sub_ps(one, xfact);
+
+             xdptr = _mm_add_ps(xoffs, _mm_mul_ps(xsamp, xfact));
+
+             _mm_store_ps((float*)dptr++, xdptr);
+         } while(--i);
+
+         if (num)
+         {
+            i = num;
+            do
+            {
+                float samp = *s++;
+                float fact = 1.0f-copysignf(offset, samp);
+                *d++ = offset + samp*fact;
+
+            } while(--i);
+         }
+      }
+   }
+}
+
+void
+_batch_wavefold_sse2(float32_ptr d, const_float32_ptr s, size_t num, float threshold)
+{
+   size_t i, step;
+   size_t dtmp, stmp;
+
+   if (!num || threshold == 0.0f)
+   {
+      if (num && d != s) {
+         memcpy(d, s, num*sizeof(float));
+      }
+      return;
+   }
+
+   dtmp = (size_t)d & MEMMASK16;
+   stmp = (size_t)s & MEMMASK16;
+   if (dtmp || stmp)                    /* improperly aligned,            */
+   {                                    /* let the compiler figure it out */
+      _batch_wavefold_cpu(d, s, num, threshold);
+      return;
+   }
+
+   if (num)
+   {
+      __m128 *dptr = (__m128*)d;
+      __m128* sptr = (__m128*)s;
+
+      step = sizeof(__m128)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         static const float max = (float)(1 << 23);
+         __m128 xthresh, x2thresh;
+
+         threshold = max*threshold;
+
+         xthresh = _mm_set1_ps(threshold);
+         x2thresh = _mm_set1_ps(2.0f*threshold);
+
+         num -= i*step;
+         d += i*step;
+         s += i*step;
+         do
+         {
+             __m128 xsamp = _mm_load_ps((const float*)sptr++);
+             __m128 xasamp = _mm_abs_ps(xsamp);
+             __m128 xthres2 = copysign_sse2(x2thresh, xsamp);
+             __m128 xmask = _mm_cmpgt_ps(xasamp, xthresh);
+
+             xsamp = _mm_andnot_ps(xmask, xsamp);
+
+             xasamp = _mm_sub_ps(xthres2, xasamp);
+             xasamp = _mm_and_ps(xmask, xasamp);
+
+             _mm_store_ps((float*)dptr++, _mm_or_ps(xsamp, xasamp));
+         } while(--i);
+
+         if (num)
+         {
+            i = num;
+            do
+            {
+               float samp = *s++;
+               float asamp = fabsf(samp);
+               if (asamp > threshold)
+               {
+                  float thresh2 = copysignf(2.0f*threshold, samp);
+                  samp = thresh2 - asamp;
+               }
+               *d++ = samp;
+            } while(--i);
+         }
+      }
+   }
 }
 
 float *
@@ -164,6 +310,52 @@ _aax_generate_waveform_sse2(float32_ptr rv, size_t no_samples, float freq, float
       break;
    default:
       break;
+   }
+   return rv;
+}
+
+#define FC      50.0f // 50Hz high-pass EMA filter cutoff frequency
+float *
+_aax_generate_noise_sse2(float32_ptr rv, size_t no_samples, uint64_t seed, unsigned char skip, float fs)
+{
+   if (rv)
+   {
+      float (*rnd_fn)() = _aax_random;
+      float rnd_skip = skip ? skip : 1.0f;
+      float ds, prev, alpha;
+      float *end = rv + no_samples;
+      float *ptr = rv;
+
+      if (seed)
+      {
+          _aax_srand(seed);
+          rnd_fn = _aax_seeded_random;
+      }
+
+      prev = 0.0f;
+      alpha = 1.0f;
+      // exponential moving average (ema) filter
+      // to filter frequencies below FC (50Hz)
+      _aax_ema_compute(FC, fs, &alpha);
+
+      ds = FC/fs;
+
+      memset(rv, 0, no_samples*sizeof(float));
+      do
+      {
+         float rnd = 0.5f*rnd_fn();
+         rnd = rnd - _MINMAX(rnd, -ds, ds);
+
+         // exponential moving average filter
+         prev = (1.0f-alpha)*prev + alpha*rnd;
+         *ptr += rnd - prev; // high-pass
+
+         ptr += (int)rnd_skip;
+         if (skip > 1) {
+            rnd_skip = 1.0f + fabsf((2*skip-rnd_skip)*rnd_fn());
+         }
+      }
+      while (ptr < end);
    }
    return rv;
 }
@@ -1688,11 +1880,10 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
 }
 
 void
-_batch_ema_iir_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
+_batch_ema_iir_float_sse2(float32_ptr d, const_float32_ptr s, size_t num, float *hist, float a1)
 {
    if (num)
    {
-      float32_ptr s = (float32_ptr)sptr;
       size_t i = num;
       float smp;
 

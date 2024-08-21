@@ -113,6 +113,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    case AAX_SAWTOOTH:
    case AAX_CYCLOID:
    case AAX_RANDOMNESS:
+   case AAX_RANDOM_SELECT:
    case AAX_ENVELOPE_FOLLOW:
    case AAX_TIMED_TRANSITION:
    {
@@ -121,7 +122,11 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
       {
          bitcrush = _aax_aligned_alloc(DSIZE);
          filter->slot[0]->data = bitcrush;
-         if (bitcrush) memset(bitcrush, 0, DSIZE);
+         if (bitcrush)
+         {
+            filter->slot[0]->data_size = DSIZE;
+            memset(bitcrush, 0, DSIZE);
+         }
       }
 
       if (bitcrush)

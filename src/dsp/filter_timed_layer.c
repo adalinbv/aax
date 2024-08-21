@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2007-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2007-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2009-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -23,13 +23,13 @@
 #include "arch.h"
 #include "api.h"
 
-#define VERSION	1.03
+#define VERSION	1.0
 #define DSIZE	sizeof(_aaxEnvelopeData)
 
-#define MAX_SLOTS	(_MAX_ENVELOPE_STAGES/2)
+#define MAX_SLOTS       (_MAX_ENVELOPE_STAGES/2)
 
 static aaxFilter
-_aaxTimedGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
+_aaxTimedLayerFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
    _filter_t* flt = _aaxFilterCreateHandle(info, type, MAX_SLOTS, DSIZE);
    aaxFilter rv = NULL;
@@ -46,7 +46,7 @@ _aaxTimedGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 }
 
 static aaxFilter
-_aaxTimedGainFilterSetState(_filter_t* filter, int state)
+_aaxTimedLayerFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = NULL;
@@ -178,7 +178,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
 }
 
 static _filter_t*
-_aaxNewTimedGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
+_aaxNewTimedLayerFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
@@ -227,7 +227,7 @@ _aaxNewTimedGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
 }
 
 static float
-_aaxTimedGainFilterSet(float val, int ptype, unsigned char param)
+_aaxTimedLayerFilterSet(float val, int ptype, unsigned char param)
 {
    float rv = val;
 
@@ -256,7 +256,7 @@ _aaxTimedGainFilterSet(float val, int ptype, unsigned char param)
 }
 
 static float
-_aaxTimedGainFilterGet(float val, int ptype, unsigned char param)
+_aaxTimedLayerFilterGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    if ((param % 2) == 0)
@@ -284,35 +284,35 @@ _aaxTimedGainFilterGet(float val, int ptype, unsigned char param)
 }
 
 static float
-_aaxTimedGainFilterMinMax(float val, int slot, unsigned char param)
+_aaxTimedLayerFilterMinMax(float val, int slot, unsigned char param)
 {
-  static const _flt_minmax_tbl_t _aaxTimedGainRange[_MAX_FE_SLOTS] =
+  static const _flt_minmax_tbl_t _aaxTimedLayerRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, FLT_MAX, 4.0f, FLT_MAX } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, FLT_MAX, 4.0f, FLT_MAX } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, FLT_MAX, 4.0f, FLT_MAX } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, FLT_MAX, 4.0f, FLT_MAX } }
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, FLT_MAX, 1.0f, FLT_MAX } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, FLT_MAX, 1.0f, FLT_MAX } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, FLT_MAX, 1.0f, FLT_MAX } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, FLT_MAX, 1.0f, FLT_MAX } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
 
-   return _MINMAX(val, _aaxTimedGainRange[slot].min[param],
-                       _aaxTimedGainRange[slot].max[param]);
+   return _MINMAX(val, _aaxTimedLayerRange[slot].min[param],
+                       _aaxTimedLayerRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
 
-_flt_function_tbl _aaxTimedGainFilter =
+_flt_function_tbl _aaxTimedLayerFilter =
 {
-   "AAX_timed_gain_filter_"AAX_MKSTR(VERSION), VERSION,
-   (_aaxFilterCreateFn*)&_aaxTimedGainFilterCreate,
+   "AAX_timed_layer_filter", VERSION,
+   (_aaxFilterCreateFn*)&_aaxTimedLayerFilterCreate,
    (_aaxFilterDestroyFn*)&_aaxFilterDestroy,
    (_aaxFilterResetFn*)&_env_reset,
-   (_aaxFilterSetStateFn*)&_aaxTimedGainFilterSetState,
-   (_aaxNewFilterHandleFn*)&_aaxNewTimedGainFilterHandle,
-   (_aaxFilterConvertFn*)&_aaxTimedGainFilterSet,
-   (_aaxFilterConvertFn*)&_aaxTimedGainFilterGet,
-   (_aaxFilterConvertFn*)&_aaxTimedGainFilterMinMax
+   (_aaxFilterSetStateFn*)&_aaxTimedLayerFilterSetState,
+   (_aaxNewFilterHandleFn*)&_aaxNewTimedLayerFilterHandle,
+   (_aaxFilterConvertFn*)&_aaxTimedLayerFilterSet,
+   (_aaxFilterConvertFn*)&_aaxTimedLayerFilterGet,
+   (_aaxFilterConvertFn*)&_aaxTimedLayerFilterMinMax
 };
 

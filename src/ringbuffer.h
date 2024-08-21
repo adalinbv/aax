@@ -123,7 +123,7 @@ typedef struct _aaxRingBuffer_t __aaxRingBuffer;
 #define _AAX_MAX_STAGES		4
 #define _AAX_MAX_DELAYS         RB_MAX_TRACKS
 #define _AAX_MAX_LOOPBACKS      RB_MAX_TRACKS
-#define _AAX_MAX_EQBANDS        8
+#define _AAX_MAX_EQBANDS        (4*_MAX_GRAPH_EQ)
 
 typedef struct
 {
@@ -198,6 +198,7 @@ typedef struct
 
 typedef struct
 {
+   int no_bands;
    _aaxRingBufferFreqFilterData band[_AAX_MAX_EQBANDS];
    float rms[_AAX_MAX_EQBANDS];
    float peak[_AAX_MAX_EQBANDS];
@@ -371,6 +372,15 @@ typedef struct
    bool amplitude;
 
 } _aaxRingBufferModulatorData;
+
+typedef struct
+{
+   int (*run)(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+
+   _aaxLFOData offset;
+   _aaxLFOData threshold;
+
+} _aaxRingBufferWaveFoldData;
 
 
 /**

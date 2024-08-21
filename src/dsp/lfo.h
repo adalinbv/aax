@@ -28,7 +28,7 @@ _convert_fn _logarithmic;
 _convert_fn _exponential;
 _convert_fn _exp_distortion;
 
-#define _MAX_ENVELOPE_STAGES            6
+#define _MAX_ENVELOPE_STAGES            8
 #define ENVELOPE_FOLLOW_STEP_CVT(a)     _MINMAX(-0.1005f+powf((a), 0.25f)/3.15f, 0.0f, 1.0f)
 
 typedef float _aaxLFOGetFn(void *, void*, const void*, unsigned, size_t);

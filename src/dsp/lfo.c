@@ -120,7 +120,10 @@ int
 _lfo_set_function(_aaxLFOData *lfo, int constant)
 {
    int rv = true;
-   if (!constant)
+   if (constant) {
+      lfo->get = _aaxLFOGetFixedValue;
+   }
+   else
    {
       enum aaxSourceType wave;
 
@@ -166,9 +169,6 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
          break;
       }
    }
-   else {
-      lfo->get = _aaxLFOGetFixedValue;
-   }
 
    return rv;
 }
@@ -187,16 +187,18 @@ _lfo_set_timing(_aaxLFOData *lfo)
 {
    float range = lfo->max_sec - lfo->min_sec;
    float fs = lfo->fs;
-   int constant;
+   bool constant = true;
+   bool wstate;
 
    lfo->min = fs*(lfo->min_sec + lfo->offset*range);
    lfo->max = lfo->min + fs*(lfo->depth*range);
-   constant = ((lfo->max - lfo->min) > 0.01f) ? false : true;
+
 #if 0
- printf("offset: %f, range: %f, min: %f, fs: %f\n", offset, range, min, fs);
+ printf("offset: %f, range: %f, fs: %f\n", lfo->offset, range, fs);
  printf("lfo min: %f, max: %f\n", lfo->min, lfo->max);
 #endif
 
+   constant = ((lfo->max - lfo->min) > 0.01f) ? false : true;
    if (!constant)
    {
       float sign, step;

@@ -506,8 +506,9 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          if (!handle->mutex) handle->mutex = _aaxMutexCreate(NULL);
          _aaxMutexLock(handle->mutex);
          _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_LF, filter, 0);
-         _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_MF, filter, 1);
-         _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_HF, filter, 2);
+         _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_LMF, filter, 1);
+         _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_HMF, filter, 2);
+         _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_HF, filter, 3);
          _aaxMutexUnLock(handle->mutex);
          break;
       case AAX_DISTANCE_FILTER:
@@ -572,8 +573,9 @@ aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
          {
             _filter_t *flt = (_filter_t*)rv;
             _aax_dsp_copy(flt->slot[0], &submix->filter[EQUALIZER_LF]);
-            _aax_dsp_copy(flt->slot[1], &submix->filter[EQUALIZER_MF]);
-            _aax_dsp_copy(flt->slot[2], &submix->filter[EQUALIZER_HF]);
+            _aax_dsp_copy(flt->slot[1], &submix->filter[EQUALIZER_LMF]);
+            _aax_dsp_copy(flt->slot[2], &submix->filter[EQUALIZER_HMF]);
+            _aax_dsp_copy(flt->slot[3], &submix->filter[EQUALIZER_HF]);
             flt->state = submix->filter[EQUALIZER_LF].state;
             flt->slot[0]->destroy = _freqfilter_destroy;
             flt->slot[0]->swap = _equalizer_swap;

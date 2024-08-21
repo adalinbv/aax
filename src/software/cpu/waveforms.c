@@ -44,9 +44,9 @@ static float _gains[AAX_MAX_WAVE][2];
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_add_data(int32_t*, const_float32_ptr, unsigned int, char, float, limitType);
 static void _aax_mul_data(int32_t*, const_float32_ptr, unsigned int, char, float, limitType);
-static float* _aax_generate_noise_float(float*, size_t, uint64_t, unsigned char, float);
 
 _aax_generate_waveform_proc _aax_generate_waveform_float = _aax_generate_waveform_cpu;
+_aax_generate_noise_proc _aax_generate_noise_float = _aax_generate_noise_cpu;
 
 static float _aax_linear(float v) {
    return v;
@@ -267,7 +267,7 @@ static float _gains[AAX_MAX_WAVE][2] = {
   { 1.1f,  1.2f }, // AAX_TRIANGLE, AAX_PURE_TRIANGLE
   { 1.0f,  1.1f }, // AAX_SINE,     AAX_PURE_SINE
   { 0.95f, 0.9f }, // AAX_CYCLOID,  AAX_PURE_CYCLOID
-  { 1.0f,  5.2f }  // AAX_IMPULSE,  AAX_PURE_IMPULSE
+  { 1.6f,  5.2f }  // AAX_IMPULSE,  AAX_PURE_IMPULSE
 };
 
 ALIGN float _harmonic_phases[AAX_MAX_WAVE][2*MAX_HARMONICS] =
@@ -363,63 +363,6 @@ ALIGN float _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS] =
     1.f/16.f, 1.f/16.f
   }
 };
-
-/**
- * Generate an array of random samples
- * output range is -1.0 .. 1.0
- */
-static float
-_aax_seeded_random() {
-   return (float)((double)_aax_rand()/(double)INT64_MAX);
-}
-
-
-#define FC	50.0f
-
-static float *
-_aax_generate_noise_float(float *rv, size_t no_samples, uint64_t seed, unsigned char skip, float fs)
-{
-   if (rv)
-   {
-      float (*rnd_fn)() = _aax_rand_sample;
-      float rnd_skip = skip ? skip : 1.0f;
-      float ds, prev, alpha;
-      float *end = rv + no_samples;
-      float *ptr = rv;
-
-      if (seed)
-      {
-          _aax_srand(seed);
-          rnd_fn = _aax_seeded_random;
-      }
-
-      prev = 0.0f;
-      alpha = 1.0f;
-      // exponential moving average (ema) filter
-      // to filter frequencies below FC (50Hz)
-      _aax_ema_compute(FC, fs, &alpha);
-
-      ds = FC/fs;
-
-      memset(rv, 0, no_samples*sizeof(float));
-      do
-      {
-         float rnd = 0.5f*rnd_fn();
-         rnd = rnd - _MINMAX(rnd, -ds, ds);
-
-         // exponential moving average filter
-         prev = (1.0f-alpha)*prev + alpha*rnd;
-         *ptr += rnd - prev; // high-pass
-
-         ptr += (int)rnd_skip;
-         if (skip > 1) {
-            rnd_skip = 1.0f + fabsf((2*skip-rnd_skip)*rnd_fn());
-         }
-      }
-      while (ptr < end);
-   }
-   return rv;
-}
 
 #if 0
 #define AVERAGE_SAMPS          8

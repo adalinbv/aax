@@ -25,16 +25,18 @@
 #define VERSION	1.0
 #define	DSIZE	sizeof(_aaxEnvelopeData)
 
+#define MAX_SLOTS	(_MAX_ENVELOPE_STAGES/2)
+
 static aaxEffect
 _aaxTimedPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2, DSIZE);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, MAX_SLOTS, DSIZE);
    aaxEffect rv = NULL;
 
    if (eff)
    {
       unsigned s;
-      for (s=0; s<_MAX_ENVELOPE_STAGES/2; s++) {
+      for (s=0; s<MAX_SLOTS; s++) {
          _aaxSetDefaultEffect2d(eff->slot[s], eff->pos, s);
       }
       rv = (aaxEffect)eff;
@@ -70,7 +72,7 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
          env->sustain = true;
          env->value0 = env->value = env->value_max = nextval;
          env->max_stages = _MAX_ENVELOPE_STAGES-1;
-         for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
+         for (i=0; i<MAX_SLOTS; i++)
          {
             float dt, value = nextval;
             uint32_t max_pos;
@@ -108,7 +110,7 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
             }
 
             value = nextval;
-            nextval = (i < 2) ? effect->slot[i+1]->param[AAX_LEVEL0] : 0.0f;
+            nextval = (i < (MAX_SLOTS-1)) ? effect->slot[i+1]->param[AAX_LEVEL0] : 0.0f;
             if (nextval > env->value_max) env->value_max = nextval;
             env->step[stage] = (nextval - value)/max_pos;
             env->max_pos[stage] = max_pos;
@@ -135,7 +137,7 @@ _aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2,0);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, MAX_SLOTS,0);
 
    if (rv)
    {
@@ -159,7 +161,7 @@ _aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _
          value = p2d->effect[rv->pos].param[AAX_LEVEL1];
          value += env->step[1] * no_steps;
 
-         stages = _MIN(1+env->max_stages/2, _MAX_ENVELOPE_STAGES/2);
+         stages = _MIN(1+env->max_stages/2, MAX_SLOTS);
          for (i=1; i<stages; i++)
          {
             _aaxEffectInfo* slot = rv->slot[i];

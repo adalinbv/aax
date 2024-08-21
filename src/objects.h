@@ -369,7 +369,7 @@ typedef ALIGN16 struct _aax2dProps_s
    float bufpos3dq;             /* distance delay queue buffer position      */
 
    float curr_pos_sec;
-   float pitch_factor;
+   float mip_pitch_factor;
    int mip_levels;
 
    _note_t note;

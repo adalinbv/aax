@@ -29,15 +29,10 @@ _aax_hash3(unsigned int h1, unsigned int h2, unsigned int h3) {
     return (((h1 * 2654435789U) + h2) * 2654435789U) + h3;
 }
 
-static inline uint64_t
-rotl(const uint64_t x, int k) {
-   return (x << k) | (x >> (64 - k));
-}
-
 // https://en.wikipedia.org/wiki/Xorshift#xorshift+
 /* This generator is one of the fastest generators passing BigCrush */
 /* The state must be seeded so that it is not all zero */
-static union
+union
 {
    uint64_t xs[2];
    uint32_t s[4];
@@ -53,6 +48,11 @@ xorshift128plus()
    x ^= x << 23;
    _xor.xs[1] = x ^ y ^ (x >> 17) ^ (y >> 26);
    return _xor.xs[1] + y;
+}
+
+static inline uint64_t
+rotl(const uint64_t x, int k) {
+   return (x << k) | (x >> (64 - k));
 }
 
 // https://en.wikipedia.org/wiki/Xoroshiro128%2B
@@ -72,32 +72,26 @@ xoroshiro128plus(void)
    return result;
 }
 
-// http://xoshiro.di.unimi.it/xoshiro128plus.c
-uint32_t
-xoshiro128plus(void)
-{
-   const uint32_t result = _xor.s[0] + _xor.s[3];
-   const uint32_t t = _xor.s[1] << 9;
-
-   _xor.s[2] ^= _xor.s[0];
-   _xor.s[3] ^= _xor.s[1];
-   _xor.s[1] ^= _xor.s[2];
-   _xor.s[0] ^= _xor.s[3];
-
-   _xor.s[2] ^= t;
-
-   _xor.s[3] = rotl(_xor.s[3], 11);
-
-   return result;
-}
-
-
-float
+float // range: 0.0 .. 1.0
 _aax_rand_sample()
 {
-   // prefered method for conversion to float:
+   // prefered method for conversion to float [0.0-1.0]:
    // https://prng.di.unimi.it/
    return (xoroshiro128plus() >> 11) * 0x1.0p-53;
+}
+
+float // range: -1.0 .. 1.0
+_aax_random() {
+   return (xoroshiro128plus() >> 10) * 0x1.0p-53 - 1.0f;
+}
+
+void
+_aax_rand_sample8(float r[8])
+{
+   int i;
+   for (i=0; i<8; ++i) {
+      r[i] = (xoroshiro128plus() >> 11) * 0x1.0p-53;
+   }
 }
 
 void
@@ -128,11 +122,13 @@ _aax_srandom()
 
 static uint64_t _aax_seed;
 
+// Warning: do not seed with 0
 void
 _aax_srand(uint64_t a) {
    _aax_seed = a;
 }
 
+// xorshift64*
 uint64_t
 _aax_rand()
 {
@@ -142,4 +138,9 @@ _aax_rand()
     x ^= x >> 27; // c
     _aax_seed = x;
     return x * UINT64_C(0x2545F4914F6CDD1D);
+}
+
+float // range: -1.0 .. 1.0
+_aax_seeded_random() {
+   return (float)((double)_aax_rand()/(double)INT64_MAX) - 1.0f;
 }

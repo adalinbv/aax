@@ -18,6 +18,95 @@
 
 #define ROUNDING	(_MM_FROUND_TO_NEAREST_INT|_MM_FROUND_NO_EXC)
 
+static inline __m128
+_mm_abs_ps(__m128 x) {
+   return _mm_andnot_ps(_mm_set1_ps(-0.0f), x);
+}
+
+static inline __m128
+copysign_sse2(__m128 x, __m128 y)
+{
+    __m128 sign_mask = _mm_set1_ps(-0.0f); // This is 0x80000000 in binary
+    __m128 y_sign = _mm_and_ps(y, sign_mask);
+    __m128 abs_x = _mm_andnot_ps(sign_mask, x);
+    return _mm_or_ps(abs_x, y_sign);
+}
+
+void
+_batch_wavefold_sse4(float32_ptr d, const_float32_ptr s, size_t num, float threshold)
+{
+   size_t i, step;
+   size_t dtmp, stmp;
+   
+   if (!num || threshold == 0.0f) 
+   {
+      if (num && d != s) {
+         memcpy(d, s, num*sizeof(float));
+      }
+      return;
+   }
+
+   dtmp = (size_t)d & MEMMASK16;
+   stmp = (size_t)s & MEMMASK16;
+   if (dtmp || stmp)                    /* improperly aligned,            */
+   {                                    /* let the compiler figure it out */
+      _batch_wavefold_cpu(d, s, num, threshold);
+      return;   
+   }
+
+   if (num)
+   {
+      __m128 *dptr = (__m128*)d;
+      __m128* sptr = (__m128*)s;
+
+      step = sizeof(__m128)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         static const float max = (float)(1 << 23);
+         __m128 xthresh, x2thresh;
+
+         threshold = max*threshold;
+
+         xthresh = _mm_set1_ps(threshold);
+         x2thresh = _mm_set1_ps(2.0f*threshold);
+
+         num -= i*step;
+         d += i*step;
+         s += i*step;
+         do
+         {
+             __m128 xsamp = _mm_load_ps((const float*)sptr++);
+             __m128 xasamp = _mm_abs_ps(xsamp);
+             __m128 xthres2 = copysign_sse2(x2thresh, xsamp);
+             __m128 xmask = _mm_cmpgt_ps(xasamp, xthresh);
+
+             xasamp = _mm_sub_ps(xthres2, xasamp);
+             xsamp = _mm_blendv_ps(xsamp, xasamp, xmask);
+
+             _mm_store_ps((float*)dptr++, xsamp);
+         } while(--i);
+
+         if (num)
+         {
+            i = num;
+            do
+            {
+               float samp = *s++;
+               float asamp = fabsf(samp);
+               if (asamp > threshold)
+               {
+                  float thresh2 = copysignf(2.0f*threshold, samp);
+                  samp = thresh2 - asamp;
+               }
+               *d++ = samp;
+            } while(--i);
+         }
+      }
+   }
+}
+
 void
 _batch_roundps_sse4(void_ptr dst, const_void_ptr src, size_t num)
 {

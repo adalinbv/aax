@@ -793,11 +793,10 @@ _batch_roundps_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
 
 
 void
-_batch_ema_iir_float_sse_vex(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
+_batch_ema_iir_float_sse_vex(float32_ptr d, const_float32_ptr s, size_t num, float *hist, float a1)
 {
    if (num)
    {
-      float32_ptr s = (float32_ptr)sptr;
       size_t i = num;
       float smp;
 

@@ -120,7 +120,7 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
    if (new_srb_pos_sec >= -dduration)
    {
       int freq_filter, dist_state, ringmodulator;
-      int bitcrush, reflections, delay_effect;
+      int wavefold, bitcrush, reflections, delay_effect;
       size_t dest_pos, dno_samples, dend;
       size_t src_pos, sstart, sno_samples;
       size_t rdesamps, cno_samples;
@@ -133,6 +133,7 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
       dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
       ringmodulator = _EFFECT_GET_STATE(p2d, RINGMODULATE_EFFECT);
       bitcrush = _FILTER_GET_STATE(p2d, BITCRUSHER_FILTER);
+      wavefold = _EFFECT_GET_STATE(p2d, WAVEFOLD_EFFECT);
 
       /* source */
       sstart = 0;
@@ -195,7 +196,7 @@ _aaxRingBufferProcessMixer(MIX_T **track_ptr, _aaxRingBuffer *drb, _aaxRingBuffe
       {
          _aaxRingBufferDelayEffectData* effect;
          char eff = (reflections || delay_effect || freq_filter || dist_state ||
-                     ringmodulator || bitcrush) ? 1 : 0;
+                     ringmodulator || bitcrush || wavefold) ? 1 : 0;
          MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
          MIX_T *scratch1 = track_ptr[SCRATCH_BUFFER1];
          int track;

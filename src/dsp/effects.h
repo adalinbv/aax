@@ -92,6 +92,7 @@ extern _eff_function_tbl _aaxPhasingEffect;
 extern _eff_function_tbl _aaxChorusEffect;
 extern _eff_function_tbl _aaxFlangingEffect;
 extern _eff_function_tbl _aaxDelayLineEffect;
+extern _eff_function_tbl _aaxWaveFoldEffect;
 extern _eff_function_tbl _aaxVelocityEffect;
 extern _eff_function_tbl _aaxReverbEffect;
 extern _eff_function_tbl _aaxConvolutionEffect;

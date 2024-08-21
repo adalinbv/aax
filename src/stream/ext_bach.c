@@ -483,7 +483,7 @@ get_dsp(_dsp_t *dsp, uint32_t **s)
    dsp->no_slots = tmp & 0xFF; // no_slots
    for (i=0; i<dsp->no_slots; ++i)
    {
-      if (i == BACH_MAX_SLOTS) break;
+      if (i == BACH__MAX_FE_SLOTS) break;
       dsp->slot[i].src = *buf++;
 
       // param

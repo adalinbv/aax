@@ -1,3 +1,17 @@
+* Thu Aug 08 2024 - tech@adalin.org
+- AeonWave (4.1.0) stable; urgency=medium
+
+ * Add a timed layer filter.
+ * Add a dynamic wavefold effect.
+ * Implement a 16-band equalizer which gets enabled instead of the 8-band
+   equalizer when slot 2 or slot 3 of the filter contains gain information.
+ * Increase the number of frequency bands for the graphic equalizer from 4 to 5
+ * Increase the number of envelope stages from 6 to 8 for all timed filters
+   and effects.
+
+-- Erik Hofman <tech@adalin.org>  Thu 08 Aug 2024 11:07:27 + 0100
+
+
 * Thu Jul 04 2024 - tech@adalin.org
 - AeonWave (4.0.0) stable; urgency=medium
 
@@ -63,7 +77,8 @@
  * Fix numerous problems, mistakes and omissions.
  * Fix a number of small one-time memory leaks.
 
--- Erik Hofman <tech@adalin.org>  Thu 04 Jun 2024 11:27:23 + 0100
+-- Erik Hofman <tech@adalin.org>  Thu 04 Jul 2024 11:27:23 + 0100
+
 
 * Tue May 10 2023 - tech@adalin.org
 - AeonWave (3.12.4) stable; urgency=low

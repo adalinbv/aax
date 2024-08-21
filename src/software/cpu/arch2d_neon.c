@@ -218,6 +218,119 @@ fast_atan4_neon(float32x4_t x)
 }
 #endif
 
+static inline
+float32x4_t copysign_neon(float32x4_t x, float32x4_t y)
+{
+    uint32x4_t sign_mask = vdupq_n_u32(0x80000000); // This is 0x80000000 in binary
+    uint32x4_t y_sign = vandq_u32(vreinterpretq_u32_f32(y), sign_mask);
+    uint32x4_t abs_x = vandq_u32(vreinterpretq_u32_f32(x), vmvnq_u32(sign_mask));
+    return vreinterpretq_f32_u32(vorrq_u32(abs_x, y_sign));
+}
+
+void
+_batch_dc_shift_neon(float32_ptr d, const_float32_ptr s, size_t num, float offset)
+{
+   size_t i, step;
+
+   step = sizeof(float32x4_t)/sizeof(float);
+
+   i = num/step;
+   if (i)
+   {
+      float32x4_t xoffs = vdupq_n_f32(offset);
+      float32x4_t one = vdupq_n_f32(1.0f);
+
+      num -= i*step;
+      d += i*step;
+      s += i*step;
+      do
+      {
+          float32x4_t xsamp = vld1q_f32((const float*)sptr++);
+          float32x4_t xdptr, xfact;
+
+          xfact = copysign_neon(xoffs, xsamp);
+          xfact = vsubq_f32(one, xfact);
+
+          xdptr = vaddq_f32(xoffs, vmulq_f32(xsamp, xfact));
+
+          vst1q_f32((float*)dptr++, xdptr);
+      } while(--i);
+
+      if (num)
+      {
+         i = num;
+         do
+         {
+             float samp = *s++;
+             float fact = 1.0f-copysignf(offset, samp);
+             *d++ = offset + samp*fact;
+
+         } while(--i);
+      }
+   }
+}
+
+void
+_batch_wavefold_neon(float32_ptr d, const_float32_ptr s, size_t num, float threshold)
+{
+   size_t i, step;
+
+   if (num && threshold > 0.0f)
+   {
+      float32x4_t *dptr = (float32x4_t*)d;
+      float32x4_t* sptr = (float32x4_t*)s;
+
+      step = sizeof(float32x4_t)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         static const float max = (float)(1 << 23);
+         float32x4_t xthresh, x2thresh;
+
+         threshold = max*threshold;
+
+         xthresh = vdupq_n_f32(threshold);
+         x2thresh = vdupq_n_f32(2.0f*threshold);
+
+         num -= i*step;
+         d += i*step;
+         s += i*step;
+         do
+         {
+             float32x4_t xsamp = vld1q_f32((const float*)sptr++);
+             float32x4_t xasamp = vabsq_f32(xsamp);
+             float32x4_t xthres2 = copysign_neon(x2thresh, xsamp);
+             uint32x4_t xmask = vcgtq_f32(xasamp, xthresh);
+
+             xasamp = vsubq_f32(xthres2, xasamp);
+             xsamp = vbslq_f32(xmask, xasamp, xsamp);
+
+             vst1q_f32((float*)dptr++, xsamp);
+         } while(--i);
+
+         if (num)
+         {
+            i = num;
+            do
+            {
+               float samp = *s++;
+               float asamp = fabsf(samp);
+               if (asamp > threshold)
+               {
+                  float thresh2 = copysignf(2.0f*threshold, samp);
+                  samp = thresh2 - asamp;
+               }
+               *d++ = samp;
+            } while(--i);
+         }
+      }
+   }
+   else if (num && d != s) {
+      memcpy(d, s, num*sizeof(float));
+   }
+}
+
 float *
 _aax_generate_waveform_neon(float32_ptr rv, size_t no_samples, float freq, float phase, enum aaxSourceType wtype)
 {

@@ -91,7 +91,8 @@ extern _flt_function_tbl _aaxBitCrusherFilter;
 extern _flt_function_tbl _aaxTimedGainFilter;
 extern _flt_function_tbl _aaxDirectionalFilter;
 extern _flt_function_tbl _aaxDistanceFilter;
-extern _flt_function_tbl _aaxDynamicTimbreFilter;
+extern _flt_function_tbl _aaxDynamicLayerFilter;
+extern _flt_function_tbl _aaxTimedLayerFilter;
 extern _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX];
 
 /* filters */

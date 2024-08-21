@@ -12,6 +12,7 @@
 #endif
 
 #include <assert.h>
+#include <stdlib.h>
 
 #include <aax/aax.h>
 
@@ -26,7 +27,7 @@
 #include "dsp.h"
 #include "api.h"
 
-#define VERSION	1.1
+#define VERSION	1.2
 #define DSIZE	_MAX_PARAM_EQ*(sizeof(_aaxRingBufferFreqFilterData)+MEMALIGN)
 #define EQBANDS	(_MAX_PARAM_EQ+1)
 
@@ -68,6 +69,16 @@ _aaxEqualizerDestroy(_filter_t* filter)
    return true;
 }
 
+static int
+eqcompare(const void *p1, const void *p2)
+{
+   _aaxFilterInfo *s1 = *(_aaxFilterInfo**)p1;
+   _aaxFilterInfo *s2 = *(_aaxFilterInfo**)p2;
+   float fc1 = s1->param[AAX_CUTOFF_FREQUENCY];
+   float fc2 = s2->param[AAX_CUTOFF_FREQUENCY];
+   return (int)(fc1 - fc2);
+}
+
 static aaxFilter
 _aaxEqualizerSetState(_filter_t* filter, int state)
 {
@@ -80,8 +91,9 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
       unsigned s;
 
       flt[0] = filter->slot[EQUALIZER_LF]->data;
-      flt[1] = filter->slot[EQUALIZER_MF]->data;
-      flt[2] = filter->slot[EQUALIZER_HF]->data;
+      flt[1] = filter->slot[EQUALIZER_LMF]->data;
+      flt[2] = filter->slot[EQUALIZER_HMF]->data;
+      flt[3] = filter->slot[EQUALIZER_HF]->data;
 
       if (flt[0] == NULL)
       {
@@ -140,10 +152,13 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          }
       }
 
-      if (flt[0] && flt[1] && flt[2])
+      if (flt[0] && flt[1] && flt[2] && flt[3])
       {
          float fs = filter->info->frequency;
          float gain[EQBANDS], gprev;
+
+         // sort filter slots based on cutoff frequency
+         qsort(filter->slot, _MAX_FE_SLOTS, sizeof(_aaxFilterInfo*), eqcompare);
 
          gprev = fabsf(filter->slot[0]->param[AAX_LF_GAIN]);
          for (s=0; s<_MAX_PARAM_EQ; ++s)
@@ -282,7 +297,7 @@ _aaxEqualizerMinMax(float val, int slot, unsigned char param)
     { { 20.0f, 0.0f, 0.0f, 1.0f }, { 22050.0f, 10.0f, 10.0f, 100.0f } },
     { { 20.0f, 0.0f, 0.0f, 1.0f }, { 22050.0f, 10.0f, 10.0f, 100.0f } },
     { { 20.0f, 0.0f, 0.0f, 1.0f }, { 22050.0f, 10.0f, 10.0f, 100.0f } },
-    { {  0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,  0.0f,  0.0f,   0.0f } }
+    { { 20.0f, 0.0f, 0.0f, 1.0f }, { 22050.0f,  0.0f, 10.0f,  10.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
@@ -332,10 +347,9 @@ _equalizer_swap(void *d, void *s)
 int
 _equalizer_run(void *rb, MIX_PTR_T dptr, UNUSED(MIX_PTR_T scratch),
                size_t dmin, size_t dmax, unsigned int track,
-               void *data_lf, void *data_mf, void *data_hf)
+               _aaxRingBufferFreqFilterData *filter[_MAX_PARAM_EQ])
 {
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
-   _aaxRingBufferFreqFilterData *filter[_MAX_PARAM_EQ];
    int s;
 
    assert(dptr != 0);
@@ -344,10 +358,6 @@ _equalizer_run(void *rb, MIX_PTR_T dptr, UNUSED(MIX_PTR_T scratch),
    assert(data_hf != NULL);
    assert(dmin < dmax);
    assert(track < _AAX_MAX_SPEAKERS);
-
-   filter[0] = data_lf;
-   filter[1] = data_mf;
-   filter[2] = data_hf;
 
    dptr += dmin;
    dmax -= dmin;

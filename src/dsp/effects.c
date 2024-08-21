@@ -85,7 +85,7 @@ _aaxEffectDestroy(aaxEffect* dsp)
 }
 
 _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX] =
-{
+{ // order matches enum aaxEffectType
    &_aaxPitchEffect,
    &_aaxDynamicPitchEffect,
    &_aaxTimedPitchEffect,
@@ -97,7 +97,8 @@ _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX] =
    &_aaxReverbEffect,
    &_aaxConvolutionEffect,
    &_aaxModulatorEffect,
-   &_aaxDelayLineEffect
+   &_aaxDelayLineEffect,
+   & _aaxWaveFoldEffect
 };
 
 _effect_t*
@@ -252,7 +253,8 @@ static int _eff_cvt_tbl[AAX_EFFECT_MAX] =
   REVERB_EFFECT,		// AAX_REVERB_EFFECT
   CONVOLUTION_EFFECT,		// AAX_CONVOLUTION_EFFECT
   RINGMODULATE_EFFECT,		// AAX_RINGMODULATE_EFFECT
-  DELAY_LINE_EFFECT		// AAX_DELAY_EFFECT
+  DELAY_LINE_EFFECT,		// AAX_DELAY_EFFECT
+  WAVEFOLD_EFFECT		// AAX_WAVEFOLD_EFFECT
 };
 
 static int _cvt_eff_tbl[MAX_STEREO_EFFECT] =
@@ -265,5 +267,6 @@ static int _cvt_eff_tbl[MAX_STEREO_EFFECT] =
   AAX_DISTORTION_EFFECT,	// DISTORTION_EFFECT
   AAX_CHORUS_EFFECT,		// DELAY_EFFECT
   AAX_RINGMODULATOR_EFFECT,	// RINGMODULATE_EFFECT
-  AAX_DELAY_EFFECT		// DELAY EFFECT
+  AAX_DELAY_EFFECT,		// DELAY EFFECT
+  AAX_WAVEFOLD_EFFECT		// WAVEFOLD_EFFECT
 };

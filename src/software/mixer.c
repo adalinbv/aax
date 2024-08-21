@@ -151,14 +151,15 @@ _aaxFrameProcessEqualizer(_aaxRingBuffer *rb, _sensor_t *sensor, _aaxAudioFrame 
 
       if (parametric)
       {
-         _aaxRingBufferFreqFilterData *lf, *mf, *hf;
+         _aaxRingBufferFreqFilterData *filter[_MAX_PARAM_EQ];
 
-         lf = _FILTER_GET_DATA(mixer, EQUALIZER_LF);
-         mf = _FILTER_GET_DATA(mixer, EQUALIZER_MF);
-         hf = _FILTER_GET_DATA(mixer, EQUALIZER_HF);
+         filter[0] = _FILTER_GET_DATA(mixer, EQUALIZER_LF);
+         filter[1] = _FILTER_GET_DATA(mixer, EQUALIZER_LMF);
+         filter[2] = _FILTER_GET_DATA(mixer, EQUALIZER_HMF);
+         filter[3] = _FILTER_GET_DATA(mixer, EQUALIZER_HF);
          for (t=0; t<no_tracks; t++) {
             _equalizer_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0],
-                           0, no_samples, t, lf, mf, hf);
+                           0, no_samples, t, filter);
          }
       }
       else

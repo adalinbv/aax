@@ -148,7 +148,6 @@ typedef struct
 
 } _param_t;
 
-#define BACH_MAX_SLOTS	4
 typedef struct
 {
    enum aaxSourceType src;
@@ -162,7 +161,7 @@ typedef struct
    enum aaxSourceType src;
 
    uint8_t no_slots;
-   _slot_t slot[BACH_MAX_SLOTS];
+   _slot_t slot[BACH__MAX_FE_SLOTS];
 
 } _dsp_t;
 

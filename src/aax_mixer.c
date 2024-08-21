@@ -592,8 +592,9 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
             break;
          case AAX_EQUALIZER:
             _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_LF, filter, 0);
-            _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_MF, filter, 1);
-            _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_HF, filter, 2);
+            _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_LMF, filter, 1);
+            _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_LMF, filter, 2);
+            _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_HF, filter, 3);
             break;
          case AAX_GRAPHIC_EQUALIZER:
             _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_LF, filter, 0);
@@ -653,8 +654,9 @@ aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
             {
                _filter_t *flt = (_filter_t*)rv;
                _aax_dsp_copy(flt->slot[0], &mixer->filter[EQUALIZER_LF]);
-               _aax_dsp_copy(flt->slot[1], &mixer->filter[EQUALIZER_MF]);
-               _aax_dsp_copy(flt->slot[2], &mixer->filter[EQUALIZER_HF]);
+               _aax_dsp_copy(flt->slot[1], &mixer->filter[EQUALIZER_LMF]);
+               _aax_dsp_copy(flt->slot[2], &mixer->filter[EQUALIZER_HMF]);
+               _aax_dsp_copy(flt->slot[3], &mixer->filter[EQUALIZER_HF]);
                flt->state = mixer->filter[EQUALIZER_LF].state;
                flt->slot[0]->destroy = _freqfilter_destroy;
                flt->slot[0]->swap = _equalizer_swap;
@@ -1565,7 +1567,7 @@ _aaxGetCapabilities(const aaxConfig config)
          rv |= AAX_SIMD;
       }
 
-      if (_aaxArchDetectAVX() || _aaxArchDetectHelium()) {
+      if (_aaxArchDetectAVX() || _aaxArchDetectNeon64()) {
          rv |= AAX_SIMD256;
       }
       if (_aaxArchDetectAVX2()) {

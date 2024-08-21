@@ -16,18 +16,23 @@ extern "C" {
 
 #include <base/types.h>
 
-#define _aax_random()	((double)xoroshiro128plus()/(double)UINT64_MAX)
+extern union
+{
+   uint64_t xs[2];
+   uint32_t s[4];
+} _xor;
 
 void _aax_srandom();
 uint64_t xorshift128plus();
 uint64_t xoroshiro128plus();
-uint32_t xoshiro128plus();
 
+float _aax_random();
+float _aax_seeded_random();
 float _aax_rand_sample();
+void _aax_rand_sample8(float[8]);
 
-
-void _aax_srand(uint64_t);
 uint64_t _aax_rand();
+void _aax_srand(uint64_t);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

@@ -1,20 +1,31 @@
-Note:
-Filters or effects should not declare memory for themselves but instead should
-be relying on _aaxFilterCreateHandle and _aaxEffectCreateHandle to do so.
-
-Adding another slot to filters and effects:
-* Increase the third parameter of the call to the _aaxFilterCreateHandle function
-  in the _aax[NAME]FilterCreate and _aaxNew[NAME]FilterHandle function.
-
-* Parameter for slots > 0 should be kept in a private data structure and these parameters
-  should be assigned in the _aax[NAME]SetState function. Likewise whould the slot[n]
-  parameters be set from the strucure in the _aaxNew[NAME]FilterHandle function.
-
-* Do not forget to set the new parameter limit in the _aax[NAME]MinMax structure.
-  Min and max are set to 0.0f by default and without altering them in the table
-  the parameter will always end up being 0.0f.
+* Add the new filter or effect to:
+  + aax_emitter.c and possibly aax_audioframe.c and aax_mixer.c
+  + as an extern _flt_function_tbl in filters.h 
+    or an extern _eff_function_tbl in effects.h
+  + _flt_function_tbl, _flt_cvt_tbl and _cvt_flt_tbl in src/dsp/filters.c or
+    _eff_function_tbl, _eff_cvt_tbl and _cvt_eff_tbl in src/dsp/effects.c
+  + aaxParameter and aaxFilterType or aaxEffectType in src/include/aax/aax.h.in
+  + _aax2dFiltersEffects or _aax3dFiltersEffects in src/dsp/common.h
+* Add AAXS support for the filter or effect in support/aax_support.c
 
 * Setting default slot parameters for filters and effects is possible in the
   _aaxSetDefaultFilter2d, _aaxSetDefaultFilter3d, _aaxSetDefaultEffect2d and
   _aaxSetDefaultEffect3d functions in filters.c and effects.c This is only
   useful if the default value is something else than 0.0f, which is the default.
+
+Note:
+Filters or effects should not declare memory for themselves but instead should
+be relying on _aaxFilterCreateHandle and _aaxEffectCreateHandle to do so.
+
+Adding another slot to filters and effects:
+* Increase the third parameter of the call to the _aaxFilterCreateHandle
+  function in the _aax[NAME]FilterCreate and _aaxNew[NAME]FilterHandle function.
+
+* Parameter for slots > 0 should be kept in a private data structure and these
+  parameters should be assigned in the _aax[NAME]SetState function. Likewise
+  whould the slot[n] parameters be set from the strucure in the
+  _aaxNew[NAME]FilterHandle function.
+
+* Do not forget to set the new parameter limit in the _aax[NAME]MinMax structure
+  Min and max are set to 0.0f by default and without altering them in the table
+  the parameter will always end up being 0.0f.

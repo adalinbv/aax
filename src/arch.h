@@ -49,6 +49,7 @@ typedef void (*_batch_codec_proc)(void_ptr, const_void_ptr, size_t);
 typedef void (*_batch_fmadd_proc)(float32_ptr, const_float32_ptr, size_t, float, float);
 typedef void (*_batch_imadd_proc)(int32_ptr, const_int32_ptr, size_t, float, float);
 typedef void (*_batch_mul_value_proc)(void*, const void*, unsigned, size_t, float);
+typedef void (*_batch_dsp_1param_proc)(float32_ptr, const_float32_ptr, size_t, float);
 typedef void (*_batch_ema_proc)(int32_ptr, const_int32_ptr, size_t, float*, float);
 typedef void (*_batch_freqfilter_proc)(int32_ptr, const_int32_ptr, int, size_t, void*);
 typedef void (*_batch_ema_float_proc)(float32_ptr, const_float32_ptr, size_t, float*, float);
@@ -58,8 +59,7 @@ typedef void (*_batch_convolution_proc)(float32_ptr, const_float32_ptr, const_fl
 typedef void (*_batch_resample_float_proc)(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
 typedef void (*_batch_resample_proc)(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 
-typedef void (*_batch_get_average_rms_proc)(const_float32_ptr, size_t, float*, float*);
-
+typedef void (*_batch_get_average_rms_proc)(const_float32_ptr, size_t, float32_ptr, float32_ptr);
 
 typedef void (*_aax_aligned_free_proc)(void*);
 void* _aax_aligned_alloc(size_t);
@@ -76,6 +76,8 @@ extern _batch_imadd_proc _batch_imadd;
 extern _batch_fmadd_proc _batch_fmadd;
 extern _batch_fmadd_proc _batch_fma3;
 extern _batch_fmadd_proc _batch_fma4;
+extern _batch_dsp_1param_proc _batch_dc_shift;
+extern _batch_dsp_1param_proc _batch_wavefold;
 extern _batch_freqfilter_proc _batch_freqfilter;
 extern _batch_ema_float_proc _batch_movingaverage_float;
 extern _batch_freqfilter_float_proc _batch_freqfilter_float;
@@ -144,21 +146,18 @@ int64_t _aaxGetCapabilities(const aaxConfig);
 uint32_t _aaxGetSIMDSupportLevel();
 const char* _aaxGetSIMDSupportString();
 
-char _aaxArchDetectSSE();
-char _aaxArchDetectSSE2();
-char _aaxArchDetectSSE3();
-char _aaxArchDetectSSE4();
-char _aaxArchDetectXOP();
-char _aaxArchDetectAVX();
-char _aaxArchDetectAVX2();
-char _aaxArchDetectAVX512F();
+bool _aaxArchDetectSSE();
+bool _aaxArchDetectSSE2();
+bool _aaxArchDetectSSE3();
+bool _aaxArchDetectSSE4();
+bool _aaxArchDetectXOP();
+bool _aaxArchDetectAVX();
+bool _aaxArchDetectAVX2();
+bool _aaxArchDetectAVX512F();
 
-char _aaxArchDetectHF();
-char _aaxArchDetectVFPV2();
-char _aaxArchDetectVFPV3();
-char _aaxArchDetectVFPV4();
-char _aaxArchDetectNeon();
-char _aaxArchDetectHelium();
+bool _aaxArchDetectVFPV4();
+bool _aaxArchDetectNeon();
+bool _aaxArchDetectNeon64();
 
 #if defined(__cplusplus)
 }  /* extern "C" */

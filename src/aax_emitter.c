@@ -219,7 +219,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
          if (mip_level >= ep2d->mip_levels) {
             mip_level = ep2d->mip_levels-1;
          }
-         ep2d->pitch_factor = 1.0f/(float)(1 << (mip_level));
+         ep2d->mip_pitch_factor = 1.0f/(float)(1 << (mip_level));
       }
 
       rb = buffer->ringbuffer[mip_level];
@@ -538,6 +538,7 @@ aaxEmitterGetFilter(const aaxEmitter emitter, enum aaxFilterType type)
       case AAX_TIMED_GAIN_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:
       case AAX_DYNAMIC_LAYER_FILTER:
+      case AAX_TIMED_LAYER_FILTER:
       case AAX_BITCRUSHER_FILTER:
       case AAX_DISTANCE_FILTER:
       case AAX_DIRECTIONAL_FILTER:
@@ -594,6 +595,7 @@ aaxEmitterGetEffect(const aaxEmitter emitter, enum aaxEffectType type)
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
       case AAX_RINGMODULATOR_EFFECT:
+      case AAX_WAVEFOLD_EFFECT:
       case AAX_VELOCITY_EFFECT:
       {
          _aaxEmitter *src = handle->source;
@@ -1392,6 +1394,7 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
    case AAX_VOLUME_FILTER:
    case AAX_DYNAMIC_GAIN_FILTER:
    case AAX_DYNAMIC_LAYER_FILTER:
+   case AAX_TIMED_LAYER_FILTER:
    case AAX_BITCRUSHER_FILTER:
       _FILTER_SWAP_SLOT(p2d, type, filter, 0);
       break;
@@ -1483,6 +1486,7 @@ _emitterSetEffect(_emitter_t *handle, _effect_t *effect)
       // intentional fallthrough
    case AAX_DISTORTION_EFFECT:
    case AAX_RINGMODULATOR_EFFECT:
+   case AAX_WAVEFOLD_EFFECT:
    case AAX_FLANGING_EFFECT:
    case AAX_PHASING_EFFECT:
    case AAX_CHORUS_EFFECT:

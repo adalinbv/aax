@@ -26,15 +26,24 @@
 #include "dsp.h"
 #include "api.h"
 
-#define VERSION	1.0
+#define VERSION	1.1
 #define DSIZE	sizeof(_aaxRingBufferEqualizerData)
 
 static void _grapheq_destroy(void*);
 static void _grapheq_swap(void*,void*);
 
 /*
- * Implement en 8-band graphic equalizer with frequency bands at the following
- * center frequencies: 42Hz, 100Hz, 225Hz, 515Hz, 1.2kHz, 2.7kHz, 6.3KHz, 15khz
+ * Version 1.0 implements an 8-band graphic equalizer with frequency bands at
+ * the following center frequencies:
+ * slot 0: 43Hz, 98Hz, 225Hz, 518Hz
+ * slot 1: 1.2kHz, 2.7kHz, 6.3KHz, 15khz
+ *
+ * Version 1.1 adds the option to extend that to a 16-band graphic equalizer
+ * with frequency bands at the following center frequencies:
+ * slot 0: 43Hz, 64hz, 98Hz, 148Hz
+ * slot 1: 225Hz, 341Hz, 518Hz, 785Hz
+ * slot 2: 1.2kHz, 1.8kHz, 2.7kHz, 4.2kH
+ * slot 3: 6.3KHz, 9.6kHz, 15khz
  */
 static aaxFilter
 _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
@@ -141,10 +150,20 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
       {
          float fband = _lin2log(22000.0f);
          float fs = filter->info->frequency;
-         int s, b, pos = _AAX_MAX_EQBANDS-1;
-         int bands = 24;
-         int stages = 2;
+         int bands, stages = 2;
+         int s, b, pos, offs;
+         bool extended;
 
+         for (s=(_AAX_MAX_EQBANDS/2); s<_AAX_MAX_EQBANDS; ++s) {
+            if (filter->slot[s/4]->param[s % 4] != 1.0f) break;
+         }
+         extended = (s != _AAX_MAX_EQBANDS);
+
+         eq->no_bands = extended ? _AAX_MAX_EQBANDS : _AAX_MAX_EQBANDS/2;
+
+         offs = extended ? 18 : 9;
+         pos = eq->no_bands-1;
+         bands = extended ? 48 : 24;
          do
          {
             _aaxRingBufferFreqFilterData *flt;
@@ -172,7 +191,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
             }
             // start at band 9 (42.5Hz) of 24 bands and use every odd band
             // which equals to 8 bands in total.
-            fc = _log2lin((9+pos*2)*fband/bands);
+            fc = _log2lin((offs+pos*2)*fband/bands);
 
             flt->k = 0.0f;
             flt->Q = 0.66f; // _MAX(1.4142f/stages, 1.0f);
@@ -257,8 +276,8 @@ _aaxGraphicEqualizerMinMax(float val, int slot, unsigned char param)
    {    /* min[4] */                  /* max[4] */
     { { 0.0f, 0.0f, 0.0f, 0.0f }, { 2.0f, 2.0f, 2.0f, 2.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, { 2.0f, 2.0f, 2.0f, 2.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } }
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 2.0f, 2.0f, 2.0f, 2.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 2.0f, 2.0f, 2.0f, 2.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
@@ -272,7 +291,7 @@ _aaxGraphicEqualizerMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxGraphicEqualizer =
 {
-   "AAX_graphic_equalizer", VERSION,
+   "AAX_graphic_equalizer_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreateFn*)&_aaxGraphicEqualizerCreate,
    (_aaxFilterDestroyFn*)&_aaxGraphicEqualizerDestroy,
    NULL,
@@ -342,7 +361,7 @@ _grapheq_run(void *rb, MIX_PTR_T dptr, MIX_PTR_T sptr, MIX_PTR_T tmp,
    rv = true;
 
    // first band, straight into dptr to save a bzero() and rbd->add()
-   band = _AAX_MAX_EQBANDS;
+   band = eq->no_bands;
    filter = &eq->band[--band];
    rbd->freqfilter(dptr, sptr, track, no_samples, filter);
 

@@ -137,24 +137,6 @@ static char check_cpuid_edx(unsigned int);
 # endif
 
 char
-_aaxArchDetectSSE()
-{
-# ifdef __x86_64__
-   static char res = AAX_SIMD_SSE;
-# else
-   static char res = 0;
-   static int8_t init = -1;
-   if (init)
-   {
-      init = 0;
-      res = check_cpuid_edx(CPUID_FEAT_EDX_SSE) ? AAX_SIMD_SSE : 0;
-   }
-# endif
-   if (res) _aax_arch_capabilities |= AAX_ARCH_SSE;
-   return res;
-}
-
-char
 _aaxArchDetectSSE2()
 {
 # ifdef __x86_64__
@@ -296,9 +278,6 @@ _aaxGetSSELevel()
 
       if (capabilities & AAX_SIMD)
       {
-         res = _aaxArchDetectSSE();
-         if (res) sse_level = res;
-
          res = _aaxArchDetectSSE2();
          if (res) sse_level = res;
 
@@ -395,6 +374,8 @@ _aaxGetSIMDSupportLevel()
             _batch_fmadd = _batch_fmadd_sse2;
             _batch_fmul = _batch_fmul_sse2;
             _batch_fmul_value = _batch_fmul_value_sse2;
+            _batch_dc_shift = _batch_dc_shift_sse2;
+            _batch_wavefold = _batch_wavefold_sse2;
             _batch_cvtps24_24 = _batch_cvtps24_24_sse2;
             _batch_cvt24_ps24 = _batch_cvt24_ps24_sse2;
             _batch_movingaverage_float = _batch_ema_iir_float_sse2;
@@ -411,6 +392,7 @@ _aaxGetSIMDSupportLevel()
 
          if (_aax_arch_capabilities & AAX_ARCH_SSE41)
          {
+            _batch_wavefold = _batch_wavefold_sse4;
             _batch_roundps = _batch_roundps_sse4;
          }
 
@@ -460,6 +442,8 @@ _aaxGetSIMDSupportLevel()
                _batch_fmul = _batch_fmul_avx;
                _batch_fmul_value = _batch_fmul_value_avx;
                _batch_fmadd = _batch_fmadd_avx;
+               _batch_dc_shift = _batch_dc_shift_avx;
+               _batch_wavefold = _batch_wavefold_avx;
                _batch_cvtps24_24 = _batch_cvtps24_24_avx;
                _batch_cvt24_ps24 = _batch_cvt24_ps24_avx;
             }
@@ -674,41 +658,37 @@ _aaxGetNoCores()
 
 #else	/* __i386__ || __x86_64__ */
 
-char
-_aaxArchDetectSSE() {
-   return 0;
-}
-
-char
+bool
 _aaxArchDetectSSE2() {
    return 0;
 }
 
-char
+bool
 _aaxArchDetectSSE3() {
    return 0;
 }
 
-char
+bool
 _aaxArchDetectSSE4() {
    return 0;
 }
 
-char
+bool
 _aaxArchDetectAVX() {
    return 0;
 }
 
-char
+bool
 _aaxArchDetectFMA3() {
    return 0;
 }
-char
+
+bool
 _aaxArchDetectAVX2() {
    return 0;
 }
 
-char
+bool
 _aaxArchDetectAVX512F() {
    return 0;
 }

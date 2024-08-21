@@ -89,7 +89,7 @@ _aaxFilterDestroy(aaxFilter* dsp)
 }
 
 _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX] =
-{
+{ // order matches enum aaxFilterType
    &_aaxEqualizer,
    &_aaxVolumeFilter,
    &_aaxDynamicGainFilter,
@@ -100,7 +100,8 @@ _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX] =
    &_aaxBitCrusherFilter,
    &_aaxGraphicEqualizer,
    &_aaxCompressor,
-   &_aaxDynamicTimbreFilter
+   &_aaxDynamicLayerFilter,
+   &_aaxTimedLayerFilter
 };
 
 _filter_t*
@@ -265,7 +266,8 @@ static int _flt_cvt_tbl[AAX_FILTER_MAX] =
   BITCRUSHER_FILTER,		// AAX_BITCRUSHER_FILTER
   FREQUENCY_FILTER,		// AAX_GRAPHIC_EQUALIZER
   DYNAMIC_GAIN_FILTER,		// AAX_COMPRESSOR
-  DYNAMIC_LAYER_FILTER		// AAX_DYNAMIC_LAYER_FILTER
+  DYNAMIC_LAYER_FILTER,		// AAX_DYNAMIC_LAYER_FILTER
+  TIMED_LAYER_FILTER		// AAX_TIMED_LAYER_FILTER
 };
 
 static int _cvt_flt_tbl[MAX_STEREO_FILTER] =
@@ -275,5 +277,6 @@ static int _cvt_flt_tbl[MAX_STEREO_FILTER] =
   AAX_TIMED_GAIN_FILTER,	// TIMED_GAIN_FILTER
   AAX_FREQUENCY_FILTER,		// FREQUENCY_FILTER
   AAX_BITCRUSHER_FILTER,	// BITCRUSHER_FILTER
-  AAX_DYNAMIC_LAYER_FILTER	// DYNAMIC_LAYER_FILTER
+  AAX_DYNAMIC_LAYER_FILTER,	// DYNAMIC_LAYER_FILTER
+  AAX_TIMED_LAYER_FILTER	// TIMED_LAYER_FILTER
 };

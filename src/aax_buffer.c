@@ -979,6 +979,7 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
 static void _bufApplyBitCrusherFilter(_buffer_t*, _filter_t*, int);
 static void _bufApplyFrequencyFilter(_buffer_t*, _filter_t*, int);
 static void _bufApplyDistortionEffect(_buffer_t*, _effect_t*, int);
+static void _bufApplyWaveFoldEffect(_buffer_t*, _effect_t*, int);
 static void _bufApplyEqualizer(_buffer_t*, _filter_t*, int);
 
 
@@ -1593,8 +1594,18 @@ _bufCreateEffectFromAAXS(_buffer_t* handle, const xmlId *xeid, int layer, float 
    if (eff)
    {
       _effect_t* effect = get_effect(eff);
-      if (effect->type == AAX_DISTORTION_EFFECT && effect->state == true) {
-         _bufApplyDistortionEffect(handle, effect, layer);
+      switch (effect->type)
+      {
+      case AAX_DISTORTION_EFFECT:
+         if (effect->state == true) {
+            _bufApplyDistortionEffect(handle, effect, layer);
+         }
+         break;
+      case AAX_WAVEFOLD_EFFECT:
+         _bufApplyWaveFoldEffect(handle, effect, layer);
+         break;
+      default:
+         break;
       }
       aaxEffectDestroy(eff);
    }
@@ -3337,17 +3348,19 @@ _bufApplyEqualizer(_buffer_t* handle, _filter_t *filter, int layer)
    sptr = _aax_aligned_alloc(4*no_samples*bps);
    if (sptr)
    {
-      _aaxRingBufferFreqFilterData *data_lf = filter->slot[0]->data;
-      _aaxRingBufferFreqFilterData *data_mf = filter->slot[1]->data;
-      _aaxRingBufferFreqFilterData *data_hf = filter->slot[2]->data;
+      _aaxRingBufferFreqFilterData *data[_MAX_PARAM_EQ];
+      int s;
+
+      for (s=0; s<_MAX_PARAM_EQ; ++s) {
+         data[s] = filter->slot[s]->data;
+      }
 
       _batch_cvtps24_24(sptr, dptr, no_samples);
 
       tmp = sptr+no_samples;
       memcpy(tmp, sptr, no_samples*bps);
 
-      _equalizer_run(rbd, sptr, NULL, 0, 2*no_samples, 0,
-                     data_lf, data_mf, data_hf);
+      _equalizer_run(rbd, sptr, NULL, 0, 2*no_samples, 0, data);
 
       _batch_cvt24_ps24(dptr, tmp, no_samples);
 
@@ -3404,4 +3417,21 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect, int layer)
       _aax_aligned_free(sptr);
    }
    rb->release_tracks_ptr(rb);
+}
+
+static void
+_bufApplyWaveFoldEffect(_buffer_t* handle, _effect_t *effect, int layer)
+{
+   _aaxRingBufferWaveFoldData *wavefold = effect->slot[0]->data;
+   _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
+   _aaxRingBufferData *rbi = rb->handle;
+   _aaxRingBufferSample *rbd = rbi->sample;
+   MIX_T *dptr = rbd->track[layer];
+   unsigned int no_samples;
+
+   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+
+   _batch_cvtps24_24(dptr, dptr, no_samples);
+   wavefold->run(dptr, 0, no_samples, wavefold, NULL, 0);
+   _batch_cvt24_ps24(dptr, dptr, no_samples);
 }

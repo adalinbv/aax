@@ -579,7 +579,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          else
          {
             if (handle->mode != AAX_MODE_READ) {
-               _aaxStreamDriverLog(id, 0, 0, "File already exists");
+               _aaxStreamDriverLog(id, 0, 0, "File is read-ony");
             } else {
                _aaxStreamDriverLog(id, 0, 0, "File read error");
             }

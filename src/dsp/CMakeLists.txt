@@ -19,6 +19,7 @@ set(DSP_SOURCES
   effect_reverb.c
   effect_convolution.c
   effect_ringmodulate.c
+  effect_wavefold.c
   effect_velocity.c
   filter_directional.c
   filter_compressor.c
@@ -27,6 +28,7 @@ set(DSP_SOURCES
   filter_equalizer.c
   filter_frequency.c
   filter_dynamic_layer.c
+  filter_timed_layer.c
   filter_graphic_equalizer.c
   filter_timed_gain.c
   filter_bitcrusher.c

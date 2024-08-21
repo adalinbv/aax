@@ -26,10 +26,10 @@
 #define VERSION	1.0
 #define DSIZE	sizeof(_aaxLFOData)
 
-static float _aaxDynamicTimbreFilterMinMax(float, int, unsigned char);
+static float _aaxDynamicLayerFilterMinMax(float, int, unsigned char);
 
 static aaxFilter
-_aaxDynamicTimbreFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
+_aaxDynamicLayerFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
    _filter_t* flt = _aaxFilterCreateHandle(info, type, 1, DSIZE);
    aaxFilter rv = NULL;
@@ -44,7 +44,7 @@ _aaxDynamicTimbreFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 }
 
 static aaxFilter
-_aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
+_aaxDynamicLayerFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = false;
@@ -79,8 +79,8 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
 
          _lfo_setup(lfo, filter->info, filter->state);
 
-         lfo->min_sec = filter->slot[0]->param[AAX_LFO_OFFSET]/lfo->fs;
-         lfo->max_sec = filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs;
+         lfo->min_sec = filter->slot[0]->param[AAX_LFO_MIN]/lfo->fs;
+         lfo->max_sec = filter->slot[0]->param[AAX_LFO_MAX]/lfo->fs;
          lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
          lfo->delay = filter->slot[0]->param[AAX_INITIAL_DELAY];
 
@@ -115,7 +115,7 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
 }
 
 static _filter_t*
-_aaxNewDynamicTimbreFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
+_aaxNewDynamicLayerFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
@@ -131,23 +131,23 @@ _aaxNewDynamicTimbreFilterHandle(const aaxConfig config, enum aaxFilterType type
 }
 
 static float
-_aaxDynamicTimbreFilterSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
+_aaxDynamicLayerFilterSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
    return rv;
 }
 
 static float
-_aaxDynamicTimbreFilterGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
+_aaxDynamicLayerFilterGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
    return rv;
 }
 
 static float
-_aaxDynamicTimbreFilterMinMax(float val, int slot, unsigned char param)
+_aaxDynamicLayerFilterMinMax(float val, int slot, unsigned char param)
 {
-  static const _flt_minmax_tbl_t _aaxDynamicTimbreRange[_MAX_FE_SLOTS] =
+  static const _flt_minmax_tbl_t _aaxDynamicLayerRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
     { { 0.0f, 0.01f, 0.0f, 0.0f }, { 10.0f, 50.0f, 1.0f, 1.0f } },
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } },
@@ -158,22 +158,22 @@ _aaxDynamicTimbreFilterMinMax(float val, int slot, unsigned char param)
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
 
-   return _MINMAX(val, _aaxDynamicTimbreRange[slot].min[param],
-                       _aaxDynamicTimbreRange[slot].max[param]);
+   return _MINMAX(val, _aaxDynamicLayerRange[slot].min[param],
+                       _aaxDynamicLayerRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
 
-_flt_function_tbl _aaxDynamicTimbreFilter =
+_flt_function_tbl _aaxDynamicLayerFilter =
 {
    "AAX_dynamic_layer_filter", VERSION,
-   (_aaxFilterCreateFn*)&_aaxDynamicTimbreFilterCreate,
+   (_aaxFilterCreateFn*)&_aaxDynamicLayerFilterCreate,
    (_aaxFilterDestroyFn*)&_aaxFilterDestroy,
    (_aaxFilterResetFn*)&_lfo_reset,
-   (_aaxFilterSetStateFn*)&_aaxDynamicTimbreFilterSetState,
-   (_aaxNewFilterHandleFn*)&_aaxNewDynamicTimbreFilterHandle,
-   (_aaxFilterConvertFn*)&_aaxDynamicTimbreFilterSet,
-   (_aaxFilterConvertFn*)&_aaxDynamicTimbreFilterGet,
-   (_aaxFilterConvertFn*)&_aaxDynamicTimbreFilterMinMax
+   (_aaxFilterSetStateFn*)&_aaxDynamicLayerFilterSetState,
+   (_aaxNewFilterHandleFn*)&_aaxNewDynamicLayerFilterHandle,
+   (_aaxFilterConvertFn*)&_aaxDynamicLayerFilterSet,
+   (_aaxFilterConvertFn*)&_aaxDynamicLayerFilterGet,
+   (_aaxFilterConvertFn*)&_aaxDynamicLayerFilterMinMax
 };
 

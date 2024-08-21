@@ -52,6 +52,8 @@ extern _batch_fmadd_proc _batch_fmadd;
 extern _batch_cvt_to_proc _batch_atanps;
 extern _batch_cvt_to_proc _batch_roundps;
 extern _batch_cvt_to_proc _batch_fmul;
+extern _batch_dsp_1param_proc _batch_dc_shift;
+extern _batch_dsp_1param_proc _batch_wavefold;
 extern _batch_mul_value_proc _batch_fmul_value;
 extern _batch_resample_float_proc _batch_resample_float;
 extern _batch_get_average_rms_proc _batch_get_average_rms;
@@ -65,6 +67,8 @@ _batch_fmadd_proc batch_fmadd;
 _batch_cvt_to_proc batch_atanps;
 _batch_cvt_to_proc batch_roundps;
 _batch_cvt_to_proc batch_fmul;
+_batch_dsp_1param_proc batch_dc_shift;
+_batch_dsp_1param_proc batch_wavefold;
 _batch_mul_value_proc batch_fmul_value;
 _batch_resample_float_proc batch_resample_float;
 _batch_get_average_rms_proc batch_get_average_rms;
@@ -72,21 +76,13 @@ _batch_freqfilter_float_proc batch_freqfilter_float;
 _batch_ema_float_proc batch_movingaverage_float;
 _batch_ema_float_proc batch_allpass_float;
 _aax_generate_waveform_proc aax_generate_waveform_float;
+_aax_generate_noise_proc aax_generate_noise_float;
 
 void _batch_atan_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt);
 
 #if defined __i386__
 # define CPU    "cpu"
-# define SIMD   sse2
-# define SIMD1  sse2
-# define SIMD3	sse3
-# define SIMD2  sse2
-# define SIMD4  sse4
-# define FMA3	sse2
-char _aaxArchDetectSSE3();
-char _aaxArchDetectSSE2();
-char _aaxArchDetectSSE4();
 #elif defined __x86_64__
 # define CPU   "cpu+sse2"
 # define SIMD   sse2
@@ -104,34 +100,24 @@ char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
 #elif defined __aarch64__
 # define CPU    "cpu/neon"
-# define SIMD   vfpv3
+# define SIMD   vfpv4
 # define SIMD1  vfpv4
 # define SIMD2  vfpv4
-# define SIMD3  vfpv3
-# define SIMD4  neon64
-# define FMA3   neon64
-#elif defined __ARM_ARCH || defined _M_ARM
-# define CPU    "cpu"
-# define SIMD   vfpv3
-# define SIMD1  vfpv4
-# define SIMD2  vfpv4
-# define SIMD3	vfpv3
+# define SIMD3  vfpv4
 # define SIMD4  neon
-# define FMA3   neon
-char _aaxArchDetectVFPV4();
-char _aaxArchDetectNEON();
+# define FMA3   neon64
 #endif
 
 int main()		// x86		X86_64		ARM
 {			// -------	-------		-------
-   char simd = 0;	// SSE2		SSE2		VFPV3
-   char simd1 = 0;	// SSE2		SSE_VEX 	VFPV4
-   char simd2 = 0;	// SSE2		AVX		VFPV4
-// char simd3 = 0;	// SSE3		SSE3		VFPV3
-   char simd4 = 0;	// SSE4		SSE4		NEON
+   bool simd = 0;	// SSE2		SSE2		VFPV4
+   bool simd1 = 0;	// SSE2		SSE_VEX 	VFPV4
+   bool simd2 = 0;	// SSE2		AVX		VFPV4
+// bool simd3 = 0;	// SSE3		SSE3		VFPV4
+   bool simd4 = 0;	// SSE4		SSE4		NEON
 #if defined(__x86_64__)
 #endif
-   char fma = 0;	// SSE2		FMA3		VFPV4
+   bool fma = 0;	// SSE2		FMA3		NEON64
    float freq_factor;
    _aaxTimer *ts;
    _data_t *buf;
@@ -148,13 +134,9 @@ int main()		// x86		X86_64		ARM
    simd4 = _aaxArchDetectSSE4();
    fma = _aaxArchDetectFMA3() ? 3 : 0;
 #elif defined __aarch64__
-   simd4 = fma = 1;
-#elif defined __ARM_ARCH || defined _M_ARM
-   simd = _aaxArchDetectVFPV3();
-   simd1 = _aaxArchDetectVFPV4();
-   simd2 = _aaxArchDetectNeon();
+   simd = _aaxArchDetectVFPV4();
    simd4 = _aaxArchDetectNeon();
-   fma = _aaxArchDetectVFPV4();
+   fma = _aaxArchDetectNeon64();
 #endif
 
    printf("Hardware support: %s\n", _aaxGetSIMDSupportString());
@@ -761,6 +743,86 @@ int main()		// x86		X86_64		ARM
       }
 
       /*
+       * batch DC
+       */
+      printf("\n== DC-shift:");
+      memcpy(dst1, src, MAXNUM*sizeof(float));
+      batch_dc_shift = _batch_dc_shift_cpu;
+
+      TIMEFN(batch_dc_shift(dst1, dst1, MAXNUM, 0.9f), cpu, MAXNUM);
+      printf("\nDC " CPU ":\t%f ms %c\n", cpu*1e3, (batch_dc_shift == _batch_dc_shift) ? '*' : ' ');
+
+      if (simd)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         batch_dc_shift = GLUE(_batch_dc_shift, SIMD);
+
+         TIMEFN(batch_dc_shift(dst2, dst2, MAXNUM, 0.9f), eps, MAXNUM);
+         printf("DC "MKSTR(SIMD)":\t\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_dc_shift == _batch_dc_shift) ? '*' : ' ');
+         TESTF("DC "MKSTR(SIMD), dst1, dst2);
+      }
+
+      if (simd2)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         batch_dc_shift = GLUE(_batch_dc_shift, SIMD2);
+
+         TIMEFN(batch_dc_shift(dst2, dst2, MAXNUM, 0.9f), eps, MAXNUM);
+         printf("DC "MKSTR(SIMD2)":\t\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_dc_shift == _batch_dc_shift) ? '*' : ' ');
+         TESTF("DC "MKSTR(SIMD2), dst1, dst2);
+      }
+
+      if (fma)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         batch_dc_shift = GLUE(_batch_dc_shift, FMA3);
+
+         TIMEFN(batch_dc_shift(dst2, dst2, MAXNUM, 0.9f), eps, MAXNUM);
+         printf("DC "MKSTR(FMA3)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_dc_shift == _batch_dc_shift) ? '*' : ' ');
+         TESTF("DC "MKSTR(FMA3), dst1, dst2);
+      }
+
+      /*
+       * batch wavefold
+       */
+      printf("\n== wavefold:");
+      memcpy(dst1, src, MAXNUM*sizeof(float));
+      batch_wavefold = _batch_wavefold_cpu;
+
+      TIMEFN(batch_wavefold(dst1, dst1, MAXNUM, 0.1f), cpu, MAXNUM);
+      printf("\nwavefold " CPU ":\t%f ms %c\n", cpu*1e3, (batch_wavefold == _batch_wavefold) ? '*' : ' ');
+
+      if (simd)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         batch_wavefold = GLUE(_batch_wavefold, SIMD);
+
+         TIMEFN(batch_wavefold(dst2, dst2, MAXNUM, 0.1f), eps, MAXNUM);
+         printf("fold "MKSTR(SIMD)":\t\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_wavefold == _batch_wavefold) ? '*' : ' ');
+         TESTF("fold "MKSTR(SIMD), dst1, dst2);
+      }
+
+      if (simd4)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         batch_wavefold = GLUE(_batch_wavefold, SIMD4);
+
+         TIMEFN(batch_wavefold(dst2, dst2, MAXNUM, 0.1f), eps, MAXNUM);
+         printf("fold "MKSTR(SIMD4)":\t\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_wavefold == _batch_wavefold) ? '*' : ' ');
+         TESTF("fold "MKSTR(SIMD4), dst1, dst2);
+      }
+
+      if (simd2)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         batch_wavefold = GLUE(_batch_wavefold, SIMD2);
+
+         TIMEFN(batch_wavefold(dst2, dst2, MAXNUM, 0.1f), eps, MAXNUM);
+         printf("fold "MKSTR(SIMD2)":\t\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_wavefold == _batch_wavefold) ? '*' : ' ');
+         TESTF("fold "MKSTR(SIMD2), dst1, dst2);
+      }
+
+      /*
        * waveform generation
        */
       printf("\n== waveform generation:\n");
@@ -795,6 +857,44 @@ int main()		// x86		X86_64		ARM
          printf("wave "MKSTR(FMA3)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (aax_generate_waveform_float == _aax_generate_waveform_float) ? '*' : ' ');
          TESTFN("wave "MKSTR(FMA3), dst1, dst2, 1e-3f);
       }
+
+      /*
+       * Noise generation
+       */
+      printf("\n== noise generation:\n");
+      aax_generate_noise_float = _aax_generate_noise_cpu;
+
+      TIMEFN(aax_generate_noise_float(dst1, MAXNUM, 0, 0.0f, 44100.0f), cpu, MAXNUM);
+      printf("noise " CPU ":\t%f ms %c\n", cpu*1e3, (aax_generate_noise_float == _aax_generate_noise_float) ? '*' : ' ');
+
+      if (simd)
+      {
+         aax_generate_noise_float = GLUE(_aax_generate_noise, SIMD);
+
+         TIMEFN(aax_generate_noise_float(dst2, MAXNUM, 0, 0.0f, 44100.0f), eps, MAXNUM);
+         printf("noise "MKSTR(SIMD)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (aax_generate_noise_float == _aax_generate_noise_float) ? '*' : ' ');
+         TESTFN("noise "MKSTR(SIMD), dst1, dst2, 1e-3f);
+      }
+
+#if !(defined(__ARM_ARCH) || defined(_M_ARM))
+      if (simd2)
+      {
+         aax_generate_noise_float = GLUE(_aax_generate_noise, SIMD2);
+
+         TIMEFN(aax_generate_noise_float(dst2, MAXNUM, 0, 0.0f, 44100.0f), eps, MAXNUM);
+         printf("noise "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (aax_generate_noise_float == _aax_generate_noise_float) ? '*' : ' ');
+         TESTFN("noise "MKSTR(SIMD2), dst1, dst2, 1e-3f);
+      }
+
+      if (fma)
+      {
+         aax_generate_noise_float = GLUE(_aax_generate_noise, FMA3);
+
+         TIMEFN(aax_generate_noise_float(dst2, MAXNUM, 0, 0.0f, 44100.0f), eps, MAXNUM);
+         printf("noise "MKSTR(FMA3)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (aax_generate_noise_float == _aax_generate_noise_float) ? '*' : ' ');
+         TESTFN("noise "MKSTR(FMA3), dst1, dst2, 1e-3f);
+      }
+#endif
 
       /*
        * convolution

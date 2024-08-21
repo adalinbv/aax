@@ -1235,6 +1235,9 @@ aaxFilterGetByName(const char *name)
    else if (!strncasecmp(name, "dynamic_layer", slen)) {
        rv = AAX_DYNAMIC_LAYER_FILTER;
    }
+   else if (!strncasecmp(name, "timed_layer", slen)) {
+       rv = AAX_TIMED_LAYER_FILTER;
+   }
 
    else if (!strncasecmp(name, "directional", slen) ||
             !strncasecmp(name, "angular", slen)) {
@@ -1311,6 +1314,9 @@ aaxEffectGetByName(const char *name)
    else if (!strncasecmp(name, "delay", slen) ||
             !strncasecmp(name, "delay-line", slen)) {
       rv = AAX_DELAY_EFFECT;
+   }
+   else if (!strncasecmp(name, "wavefold", slen)) {
+      rv = AAX_WAVEFOLD_EFFECT;
    }
    else if (!strncasecmp(name, "reverb", slen)) {
       rv = AAX_REVERB_EFFECT;
@@ -1424,6 +1430,9 @@ aaxGetStringByType(int type, enum aaxTypeName name)
       case AAX_DYNAMIC_LAYER_FILTER:
          rv = "dynamic-layer";
          break;
+      case AAX_TIMED_LAYER_FILTER:
+         rv = "timed-layer";
+         break;
       case AAX_FILTER_NONE:
       case AAX_FILTER_MAX:
       default:
@@ -1469,6 +1478,9 @@ aaxGetStringByType(int type, enum aaxTypeName name)
          break;
       case AAX_DELAY_EFFECT:
          rv = "delay";
+         break;
+      case AAX_WAVEFOLD_EFFECT:
+         rv = "wavefold";
          break;
       case AAX_EFFECT_NONE:
       case AAX_EFFECT_MAX:

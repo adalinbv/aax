@@ -86,13 +86,14 @@ enum _aax2dFiltersEffects
      */
     EQUALIZER_LF = 0,
     EQUALIZER_HF,
-    EQUALIZER_MF,
+    EQUALIZER_LMF, // low-mid
+    EQUALIZER_HMF, // high-mid
     HRTF_HEADSHADOW,
     SURROUND_CROSSOVER_LP = HRTF_HEADSHADOW,
     MAX_FILTERS,
 
-    _MAX_GRAPH_EQ = 2,
-    _MAX_PARAM_EQ,
+    _MAX_GRAPH_EQ = 4,
+    _MAX_PARAM_EQ = 4,
 
     /* stereo filters */
     VOLUME_FILTER = 0,		// must be the same as OCCLUSION_FILTER
@@ -101,6 +102,7 @@ enum _aax2dFiltersEffects
     FREQUENCY_FILTER,
     BITCRUSHER_FILTER,
     DYNAMIC_LAYER_FILTER,
+    TIMED_LAYER_FILTER,
     MAX_STEREO_FILTER,
 
     /* stereo effects */
@@ -113,6 +115,7 @@ enum _aax2dFiltersEffects
     DELAY_EFFECT,               /* phasing, chorus or flanging  */
     RINGMODULATE_EFFECT,
     DELAY_LINE_EFFECT,		/* delay-line  */
+    WAVEFOLD_EFFECT,
     MAX_STEREO_EFFECT
 };
 

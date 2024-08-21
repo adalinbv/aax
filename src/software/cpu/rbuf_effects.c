@@ -89,6 +89,18 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
       }
    }
 
+   /* Wavefolding effect */
+   state = _EFFECT_GET_STATE(p2d, WAVEFOLD_EFFECT);
+   if (state)
+   {
+      _aaxRingBufferWaveFoldData *wavefold;
+
+      wavefold = _EFFECT_GET_DATA(p2d, WAVEFOLD_EFFECT);
+      if (wavefold) {
+         wavefold->run(psrc, end, no_samples, wavefold, env, track);
+      }
+   }
+
    /* bitcrusher filter */
    // Note: bitcrushing takes two steps.
    //       noise is added after the frequency filter.
@@ -99,7 +111,7 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
 
       bitcrush = _FILTER_GET_DATA(p2d, BITCRUSHER_FILTER);
       if (bitcrush) {
-        bitcrush->run(psrc, end, no_samples, bitcrush, env, track);
+         bitcrush->run(psrc, end, no_samples, bitcrush, env, track);
       }
    }
 

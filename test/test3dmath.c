@@ -51,25 +51,13 @@ char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
 #elif __aarch64__
 # define CPU    "cpu/neon"
-# define SIMD   vfpv3
+# define SIMD   vfpv4
 # define SIMD1  vfpv4
 # define SIMD2  vfpv4
 # define SIMD3  vfpv4
 # define SIMD4  vfpv4
 # define FMA3_1 neon
 # define FMA3_2 neon64
-#elif defined(__ARM_ARCH) || defined(_M_ARM)
-# define CPU	"cpu\t"
-# define SIMD   vfpv3
-# define SIMD1	vfpv4
-# define SIMD2  vfpv4
-# define SIMD3  vfpv4
-# define SIMD4	vfpv4
-# define FMA3_1 neon
-# define FMA3_2 vfpv4
-char _aaxArchDetectVFPV3();
-char _aaxArchDetectVFPV4();
-char _aaxArchDetectNeon();
 #endif
 
 #define F(a,b)	(fabs((a)-(b))>FLT_EPSILON)
@@ -199,13 +187,13 @@ int main()
         printf("mtx4fMul " CPU ":\t%f ms\n", cpu*1000.0f);
 
 #if defined(__ARM_ARCH) || defined(_M_ARM)
-        m4fMul = _mtx4fMul_vfpv3;
+        m4fMul = _mtx4fMul_vfpv4;
         t = clock();
         for (i=0; i<MAXNUM; ++i) {
             m4fMul(&l, &m, &n);
         }
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("mtx4fMul vfpv3:\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+        printf("mtx4fMul vfpv4:\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         TESTM4(k,l);
 #else
         m4fMul = GLUE(_mtx4fMul, SIMD);
@@ -257,7 +245,7 @@ int main()
         printf("\nmtx4dMul " CPU ":\t%f ms\n", cpu*1000.0f);
 
 #if defined(__ARM_ARCH) || defined(_M_ARM)
-        m4dMul = _mtx4dMul_vfpv3;
+        m4dMul = _mtx4dMul_vfpv4;
         t = clock();
         for (i=0; i<MAXNUM; ++i) {
             m4dMul(&l64, &m64, &n64);

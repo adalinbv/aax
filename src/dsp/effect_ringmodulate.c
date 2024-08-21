@@ -59,6 +59,10 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
    stereo = (state & AAX_LFO_STEREO) ? true : false;
    state &= ~AAX_LFO_STEREO;
 
+   if ((state & AAX_SOURCE_MASK) == 0) {
+      state |= true;
+   }
+
    effect->state = state;
    switch (state & (AAX_SOURCE_MASK & ~AAX_PURE_WAVEFORM))
    {
@@ -78,9 +82,9 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
       if (modulator == NULL)
       {
          modulator = _aax_aligned_alloc(DSIZE);
+         effect->slot[0]->data = modulator;
          if (modulator)
          {
-            effect->slot[0]->data = modulator;
             effect->slot[0]->data_size = DSIZE;
             memset(modulator, 0, DSIZE);
          }
@@ -201,7 +205,8 @@ _eff_function_tbl _aaxModulatorEffect =
 };
 
 static int
-_modulator_run(MIX_PTR_T s, size_t end, size_t no_samples, void *data, void *env, unsigned int track)
+_modulator_run(MIX_PTR_T s, size_t end, size_t no_samples,
+               void *data, void *env, unsigned int track)
 {
    _aaxRingBufferModulatorData *modulate = data;
    float f, gain, p, step;

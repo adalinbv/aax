@@ -84,6 +84,51 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
    return rv;
 }
 
+#define FC	50.0f // 50Hz high-pass EMA filter cutoff frequency
+float *
+FN(aax_generate_noise,A)(float32_ptr rv, size_t no_samples, uint64_t seed, unsigned char skip, float fs)
+{
+   if (rv)
+   {
+      float (*rnd_fn)() = _aax_random;
+      float rnd_skip = skip ? skip : 1.0f;
+      float ds, prev, alpha;
+      float *end = rv + no_samples;
+      float *ptr = rv;
+
+      if (seed)
+      {
+          _aax_srand(seed);
+          rnd_fn = _aax_seeded_random;
+      }
+
+      prev = 0.0f;
+      alpha = 1.0f;
+      // exponential moving average (ema) filter
+      // to filter frequencies below FC (50Hz)
+      _aax_ema_compute(FC, fs, &alpha);
+
+      ds = FC/fs;
+
+      memset(rv, 0, no_samples*sizeof(float));
+      do
+      {
+         float rnd = 0.5f*rnd_fn();
+         rnd = rnd - _MINMAX(rnd, -ds, ds);
+
+         // exponential moving average filter
+         prev = (1.0f-alpha)*prev + alpha*rnd;
+         *ptr += rnd - prev; // high-pass
+
+         ptr += (int)rnd_skip;
+         if (skip > 1) {
+            rnd_skip = 1.0f + fabsf((2*skip-rnd_skip)*rnd_fn());
+         }
+      }
+      while (ptr < end);
+   }
+   return rv;
+}
 
 void
 FN(batch_imadd,A)(int32_ptr dptr, const_int32_ptr sptr, size_t num, float v, float vstep)
@@ -1193,15 +1238,51 @@ FN(batch_cvt32s_32u,A)(void *data, size_t num)
    }
 }
 
+void
+FN(batch_dc_shift,A)(float32_ptr d, const_float32_ptr s, size_t no_samples, float offset)
+{
+   if (offset != 0.0f)
+   {
+      int i = no_samples;
+      do
+      {
+          float samp = *s++;
+          float fact = 1.0f-copysignf(offset, samp);
+          *d++ = offset + samp*fact;
+
+      } while(--i);
+   }
+}
+
+void
+FN(batch_wavefold,A)(float32_ptr d, const_float32_ptr s, size_t no_samples, float threshold)
+{
+   if (threshold != 0.0f)
+   {
+      static const float max = (float)(1 << 23);
+      int i = no_samples;
+
+      threshold = max*threshold;
+      do
+      {
+         float samp = *s++;
+         float asamp = fabsf(samp);
+         if (asamp > threshold)
+         {
+            float thresh2 = copysignf(2.0f*threshold, samp);
+            samp = thresh2 - asamp;
+         }
+         *d++ = samp;
+      } while(--i);
+   }
+}
+
 // You could create a triangular probability density function by getting a
 // random number between -1 and 0 and another between 0 and 1 and summing them.
 // When noise shaping is added to dithering, there is less noise at low
 // frequency and more noise at high frequency.
 #define AAX_INT24_MIN	(-AAX_INT24_MAX - 1)
 #define AAX_INT24_MAX	8388607
-static inline float rnd128() {
-   return (double)xoroshiro128plus()/(double)UINT64_MAX;
-}
 static inline int sign15(float x) {
    return (x < -0.5) ? -32768 : ((x > 0.5) ? 32768 : 0);
  }
@@ -1218,11 +1299,11 @@ FN(batch_dither,A)(int32_t *data, unsigned new_bps, size_t num)
       {
       case 1:
       {
-         float s1 = rnd128();
+         float s1 = _aax_rand_sample();
          int32_t* d = (int32_t*)data;
          do
          {
-            float s2 = rnd128();
+            float s2 = _aax_rand_sample();
             int32_t tpdf = (s1 - s2);
             *d = _MINMAX(*d + sign15(tpdf), AAX_INT24_MIN, AAX_INT24_MAX);
             s1 = s2;
@@ -1233,11 +1314,11 @@ FN(batch_dither,A)(int32_t *data, unsigned new_bps, size_t num)
       }
       case 2:
       {
-         float s1 = rnd128();
+         float s1 = _aax_rand_sample();
          int32_t* d = (int32_t*)data;
          do
          {
-            float s2 = rnd128();
+            float s2 = _aax_rand_sample();
             float tpdf = (s1 - s2);
             *d = _MINMAX(*d + sign7(tpdf), AAX_INT24_MIN, AAX_INT24_MAX);
             s1 = s2;
