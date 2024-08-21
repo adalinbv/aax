@@ -401,17 +401,19 @@ _aaxGetNoCores()
 
 #else // defined(__ARM_ARCH) || defined(_M_ARM)
 
-char
+bool
 _aaxArchDetectVFPV4() {
-   return 0;
+   return false;
 }
 
-char _aaxArchDetectNeon() {
-   return 0;
+bool
+_aaxArchDetectNeon() {
+   return false;
 }
 
-char _aaxArchDetectNeon64() {
-   return 0;
+bool
+_aaxArchDetectNeon64() {
+   return false;
 }
 
 #endif // defined(_ARM_ARCH) || defined(_M_ARM)

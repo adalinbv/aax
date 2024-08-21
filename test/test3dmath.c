@@ -28,9 +28,8 @@
 # define SIMD4  sse2
 # define FMA3_1 sse
 # define FMA3_2 sse2
-char _aaxArchDetectSSE();
-char _aaxArchDetectSSE2();
-char _aaxArchDetectSSE3();
+bool _aaxArchDetectSSE2();
+bool _aaxArchDetectSSE3();
 #elif defined(__x86_64__)
 # define CPU	"cpu/sse2"
 # define SIMD   sse
@@ -41,12 +40,11 @@ char _aaxArchDetectSSE3();
 # define FMA3_1 fma3
 # define FMA3_2 fma3
 # define CPUID_FEAT_ECX_FMA3    (1 << 12)
-char _aaxArchDetectSSE();
-char _aaxArchDetectSSE2();
-char _aaxArchDetectSSE3();
-char _aaxArchDetectAVX();
-char _aaxArchDetectAVX2();
-char _aaxArchDetectFMA3();
+bool _aaxArchDetectSSE2();
+bool _aaxArchDetectSSE3();
+bool _aaxArchDetectAVX();
+bool _aaxArchDetectAVX2();
+bool _aaxArchDetectFMA3();
 char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
 #elif __aarch64__
@@ -99,13 +97,11 @@ int main()
     int i;
 
 #if defined __i386__
-    simd = _aaxArchDetectSSE();
     simd2 = _aaxArchDetectSSE2();
     simd3 = _aaxArchDetectSSE3();
 #elif defined __x86_64__
     simd = simd1 = simd2 = simd4 = _aaxArchDetectAVX();
     if (!simd) {
-        simd = _aaxArchDetectSSE();
         simd2 = _aaxArchDetectSSE2();
     }
     simd3 = _aaxArchDetectSSE3();

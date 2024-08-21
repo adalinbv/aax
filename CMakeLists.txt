@@ -371,31 +371,32 @@ else(MSVC)
      elseif(X86)
        message("Unsupported build environment: X86")
      elseif(ARM)
+       add_compile_options(-falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize)
        if(ARM64)
          add_compile_options(-march=armv8-a -moutline-atomics -DARCH64=1)
          set_source_files_properties(src/software/cpu/arch3d_vfpv3.c
-              PROPERTY COMPILE_FLAGS "-O2 -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
+              PROPERTY COMPILE_FLAGS "-O2 -D__ARM_VFPV3"
          )
          set_source_files_properties(src/software/cpu/arch2d_vfpv3.c
-              PROPERTY COMPILE_FLAGS "-O3 -ffast-math -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
+              PROPERTY COMPILE_FLAGS "-O3 -ffast-math -D__ARM_VFPV3"
          )
          set_source_files_properties(src/software/cpu/arch3d_vfpv4.c
-              PROPERTY COMPILE_FLAGS "-O2 -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
+              PROPERTY COMPILE_FLAGS "-O2 -D__ARM_VFPV4"
          )
          set_source_files_properties(src/software/cpu/arch2d_vfpv4.c
-              PROPERTY COMPILE_FLAGS "-O3 -ffast-math -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
+              PROPERTY COMPILE_FLAGS "-O3 -ffast-math -D__ARM_VFPV4"
          )
          set_source_files_properties(src/software/cpu/arch3d_neon.c
-              PROPERTY COMPILE_FLAGS "-O2 -ftree-vectorize -ftree-slp-vectorize"
+              PROPERTY COMPILE_FLAGS "-O2"
          )
          set_source_files_properties(src/software/cpu/arch2d_neon.c
-              PROPERTY COMPILE_FLAGS "-O3 -ffast-math -ftree-vectorize -ftree-slp-vectorize"
+              PROPERTY COMPILE_FLAGS "-O3 -ffast-math"
          )
          set_source_files_properties(src/software/cpu/arch3d_neon64.c
-              PROPERTY COMPILE_FLAGS "-O2 -ftree-vectorize -ftree-slp-vectorize"
+              PROPERTY COMPILE_FLAGS "-O2"
          )
          set_source_files_properties(src/software/cpu/arch2d_neon64.c
-              PROPERTY COMPILE_FLAGS "-O3  -ffast-math -ftree-vectorize -ftree-slp-vectorize"
+              PROPERTY COMPILE_FLAGS "-O3 -ffast-math"
          )
        else(ARM64) # ARM32
          message(FATAL_ERROR "Unsupported build environment: ARM")

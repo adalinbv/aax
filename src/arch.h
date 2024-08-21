@@ -146,7 +146,6 @@ int64_t _aaxGetCapabilities(const aaxConfig);
 uint32_t _aaxGetSIMDSupportLevel();
 const char* _aaxGetSIMDSupportString();
 
-bool _aaxArchDetectSSE();
 bool _aaxArchDetectSSE2();
 bool _aaxArchDetectSSE3();
 bool _aaxArchDetectSSE4();

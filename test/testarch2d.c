@@ -92,10 +92,10 @@ void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, i
 # define SIMD4  sse4
 # define FMA3   fma3
 # define CPUID_FEAT_ECX_FMA3    (1 << 12)
-char _aaxArchDetectSSE3();
-char _aaxArchDetectSSE4();
-char _aaxArchDetectAVX();
-char _aaxArchDetectFMA3();
+bool _aaxArchDetectSSE3();
+bool _aaxArchDetectSSE4();
+bool _aaxArchDetectAVX();
+bool _aaxArchDetectFMA3();
 char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
 #elif defined __aarch64__
@@ -758,7 +758,7 @@ int main()		// x86		X86_64		ARM
          batch_dc_shift = GLUE(_batch_dc_shift, SIMD);
 
          TIMEFN(batch_dc_shift(dst2, dst2, MAXNUM, 0.9f), eps, MAXNUM);
-         printf("DC "MKSTR(SIMD)":\t\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_dc_shift == _batch_dc_shift) ? '*' : ' ');
+         printf("DC "MKSTR(SIMD)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_dc_shift == _batch_dc_shift) ? '*' : ' ');
          TESTF("DC "MKSTR(SIMD), dst1, dst2);
       }
 
@@ -768,10 +768,11 @@ int main()		// x86		X86_64		ARM
          batch_dc_shift = GLUE(_batch_dc_shift, SIMD2);
 
          TIMEFN(batch_dc_shift(dst2, dst2, MAXNUM, 0.9f), eps, MAXNUM);
-         printf("DC "MKSTR(SIMD2)":\t\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_dc_shift == _batch_dc_shift) ? '*' : ' ');
+         printf("DC "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_dc_shift == _batch_dc_shift) ? '*' : ' ');
          TESTF("DC "MKSTR(SIMD2), dst1, dst2);
       }
 
+#if defined __aarch64__
       if (fma)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -781,6 +782,7 @@ int main()		// x86		X86_64		ARM
          printf("DC "MKSTR(FMA3)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_dc_shift == _batch_dc_shift) ? '*' : ' ');
          TESTF("DC "MKSTR(FMA3), dst1, dst2);
       }
+#endif
 
       /*
        * batch wavefold
@@ -790,7 +792,7 @@ int main()		// x86		X86_64		ARM
       batch_wavefold = _batch_wavefold_cpu;
 
       TIMEFN(batch_wavefold(dst1, dst1, MAXNUM, 0.1f), cpu, MAXNUM);
-      printf("\nwavefold " CPU ":\t%f ms %c\n", cpu*1e3, (batch_wavefold == _batch_wavefold) ? '*' : ' ');
+      printf("\nfold " CPU ":\t%f ms %c\n", cpu*1e3, (batch_wavefold == _batch_wavefold) ? '*' : ' ');
 
       if (simd)
       {
@@ -798,7 +800,7 @@ int main()		// x86		X86_64		ARM
          batch_wavefold = GLUE(_batch_wavefold, SIMD);
 
          TIMEFN(batch_wavefold(dst2, dst2, MAXNUM, 0.1f), eps, MAXNUM);
-         printf("fold "MKSTR(SIMD)":\t\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_wavefold == _batch_wavefold) ? '*' : ' ');
+         printf("fold "MKSTR(SIMD)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_wavefold == _batch_wavefold) ? '*' : ' ');
          TESTF("fold "MKSTR(SIMD), dst1, dst2);
       }
 
@@ -808,7 +810,7 @@ int main()		// x86		X86_64		ARM
          batch_wavefold = GLUE(_batch_wavefold, SIMD4);
 
          TIMEFN(batch_wavefold(dst2, dst2, MAXNUM, 0.1f), eps, MAXNUM);
-         printf("fold "MKSTR(SIMD4)":\t\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_wavefold == _batch_wavefold) ? '*' : ' ');
+         printf("fold "MKSTR(SIMD4)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_wavefold == _batch_wavefold) ? '*' : ' ');
          TESTF("fold "MKSTR(SIMD4), dst1, dst2);
       }
 
@@ -818,7 +820,7 @@ int main()		// x86		X86_64		ARM
          batch_wavefold = GLUE(_batch_wavefold, SIMD2);
 
          TIMEFN(batch_wavefold(dst2, dst2, MAXNUM, 0.1f), eps, MAXNUM);
-         printf("fold "MKSTR(SIMD2)":\t\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_wavefold == _batch_wavefold) ? '*' : ' ');
+         printf("fold "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_wavefold == _batch_wavefold) ? '*' : ' ');
          TESTF("fold "MKSTR(SIMD2), dst1, dst2);
       }
 

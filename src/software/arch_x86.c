@@ -136,7 +136,7 @@ char check_extcpuid_ecx(unsigned int);
 static char check_cpuid_edx(unsigned int);
 # endif
 
-char
+bool
 _aaxArchDetectSSE2()
 {
 # ifdef __x86_64__
@@ -154,7 +154,7 @@ _aaxArchDetectSSE2()
    return res;
 }
 
-char
+bool
 _aaxArchDetectSSE3()
 {
    static uint32_t res = AAX_SIMD_SSE3;
@@ -176,7 +176,7 @@ _aaxArchDetectSSE3()
    return res;
 }
 
-char
+bool
 _aaxArchDetectSSE4()
 {
    static uint32_t res = 0;
@@ -205,7 +205,7 @@ _aaxArchDetectSSE4()
    return res;
 }
 
-char
+bool
 _aaxArchDetectAVX()
 {
    static uint32_t res = 0;
@@ -219,7 +219,7 @@ _aaxArchDetectAVX()
    return res;
 }
 
-char
+bool
 _aaxArchDetectFMA3()
 {
    static uint32_t res = 0;
@@ -234,7 +234,7 @@ _aaxArchDetectFMA3()
 }
 
 
-char
+bool
 _aaxArchDetectAVX2()
 {
    static uint32_t res = 0;
@@ -248,7 +248,7 @@ _aaxArchDetectAVX2()
    return res;
 }
 
-char
+bool
 _aaxArchDetectAVX512F()
 {
    static uint32_t res = 0;
@@ -265,7 +265,7 @@ _aaxArchDetectAVX512F()
 char
 _aaxGetSSELevel()
 {
-   static uint32_t sse_level = AAX_NO_SIMD;
+   static uint32_t rv = AAX_NO_SIMD;
    static int8_t init = -1;
 
    if (init)
@@ -276,41 +276,29 @@ _aaxGetSSELevel()
       _aax_calloc = _aax_calloc_aligned;
       _aax_malloc = _aax_malloc_aligned;
 
-      if (capabilities & AAX_SIMD)
-      {
-         res = _aaxArchDetectSSE2();
-         if (res) sse_level = res;
+      res = _aaxArchDetectSSE2();
+      if (res) rv = AAX_SIMD_SSE2;
 
-         res = _aaxArchDetectSSE3();
-         if (res) sse_level = res;
+      res = _aaxArchDetectSSE3();
+      if (res) rv = AAX_SIMD_SSE3;
 
-         res = _aaxArchDetectSSE4();
-         if (res) sse_level = res;
-      }
+      res = _aaxArchDetectSSE4();
+      if (res) rv = AAX_SIMD_SSE42;
 
-      if (capabilities & AAX_SIMD256)
-      {
-         res = _aaxArchDetectAVX();
-         if (res) sse_level = res;
-      }
+      res = _aaxArchDetectAVX();
+      if (res) rv = AAX_SIMD_AVX;
 
-      if (capabilities & AAX_SIMD256_2)
-      {
-         res = _aaxArchDetectAVX2();
-         if (res) sse_level = res;
+      res = _aaxArchDetectAVX2();
+      if (res) rv = AAX_SIMD_AVX2;
 
-         res = _aaxArchDetectFMA3();
-         if (res) sse_level = res;
-      }
+      res = _aaxArchDetectFMA3();
+      if (res) rv = AAX_SIMD_FMA3;
 
-      if (capabilities & AAX_SIMD512)
-      {
-         res = _aaxArchDetectAVX512F();
-         if (res) sse_level = res;
-      }
+      res = _aaxArchDetectAVX512F();
+      if (res) rv = AAX_SIMD512;
    }
 
-   return sse_level;
+   return rv;
 }
 
 uint32_t
@@ -318,8 +306,10 @@ _aaxGetSIMDSupportLevel()
 {
    static bool support_simd256 = false;
    static bool support_simd = false;
-   static uint32_t rv = AAX_SIMD_NONE;
    static bool init = true;
+   uint32_t rv;
+
+   rv = _aaxGetSSELevel();
 
 # ifndef __TINYC__
    if (init)
@@ -327,7 +317,6 @@ _aaxGetSIMDSupportLevel()
       int capabilities;
 
       init = false;
-      rv = _aaxGetSSELevel();
 
       capabilities = _info ? _info->capabilities :  _aaxGetCapabilities(NULL);
       support_simd = capabilities & 0xF00;
