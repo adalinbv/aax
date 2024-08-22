@@ -143,7 +143,6 @@ void _batch_ema_iir_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num
 void _batch_freqfilter_sse2(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_sse2(float32_ptr, const_float32_ptr, int, size_t, void*);
 void _batch_atanps_sse2(void_ptr, const_void_ptr, size_t);
-void _batch_roundps_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_sse2(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
@@ -159,27 +158,36 @@ void _batch_imul_value_sse3(void*, const void*, unsigned, size_t, float);
 
 /* SSE4 */
 void _batch_wavefold_sse4(float32_ptr, const_float32_ptr, size_t, float);
-void _batch_roundps_sse4(void_ptr, const_void_ptr, size_t);
 
 /* SSE/VEX */
 float fast_sin_sse_vex(float);
-void _batch_roundps_sse_vex(void_ptr, const_void_ptr, size_t);
-void _batch_ema_iir_float_sse_vex(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
+void _batch_dc_shift_sse_vex(float32_ptr, const_float32_ptr, size_t, float);
+void _batch_wavefold_sse_vex(float32_ptr, const_float32_ptr, size_t, float);
+float* _aax_generate_waveform_sse_vex(float32_ptr, size_t, float, float, enum aaxSourceType);
+float* _aax_generate_noise_sse_vex(float32_ptr, size_t, uint64_t, unsigned char, float);
+
+void _batch_get_average_rms_sse_vex(const_float32_ptr, size_t, float*, float*);
+void _batch_saturate24_sse_vex(void*, size_t);
+
+void _batch_fmul_sse_vex(void_ptr, const_void_ptr, size_t);
+void _batch_fmul_value_sse_vex(void_ptr, const_void_ptr, unsigned, size_t, float);
+void _batch_imadd_sse_vex(int32_ptr, const_int32_ptr, size_t, float, float);
+void _batch_fmadd_sse_vex(float32_ptr, const_float32_ptr, size_t, float, float);void _batch_ema_iir_float_sse_vex(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
 void _batch_freqfilter_sse_vex(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_sse_vex(float32_ptr, const_float32_ptr, int, size_t, void*);
-void _batch_resample_float_sse_vex(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
-
-void _batch_cvt24_ps_sse_vex(void_ptr, const_void_ptr, size_t);
-void _batch_cvt24_ps24_sse_vex(void_ptr, const_void_ptr, size_t);
+void _batch_atanps_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_sse_vex(void_ptr, const_void_ptr, size_t);
+void _batch_resample_float_sse_vex(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
+
+void _batch_cvtps_24_sse_vex(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_ps_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_16_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_24_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_intl_24_sse_vex(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 /* AVX */
 void _batch_fmul_avx(void_ptr, const_void_ptr, size_t);
-void _batch_roundps_avx(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_avx(void_ptr, const_void_ptr, size_t);
 void _batch_fmul_value_avx(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_fmadd_avx(float32_ptr, const_float32_ptr, size_t, float, float);
@@ -207,7 +215,6 @@ float* _aax_generate_noise_fma3(float32_ptr, size_t, uint64_t, unsigned char, fl
 
 /* VFPv2 */
 void _batch_cvt24_24_vfpv2(void_ptr, const void*, size_t);
-void _batch_roundps_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_vfpv2(void_ptr, const_void_ptr, size_t);
 
 float* _aax_generate_waveform_vfpv2(float32_ptr, size_t, float, float, enum aaxSourceType);
@@ -277,7 +284,6 @@ void _batch_cvtpd_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned i
 
 /* VFPv4 */
 void _batch_cvt24_24_vfpv4(void_ptr, const void*, size_t);
-void _batch_roundps_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_vfpv4(void_ptr, const_void_ptr, size_t);
 
 float* _aax_generate_waveform_vfpv4(float32_ptr, size_t, float, float, enum aaxSourceType);
@@ -365,7 +371,6 @@ void _batch_fmul_value_neon(void_ptr, const_void_ptr, unsigned, size_t, float);
 void _batch_fmul_neon(void_ptr, const_void_ptr, size_t);
 
 void _batch_atanps_neon(void_ptr, const_void_ptr, size_t);
-void _batch_roundps_neon(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_neon(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_neon(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_neon(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
@@ -386,7 +391,6 @@ void _batch_fmul_value_neon64(void_ptr, const_void_ptr, unsigned, size_t, float)
 void _batch_fmul_neon64(void_ptr, const_void_ptr, size_t);
 
 void _batch_atanps_neon64(void_ptr, const_void_ptr, size_t);
-void _batch_roundps_neon64(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_neon64(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_neon64(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_neon64(float32_ptr, const_float32_ptr, size_t, size_t, float, float);

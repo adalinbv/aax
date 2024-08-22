@@ -352,7 +352,6 @@ _aaxGetSIMDSupportLevel()
             _batch_get_average_rms = _batch_get_average_rms_sse2;
             _batch_saturate24 = _batch_saturate24_sse2;
 
-            _batch_roundps = _batch_roundps_sse2;
             _batch_atanps = _batch_atanps_sse2;
             _batch_cvtps_24 = _batch_cvtps_24_sse2;
             _batch_cvt24_ps = _batch_cvt24_ps_sse2;
@@ -382,15 +381,12 @@ _aaxGetSIMDSupportLevel()
          if (_aax_arch_capabilities & AAX_ARCH_SSE41)
          {
             _batch_wavefold = _batch_wavefold_sse4;
-            _batch_roundps = _batch_roundps_sse4;
          }
 
          if (support_simd256)
          {
             if (_aax_arch_capabilities & AAX_ARCH_AVX)
             {
-//             _batch_convolution = _batch_convolution_sse_vex;
-
                /* SSE/VEX */
                vec3fMagnitude = _vec3fMagnitude_sse_vex;
                vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse_vex;
@@ -402,6 +398,29 @@ _aaxGetSIMDSupportLevel()
                mtx4fMul = _mtx4fMul_sse_vex;
                mtx4fMulVec4 = _mtx4fMulVec4_sse_vex;
                vec3fAltitudeVector = _vec3fAltitudeVector_sse_vex;
+
+               _aax_generate_waveform_float = _aax_generate_waveform_sse_vex;
+
+               _batch_get_average_rms = _batch_get_average_rms_sse_vex;
+               _batch_saturate24 = _batch_saturate24_sse_vex;
+
+               _batch_atanps = _batch_atanps_sse_vex;
+               _batch_cvtps_24 = _batch_cvtps_24_sse_vex;
+               _batch_cvt24_ps = _batch_cvt24_ps_sse_vex;
+               _batch_cvt24_16 = _batch_cvt24_16_sse_vex;
+               _batch_cvt16_24 = _batch_cvt16_24_sse_vex;
+               _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse_vex;
+
+               _batch_fmadd = _batch_fmadd_sse_vex;
+               _batch_fmul = _batch_fmul_sse_vex;
+               _batch_fmul_value = _batch_fmul_value_sse_vex;
+               _batch_dc_shift = _batch_dc_shift_sse_vex;
+               _batch_wavefold = _batch_wavefold_sse_vex;
+               _batch_cvtps24_24 = _batch_cvtps24_24_sse_vex;
+               _batch_cvt24_ps24 = _batch_cvt24_ps24_sse_vex;
+               _batch_movingaverage_float = _batch_ema_iir_float_sse_vex;
+               _batch_freqfilter_float = _batch_freqfilter_float_sse_vex;
+               _batch_resample_float = _batch_resample_float_sse_vex;
 
                /* AVX */
                mtx4dMul = _mtx4dMul_avx;
@@ -416,7 +435,6 @@ _aaxGetSIMDSupportLevel()
                _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse_vex;
 
                // CPU is faster on __x86_64__ as it already supports SSE2
-//             _batch_roundps = _batch_roundps_avx;
                _batch_roundps = _batch_roundps_cpu;
 
                _batch_atanps = _batch_atanps_avx;

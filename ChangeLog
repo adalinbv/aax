@@ -8,6 +8,8 @@
  * Increase the number of frequency bands for the graphic equalizer from 4 to 5
  * Increase the number of envelope stages from 6 to 8 for all timed filters
    and effects.
+ * Rework SIMD support code for X86_64 and ARM and increase rendering speed
+   for several functions across the various rendering paths.
 
 -- Erik Hofman <tech@adalin.org>  Thu 08 Aug 2024 11:07:27 + 0100
 
