@@ -390,7 +390,7 @@ else(MSVC)
               PROPERTY COMPILE_FLAGS "-O2"
          )
          set_source_files_properties(src/software/cpu/arch2d_neon.c
-              PROPERTY COMPILE_FLAGS "-O3 -ffast-math"
+              PROPERTY COMPILE_FLAGS "-O3 -ffast-math -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
          )
          set_source_files_properties(src/software/cpu/arch3d_neon64.c
               PROPERTY COMPILE_FLAGS "-O2"

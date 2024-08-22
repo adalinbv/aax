@@ -232,11 +232,21 @@ _batch_dc_shift_neon(float32_ptr d, const_float32_ptr s, size_t num, float offse
 {
    size_t i, step;
 
+   if (!num || offset == 0.0f)
+   {
+      if (num && d != s) {
+         memcpy(d, s, num*sizeof(float));
+      }
+      return;
+   }
+
    step = sizeof(float32x4_t)/sizeof(float);
 
    i = num/step;
    if (i)
    {
+      float32x4_t *xsptr = (float32x4_t*)s;
+      float32x4_t *xdptr = (float32x4_t*)d;
       float32x4_t xoffs = vdupq_n_f32(offset);
       float32x4_t one = vdupq_n_f32(1.0f);
 
@@ -245,15 +255,15 @@ _batch_dc_shift_neon(float32_ptr d, const_float32_ptr s, size_t num, float offse
       s += i*step;
       do
       {
-          float32x4_t xsamp = vld1q_f32((const float*)sptr++);
-          float32x4_t xdptr, xfact;
+          float32x4_t xsamp = vld1q_f32((const float*)xsptr++);
+          float32x4_t xfact;
 
           xfact = copysign_neon(xoffs, xsamp);
           xfact = vsubq_f32(one, xfact);
 
-          xdptr = vaddq_f32(xoffs, vmulq_f32(xsamp, xfact));
+          xsamp = vaddq_f32(xoffs, vmulq_f32(xsamp, xfact));
 
-          vst1q_f32((float*)dptr++, xdptr);
+          vst1q_f32((float*)xdptr++, xsamp);
       } while(--i);
 
       if (num)
@@ -273,12 +283,21 @@ _batch_dc_shift_neon(float32_ptr d, const_float32_ptr s, size_t num, float offse
 void
 _batch_wavefold_neon(float32_ptr d, const_float32_ptr s, size_t num, float threshold)
 {
+
    size_t i, step;
 
-   if (num && threshold > 0.0f)
+   if (!num || threshold == 0.0f)
    {
-      float32x4_t *dptr = (float32x4_t*)d;
-      float32x4_t* sptr = (float32x4_t*)s;
+      if (num && d != s) {
+         memcpy(d, s, num*sizeof(float));
+      }
+      return;
+   }
+
+   if (num)
+   {
+      float32x4_t *xdptr = (float32x4_t*)d;
+      float32x4_t *xsptr = (float32x4_t*)s;
 
       step = sizeof(float32x4_t)/sizeof(float);
 
@@ -298,7 +317,7 @@ _batch_wavefold_neon(float32_ptr d, const_float32_ptr s, size_t num, float thres
          s += i*step;
          do
          {
-             float32x4_t xsamp = vld1q_f32((const float*)sptr++);
+             float32x4_t xsamp = vld1q_f32((const float*)xsptr++);
              float32x4_t xasamp = vabsq_f32(xsamp);
              float32x4_t xthres2 = copysign_neon(x2thresh, xsamp);
              uint32x4_t xmask = vcgtq_f32(xasamp, xthresh);
@@ -306,7 +325,7 @@ _batch_wavefold_neon(float32_ptr d, const_float32_ptr s, size_t num, float thres
              xasamp = vsubq_f32(xthres2, xasamp);
              xsamp = vbslq_f32(xmask, xasamp, xsamp);
 
-             vst1q_f32((float*)dptr++, xsamp);
+             vst1q_f32((float*)xdptr++, xsamp);
          } while(--i);
 
          if (num)
@@ -554,8 +573,8 @@ _batch_atanps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
 
    if (num)
    {
-      float32x4_t *dptr = (float32x4_t*)d;
-      float32x4_t* sptr = (float32x4_t*)s;
+      float32x4_t *xdptr = (float32x4_t*)d;
+      float32x4_t *xsptr = (float32x4_t*)s;
 
       step = sizeof(float32x4_t)/sizeof(float);
 
@@ -573,13 +592,13 @@ _batch_atanps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
          d += i*step;
          do
          {
-            res0 = vld1q_f32((const float*)sptr++);
+            res0 = vld1q_f32((const float*)xsptr++);
 
             res0 = vmulq_f32(res0, imul);
             res0 = vminq_f32(vmaxq_f32(res0, xmin), xmax);
             res1 = vmulq_f32(mul, fast_atan4_neon(res0));
 
-            vst1q_f32((float*)dptr++, res1);
+            vst1q_f32((float*)xdptr++, res1);
          }
          while(--i);
       }
@@ -605,16 +624,19 @@ _batch_roundps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
    step = sizeof(float32x4x4_t)/sizeof(float32_t);
 
    i = num/step;
-   num -= i*step;
    if (i)
    {
+      float32x4x4_t *xsptr = (float32x4x4_t*)s;
+      float32x4x4_t *xdptr = (float32x4x4_t*)d;
       float32x4x4_t nir4;
       int32x4x4_t nfr4d;
 
+      num -= i*step;
+      s += i*step;
+      d += i*step;
       do
       {
-         nir4 = vld4q_f32(s);
-         s += step;
+         nir4 = vld4q_f32((const float*)xsptr++);
 
          nfr4d.val[0] = vcvtq_s32_f32(nir4.val[0]);
          nfr4d.val[1] = vcvtq_s32_f32(nir4.val[1]);
@@ -626,8 +648,7 @@ _batch_roundps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
          nir4.val[2] = vcvtq_f32_s32(nfr4d.val[2]);
          nir4.val[3] = vcvtq_f32_s32(nfr4d.val[3]);
 
-         vst4q_f32(d, nir4);
-         d += step;
+         vst4q_f32((float*)xdptr++, nir4);
       }
       while(--i);
 
@@ -804,33 +825,29 @@ _batch_fadd_neon(float32_ptr dst, const_float32_ptr src, size_t num)
    size_t i, step;
 
    // CPU is faster
-#if 0
-   step = sizeof(float32x4_t)/sizeof(float);
+   step = 2*sizeof(float32x4_t)/sizeof(float);
 
    i = num/step;
    if (i)
    {
-      float32x4_t *dptr = (float32x4_t*)d;
-      float32x4_t* sptr = (float32x4_t*)s;
-      float32x4_t sfr4, dfr4;
+      float32x4_t *xdptr = (float32x4_t*)d;
+      float32x4_t *xsptr = (float32x4_t*)s;
 
       num -= i*step;
       s += i*step;
       d += i*step;
       do
       {
-         sfr4 = vld1q_f32((const float*)sptr++);   // load s
-         dfr4 = vld1q_f32((const float*)dptr);   // load d
+         xdptr[0] = vaddq_f32(vld1q_f32((const float*)&xdptr[0]),
+                              vld1q_f32((const float*)&xsptr[0]));
+         xdptr[1] = vaddq_f32(vld1q_f32((const float*)&xdptr[1]),
+                              vld1q_f32((const float*)&xsptr[1]));
 
-         dfr4 = vaddq_f32(dfr4, sfr4);
-
-         vst1q_f32((float*)dptr++, dfr4);    // store d
+         xsptr += 2;
+         xdptr += 2;
       }
       while(--i);
    }
-#else
-   (void)step;
-#endif
 
    if (num) {
       i = num;
@@ -861,16 +878,14 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    if (need_step)
    {
       // CPU is faster
-#if 0
-      size_t step = sizeof(float32x4_t)/sizeof(float);
+      size_t step = 2*sizeof(float32x4_t)/sizeof(float);
 
       i = num/step;
       if (i)
       {
          static const float fact[4] = { 0.0f, 1.0f, 2.0f, 3.0f };
-         float32x4_t *dptr = (float32x4_t*)d;
-         float32x4_t* sptr = (float32x4_t*)s;
-         float32x4_t sfr4, dfr4;
+         float32x4_t *xdptr = (float32x4_t*)d;
+         float32x4_t *xsptr = (float32x4_t*)s;
          float32x4_t dv, tv, dvstep;
 
          dvstep = vld1q_f32(fact);
@@ -885,18 +900,18 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          d += i*step;
          do
          {
-            sfr4 = vld1q_f32((const float*)sptr++);   // load s
-            dfr4 = vld1q_f32((const float*)dptr);   // load d
-
-            dfr4 = vmlaq_f32(dfr4, sfr4, tv);
+            xdptr[0] = vmlaq_f32(vld1q_f32((const float*)&xdptr[0]),
+                                 vld1q_f32((const float*)&xsptr[0]), tv);
+            xdptr[1] = vmlaq_f32(vld1q_f32((const float*)&xdptr[1]),
+                                 vld1q_f32((const float*)&xsptr[1]), tv);
 
             tv = vaddq_f32(tv, dv);
 
-            vst1q_f32((float*)dptr++, dfr4);    // store d
+            xsptr += 2;
+            xdptr += 2;
          }
          while(--i);
       }
-#endif
 
       if (num)
       {
@@ -909,15 +924,13 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    }
    else
    {
-#if 0
-      size_t step = sizeof(float32x4_t)/sizeof(float);
+      size_t step = 2*sizeof(float32x4_t)/sizeof(float);
 
       i = num/step;
       if (i)
       {
-         float32x4_t *dptr = (float32x4_t*)d;
-         float32x4_t* sptr = (float32x4_t*)s;
-         float32x4_t sfr4, dfr4;
+         float32x4_t *xdptr = (float32x4_t*)d;
+         float32x4_t *xsptr = (float32x4_t*)s;
          float32x4_t tv;
 
          tv = vdupq_n_f32(vstep);
@@ -927,16 +940,16 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          d += i*step;
          do
          {
-            sfr4 = vld1q_f32((const float*)sptr++);   // load s
-            dfr4 = vld1q_f32((const float*)dptr);   // load d
+            xdptr[0] = vmlaq_f32(vld1q_f32((const float*)&xdptr[0]),
+                                 vld1q_f32((const float*)&xsptr[0]), tv);
+            xdptr[1] = vmlaq_f32(vld1q_f32((const float*)&xdptr[1]),
+                                 vld1q_f32((const float*)&xsptr[1]), tv);
 
-            dfr4 = vmlaq_f32(dfr4, sfr4, tv);
-
-            vst1q_f32((float*)dptr++, dfr4);    // store d
+            xsptr += 2;
+            xdptr += 2;
          }
          while(--i);
       }
-#endif
 
       if (num)
       {
@@ -1172,24 +1185,25 @@ _batch_fmul_value_neon(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_t 
          float32_ptr d = (float32_ptr)dptr;
          size_t i, step;
 
-         step = sizeof(float32x4_t)/sizeof(float);
+         step = 2*sizeof(float32x4_t)/sizeof(float);
 
          i = num/step;
          if (i)
          {
-            float32x4_t *dptr = (float32x4_t*)d;
-            float32x4_t* sptr = (float32x4_t*)s;
+            float32x4_t *xdptr = (float32x4_t*)d;
+            float32x4_t *xsptr = (float32x4_t*)s;
             float32x4_t sfact = vdupq_n_f32(f);
-            float32x4_t sfr4;
 
             num -= i*step;
             s += i*step;
             d += i*step;
             do
             {
-               sfr4 = vld1q_f32((const float*)sptr++);   // load s
-               sfr4 = vmulq_f32(sfr4, sfact);
-               vst1q_f32((float*)dptr++, sfr4);    // store d
+               xdptr[0] = vmulq_f32(sfact, vld1q_f32((const float*)&xsptr[0]));
+               xdptr[1] = vmulq_f32(sfact, vld1q_f32((const float*)&xsptr[1]));
+
+               xsptr += 2;
+               xdptr += 2;
             }
             while(--i);
          }
@@ -1227,26 +1241,26 @@ _batch_fmul_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
 
    if (!num) return;
 
-   step = sizeof(float32x4_t)/sizeof(float);
+   step = 2*sizeof(float32x4_t)/sizeof(float);
 
    i = num/step;
    if (i)
    {
-      float32x4_t *dptr = (float32x4_t*)d;
-      float32x4_t* sptr = (float32x4_t*)s;
-      float32x4_t sfr4, dfr4;
+      float32x4_t *xdptr = (float32x4_t*)d;
+      float32x4_t *xsptr = (float32x4_t*)s;
 
       num -= i*step;
       s += i*step;
       d += i*step;
       do
       {
-         sfr4 = vld1q_f32((const float*)sptr++);   // load s
-         dfr4 = vld1q_f32((const float*)dptr);   // load d
+         xdptr[0] = vmulq_f32(vld1q_f32((const float*)&xdptr[0]),
+                              vld1q_f32((const float*)&xsptr[0]));
+         xdptr[1] = vmulq_f32(vld1q_f32((const float*)&xdptr[1]),
+                              vld1q_f32((const float*)&xsptr[1]));
 
-         dfr4 = vmulq_f32(dfr4, sfr4);
-
-         vst1q_f32((float*)dptr++, dfr4);    // store d
+         xsptr += 2;
+         xdptr += 2;
       }
       while(--i);
 

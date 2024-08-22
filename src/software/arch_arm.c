@@ -322,8 +322,8 @@ _aaxGetSIMDSupportLevel()
 	 _batch_fmul_value = _batch_fmul_value_neon;
 
          _aax_generate_waveform_float = _aax_generate_waveform_neon;
-         _batch_dc_shift = _batch_dc_shift_neon;
-         _batch_wavefold = _batch_wavefold_neon;
+//       _batch_dc_shift = _batch_dc_shift_neon;
+//       _batch_wavefold = _batch_wavefold_neon;
 
          _batch_cvtps24_24 = _batch_cvtps24_24_neon;
          _batch_cvt24_ps24 = _batch_cvt24_ps24_neon;
@@ -339,8 +339,8 @@ _aaxGetSIMDSupportLevel()
 //       _batch_fmul_value = _batch_fmul_value_neon64;
 
          _aax_generate_waveform_float = _aax_generate_waveform_neon64;
-         _batch_dc_shift = _batch_dc_shift_neon64;
-         _batch_wavefold = _batch_wavefold_neon64;
+//       _batch_dc_shift = _batch_dc_shift_neon64;
+//       _batch_wavefold = _batch_wavefold_neon64;
 
          _batch_cvtps24_24 = _batch_cvtps24_24_neon64;
          _batch_cvt24_ps24 = _batch_cvt24_ps24_neon64;

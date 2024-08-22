@@ -768,11 +768,21 @@ int main()		// x86		X86_64		ARM
          batch_dc_shift = GLUE(_batch_dc_shift, SIMD2);
 
          TIMEFN(batch_dc_shift(dst2, dst2, MAXNUM, 0.9f), eps, MAXNUM);
-         printf("DC "MKSTR(SIMD2)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_dc_shift == _batch_dc_shift) ? '*' : ' ');
+         printf("DC "MKSTR(SIMD2)":\t\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_dc_shift == _batch_dc_shift) ? '*' : ' ');
          TESTF("DC "MKSTR(SIMD2), dst1, dst2);
       }
 
 #if defined __aarch64__
+      if (simd4)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         batch_dc_shift = GLUE(_batch_dc_shift, SIMD4);
+
+         TIMEFN(batch_dc_shift(dst2, dst2, MAXNUM, 0.9f), eps, MAXNUM);
+         printf("DC "MKSTR(SIMD4)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_dc_shift == _batch_dc_shift) ? '*' : ' ');
+         TESTF("DC "MKSTR(SIMD4), dst1, dst2);
+      }
+
       if (fma)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -813,6 +823,18 @@ int main()		// x86		X86_64		ARM
          printf("fold "MKSTR(SIMD4)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_wavefold == _batch_wavefold) ? '*' : ' ');
          TESTF("fold "MKSTR(SIMD4), dst1, dst2);
       }
+
+#if defined __aarch64__
+      if (fma)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         batch_wavefold = GLUE(_batch_wavefold, FMA3);
+
+         TIMEFN(batch_wavefold(dst2, dst2, MAXNUM, 0.1f), eps, MAXNUM);
+         printf("fold "MKSTR(FMA3)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_wavefold == _batch_wavefold) ? '*' : ' ');
+         TESTF("fold "MKSTR(FMA3), dst1, dst2);
+      }
+#endif
 
       if (simd2)
       {

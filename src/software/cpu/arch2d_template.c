@@ -1239,11 +1239,11 @@ FN(batch_cvt32s_32u,A)(void *data, size_t num)
 }
 
 void
-FN(batch_dc_shift,A)(float32_ptr d, const_float32_ptr s, size_t no_samples, float offset)
+FN(batch_dc_shift,A)(float32_ptr d, const_float32_ptr s, size_t num, float offset)
 {
    if (offset != 0.0f)
    {
-      int i = no_samples;
+      int i = num;
       do
       {
           float samp = *s++;
@@ -1252,15 +1252,18 @@ FN(batch_dc_shift,A)(float32_ptr d, const_float32_ptr s, size_t no_samples, floa
 
       } while(--i);
    }
+   else if (num && d != s) {
+      memcpy(d, s, num*sizeof(float));
+   }
 }
 
 void
-FN(batch_wavefold,A)(float32_ptr d, const_float32_ptr s, size_t no_samples, float threshold)
+FN(batch_wavefold,A)(float32_ptr d, const_float32_ptr s, size_t num, float threshold)
 {
    if (threshold != 0.0f)
    {
       static const float max = (float)(1 << 23);
-      int i = no_samples;
+      int i = num;
 
       threshold = max*threshold;
       do
@@ -1274,6 +1277,9 @@ FN(batch_wavefold,A)(float32_ptr d, const_float32_ptr s, size_t no_samples, floa
          }
          *d++ = samp;
       } while(--i);
+   }
+   else if (num && d != s) {
+      memcpy(d, s, num*sizeof(float));
    }
 }
 

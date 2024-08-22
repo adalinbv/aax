@@ -95,7 +95,13 @@ _batch_dc_shift_sse2(float32_ptr d, const_float32_ptr s, size_t num, float offse
    size_t i, step;
    size_t dtmp, stmp;
 
-   if (!num || offset == 0.0f) return;
+   if (!num || offset == 0.0f)
+   {
+      if (num && d != s) {
+         memcpy(d, s, num*sizeof(float));
+      }
+      return;
+   }
 
    dtmp = (size_t)d & MEMMASK16;
    stmp = (size_t)s & MEMMASK16;

@@ -247,7 +247,13 @@ _batch_dc_shift_neon64(float32_ptr d, const_float32_ptr s, size_t num, float off
 {
    size_t i, step;
 
-   if (!num || offset == 0.0f) return;
+   if (!num || offset == 0.0f)
+   {
+      if (num && d != s) {
+         memcpy(d, s, num*sizeof(float));
+      }
+      return;
+   }
 
    if (num)
    {
@@ -298,7 +304,15 @@ _batch_wavefold_neon64(float32_ptr d, const_float32_ptr s, size_t num, float thr
 {
    size_t i, step;
 
-   if (num && threshold > 0.0f)
+   if (!num || threshold == 0.0f)
+   {
+      if (num && d != s) {
+         memcpy(d, s, num*sizeof(float));
+      }
+      return;
+   }
+
+   if (num)
    {
       float32x4_t *dptr = (float32x4_t*)d;
       float32x4_t* sptr = (float32x4_t*)s;
@@ -348,9 +362,6 @@ _batch_wavefold_neon64(float32_ptr d, const_float32_ptr s, size_t num, float thr
             } while(--i);
          }
       }
-   }
-   else if (num && d != s) {
-      memcpy(d, s, num*sizeof(float));
    }
 }
 
