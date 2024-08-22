@@ -292,35 +292,33 @@ else(MSVC)
      set(C_FLAGS "${C_FLAGS} -g -Werror=format-security -std=c11 -Wall -fvisibility=hidden -funroll-loops" CACHE STRING
          "Flags used by al build types."
          FORCE)
-#     add_compile_options($<$<COMPILE_LANGUAGE:CXX>: -g -std=c++17)
-#     add_compile_options($<$<COMPILE_LANGUAGE:C>: -g -Werror=format-security -std=c11 -Wall -fvisibility=hidden -funroll-loops)
 
      set(RELEASE_FLAGS "-O2 -DRELEASE=1")
 
      # Note: CMAKE_C_FLAGS_RELWITHDEBINFO adds profiler flags
-     set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g ${RELEASE_FLAGS} -DNDEBUG" CACHE STRING
+     set(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g ${RELEASE_FLAGS} -DNDEBUG" CACHE STRING
          "Flags used by the compiler during Release with Debug Info builds."
          FORCE)
-     set(CMAKE_C_FLAGS_MINSIZEREL "-O2 -s -fomit-frame-pointer -DNDEBUG -DRELEASE=1" CACHE STRING
+     set(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -O2 -s -fomit-frame-pointer -DNDEBUG -DRELEASE=1" CACHE STRING
          "Flags used by the compiler during release minsize builds."
          FORCE)
-     set(CMAKE_C_FLAGS_RELEASE "${RELEASE_FLAGS} -fomit-frame-pointer -DNDEBUG"
+     set(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} ${RELEASE_FLAGS} -fomit-frame-pointer -DNDEBUG"
              CACHE STRING "Flags used by the compiler during release builds"
             FORCE)
-     set(CMAKE_C_FLAGS_DEBUG "-g3 -D_DEBUG" CACHE STRING
+     set(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
          "Flags used by the compiler during debug builds."
          FORCE)
 
-     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g ${RELEASE_FLAGS} -DNDEBUG" CACHE STRING
+     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${C_FLAGS} -g ${RELEASE_FLAGS} -DNDEBUG" CACHE STRING
          "Flags used by the compiler during Release with Debug Info builds."
          FORCE)
-     set(CMAKE_CXX_FLAGS_MINSIZEREL "-O2 -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
+     set(CMAKE_CXX_FLAGS_MINSIZEREL "${C_FLAGS} -O2 -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
          "Flags used by the compiler during release minsize builds."
          FORCE)
-     set(CMAKE_CXX_FLAGS_RELEASE "${RELEASE_FLAGS}"
+     set(CMAKE_CXX_FLAGS_RELEASE "${C_FLAGS} ${RELEASE_FLAGS}"
              CACHE STRING "Flags used by the compiler during release builds"
             FORCE)
-     set(CMAKE_CXX_FLAGS_DEBUG "-g3 -D_DEBUG" CACHE STRING
+     set(CMAKE_CXX_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
          "Flags used by the compiler during debug builds."
          FORCE)
 
