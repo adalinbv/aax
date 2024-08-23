@@ -332,8 +332,8 @@ _aaxGetSIMDSupportLevel()
 
   	 _batch_fmadd = _batch_fmadd_neon64;
   	 _batch_atanps = _batch_atanps_neon64;
-//       _batch_fmul = _batch_fmul_neon64;
-//       _batch_fmul_value = _batch_fmul_value_neon64;
+         _batch_fmul = _batch_fmul_neon64;
+         _batch_fmul_value = _batch_fmul_value_neon64;
 
          _aax_generate_waveform_float = _aax_generate_waveform_neon64;
 //       _batch_dc_shift = _batch_dc_shift_neon64;
