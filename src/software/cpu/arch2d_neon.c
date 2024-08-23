@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2005-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2005-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2009-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -305,12 +305,14 @@ _batch_wavefold_neon(float32_ptr d, const_float32_ptr s, size_t num, float thres
       if (i)
       {
          static const float max = (float)(1 << 23);
-         float32x4_t xthresh, x2thresh;
+         float32x4_t xthresh, xthresh2;
+         float threshold2;
 
          threshold = max*threshold;
+         threshold2 = 2.0f*threshold;
 
          xthresh = vdupq_n_f32(threshold);
-         x2thresh = vdupq_n_f32(2.0f*threshold);
+         xthresh2 = vdupq_n_f32(2.0f*threshold);
 
          num -= i*step;
          d += i*step;
@@ -319,13 +321,11 @@ _batch_wavefold_neon(float32_ptr d, const_float32_ptr s, size_t num, float thres
          {
              float32x4_t xsamp = vld1q_f32((const float*)xsptr++);
              float32x4_t xasamp = vabsq_f32(xsamp);
-             float32x4_t xthres2 = copysign_neon(x2thresh, xsamp);
              uint32x4_t xmask = vcgtq_f32(xasamp, xthresh);
 
-             xasamp = vsubq_f32(xthres2, xasamp);
-             xsamp = vbslq_f32(xmask, xasamp, xsamp);
+             xasamp = copysign_neon(vsubq_f32(xthresh2, xasamp), xsamp);
 
-             vst1q_f32((float*)xdptr++, xsamp);
+             vst1q_f32((float*)xdptr++, vbslq_f32(xmask, xasamp, xsamp));
          } while(--i);
 
          if (num)
@@ -337,7 +337,7 @@ _batch_wavefold_neon(float32_ptr d, const_float32_ptr s, size_t num, float thres
                float asamp = fabsf(samp);
                if (asamp > threshold)
                {
-                  float thresh2 = copysignf(2.0f*threshold, samp);
+                  float thresh2 = copysignf(threshold2, samp);
                   samp = thresh2 - asamp;
                }
                *d++ = samp;

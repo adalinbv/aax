@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2005-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2005-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2009-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -182,12 +182,14 @@ _batch_wavefold_avx(float32_ptr d, const_float32_ptr s, size_t num, float thresh
       if (i)
       {
          static const float max = (float)(1 << 23);
-         __m256 xthresh, x2thresh;
+         __m256 xthresh, xthresh2;
+         float threshold2;
 
          threshold = max*threshold;
+         threshold2 = 2.0f*threshold;
 
          xthresh = _mm256_set1_ps(threshold);
-         x2thresh = _mm256_set1_ps(2.0f*threshold);
+         xthresh2 = _mm256_set1_ps(threshold2);
 
          num -= i*step;
          d += i*step;
@@ -196,10 +198,10 @@ _batch_wavefold_avx(float32_ptr d, const_float32_ptr s, size_t num, float thresh
          {
              __m256 xsamp = _mm256_load_ps((const float*)sptr++);
              __m256 xasamp = _mm256_abs_ps(xsamp);
-             __m256 xthres2 = copysign_avx(x2thresh, xsamp);
              __m256 xmask = _mm256_cmp_ps(xasamp, xthresh, _CMP_GT_OS);
 
-             xasamp = _mm256_sub_ps(xthres2, xasamp);
+             xasamp = copysign_avx(_mm256_sub_ps(xthresh2, xasamp), xsamp);
+
              _mm256_store_ps((float*)dptr++, _mm256_blendv_ps(xsamp, xasamp, xmask));
          } while(--i);
          _mm256_zeroupper();
@@ -211,10 +213,8 @@ _batch_wavefold_avx(float32_ptr d, const_float32_ptr s, size_t num, float thresh
             {
                float samp = *s++;
                float asamp = fabsf(samp);
-               if (asamp > threshold)
-               {
-                  float thresh2 = copysignf(2.0f*threshold, samp);
-                  samp = thresh2 - asamp;
+               if (asamp > threshold) {
+                  samp = copysignf(threshold2 - asamp, samp);
                }
                *d++ = samp;
             } while(--i);

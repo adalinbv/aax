@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2005-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2005-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2009-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -11,6 +11,93 @@
 
 #define A sse_vex
 #include "arch2d_sse_template.c"
+
+static inline __m128
+_mm_abs_ps(__m128 x) {
+   return _mm_andnot_ps(_mm_set1_ps(-0.0f), x);
+}
+
+static inline __m128
+copysign_sse_vex(__m128 x, __m128 y)
+{
+    __m128 sign_mask = _mm_set1_ps(-0.0f); // This is 0x80000000 in binary
+    __m128 y_sign = _mm_and_ps(y, sign_mask);
+    __m128 abs_x = _mm_andnot_ps(sign_mask, x);
+    return _mm_or_ps(abs_x, y_sign);
+}
+
+void
+_batch_wavefold_sse_vex(float32_ptr d, const_float32_ptr s, size_t num, float threshold)
+{
+   size_t i, step;
+   size_t dtmp, stmp;
+
+   if (!num || threshold == 0.0f)
+   {
+      if (num && d != s) {
+         memcpy(d, s, num*sizeof(float));
+      }
+      return;
+   }
+
+   dtmp = (size_t)d & MEMMASK16;
+   stmp = (size_t)s & MEMMASK16;
+   if (dtmp || stmp)                    /* improperly aligned,            */
+   {                                    /* let the compiler figure it out */
+      _batch_wavefold_cpu(d, s, num, threshold);
+      return;
+   }
+
+   if (num)
+   {
+      __m128 *dptr = (__m128*)d;
+      __m128* sptr = (__m128*)s;
+
+      step = sizeof(__m128)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         static const float max = (float)(1 << 23);
+         __m128 xthresh, xthresh2;
+         float threshold2;
+
+         threshold = max*threshold;
+         threshold2 = 2.0f*threshold;
+
+         xthresh = _mm_set1_ps(threshold);
+         xthresh2 = _mm_set1_ps(threshold2);
+
+         num -= i*step;
+         d += i*step;
+         s += i*step;
+         do
+         {
+             __m128 xsamp = _mm_load_ps((const float*)sptr++);
+             __m128 xasamp = _mm_abs_ps(xsamp);
+             __m128 xmask = _mm_cmpgt_ps(xasamp, xthresh);
+
+             xasamp = copysign_sse_vex(_mm_sub_ps(xthresh2, xasamp), xsamp);
+
+             _mm_store_ps((float*)dptr++, _mm_blendv_ps(xsamp, xasamp, xmask));
+         } while(--i);
+
+         if (num)
+         {
+            i = num;
+            do
+            {
+               float samp = *s++;
+               float asamp = fabsf(samp);
+               if (asamp > threshold) {
+                  samp = copysignf(threshold2 - asamp, samp);
+               }
+               *d++ = samp;
+            } while(--i);
+         }
+      }
+   }
+}
 
 void
 _batch_fmul_value_sse_vex(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_t num, float f)
@@ -59,7 +146,7 @@ _batch_fmul_value_sse_vex(void_ptr dptr, const_void_ptr sptr, unsigned bps, size
          __m128* dptr = (__m128*)d;
          __m128 tv = _mm_set1_ps(f);
          __m128 xmm0, xmm1, xmm2, xmm3;
-         __m128 xmm4, xmm5, xmm6, xmm7;
+         __m128 xmm4, xmm5;
 
          num -= i*step;
          s += i*step;

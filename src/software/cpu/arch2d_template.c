@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2005-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2005-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2009-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -1263,17 +1263,17 @@ FN(batch_wavefold,A)(float32_ptr d, const_float32_ptr s, size_t num, float thres
    if (threshold != 0.0f)
    {
       static const float max = (float)(1 << 23);
+      float threshold2;
       int i = num;
 
       threshold = max*threshold;
+      threshold2 = 2.0f*threshold;
       do
       {
          float samp = *s++;
          float asamp = fabsf(samp);
-         if (asamp > threshold)
-         {
-            float thresh2 = copysignf(2.0f*threshold, samp);
-            samp = thresh2 - asamp;
+         if (asamp > threshold) {
+            samp = copysignf(threshold2 - asamp, samp);
          }
          *d++ = samp;
       } while(--i);

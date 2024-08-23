@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2005-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2005-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2009-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -143,6 +143,7 @@ FN(batch_dc_shift,A)(float32_ptr d, const_float32_ptr s, size_t num, float offse
    }
 }
 
+#if 0
 void
 FN(batch_wavefold,A)(float32_ptr d, const_float32_ptr s, size_t num, float threshold)
 {
@@ -176,12 +177,14 @@ FN(batch_wavefold,A)(float32_ptr d, const_float32_ptr s, size_t num, float thres
       if (i)
       {
          static const float max = (float)(1 << 23);
-         __m128 xthresh, x2thresh;
+         __m128 xthresh, xthresh2;
+         float threshold2;
 
          threshold = max*threshold;
+         threshold2 = 2.0f*threshold;
 
          xthresh = _mm_set1_ps(threshold);
-         x2thresh = _mm_set1_ps(2.0f*threshold);
+         xthresh2 = _mm_set1_ps(threshold2);
 
          num -= i*step;
          d += i*step;
@@ -190,12 +193,11 @@ FN(batch_wavefold,A)(float32_ptr d, const_float32_ptr s, size_t num, float thres
          {
              __m128 xsamp = _mm_load_ps((const float*)sptr++);
              __m128 xasamp = FN(mm_abs_ps,A)(xsamp);
-             __m128 xthres2 = FN(copysign,A)(x2thresh, xsamp);
              __m128 xmask = _mm_cmpgt_ps(xasamp, xthresh);
 
-             xsamp = _mm_andnot_ps(xmask, xsamp);
+             xasamp = FN(copysign,A)(_mm_sub_ps(xthresh2, xasamp), xsamp);
 
-             xasamp = _mm_sub_ps(xthres2, xasamp);
+             xsamp = _mm_andnot_ps(xmask, xsamp);
              xasamp = _mm_and_ps(xmask, xasamp);
 
              _mm_store_ps((float*)dptr++, _mm_or_ps(xsamp, xasamp));
@@ -208,10 +210,8 @@ FN(batch_wavefold,A)(float32_ptr d, const_float32_ptr s, size_t num, float thres
             {
                float samp = *s++;
                float asamp = fabsf(samp);
-               if (asamp > threshold)
-               {
-                  float thresh2 = copysignf(2.0f*threshold, samp);
-                  samp = thresh2 - asamp;
+               if (asamp > threshold) {
+                  samp = copysignf(threshold2 - asamp, samp);
                }
                *d++ = samp;
             } while(--i);
@@ -219,6 +219,7 @@ FN(batch_wavefold,A)(float32_ptr d, const_float32_ptr s, size_t num, float thres
       }
    }
 }
+#endif
 
 float *
 FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float phase, enum aaxSourceType wtype)

@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2005-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2005-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2009-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -21,6 +21,87 @@ _aax_init_SSE()
 // https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-8/set-the-ftz-and-daz-flags.html
       _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
       _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+   }
+}
+
+static inline __m128
+FN(mm_blendv_ps,A)(__m128 x, __m128 y, __m128 m) 
+{
+   __m128 a = _mm_andnot_ps(m, x);
+   __m128 b = _mm_and_ps(m, y);
+   return _mm_or_ps(a, b);
+}
+
+void
+_batch_wavefold_sse2(float32_ptr d, const_float32_ptr s, size_t num, float threshold)
+{
+   size_t i, step;
+   size_t dtmp, stmp;
+
+   if (!num || threshold == 0.0f)
+   {
+      if (num && d != s) {
+         memcpy(d, s, num*sizeof(float));
+      }
+      return;
+   }
+
+   dtmp = (size_t)d & MEMMASK16;
+   stmp = (size_t)s & MEMMASK16;
+   if (dtmp || stmp)                    /* improperly aligned,            */
+   {                                    /* let the compiler figure it out */
+      _batch_wavefold_cpu(d, s, num, threshold);
+      return;
+   }
+
+   if (num)
+   {
+      __m128 *dptr = (__m128*)d;
+      __m128* sptr = (__m128*)s;
+
+      step = sizeof(__m128)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         static const float max = (float)(1 << 23);
+         __m128 xthresh, xthresh2;
+         float threshold2;
+
+         threshold = max*threshold;
+         threshold2 = 2.0f*threshold;
+
+         xthresh = _mm_set1_ps(threshold);
+         xthresh2 = _mm_set1_ps(threshold2);
+
+         num -= i*step;
+         d += i*step;
+         s += i*step;
+         do
+         {
+             __m128 xsamp = _mm_load_ps((const float*)sptr++);
+             __m128 xasamp = FN(mm_abs_ps,A)(xsamp);
+             __m128 xmask = _mm_cmpgt_ps(xasamp, xthresh);
+
+             xasamp = FN(copysign,A)(_mm_sub_ps(xthresh2, xasamp), xsamp);
+
+             _mm_store_ps((float*)dptr++, FN(mm_blendv_ps,A)(xsamp, xasamp, xmask));
+         } while(--i);
+
+         if (num)
+         {
+            i = num;
+            do
+            {
+               float samp = *s++;
+               float asamp = fabsf(samp);
+               if (asamp > threshold) {
+                  samp = copysignf(threshold2 - asamp, samp);
+               }
+               *d++ = samp;
+            } while(--i);
+         }
+      }
    }
 }
 
