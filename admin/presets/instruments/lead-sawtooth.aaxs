@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Lead 2 (Saw Wave)" bank="0" program="81">
+ <info name="Lead 2 (Sawtooth)" bank="0" program="81">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
@@ -20,38 +20,38 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.24" frequency="220" duration="0.3">
+ <sound mode="1" frequency="55" duration="0.1">
   <layer n="0">
-   <waveform src="cycloid" ratio="1.05"/>
-   <waveform src="cycloid" processing="mix" ratio="0.0526" pitch="4.9897"/>
-   <waveform src="triangle" processing="modulate" ratio="0.818" pitch="3.4991"/>
-   <waveform src="sawtooth" processing="add" ratio="0.56" pitch="1.4925"/>
+   <waveform src="sawtooth"/>
+   <waveform src="sin" processing="add" ratio="0.3" pitch="0.997"/>
   </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.218</param>
-    <param n="1">0.0075</param>
+    <param n="0">0.378</param>
+    <param n="1">0.005</param>
     <param n="2">1.0</param>
-    <param n="3">0.025</param>
+    <param n="3">0.25</param>
    </slot>
    <slot n="1">
-    <param n="0">0.929</param>
+    <param n="0">0.749</param>
     <param n="1">inf</param>
-    <param n="2">0.308</param>
+    <param n="2">0.749</param>
     <param n="3">0.005</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="wavefold">
    <slot n="0">
-    <param n="0">0.7</param>
-    <param n="1">0.11</param>
-    <param n="2">0.67</param>
+    <param n="0">0.9</param>
+    <param n="1">1.5</param>
+    <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
+
+ <audioframe/>
 
 </aeonwave>

@@ -21,7 +21,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.39" frequency="110" duration="0.1">
+ <sound gain="1.43" frequency="110" duration="0.1">
   <layer n="0">
    <waveform src="sawtooth" ratio="1.26"/>
    <waveform src="square" processing="add" ratio="1.14" pitch="2.0"/>
@@ -58,6 +58,14 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <effect type="wavefold">
+   <slot n="0">
+    <param n="0">0.2</param>
+    <param n="1">1.5</param>
+    <param n="2">0.8</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
  </emitter>
 
  <audioframe pan="-0.3">
@@ -81,22 +89,6 @@
     <param n="3">2.5</param>
    </slot>
   </filter>
-  <effect type="chorus" optional="true">
-   <slot n="0">
-    <param n="0">0.4</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.5</param>
-   </slot>
-  </effect>
-  <effect type="distortion" src="envelope">
-   <slot n="0">
-    <param n="0">0.2</param>
-    <param n="1">0.0</param>
-    <param n="2">0.2</param>
-    <param n="3">1.0</param>
-   </slot>
-  </effect>
  </audioframe>
 
 </aeonwave>

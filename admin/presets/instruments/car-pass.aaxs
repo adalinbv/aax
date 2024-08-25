@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.66" frequency="110" duration="0.3">
+ <sound gain="1.66" frequency="110" duration="0.3">
   <layer n="0">
    <waveform src="cycloid" processing="mix" ratio="0.505" pitch="0.25" phase="0.05"/>
    <waveform src="cycloid" processing="mix" ratio="0.526" pitch="0.25" phase="0.38"/>
@@ -73,6 +73,14 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <effect type="wavefold">
+   <slot n="0">
+    <param n="0">-0.9</param>
+    <param n="1">1.5</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
  </emitter>
 
  <audioframe>
@@ -96,14 +104,6 @@
     <param n="3">2.0</param>
    </slot>
   </filter>
-  <effect type="distortion">
-   <slot n="0">
-    <param n="0">1.6</param>
-    <param n="1">0.5</param>
-    <param n="2">0.8</param>
-    <param n="3">0.2</param>
-   </slot>
-  </effect>
  </audioframe>
 
 </aeonwave>

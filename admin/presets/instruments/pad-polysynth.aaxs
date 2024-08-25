@@ -53,7 +53,7 @@
     <param n="0">0.884</param>
     <param n="1">inf</param>
     <param n="2">0.884</param>
-    <param n="3">0.1</param>
+    <param n="3">0.015</param>
    </slot>
   </filter>
  </emitter>

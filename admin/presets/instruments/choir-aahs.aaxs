@@ -23,8 +23,9 @@
 
  <sound gain="4.55" frequency="130.813">
   <layer n="0">
-   <waveform src="sine" pitch="1.4987" voices="5" spread="0.91"/>
-   <waveform src="pink-noise" processing="add" ratio="0.3"/>
+   <waveform src="white-noise"/>
+   <waveform src="pink-noise" processing="mix"/>
+   <waveform src="sine" processing="add" pitch="1.4987" voices="5" spread="0.91"/>
    <waveform src="sine" processing="add" ratio="0.055" pitch="3.5"/>
    <waveform src="triangle" processing="modulate" pitch="0.5"/>
   </layer>

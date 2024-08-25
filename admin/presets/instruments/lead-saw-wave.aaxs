@@ -20,9 +20,9 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.86" frequency="220" duration="0.1">
+ <sound mode="1" frequency="55" duration="0.1">
   <layer n="0">
-   <waveform src="sawtooth" ratio="1.4"/>
+   <waveform src="sawtooth"/>
    <waveform src="sin" processing="add" ratio="0.3" pitch="0.997"/>
   </layer>
  </sound>
@@ -30,29 +30,26 @@
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.378</param>
-    <param n="1">0.005</param>
+    <param n="0">0.218</param>
+    <param n="1">0.0075</param>
     <param n="2">1.0</param>
-    <param n="3">0.25</param>
+    <param n="3">0.025</param>
    </slot>
    <slot n="1">
-    <param n="0">0.749</param>
+    <param n="0">0.929</param>
     <param n="1">inf</param>
-    <param n="2">0.749</param>
+    <param n="2">0.308</param>
     <param n="3">0.005</param>
    </slot>
   </filter>
- </emitter>
-
- <audioframe>
-  <effect type="distortion" src="envelope">
+  <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.8</param>
-    <param n="1">0.0</param>
-    <param n="2">0.3</param>
-    <param n="3">1.0</param>
+    <param n="0">0.7</param>
+    <param n="1">0.11</param>
+    <param n="2">0.67</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
- </audioframe>
+ </emitter>
 
 </aeonwave>
