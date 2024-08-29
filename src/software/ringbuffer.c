@@ -1293,7 +1293,6 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSour
 
    if (track < no_tracks)
    {
-      unsigned char bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
       size_t no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
       int32_t **data = _aaxRingBufferGetTracksPtr(rb, RB_WRITE);
       int32_t *ptr = data[track];
@@ -1308,7 +1307,7 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSour
       case AAX_SINE:
       case AAX_CYCLOID:
       case AAX_IMPULSE:
-         _bufferMixWaveform(ptr, scratch, type, f, bps, no_samples,
+         _bufferMixWaveform(ptr, scratch, type, f, no_samples,
                             ratio, phase, modulate, v0, limiter);
          rv = true;
          break;
@@ -1331,7 +1330,6 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceT
 
    if (track < no_tracks)
    {
-      unsigned char bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
       size_t no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
       int32_t **data = rb->get_tracks_ptr(rb, RB_WRITE);
       int32_t *ptr = data[track];
@@ -1341,18 +1339,18 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceT
       switch (type)
       {
       case AAX_WHITE_NOISE:
-         _bufferMixWhiteNoise(ptr, scratch, no_samples, bps, pitch,
-                              ratio, fs, seed, skip, modulate, limiter);
+         _bufferMixWhiteNoise(ptr, scratch, no_samples, pitch, ratio,
+                              fs, seed, skip, modulate, limiter);
          rv = true;
          break;
       case AAX_PINK_NOISE:
-         _bufferMixPinkNoise(ptr, scratch, no_samples, bps, pitch,
-                             ratio, fs, seed, skip, modulate, limiter);
+         _bufferMixPinkNoise(ptr, scratch, no_samples, pitch, ratio,
+                             fs, seed, skip, modulate, limiter);
          rv = true;
          break;
       case AAX_BROWNIAN_NOISE:
-         _bufferMixBrownianNoise(ptr, scratch, no_samples, bps, pitch,
-                                 ratio, fs, seed, skip, modulate, limiter);
+         _bufferMixBrownianNoise(ptr, scratch, no_samples, pitch, ratio,
+                                 fs, seed, skip, modulate, limiter);
          rv = true;
          break;
       default:
