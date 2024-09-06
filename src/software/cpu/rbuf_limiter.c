@@ -46,7 +46,7 @@ _aaxRingBufferLimiter(MIX_PTR_T d, size_t dmax, float clip, float asym)
 {
    static const float df = (float)(65535.0f*256.0f);
    static const float rf = 1.0f/(65536.0f*12.0f);
-   float osamp, mix; //imix
+   float osamp, mix;
    size_t j, max;
    MIX_T *ptr = d;
    MIX_T iasym;
@@ -55,7 +55,6 @@ _aaxRingBufferLimiter(MIX_PTR_T d, size_t dmax, float clip, float asym)
 
    osamp = 0.0f;
    mix = _MINMAX(clip, 0.0f, 1.0f);
-// imix = (1.0f - mix);
    iasym = asym*16*(1<<SHIFT);
    do
    {
@@ -79,7 +78,6 @@ _aaxRingBufferLimiter(MIX_PTR_T d, size_t dmax, float clip, float asym)
       fact2 = (1.0f-sdf)*_limiter_tbl[1][pos-1];
       fact2 += sdf*_limiter_tbl[1][pos];
 
-//    *ptr++ = (MIX_T)((imix*fact1 + mix*fact2)*samp);
       *ptr++ = samp*(mix*(fact2 - fact1) + fact1);
    }
    while (--j);

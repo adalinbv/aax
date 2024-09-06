@@ -322,7 +322,8 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
    no_samples = dmax+ds-dmin;
 // DBG_MEMCLR(1, d-ds, ds+dmax, bps);
 
-   if (lfo)
+   assert(lfo);
+   if (lfo->state != AAX_CONSTANT)
    {
       lfo_fact = lfo->get(lfo, env, sptr, track, no_samples);
       if (flt) // && !ctr
