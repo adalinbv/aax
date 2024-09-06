@@ -1039,7 +1039,7 @@ _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
       flt[1]->high_gain = 1.0f;
       flt[1]->low_gain = 0.01f;
       flt[1]->fs = fs;
-      fc = MAXIMUM_CUTOFF;
+      fc = 1.1f*MAXIMUM_CUTOFF;
       _aax_butterworth_compute(fc, flt[1]);
    }
 }
