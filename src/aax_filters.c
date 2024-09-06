@@ -86,7 +86,7 @@ aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
                _flt_function_tbl *flt = _aaxFilters[filter->type-1];
                int pn = slot << 4 | i;
                filter->slot[slot]->param[i] =
-                                 flt->limit(flt->get(p[i], ptype, pn), slot, i);
+                     flt->limit_param(flt->get_param(p[i], ptype, pn), slot, i);
             }
          }
          if TEST_FOR_TRUE(filter->state) {
@@ -135,7 +135,7 @@ aaxFilterSetParam(const aaxFilter f, int p, int ptype, float value)
    {
       _flt_function_tbl *flt = _aaxFilters[filter->type-1];
       filter->slot[slot]->param[param] =
-                              flt->limit(flt->get(value, ptype, p), slot, param);
+                 flt->limit_param(flt->get_param(value, ptype, p), slot, param);
 
 
       if TEST_FOR_TRUE(filter->state) {
@@ -178,7 +178,7 @@ aaxFilterSetState(aaxFilter f, uint64_t state)
                if (!is_nan(filter->slot[slot]->param[i]))
                {
                   filter->slot[slot]->param[i] =
-                              flt->limit(filter->slot[slot]->param[i], slot, i);
+                        flt->limit_param(filter->slot[slot]->param[i], slot, i);
                }
             }
             slot++;
@@ -216,7 +216,7 @@ aaxFilterGetParam(const aaxFilter f, int p, int ptype)
          if ((param >= 0) && (param < 4))
          {
             _flt_function_tbl *flt = _aaxFilters[filter->type-1];
-            rv = flt->set(filter->slot[slot]->param[param], ptype, p);
+            rv = flt->set_param(filter->slot[slot]->param[param], ptype, p);
          }
          else {
             _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
@@ -261,7 +261,7 @@ aaxFilterGetSlotParams(const aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
             {
                _flt_function_tbl *flt = _aaxFilters[filter->type-1];
                int pn = slot << 4 | i;
-               p[i] = flt->set(filter->slot[slot]->param[i], ptype, pn);
+               p[i] = flt->set_param(filter->slot[slot]->param[i], ptype, pn);
             }
             rv = true;
          }

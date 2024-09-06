@@ -87,7 +87,7 @@ aaxEffectSetSlotParams(aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
                   _eff_function_tbl *eff = _aaxEffects[effect->type-1];
                   int pn = slot << 4 | i;
                   effect->slot[slot]->param[i] =
-                                 eff->limit(eff->get(p[i], ptype, pn), slot, i);
+                     eff->limit_param(eff->get_param(p[i], ptype, pn), slot, i);
                }
             }
             if TEST_FOR_TRUE(effect->state) {
@@ -138,7 +138,7 @@ aaxEffectSetParam(const aaxEffect e, int p, int ptype, float value)
    {
       _eff_function_tbl *eff = _aaxEffects[effect->type-1];
       effect->slot[slot]->param[param] =
-                              eff->limit(eff->get(value, ptype, p), slot, param);
+                 eff->limit_param(eff->get_param(value, ptype, p), slot, param);
       
       if TEST_FOR_TRUE(effect->state) {
          aaxEffectSetState(effect, effect->state);
@@ -217,7 +217,7 @@ aaxEffectSetState(aaxEffect e, uint64_t state)
                if (!is_nan(effect->slot[slot]->param[i]))
                {
                   effect->slot[slot]->param[i] =
-                              eff->limit(effect->slot[slot]->param[i], slot, i);
+                        eff->limit_param(effect->slot[slot]->param[i], slot, i);
                }
             }
             slot++;
@@ -256,7 +256,7 @@ aaxEffectGetParam(const aaxEffect e, int p, int ptype)
          if ((param >= 0) && (param < 4))
          {
             _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-            rv = eff->set(effect->slot[slot]->param[param], ptype, p);
+            rv = eff->set_param(effect->slot[slot]->param[param], ptype, p);
          }
          else {
             _aaxErrorSet(AAX_INVALID_PARAMETER + 1);
@@ -304,7 +304,7 @@ aaxEffectGetSlotParams(const aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
             {
                _eff_function_tbl *eff = _aaxEffects[effect->type-1];
                int pn = slot << 4 | i;
-               p[i] = eff->set(effect->slot[slot]->param[i], ptype, pn);
+               p[i] = eff->set_param(effect->slot[slot]->param[i], ptype, pn);
             }
             rv = true;
          }

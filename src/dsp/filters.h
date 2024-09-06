@@ -75,9 +75,9 @@ typedef struct
    _aaxFilterSetStateFn *state;
    _aaxNewFilterHandleFn *handle;
 
-   _aaxFilterConvertFn *set;
-   _aaxFilterConvertFn *get;
-   _aaxFilterConvertFn *limit;
+   _aaxFilterConvertFn *set_param;
+   _aaxFilterConvertFn *get_param;
+   _aaxFilterConvertFn *limit_param;
 
 } _flt_function_tbl;
 

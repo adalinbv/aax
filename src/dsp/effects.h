@@ -78,9 +78,9 @@ typedef struct
    _aaxEffectSetDataFn *data;
    _aaxNewEffectHandleFn *handle;
 
-   _aaxEffectConvertFn *set;
-   _aaxEffectConvertFn *get;
-   _aaxEffectConvertFn *limit;
+   _aaxEffectConvertFn *set_param;
+   _aaxEffectConvertFn *get_param;
+   _aaxEffectConvertFn *limit_param;
 
 } _eff_function_tbl;
 
