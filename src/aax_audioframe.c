@@ -1754,6 +1754,7 @@ _frameCreateBodyFromAAXS(aaxFrame frame, _frame_t* handle, _buffer_t *buffer, xm
           aaxVec3f at, up;
           aaxVec3d pos;
 
+          // Note: If there is no position offset this will only rotate
           aaxAudioFrameGetMatrix64(frame, mtx641);
           aaxMatrix64GetOrientation(mtx641, pos, at, up);
 
@@ -1761,7 +1762,7 @@ _frameCreateBodyFromAAXS(aaxFrame frame, _frame_t* handle, _buffer_t *buffer, xm
           aaxMatrix64SetOrientation(mtx641, pos, _at, up);
 
           aaxMatrix64SetIdentityMatrix(mtx642);
-          aaxMatrix64Rotate(mtx642, -1.57*pan, 0.0, 1.0, 0.0);
+          aaxMatrix64Rotate(mtx642, -GMATH_PI_4*pan, 0.0, 1.0, 0.0);
 
           aaxMatrix64Multiply(mtx642, mtx641);
           aaxAudioFrameSetMatrix64(frame, mtx642);

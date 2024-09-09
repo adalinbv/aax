@@ -1673,7 +1673,8 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
           aaxVec3f at, up;
           aaxVec3d pos;
 
-//        aaxEmitterGetMatrix64(emitter, mtx641);
+          // Get the current position-and-orientation matrix
+          // Note: If there is no position offset this will only rotate
           mtx4dFill(mtx641, edp3d->matrix.m4);
 
           aaxMatrix64GetOrientation(mtx641, pos, at, up);
@@ -1682,11 +1683,11 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
           aaxMatrix64SetOrientation(mtx641, pos, _at, up);
 
           aaxMatrix64SetIdentityMatrix(mtx642);
-          aaxMatrix64Rotate(mtx642, -1.57*pan, 0.0, 1.0, 0.0);
+          aaxMatrix64Rotate(mtx642, GMATH_PI_4*pan, 0.0, 1.0, 0.0);
 
           aaxMatrix64Multiply(mtx642, mtx641);
 
-//        aaxEmitterSetMatrix64(emitter, mtx642);
+          // Store the modified position-and-orientation matrix
           mtx4dFill(edp3d->matrix.m4, mtx642);
           if (_IS_RELATIVE(ep3d) &&
               handle->parent && (handle->parent == handle->root))
