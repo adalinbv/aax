@@ -77,6 +77,20 @@ extern "C" {
     PRINT_ROW(m1, 2, '\t'); PRINT_ROW(m2, 2, '\n'); \
     PRINT_ROW(m1, 3, '\t'); PRINT_ROW(m2, 3, '\n');
 
+#define PRINT_ROW4D(mtx, r, c) \
+        printf ("% 6.3f % 6.3f % 6.3f % 6.3f%c", \
+            mtx[0][r],mtx[1][r],mtx[2][r],mtx[3][r],c);
+
+#define PRINT_MTX4D(mtx) \
+    PRINT_ROW4D(mtx, 0, '\n'); PRINT_ROW4D(mtx, 1, '\n'); \
+    PRINT_ROW4D(mtx, 2, '\n'); PRINT_ROW4D(mtx, 3, '\n');
+
+#define PRINT_MTX4D2(m1, m2) \
+    PRINT_ROW4D(m1, 0, '\t'); PRINT_ROW4D(m2, 0, '\n'); \
+    PRINT_ROW4D(m1, 1, '\t'); PRINT_ROW4D(m2, 1, '\n'); \
+    PRINT_ROW4D(m1, 2, '\t'); PRINT_ROW4D(m2, 2, '\n'); \
+    PRINT_ROW4D(m1, 3, '\t'); PRINT_ROW4D(m2, 3, '\n');
+
 
 extern void (*_sys_free)(void*);
 
