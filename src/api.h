@@ -247,6 +247,7 @@ typedef struct
    float low_frequency;
    float high_frequency;
    float pitch_fraction;
+   float pan;
 
    struct {
       float rate;

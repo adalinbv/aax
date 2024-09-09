@@ -365,6 +365,9 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_POSITION:
          rv = handle->pos;
          break;
+      case AAX_BALANCE:
+         rv = AAX_TO_INT(handle->info.pan);
+         break;
       case AAX_COMPRESSION_VALUE:
          rv = AAX_TO_INT(handle->gain);
          break;
@@ -2256,6 +2259,7 @@ _bufAAXSThread(void *d)
       uint32_t hash[4] = {0, 0, 0, 0};
       char have_hash = 0;
       char hstr[64];
+
       if (a)
       {
           char *s = strcasestr(a, "<sound");
@@ -2266,7 +2270,8 @@ _bufAAXSThread(void *d)
               {
                   e += strlen("</sound>");
                   MurmurHash3_x64_128(s, e-s, 0x27918072, &hash);
-                  snprintf(hstr, 64, "%08x%08x%08x%08x", hash[0], hash[1], hash[2], hash[3]);
+                  snprintf(hstr, 64, "%08x%08x%08x%08x", hash[0], hash[1],
+                                                         hash[2], hash[3]);
                   have_hash = 1;
               }
           }
@@ -2308,6 +2313,28 @@ _bufAAXSThread(void *d)
          }
          if (xmlAttributeExists(xiid, "rate")) {
             handle->info.modulation.rate = xmlAttributeGetDouble(xiid, "rate");
+         }
+         xmlFree(xiid);
+      }
+
+      if (handle->info.pan == 0.0f)
+      {
+         xiid = xmlNodeGet(xid, "aeonwave/emitter");
+         if (xiid)
+         {
+            float pan = xmlAttributeGetDouble(xiid, "pan");
+            if (pan != 0.0f) handle->info.pan = pan;
+            xmlFree(xiid);
+         }
+      }
+      if (handle->info.pan == 0.0f)
+      {
+         xiid = xmlNodeGet(xid, "aeonwave/audioframe");
+         if (xiid)
+         {
+            float pan = xmlAttributeGetDouble(xiid, "pan");
+            if (pan != 0.0f) handle->info.pan = pan;
+            xmlFree(xiid);
          }
       }
 

@@ -301,7 +301,7 @@ enum aaxSetupType
    AAX_ERROR_NUMBER,
    AAX_MAX_FILTER,
    AAX_MAX_EFFECT,
-   AAX_BALANCE,
+   AAX_BALANCE,			AAX_PAN = AAX_BALANCE,
    AAX_SETUP_TYPE_MAX,
 
    /* mixer capabilities */
