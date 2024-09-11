@@ -16,15 +16,15 @@
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="5.33" frequency="277.183" duration="0.3">
-  <layer n="0">
+ <sound mode="2" gain="3.53" frequency="277.183" duration="0.3">
+  <layer n="0" pitch="0.75">
    <waveform src="sawtooth" ratio="1.4" pitch="1.297"/>
    <waveform src="square" processing="modulate" ratio="1.9" pitch="2.5"/>
-   <waveform src="white-noise" processing="add" ratio="0.9" pitch="0.215"/>
+   <waveform src="white-noise" processing="add" ratio="0.45" pitch="0.215"/>
    <waveform src="square" processing="modulate" ratio="1.9" pitch="7.5"/>
    <filter type="frequency">
     <slot n="0">
@@ -52,36 +52,6 @@
  </sound>
 
  <emitter looping="true" pan="-0.31">
-  <filter type="dynamic-layer" src="randomness">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">8.0</param>
-    <param n="2">0.8</param>
-    <param n="3">0.6</param>
-   </slot>
-  </filter>
-  <filter type="frequency" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">200.0</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">850.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.5</param>
-   </slot>
-  </filter>
-  <filter type="timed-gain" release-time="0.6">
-   <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.015</param>
-    <param n="2">0.709</param>
-    <param n="3">0.75</param>
-   </slot>
-  </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.5</param>
@@ -96,6 +66,36 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <filter type="timed-gain" release-time="1.0">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">0.03</param>
+    <param n="2">0.709</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+  <filter type="dynamic-layer" src="randomness">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">8.0</param>
+    <param n="2">0.8</param>
+    <param n="3">0.6</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="inverse-envelope">
+   <slot n="0">
+    <param n="0">200.0</param>
+    <param n="1">0.0</param>
+    <param n="2">2.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">850.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.5</param>
+   </slot>
+  </filter>
  </emitter>
 
 </aeonwave>

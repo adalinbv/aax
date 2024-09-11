@@ -24,25 +24,30 @@
   <layer n="0">
    <waveform src="pure-sine" ratio="0.909"/>
    <waveform src="cycloid" processing="add" ratio="-0.526" pitch="15.0"/>
-   <waveform src="pure-cycloid" processing="modulate" ratio="1.11" pitch="0.03"/>
   </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
-    <param n="0">1.0</param>
+    <param n="0">1.2</param>
     <param n="1">0.025</param>
     <param n="2">1.0</param>
     <param n="3">3.0</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="pure-cycloid|exponential">
+  <filter type="frequency" src="pure-cycloid|exponential">
    <slot n="0">
-    <param n="0">0.3</param>
-    <param n="1">13.0</param>
-    <param n="2">0.5</param>
-    <param n="3">0.5</param>
+    <param n="0" pitch="0.1">880.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">6000.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">10.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">

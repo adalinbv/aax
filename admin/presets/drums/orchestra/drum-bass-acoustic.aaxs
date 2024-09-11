@@ -11,44 +11,22 @@
 
 <aeonwave>
 
- <info name="Concert Bass Drum 1" bank="48" program="35">
+ <info name="Concert Bass Drum 2" bank="49" program="35">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="2" min="36" max="77" hold="string"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.16" frequency="92.4986" duration="0.3">
+ <sound mode="1" gain="3.00" frequency="92.4986" duration="2.0">
   <layer n="0">
-   <waveform src="white-noise" ratio="5.0" pitch="0.012"/>
-   <filter type="frequency">
-    <slot n="0">
-     <param n="0" pitch="6.8">629.0</param>
-     <param n="1">1.0</param>
-     <param n="2">0.0</param>
-     <param n="3">1.0</param>
-    </slot>
-   </filter>
+   <waveform src="brownian-noise" ratio="5.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
-  <filter type="timed-gain" release-time="0.8">
-   <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.005</param>
-    <param n="2">0.729</param>
-    <param n="3">0.05</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.581</param>
-    <param n="1">0.8</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
+ <emitter looping="true" pan="-0.63">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">2.3</param>
@@ -63,6 +41,34 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <filter type="timed-gain" src="envelope" release-time="0.6">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">0.01</param>
+    <param n="2">0.729</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.581</param>
+    <param n="1">1.6</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="envelope">
+   <slot n="0">
+    <param n="0" pitch="7.0">647.5</param>
+    <param n="1">1.0</param>
+    <param n="2">0.01</param>
+    <param n="3">2.2</param>
+   </slot>
+   <slot n="1">
+    <param n="0" pitch="10.0">925.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
  </emitter>
 
 </aeonwave>

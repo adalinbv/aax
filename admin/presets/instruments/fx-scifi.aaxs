@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.00" frequency="220" voices="3" spread="0.31" phasing="true">
+ <sound gain="2.20" frequency="220" voices="3" spread="0.31" phasing="true">
   <layer n="0">
    <waveform src="triangle" ratio="0.818" pitch="17.0"/>
    <waveform src="square" processing="mix" ratio="0.95" pitch="4.9897"/>

@@ -16,26 +16,26 @@
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.18" frequency="277.183" duration="0.5">
+ <sound gain="2.70" frequency="277.183" duration="0.5">
   <layer n="0">
-   <waveform src="white-noise" pitch="0.3"/>
-   <waveform src="sine" processing="add" ratio="0.1"/>
+   <waveform src="white-noise" ratio="0.43" pitch="0.175"/>
+   <waveform src="sine" processing="add" ratio="0.3"/>
    <filter type="equalizer">
     <slot n="0">
      <param n="0">174.0</param>
      <param n="1">1.0</param>
-     <param n="2">0.6</param>
+     <param n="2">0.4</param>
      <param n="3">1.0</param>
     </slot>
     <slot n="1">
      <param n="0">1700.0</param>
-     <param n="1">0.6</param>
+     <param n="1">0.4</param>
      <param n="2">1.0</param>
-     <param n="3">2.0</param>
+     <param n="3">9.0</param>
     </slot>
    </filter>
   </layer>
@@ -47,31 +47,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="dynamic-layer" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">8.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.5</param>
-   </slot>
-  </filter>
-  <filter type="bitcrusher" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">0.03</param>
-    <param n="1">0.5</param>
-    <param n="2">0.275</param>
-    <param n="3">0.075</param>
-   </slot>
-  </filter>
-  <filter type="timed-gain" src="envelope" release-time="0.16">
-   <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.05</param>
-    <param n="2">0.866</param>
-    <param n="3">0.265</param>
-   </slot>
-  </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">0.95</param>
     <param n="1">0.01</param>
@@ -85,6 +61,22 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <filter type="timed-gain" src="envelope" release-time="0.16">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">0.1</param>
+    <param n="2">0.866</param>
+    <param n="3">0.53</param>
+   </slot>
+  </filter>
+  <filter type="dynamic-layer" src="inverse-envelope">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">1.0</param>
+    <param n="2">1.0</param>
+    <param n="3">0.2</param>
+   </slot>
+  </filter>
  </emitter>
 
 </aeonwave>

@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Triangle (Muted)" bank="0" program="80">
+ <info name="Mute Triangle" bank="0" program="80">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.18" frequency="739.989" duration="0.1">
+ <sound gain="1.00" frequency="739.989" duration="0.1">
   <layer n="0">
    <waveform src="sine"/>
    <waveform src="sine" processing="add" ratio="0.8" pitch="2.92"/>
@@ -32,9 +32,9 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">0.015</param>
+    <param n="1">0.03</param>
     <param n="2">0.604</param>
-    <param n="3">0.15</param>
+    <param n="3">0.3</param>
    </slot>
   </filter>
  </emitter>

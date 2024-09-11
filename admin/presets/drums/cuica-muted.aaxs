@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Cuica (Muted)" bank="0" program="79">
+ <info name="Mute Cuica" bank="0" program="78">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.04" frequency="493.883" duration="0.01">
+ <sound gain="1.94" frequency="493.883" duration="0.01">
   <layer n="0">
    <waveform src="sawtooth" ratio="1.26" pitch="0.5"/>
    <waveform src="sine" processing="add" ratio="0.8"/>
@@ -36,26 +36,34 @@
  </sound>
 
  <emitter looping="true" pan="-0.31">
-  <filter type="timed-gain" release-time="0.1">
-   <slot n="0">
-    <param n="0">0.485</param>
-    <param n="1">0.05</param>
-    <param n="2">1.0</param>
-    <param n="3">0.05</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.538</param>
-    <param n="1">0.1</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.0</param>
     <param n="1">0.19</param>
     <param n="2">0.95</param>
     <param n="3">0.0</param>
+   </slot>
+  </effect>
+  <filter type="timed-gain" release-time="0.1">
+   <slot n="0">
+    <param n="0">0.485</param>
+    <param n="1">0.1</param>
+    <param n="2">1.0</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.538</param>
+    <param n="1">0.2</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <effect type="phasing" src="inverse-envelope">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.1</param>
+    <param n="2">0.2</param>
+    <param n="3">0.1</param>
    </slot>
   </effect>
  </emitter>

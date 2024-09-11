@@ -11,18 +11,18 @@
 
 <aeonwave>
 
- <info name="Muted Pandeiro" bank="0" program="92">
+ <info name="Mute Pandeiro" bank="0" program="92">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.49" frequency="987.767" duration="0.3">
+ <sound gain="2.59" frequency="987.767" duration="0.3">
   <layer n="0">
-   <waveform src="square" ratio="1.9" pitch="3.0"/>
+   <waveform src="pure-square" ratio="2.5" pitch="3.0"/>
    <waveform src="triangle" processing="add" ratio="0.491" pitch="3.025"/>
    <waveform src="white-noise" processing="add" ratio="0.6" pitch="0.15"/>
    <waveform src="square" processing="modulate" ratio="1.9" pitch="6.75"/>
@@ -33,14 +33,6 @@
  </sound>
 
  <emitter looping="true" pan="-0.1">
-  <filter type="timed-gain" src="envelope">
-   <slot n="0">
-    <param n="0">0.544</param>
-    <param n="1">0.0075</param>
-    <param n="2">1.0</param>
-    <param n="3">0.162</param>
-   </slot>
-  </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.4</param>
@@ -55,6 +47,14 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <filter type="timed-gain" src="envelope">
+   <slot n="0">
+    <param n="0">0.544</param>
+    <param n="1">0.015</param>
+    <param n="2">1.0</param>
+    <param n="3">0.325</param>
+   </slot>
+  </filter>
  </emitter>
 
 </aeonwave>

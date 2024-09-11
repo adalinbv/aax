@@ -16,40 +16,53 @@
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.39" frequency="1244.51" duration="0.0333">
+ <sound gain="1.89" frequency="4978.03" duration="0.0333">
   <layer n="0">
-   <waveform src="triangle" ratio="0.818" pitch="0.9"/>
-   <waveform src="triangle" processing="add" ratio="0.655" pitch="3.0"/>
-   <waveform src="triangle" processing="modulate" ratio="0.818" pitch="6.98"/>
+   <waveform src="triangle" ratio="0.818"/>
+   <waveform src="square" processing="mix" ratio="0.095" pitch="0.987"/>
   </layer>
  </sound>
 
  <emitter looping="true">
+  <effect type="timed-pitch" src="envelope">
+   <slot n="0">
+    <param n="0">1.01</param>
+    <param n="1">0.7</param>
+    <param n="2">0.7</param>
+    <param n="3">0.7</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.01</param>
+    <param n="1">0.7</param>
+    <param n="2">0.7</param>
+    <param n="3">0.7</param>
+   </slot>
+  </effect>
   <filter type="timed-gain" release-time="2.0">
    <slot n="0">
     <param n="0">0.853</param>
-    <param n="1">0.15</param>
+    <param n="1">0.3</param>
     <param n="2">1.0</param>
-    <param n="3">1.4</param>
+    <param n="3">2.8</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="triangle">
+  <filter type="dynamic-gain" src="cycloid">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">15.0</param>
-    <param n="2">0.9</param>
-    <param n="3">0.1</param>
+    <param n="1">33.0</param>
+    <param n="2">0.2</param>
+    <param n="3">0.8</param>
    </slot>
   </filter>
-  <effect type="timed-pitch" src="envelope">
+  <effect type="chorus" src="sine|3-stage">
    <slot n="0">
-    <param n="0">0.9</param>
+    <param n="0">0.8</param>
     <param n="1">0.3</param>
-    <param n="2">1.01</param>
+    <param n="2">0.8</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

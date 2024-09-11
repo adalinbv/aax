@@ -11,31 +11,47 @@
 
 <aeonwave>
 
- <info name="Low Tom" bank="16" program="45">
+ <info name="Mid Tom 2" bank="17" program="45">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="1" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="2.46" frequency="130.813" duration="0.3">
+ <sound mode="1" gain="1.49" frequency="130.813" duration="0.3">
   <layer n="0">
    <waveform src="sine"/>
    <waveform src="pink-noise" processing="add" ratio="0.1"/>
   </layer>
   <layer n="1">
-   <waveform src="white-noise" ratio="0.5" pitch="0.14"/>
+   <waveform src="white-noise" ratio="0.5" pitch="0.1"/>
    <waveform src="triangle" processing="add" ratio="0.818"/>
    <waveform src="square" processing="add" ratio="0.95" pitch="0.7"/>
   </layer>
  </sound>
 
- <emitter looping="true" pan="0.1">
+ <emitter looping="true" pan="-0.1">
+  <effect type="timed-pitch" src="envelope">
+   <slot n="0">
+    <param n="0">1.5</param>
+    <param n="1">0.03</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+  <filter type="timed-gain" src="envelope" release-time="0.26">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
   <filter type="dynamic-layer" src="envelope|exponential">
    <slot n="0">
-    <param n="0">0.0</param>
+    <param n="0">0.1</param>
     <param n="1">8.0</param>
     <param n="2">1.0</param>
     <param n="3">0.5</param>
@@ -49,19 +65,17 @@
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <filter type="timed-gain" src="envelope" release-time="0.26">
+  <effect type="chorus">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.5</param>
+    <param n="0">0.95</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="3">0.15</param>
    </slot>
-  </filter>
-  <effect type="timed-pitch" src="envelope">
-   <slot n="0">
-    <param n="0">1.5</param>
-    <param n="1">0.03</param>
-    <param n="2">1.0</param>
+   <slot n="1">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.15</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

@@ -11,47 +11,47 @@
 
 <aeonwave>
 
- <info name="Woodblock (Low)" bank="0" program="77">
+ <info name="Low Wood Block" bank="0" program="77">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.22" frequency="220" duration="0.3">
+ <sound mode="1" gain="1.10" frequency="220" duration="0.3">
   <layer n="0">
    <waveform src="white-noise" pitch="0.05"/>
-   <waveform src="sine" processing="modulate" pitch="11.7587"/>
+   <waveform src="pure-sine" processing="modulate" ratio="0.909" pitch="11.7587"/>
    <filter type="frequency" src="24db">
     <slot n="0">
      <param n="0" pitch="4.0">880.0</param>
      <param n="1">1.0</param>
      <param n="2">0.0</param>
-     <param n="3">15.0</param>
+     <param n="3">40.0</param>
     </slot>
    </filter>
   </layer>
  </sound>
 
  <emitter looping="true" pan="0.55">
-  <filter type="timed-gain">
-   <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.04</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.8</param>
+    <param n="0">1.0</param>
     <param n="1">0.01</param>
     <param n="2">0.74</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <filter type="timed-gain" src="envelope">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">0.1</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
  </emitter>
 
 </aeonwave>

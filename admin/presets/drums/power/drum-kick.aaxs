@@ -11,19 +11,20 @@
 
 <aeonwave>
 
- <info name="Kick Base Drum" bank="16" program="36">
+ <info name="Kick Drum" bank="17" program="36">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="3.26" frequency="69.2957" duration="0.3">
+ <sound mode="1" gain="1.21" frequency="69.2957" duration="0.3">
   <layer n="0">
    <waveform src="pink-noise" ratio="0.1" pitch="0.175"/>
-   <waveform src="sine" processing="add" ratio="0.8"/>
+   <waveform src="sine" processing="add" ratio="0.56"/>
+   <waveform src="sine" processing="add" ratio="0.6"/>
    <filter type="bitcrusher">
     <slot n="0">
      <param n="0">0.0</param>
@@ -37,7 +38,7 @@
      <param n="0">67.0</param>
      <param n="1">1.0</param>
      <param n="2">1.0</param>
-     <param n="3">8.0</param>
+     <param n="3">2.0</param>
     </slot>
     <slot n="1">
      <param n="0">2950.0</param>
@@ -50,19 +51,39 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" src="envelope" release-time="0.08">
-   <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.025</param>
-    <param n="2">0.872</param>
-    <param n="3">0.15</param>
-   </slot>
-  </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">3.0</param>
     <param n="1">0.03</param>
     <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+  <filter type="timed-gain" src="envelope" release-time="0.08">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">0.05</param>
+    <param n="2">0.872</param>
+    <param n="3">0.15</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.5</param>
+    <param n="1">0.1</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <effect type="chorus">
+   <slot n="0">
+    <param n="0">0.95</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.15</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.15</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

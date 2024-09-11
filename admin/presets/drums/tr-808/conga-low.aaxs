@@ -11,26 +11,26 @@
 
 <aeonwave>
 
- <info name="Low Conga" bank="25" program="64">
+ <info name="Low Conga" bank="26" program="64">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.84" frequency="207.652" duration="0.1">
+ <sound gain="1.21" frequency="184.997" duration="0.1">
   <layer n="0">
-   <waveform src="sine"/>
+   <waveform src="pure-sine"/>
   </layer>
  </sound>
 
- <emitter looping="true" pan="0.28">
+ <emitter looping="true" pan="-0.23">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1">0.14</param>
+    <param n="1">0.33</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

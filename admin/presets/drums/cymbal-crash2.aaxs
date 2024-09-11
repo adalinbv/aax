@@ -11,21 +11,21 @@
 
 <aeonwave>
 
- <info name="Crash Cymbal 2" bank="0" program="49">
+ <info name="Crash Cymbal 2" bank="0" program="57">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="4.42" frequency="493.883" duration="0.3">
-  <layer n="0">
-   <waveform src="sawtooth" ratio="1.4"/>
-   <waveform src="sine" processing="modulate" pitch="3.49126"/>
-   <waveform src="white-noise" processing="add" ratio="0.5" pitch="0.24837"/>
-   <waveform src="triangle" processing="modulate" ratio="0.818" pitch="4.7394"/>
+ <sound mode="1" gain="2.75" frequency="554.365" duration="0.3">
+  <layer n="0" ratio="0.25">
+   <waveform src="square" ratio="0.57" pitch="2.985"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.7" pitch="2.9"/>
+   <waveform src="pink-noise" processing="add" ratio="0.3"/>
+   <waveform src="sine" processing="modulate" pitch="4.23"/>
    <filter type="frequency">
     <slot n="0">
      <param n="0">1700.0</param>
@@ -36,8 +36,8 @@
    </filter>
   </layer>
   <layer n="1">
-   <waveform src="square" ratio="1.33" pitch="0.9"/>
-   <waveform src="white-noise" processing="add" pitch="0.12"/>
+   <waveform src="square" ratio="0.57" pitch="0.98"/>
+   <waveform src="white-noise" processing="add" ratio="0.3" pitch="0.12"/>
    <waveform src="sawtooth" processing="add" ratio="0.462" pitch="0.707"/>
    <waveform src="sine" processing="modulate" pitch="6.9"/>
    <filter type="equalizer">
@@ -51,23 +51,7 @@
   </layer>
  </sound>
 
- <emitter looping="true" pan="0.31">
-  <filter type="dynamic-layer" src="randomness">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">8.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.5</param>
-   </slot>
-  </filter>
-  <filter type="timed-gain" src="envelope" release-time="1.2">
-   <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.075</param>
-    <param n="2">0.769</param>
-    <param n="3">1.5</param>
-   </slot>
-  </filter>
+ <emitter looping="true" pan="-0.31">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">1.85</param>
@@ -82,6 +66,22 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <filter type="timed-gain" src="envelope" release-time="1.2">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">0.15</param>
+    <param n="2">0.769</param>
+    <param n="3">3.0</param>
+   </slot>
+  </filter>
+  <filter type="dynamic-layer" src="randomness">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">8.0</param>
+    <param n="2">1.0</param>
+    <param n="3">0.5</param>
+   </slot>
+  </filter>
  </emitter>
 
 </aeonwave>

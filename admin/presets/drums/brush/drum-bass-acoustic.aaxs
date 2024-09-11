@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Acoustic Bass Drum" bank="40" program="35">
+ <info name="Acoustic Bass Drum" bank="41" program="35">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="2" gain="2.49" frequency="87.3071" duration="0.3">
+ <sound mode="2" gain="2.09" frequency="87.3071" duration="0.3">
   <layer n="0">
    <waveform src="pink-noise" ratio="0.5" pitch="0.12"/>
    <waveform src="triangle" processing="add" ratio="0.409"/>
@@ -29,20 +29,6 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" release-time="0.1">
-   <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.05</param>
-    <param n="2">0.827</param>
-    <param n="3">0.04</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.416</param>
-    <param n="1">0.15</param>
-    <param n="2">0.0827</param>
-    <param n="3">0.1</param>
-   </slot>
-  </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">2.5</param>
@@ -51,6 +37,20 @@
     <param n="3">0.05</param>
    </slot>
   </effect>
+  <filter type="timed-gain" release-time="0.1">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">0.1</param>
+    <param n="2">0.827</param>
+    <param n="3">0.08</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.416</param>
+    <param n="1">0.3</param>
+    <param n="2">0.0827</param>
+    <param n="3">0.2</param>
+   </slot>
+  </filter>
  </emitter>
 
 </aeonwave>

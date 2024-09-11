@@ -11,18 +11,18 @@
 
 <aeonwave>
 
- <info name="Snare Brush Swirl" bank="40" program="40">
+ <info name="Snare Brush Swirl" bank="41" program="40">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="2" gain="2.28" frequency="293.665" duration="0.5">
+ <sound mode="2" gain="2.00" frequency="293.665" duration="0.5">
   <layer n="0">
-   <waveform src="white-noise" pitch="0.42" staticity="0.055"/>
+   <waveform src="white-noise" ratio="0.6" pitch="0.42" staticity="0.055"/>
    <filter type="bitcrusher">
     <slot n="0">
      <param n="0">0.0</param>
@@ -35,14 +35,6 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" release-time="0.8">
-   <slot n="0">
-    <param n="0">0.494</param>
-    <param n="1">0.075</param>
-    <param n="2">1.0</param>
-    <param n="3">0.365</param>
-   </slot>
-  </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.1</param>
@@ -51,6 +43,14 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <filter type="timed-gain" release-time="0.8">
+   <slot n="0">
+    <param n="0">0.494</param>
+    <param n="1">0.15</param>
+    <param n="2">1.0</param>
+    <param n="3">0.73</param>
+   </slot>
+  </filter>
  </emitter>
 
 </aeonwave>

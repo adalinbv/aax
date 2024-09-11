@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="55" duration="0.1">
+ <sound mode="1" gain="1.4" frequency="55" duration="0.1">
   <layer n="0">
    <waveform src="sawtooth"/>
    <waveform src="sin" processing="add" ratio="0.3" pitch="0.997"/>
@@ -45,7 +45,7 @@
   <effect type="wavefold">
    <slot n="0">
     <param n="0">0.9</param>
-    <param n="1">1.5</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

@@ -20,11 +20,11 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.21" frequency="220">
+ <sound gain="1.41" frequency="220">
   <layer n="0">
-   <waveform src="sawtooth" ratio="1.4"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.35" pitch="4.9897"/>
-   <waveform src="triangle" processing="modulate" ratio="0.818" pitch="3.4991"/>
+   <waveform src="sawtooth"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.25" pitch="4.9897"/>
+   <waveform src="triangle" processing="modulate" pitch="3.4991"/>
    <waveform src="square" processing="mix" ratio="0.38" pitch="1.4925"/>
   </layer>
  </sound>
@@ -46,7 +46,7 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.67</param>
+    <param n="0">2.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Surdo (Open)" bank="0" program="87">
+ <info name="Open Surdo" bank="0" program="87">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1"/>
+  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.50" frequency="220" duration="0.3">
+ <sound gain="2.30" frequency="220" duration="0.3">
   <layer n="0">
    <waveform src="pink-noise" ratio="1.2" pitch="0.15"/>
    <waveform src="sine" processing="add" ratio="0.4"/>
@@ -29,14 +29,6 @@
  </sound>
 
  <emitter looping="true" pan="-0.31">
-  <filter type="timed-gain">
-   <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.015</param>
-    <param n="2">0.753</param>
-    <param n="3">0.4</param>
-   </slot>
-  </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">2.3</param>
@@ -51,6 +43,28 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">0.03</param>
+    <param n="2">0.753</param>
+    <param n="3">0.8</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="inverse-timed|logarithmic">
+   <slot n="0">
+    <param n="0" pitch="0.3">66.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0" pitch="1.0">220.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">16.0</param>
+   </slot>
+  </filter>
  </emitter>
 
 </aeonwave>
