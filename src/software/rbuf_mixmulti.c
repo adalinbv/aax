@@ -60,9 +60,11 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
    CONST_MIX_PTRPTR_T sptr;
    MIX_T **scratch;
    size_t offs, dno_samples;
-   float gain, gain_emitter;
-   float pnvel, gnvel;
+   float gain, pnvel, gnvel;
+   float gain_power_factor;
+   float gain_emitter;
    FLOAT pitch, min, max;
+   int gain_state;
    int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -201,11 +203,14 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
    gain *= max;
 
    /* Final emitter volume */
+   gain_state = _FILTER_GET_STATE(ep2d, VOLUME_FILTER);
+   gain_power_factor = _volume_curve[DSP_STATE_TO_INDEX(gain_state)];
+
    gain_emitter = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
    if (genv) genv->value_total = gain*gain_emitter;
 
    gain *= buffer_gain; // bring gain to a normalized level
-   gain = _square(gain)*ep2d->final.gain;
+   gain = powf(gain, gain_power_factor)*ep2d->final.gain;
    gain *= gain_emitter;
    ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? false : true;
 

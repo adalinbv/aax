@@ -61,7 +61,10 @@ _aaxVolumeFilterSetState(_filter_t* filter, int state)
       fs = filter->info->frequency;
    }
 
-   if (state) {
+   filter->state = state;
+
+   // occlusion
+   if (state & (AAX_TRUE|AAX_INVERSE)) {
       filter->slot[0]->data = _occlusion_create(filter->slot[0]->data, filter->slot[1], state, fs);
       if (filter->slot[0]->data) filter->slot[0]->data_size = DSIZE;
    }

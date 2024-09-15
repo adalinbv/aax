@@ -1,4 +1,4 @@
-* Thu Aug 08 2024 - tech@adalin.org
+* Fri Sep 13 2024 - tech@adalin.org
 - AeonWave (4.1.0) stable; urgency=medium
 
  * Add a timed layer filter.
@@ -10,8 +10,13 @@
    and effects.
  * Rework SIMD support code for X86_64 and ARM and increase rendering speed
    for several functions across the various rendering paths.
+ * Add support for additional volume curves beside squared which can be defined
+   using the state of the volume filer.
+ * Make it possible to get the pan property from buffers
+ * Do not filter high-frequencies as much as before.
+ * Fix the LFO always being defined for the distortion effect.
 
--- Erik Hofman <tech@adalin.org>  Thu 08 Aug 2024 11:07:27 + 0100
+-- Erik Hofman <tech@adalin.org>  Fri 13 Sep 2024 14:43:34 + 0100
 
 
 * Thu Jul 04 2024 - tech@adalin.org

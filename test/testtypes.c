@@ -91,39 +91,48 @@ int main()
     WAVE("AAX_SINE", AAX_SINE);
     WAVE("AAX_SQUARE", AAX_SQUARE);
     WAVE("AAX_SAWTOOTH", AAX_SAWTOOTH);
+    WAVE("AAX_PURE_TRIANGLE", AAX_PURE_TRIANGLE);
+    WAVE("AAX_PURE_SINE", AAX_PURE_SINE);
+    WAVE("AAX_PURE_SQUARE", AAX_PURE_SQUARE);
+    WAVE("AAX_PURE_SAWTOOTH", AAX_PURE_SAWTOOTH);
     WAVE("AAX_ENVELOPE_FOLLOW", AAX_ENVELOPE_FOLLOW);
     WAVE("AAX_INVERSE_TRIANGLE", AAX_INVERSE_TRIANGLE);
     WAVE("AAX_INVERSE_SINE", AAX_INVERSE_SINE);
     WAVE("AAX_INVERSE_SQUARE", AAX_INVERSE_SQUARE);
     WAVE("AAX_INVERSE_SAWTOOTH", AAX_INVERSE_SAWTOOTH);
+    WAVE("AAX_INVERSE_PURE_TRIANGLE", AAX_INVERSE_PURE_TRIANGLE);
+    WAVE("AAX_INVERSE_PURE_SINE", AAX_INVERSE_PURE_SINE);
+    WAVE("AAX_INVERSE_PURE_SQUARE", AAX_INVERSE_PURE_SQUARE);
+    WAVE("AAX_INVERSE_PURE_SAWTOOTH", AAX_INVERSE_PURE_SAWTOOTH);
     WAVE("AAX_INVERSE_ENVELOPE_FOLLOW", AAX_INVERSE_ENVELOPE_FOLLOW);
-
-    WAVE("constant-value", AAX_CONSTANT);
-    WAVE("triangle-wave", AAX_TRIANGLE);
-    WAVE("sine-wave", AAX_SINE);
-    WAVE("square-wave", AAX_SQUARE);
-    WAVE("sawtooth-wave", AAX_SAWTOOTH);
-    WAVE("envelope-follow", AAX_ENVELOPE_FOLLOW);
-    WAVE("inverse-triangle-wave", AAX_INVERSE_TRIANGLE);
-    WAVE("inverse-sine-wave", AAX_INVERSE_SINE);
-    WAVE("inverse-square-wave", AAX_INVERSE_SQUARE);
-    WAVE("inverse-sawtooth-wave", AAX_INVERSE_SAWTOOTH);
-    WAVE("inverse-envelope-follow", AAX_INVERSE_ENVELOPE_FOLLOW);
 
     WAVE("constant", AAX_CONSTANT);
     WAVE("triangle", AAX_TRIANGLE);
     WAVE("sine", AAX_SINE);
     WAVE("square", AAX_SQUARE);
     WAVE("sawtooth", AAX_SAWTOOTH);
-    WAVE("envelope", AAX_ENVELOPE_FOLLOW);
-    WAVE("inverse_triangle", AAX_INVERSE_TRIANGLE);
-    WAVE("inverse_sine", AAX_INVERSE_SINE);
-    WAVE("inverse_square", AAX_INVERSE_SQUARE);
-    WAVE("inverse_sawtooth", AAX_INVERSE_SAWTOOTH);
-    WAVE("inverse_envelope", AAX_INVERSE_ENVELOPE_FOLLOW);
+    WAVE("pure-triangle", AAX_PURE_TRIANGLE);
+    WAVE("pure-sine", AAX_PURE_SINE);
+    WAVE("pure-square", AAX_PURE_SQUARE);
+    WAVE("pure-sawtooth", AAX_PURE_SAWTOOTH);
+    WAVE("envelope-follow", AAX_ENVELOPE_FOLLOW);
+    WAVE("inverse-triangle", AAX_INVERSE_TRIANGLE);
+    WAVE("inverse-sine", AAX_INVERSE_SINE);
+    WAVE("inverse-square", AAX_INVERSE_SQUARE);
+    WAVE("inverse-sawtooth", AAX_INVERSE_SAWTOOTH);
+    WAVE("inverse-pure-triangle", AAX_INVERSE_PURE_TRIANGLE);
+    WAVE("inverse-pure-sine", AAX_INVERSE_PURE_SINE);
+    WAVE("inverse-pure-square", AAX_INVERSE_PURE_SQUARE);
+    WAVE("inverse-pure-sawtooth", AAX_INVERSE_PURE_SAWTOOTH);
+    WAVE("inverse-envelope-follow", AAX_INVERSE_ENVELOPE_FOLLOW);
 
     WAVE("1st-order", AAX_EFFECT_1ST_ORDER);
     WAVE("2nd-order", AAX_EFFECT_2ND_ORDER);
+
+    WAVE("logarithmic", AAX_LOGARITHMIC_CURVE|AAX_LFO_EXPONENTIAL|AAX_ENVELOPE_FOLLOW);
+    WAVE("exponential", AAX_EXPONENTIAL_CURVE|AAX_LFO_EXPONENTIAL|AAX_ENVELOPE_FOLLOW);
+    WAVE("square-root", AAX_SQUARE_ROOT_CURVE);
+    WAVE("linear", AAX_LINEAR_CURVE);
 
     WAVE("", AAX_CONSTANT);
     WAVE("|", AAX_CONSTANT);

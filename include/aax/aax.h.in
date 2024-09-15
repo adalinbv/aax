@@ -103,6 +103,8 @@ enum aaxTypeName
     AAX_PROCESSING_NAME, /* ADD,MIX,RINGMODULATE */
     AAX_DELAY_EFFECT_NAME,/* AAX_(PHASING,CHORUS,FLAGING,DELAY,REVERB)_EFFECT */
     AAX_REVERB_NAME, /* AAX_REVERB_EFFECT */
+    AAX_TIMED_GAIN_FILTER_NAME,
+    AAX_VOLUME_NAME, /* AAX_VOLUME_FILTER */
     AAX_MODULATION_NAME
 };
 
@@ -621,7 +623,8 @@ enum aaxSourceType
    AAX_LFO_STEREO            = 0x40000000,
    AAX_LFO_EXPONENTIAL       = 0x20000000, /* logarithmic or exponential      */
 
-   /* 0x00100000 - 0x00F00000 are reserved for filter and effects */
+   /** 0x00100000 - 0x00F00000 are reserved for individual filter and effects */
+   AAX_DSP_STATE_MASK        = 0x00F00000,
    /* phasing, chorus, flanging, delay-line and reverb */
    AAX_EFFECT_2ND_ORDER      = 0x00200000,
    AAX_EFFECT_1ST_ORDER      = 0x00100000,
@@ -632,6 +635,12 @@ enum aaxSourceType
    /* frequency filter */
    AAX_BUTTERWORTH           = AAX_FALSE,
    AAX_BESSEL                = 0x00100000,
+   /* volume filter */
+   AAX_SQUARED_CURVE         = AAX_FALSE,
+   AAX_LOGARITHMIC_CURVE     = 0x00E00000,
+   AAX_EXPONENTIAL_CURVE     = 0x00D00000,
+   AAX_SQUARE_ROOT_CURVE     = 0x00C00000,
+   AAX_LINEAR_CURVE          = 0x00B00000,
 
    /* 0x0100 - 0x0F00 are reserved for filter orders  and reverb room types */
    AAX_1ST_ORDER             = 0x0100,		AAX_1STAGE = AAX_1ST_ORDER,
@@ -706,7 +715,8 @@ enum aaxSourceType
    AAX_INVERSE_ENVELOPE_FOLLOW = (AAX_INVERSE | AAX_ENVELOPE_FOLLOW),
    AAX_INVERSE_TIMED_TRANSITION = (AAX_INVERSE | AAX_TIMED_TRANSITION),
 
-   AAX_SOURCE_MASK           = 0x001F, /* bit-mask covering all waveforms   */
+   AAX_WAVEFORM_MASK         = 0x000F, /* bit-mask covering analog waveforms */
+   AAX_SOURCE_MASK           = 0x001F, /* bit-mask covering all waveforms    */
    AAX_ALL_SOURCE_MASK       = (AAX_SOURCE_MASK | AAX_NOISE_MASK),
 
    /* bit-mask covering all waveforms, noise types and filter orders */

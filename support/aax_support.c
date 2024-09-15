@@ -512,7 +512,7 @@ aaxGetNoCores(UNUSED(aaxConfig cfg))
 }
 
 static enum aaxType
-aaxGetTypeByName(const char *name)
+_aaxGetTypeByName(const char *name)
 {
    enum aaxType rv = AAX_TYPE_NONE;
    if (name)
@@ -572,7 +572,7 @@ aaxGetTypeByName(const char *name)
 }
 
 static enum aaxProcessingType
-aaxGetProcessingType(const char *type)
+_aaxGetProcessingType(const char *type)
 {
    enum aaxProcessingType rv = AAX_PROCESSING_NONE;
 
@@ -602,7 +602,7 @@ aaxGetProcessingType(const char *type)
 }
 
 static enum aaxMIDIModulationMode
-aaxGetMIDIModulationTypeByName(const char *mod)
+_aaxGetMIDIModulationTypeByName(const char *mod)
 {
    enum aaxMIDIModulationMode rv = mod ? atoi(mod) : 0;
    if (!rv && mod)
@@ -703,7 +703,7 @@ aaxGetMIDIModulationNameByType(enum aaxMIDIModulationMode mode)
 }
 
 static enum aaxSourceType
-aaxGetSourceTypeByName(const char *wave)
+_aaxGetSourceTypeByName(const char *wave, enum aaxTypeName type)
 {
    enum aaxSourceType rv = AAX_WAVE_NONE;
 
@@ -789,15 +789,21 @@ aaxGetSourceTypeByName(const char *wave)
             } else if (!strncasecmp(name, "envelope", len)) {
                rv |= AAX_ENVELOPE_FOLLOW;
             } else if (!strncasecmp(name, "logarithmic", len) ||
-                       !strncasecmp(name, "exponential", len) ||
-                       !strncasecmp(name, "log", len) ||
-                       !strncasecmp(name, "exp", len))
-            {
-               rv |= AAX_LFO_EXPONENTIAL;
+                       !strncasecmp(name, "log", len)) {
+               rv |= AAX_LOGARITHMIC_CURVE|AAX_LFO_EXPONENTIAL;
+            } else if (!strncasecmp(name, "square-root", len) ||
+                       !strncasecmp(name, "sqrt", len)) {
+               rv |= AAX_SQUARE_ROOT_CURVE;
+            } else if (!strncasecmp(name, "exponential", len) ||
+                       !strncasecmp(name, "exp", len)) {
+               rv |= AAX_EXPONENTIAL_CURVE|AAX_LFO_EXPONENTIAL;
+            } else if (!strncasecmp(name, "linear", len) ||
+                       !strncasecmp(name, "lin", len)) {
+               rv |= AAX_LINEAR_CURVE;
             } else if (!strncasecmp(name, "1st-order", len)) {
-                rv |= AAX_EFFECT_1ST_ORDER;
+               rv |= AAX_EFFECT_1ST_ORDER;
             } else if (!strncasecmp(name, "2nd-order", len)) {
-                rv |= AAX_EFFECT_2ND_ORDER;
+               rv |= AAX_EFFECT_2ND_ORDER;
             } else if (!strncasecmp(name, "true", len) ||
                        !strncasecmp(name, "constant", len)) {
                rv |= AAX_CONSTANT;
@@ -912,17 +918,22 @@ aaxGetSourceTypeByName(const char *wave)
 }
 
 static char*
-aaxGetSourceNameByType(enum aaxSourceType type, bool freqfilter, bool delay, bool reverb)
+_aaxGetSourceNameByType(enum aaxSourceType type, enum aaxTypeName name)
 {
    enum aaxSourceType ntype = type & AAX_NOISE_MASK;
-   enum aaxSourceType stype = type & AAX_SOURCE_MASK;
+   enum aaxSourceType stype = type & AAX_WAVEFORM_MASK;
    char rv[1024] = "none";
    int l = 1024;
    char *p = rv;
    char m = 0;
+   int order;
 
    if (type & AAX_INVERSE) {
       SRC_ADD(p, l, m, "inverse-");
+   }
+
+   if (type & AAX_PURE_WAVEFORM) {
+      SRC_ADD(p, l, m, "pure-");
    }
 
    m = 0;
@@ -957,30 +968,15 @@ aaxGetSourceNameByType(enum aaxSourceType type, bool freqfilter, bool delay, boo
    case AAX_RANDOM_SELECT:
       SRC_ADD(p, l, m, "random");
       break;
-   case AAX_PURE_SAWTOOTH:
-      SRC_ADD(p, l, m, "pure-sawtooth");
-      break;
-   case AAX_PURE_SQUARE:
-      SRC_ADD(p, l, m, "pure-square");
-      break;
-   case AAX_PURE_TRIANGLE:
-      SRC_ADD(p, l, m, "pure-triangle");
-      break;
-   case AAX_PURE_SINE:
-      SRC_ADD(p, l, m, "pure-sine");
-      break;
-   case AAX_PURE_CYCLOID:
-      SRC_ADD(p, l, m, "pure-cycloid");
-      break;
    case AAX_WAVE_NONE:
    default:
       break;
    }
 
-   if (delay) /* phasing, chorus, flanging, delay-line */
+   switch(name)
    {
-      int order = type & AAX_ORDER_MASK;
-
+   case AAX_DELAY_EFFECT_NAME:
+      order = type & AAX_ORDER_MASK;
       if (type & AAX_EFFECT_1ST_ORDER) {
          SRC_ADD(p, l, m, "1st-order");
       } else if (type & AAX_EFFECT_2ND_ORDER) {
@@ -1004,11 +1000,49 @@ aaxGetSourceNameByType(enum aaxSourceType type, bool freqfilter, bool delay, boo
       } else if (order == AAX_8STAGE) {
          SRC_ADD(p, l, m, "8-stage");
       }
-   }
-   else if (freqfilter) /* frequency filter */
+      break;
+   case AAX_TIMED_GAIN_FILTER_NAME:
    {
-      int order = type & AAX_ORDER_MASK;
+       int num = type & AAX_REPEAT_MASK; // max: 4095 (0x0FFF)
+       char snum[9];
 
+       snprintf(snum, 8, "%i", num);
+       if (type & AAX_DSP_STATE_MASK)
+       {
+          if (type & AAX_RELEASE_FACTOR)
+          {
+             SRC_ADD(p, l, m, "release-factor");
+             SRC_ADD(p, l, m, snum);
+          }
+          else if (type & AAX_REPEAT)
+          {
+             SRC_ADD(p, l, m, "repeat");
+             if (num == AAX_MAX_REPEAT) {
+                SRC_ADD(p, l, m, "max");
+             } else {
+                SRC_ADD(p, l, m, snum);
+             }
+          }
+       }
+       break;
+   }
+   case AAX_VOLUME_NAME:
+   {
+      int curve = type & AAX_DSP_STATE_MASK;
+
+      if (curve == AAX_LOGARITHMIC_CURVE) {
+          SRC_ADD(p, l, m, "logarithmic");
+      } else if (curve == AAX_SQUARE_ROOT_CURVE) {
+          SRC_ADD(p, l, m, "square-root");
+      } else if (curve == AAX_EXPONENTIAL_CURVE) {
+          SRC_ADD(p, l, m, "exponential");
+      } else if (curve == AAX_LINEAR_CURVE) {
+          SRC_ADD(p, l, m, "linear");
+      }
+      break;
+   }
+   case AAX_FREQUENCY_FILTER_NAME:
+      order = type & AAX_ORDER_MASK;
       if (order == AAX_1ST_ORDER) {
          SRC_ADD(p, l, m, "6db");
       } else if (order == AAX_2ND_ORDER) {
@@ -1030,11 +1064,9 @@ aaxGetSourceNameByType(enum aaxSourceType type, bool freqfilter, bool delay, boo
       if (type & AAX_LFO_EXPONENTIAL) {
          SRC_ADD(p, l, m, "logarithmic");
       }
-   }
-   else if (reverb)
-   {
-      int order = type & AAX_ROOM_MASK;
-
+      break;
+   case AAX_REVERB_NAME:
+      order = type & AAX_ROOM_MASK;
       if (type & AAX_EFFECT_1ST_ORDER) {
          SRC_ADD(p, l, m, "1st-order");
       } else if (type & AAX_EFFECT_2ND_ORDER) {
@@ -1058,11 +1090,9 @@ aaxGetSourceNameByType(enum aaxSourceType type, bool freqfilter, bool delay, boo
       } else if (order == AAX_DAMPED_ROOM) {
           SRC_ADD(p, l, m, "damped");
       }
-   }
-   else /* not a delay effect nor a frequency filter */
-   {
-      int order = type & AAX_ORDER_MASK;
-
+      break;
+   default:
+      order = type & AAX_ORDER_MASK;
       if (type & AAX_EFFECT_1ST_ORDER) {
          SRC_ADD(p, l, m, "1st-order");
       } else if (type & AAX_EFFECT_2ND_ORDER) {
@@ -1117,6 +1147,7 @@ aaxGetSourceNameByType(enum aaxSourceType type, bool freqfilter, bool delay, boo
       if (type & AAX_LFO_EXPONENTIAL) {
          SRC_ADD(p, l, m, "exponential");
       }
+      break;
    }
 
    if (!strcmp(rv, "none")) return NULL;
@@ -1125,7 +1156,7 @@ aaxGetSourceNameByType(enum aaxSourceType type, bool freqfilter, bool delay, boo
 
 
 static enum aaxDistanceModel
-aaxGetDistanceModelByName(const char *name)
+_aaxGetDistanceModelByName(const char *name)
 {
    enum aaxDistanceModel rv = AAX_DISTANCE_MODEL_NONE;
    if (name)
@@ -1173,7 +1204,7 @@ aaxGetDistanceModelByName(const char *name)
 }
 
 static enum aaxFilterType
-aaxFilterGetByName(const char *name)
+_aaxFilterGetByName(const char *name)
 {
    enum aaxFilterType rv = AAX_FILTER_NONE;
    char type[256];
@@ -1251,7 +1282,7 @@ aaxFilterGetByName(const char *name)
 }
 
 static enum aaxEffectType
-aaxEffectGetByName(const char *name)
+_aaxEffectGetByName(const char *name)
 {
    enum aaxEffectType rv = AAX_EFFECT_NONE;
    char type[256];
@@ -1339,37 +1370,34 @@ aaxGetByName(const char* name, enum aaxTypeName type)
    switch (type)
    {
    case AAX_ALL:
-      rv = aaxGetSourceTypeByName(name);
-      if (!rv) rv = aaxGetProcessingType(name);
-      if (!rv) rv = aaxFilterGetByName(name);
-      if (!rv) rv = aaxEffectGetByName(name);
-      if (!rv) rv = aaxGetTypeByName(name);
-      if (!rv) rv = aaxGetDistanceModelByName(name);
-      break;
-   case AAX_SOURCE_NAME:
-   case AAX_FREQUENCY_FILTER_NAME:
-      rv = aaxGetSourceTypeByName(name);
+      rv = _aaxGetSourceTypeByName(name, type);
+      if (!rv) rv = _aaxGetProcessingType(name);
+      if (!rv) rv = _aaxFilterGetByName(name);
+      if (!rv) rv = _aaxEffectGetByName(name);
+      if (!rv) rv = _aaxGetTypeByName(name);
+      if (!rv) rv = _aaxGetDistanceModelByName(name);
       break;
    case AAX_PROCESSING_NAME:
-      rv = aaxGetProcessingType(name);
+      rv = _aaxGetProcessingType(name);
       break;
    case AAX_FILTER_NAME:
-      rv = aaxFilterGetByName(name);
+      rv = _aaxFilterGetByName(name);
       break;
    case AAX_EFFECT_NAME:
    case AAX_DELAY_EFFECT_NAME:
-      rv = aaxEffectGetByName(name);
+      rv = _aaxEffectGetByName(name);
       break;
    case AAX_DISTANCE_MODEL_NAME:
-      rv = aaxGetDistanceModelByName(name);
+      rv = _aaxGetDistanceModelByName(name);
       break;
    case AAX_TYPE_NAME:
-      rv = aaxGetTypeByName(name);
+      rv = _aaxGetTypeByName(name);
       break;
    case AAX_MODULATION_NAME:
-      rv = aaxGetMIDIModulationTypeByName(name);
+      rv = _aaxGetMIDIModulationTypeByName(name);
       break;
    default:
+      rv = _aaxGetSourceTypeByName(name, type);
       break;
    }
 
@@ -1383,16 +1411,16 @@ aaxGetStringByType(int type, enum aaxTypeName name)
    switch(name)
    {
    case AAX_SOURCE_NAME:
-      rv = aaxGetSourceNameByType(type, false, false, false);
+      rv = _aaxGetSourceNameByType(type, name);
       break;
    case AAX_FREQUENCY_FILTER_NAME:
-      rv = aaxGetSourceNameByType(type, true, false, false);
+      rv = _aaxGetSourceNameByType(type, name);
       break;
    case AAX_DELAY_EFFECT_NAME:
-      rv = aaxGetSourceNameByType(type, false, true, false);
+      rv = _aaxGetSourceNameByType(type, name);
       break;
    case AAX_REVERB_NAME:
-      rv = aaxGetSourceNameByType(type, false, false, true);
+      rv = _aaxGetSourceNameByType(type, name);
       break;
    case AAX_FILTER_NAME:
       switch (type)

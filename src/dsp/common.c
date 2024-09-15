@@ -112,3 +112,36 @@ char* _note2name(int n)
 }
 
 inline FLOAT _lorentz(FLOAT v2, FLOAT c2) { return sqrt(1.0 - (v2/c2)) - 1.0f; }
+
+// As source types "logarithmic" and "exponential" are used for different
+// purposed for the volume filter compared to other filters and effects:
+// a source type of "logarithmic" is set as:
+//   AAX_LOGARTIHMIC_CURVE|AAX_LFO_EXPONENTIAL
+// and a source type of "exponential" is set as:
+//   AAX_EXPONENTIAL_CURVE|AAX_LFO_EXPONENTIAL
+//
+// if AAX_LOGARTIHMIC_CURVE or AAX_EXPONENTIAL_CURVE set to a low value like
+// 0x00100000 and 0x00200000 then they would interfere with the respective
+// individual filter and effects states which would also be set to
+// 0x00100000 or 0x00200000
+//
+// To prevent such a clash volume filter specific states are defined
+// at the end of the range.
+float _volume_curve[16] =
+{
+    2.0f,               /* SQUARED, default */
+    2.0f,
+    2.0f,
+    2.0f,
+    2.0f,
+    2.0f,
+    2.0f,
+    2.0f,
+    2.0f,
+    2.0f,
+    2.0f,
+    1.0f,		/* LINEAR */
+    0.5f,		/* SQUARE ROOT */
+    GMATH_E1,           /* EXPONENTIAL */
+    GMATH_1_E1 		/* LOGARITHMIC */
+};
