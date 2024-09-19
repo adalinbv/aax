@@ -21,7 +21,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="4.55" frequency="130.813">
+ <sound gain="2.55" frequency="130.813">
   <layer n="0">
    <waveform src="white-noise"/>
    <waveform src="pink-noise" processing="mix"/>
@@ -65,6 +65,14 @@
     <param n="3" auto="0.34">1.5</param>
    </slot>
   </effect>
+  <filter type="equalizer" optional="true">
+   <slot n="0">
+    <param n="0">4000.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.05</param>
+    <param n="3">3.5</param>
+   </slot>
+  </filter>
  </audioframe>
 
 </aeonwave>
