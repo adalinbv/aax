@@ -20,26 +20,30 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.00" frequency="110" duration="0.1">
-  <layer n="0">
-   <waveform src="sawtooth"/>
-   <waveform src="square" processing="add" pitch="2.0"/>
-   <waveform src="sawtooth" processing="modulate" pitch="3.0"/>
-  </layer>
+ <sound gain="2.06" frequency="110" duration="0.1">
+  <waveform src="sawtooth"/>
+  <waveform src="square" processing="add" pitch="2.0"/>
+  <waveform src="triangle" processing="modulate" pitch="5.0"/>
  </sound>
 
  <emitter looping="true">
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.24</param>
-    <param n="1">0.02</param>
-    <param n="2">0.94</param>
+    <param n="0">1.15</param>
+    <param n="1">0.03</param>
+    <param n="2">0.95</param>
+    <param n="3">0.03</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">4.5</param>
+    <param n="2">0.985</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
   <filter type="timed-gain" src="envelope" release-time="0.1">
    <slot n="0">
-    <param n="0">2.0</param>
+    <param n="0">0.0</param>
     <param n="1">0.01</param>
     <param n="2">1.0</param>
     <param n="3">0.04</param>
@@ -62,9 +66,9 @@
  </emitter>
 
  <audioframe>
-  <filter type="equalizer" optional="true">
-   <slot n="0">
-    <param n="0">82.4</param>
+  <filter type="equalizer">
+   <slot n="0" src="bessel">
+    <param n="0">100.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">1.2</param>
