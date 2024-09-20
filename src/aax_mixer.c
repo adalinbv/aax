@@ -743,8 +743,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
          }
          break;
       default:
-         _aaxErrorSet(AAX_INVALID_ENUM);
-         rv = false;
+         rv = aaxScenerySetEffect(config, e);
       }
    }
    return rv;
@@ -780,7 +779,7 @@ aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
          }
          break;
       default:
-         _aaxErrorSet(AAX_INVALID_ENUM);
+         rv = aaxSceneryGetEffect(config, type);
       }
    }
    return rv;

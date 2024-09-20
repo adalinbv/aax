@@ -853,6 +853,8 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       float fc = filter->lfo->get(filter->lfo, env, s, track, dmax);
       fc = CLIP_FREQUENCY(fc, filter->fs);
 
+      // if filter->resonance != 0.0f then the filter Q factor responds to
+      // the LFO and the cutoff frequency remains the same
       if (filter->resonance > 0.0f) {
          if (filter->type > BANDPASS) { // HIGHPASS
              filter->Q = _MAX(filter->resonance*(filter->fc_high - fc), 1.0f);
