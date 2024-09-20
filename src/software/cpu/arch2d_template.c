@@ -1464,60 +1464,6 @@ FN(batch_ema_iir_float,A)(float32_ptr d, const_float32_ptr s, size_t i, float *h
 }
 
 void
-FN(batch_freqfilter,A)(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, void *flt)
-{
-   _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
-   const_int32_ptr s = sptr;
-
-   if (num)
-   {
-      float k, *cptr, *hist;
-      float smp, nsmp, h0, h1;
-      int stage;
-
-      cptr = filter->coeff;
-      hist = filter->freqfilter->history[t];
-      stage = filter->no_stages;
-      if (!stage) stage++;
-
-      if (filter->state == AAX_BESSEL) {
-         k = filter->k * (filter->high_gain - filter->low_gain);
-      } else {
-         k = filter->k * filter->high_gain;
-      }
-
-      do
-      {
-         int32_ptr d = dptr;
-         size_t i = num;
-
-         h0 = hist[0];
-         h1 = hist[1];
-         do
-         {
-            smp = *s++ * k;
-            smp = smp + h0 * cptr[0];
-            nsmp = smp + h1 * cptr[1];
-            smp = nsmp + h0 * cptr[2];
-            smp = smp + h1 * cptr[3];
-
-            h1 = h0;
-            h0 = nsmp;
-            *d++ = smp;
-         }
-         while (--i);
-
-         *hist++ = h0;
-         *hist++ = h1;;
-         cptr += 4;
-         k = 1.0f;
-         s = dptr;
-      }
-      while (--stage);
-   }
-}
-
-void
 FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
 {
    _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
@@ -1529,23 +1475,17 @@ FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, si
       float smp, h0, h1;
       int stage;
 
-      if (filter->state == AAX_BESSEL) {
-         k = filter->k * (filter->high_gain - filter->low_gain);
-      } else {
-         k = filter->k * filter->high_gain;
-      }
-
       cptr = filter->coeff;
       hist = filter->freqfilter->history[t];
       stage = filter->no_stages;
       if (!stage) stage++;
 
+      k = filter->k;
       do
       {
          float32_ptr d = dptr;
          size_t i = num;
 
-         // for original code see _batch_freqfilter_iir_cpu
          c0 = *cptr++;
          c1 = *cptr++;
          c2 = *cptr++;

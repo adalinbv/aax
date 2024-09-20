@@ -1294,12 +1294,6 @@ FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, si
       int i, rest;
       int stage;
 
-      if (filter->state == AAX_BESSEL) {
-         k = filter->k * (filter->high_gain - filter->low_gain);
-      } else {
-         k = filter->k * filter->high_gain;
-      }
-
       cptr = filter->coeff;
       hist = filter->freqfilter->history[t];
       stage = filter->no_stages;
@@ -1310,6 +1304,7 @@ FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
       i = num/3;
       rest = num-i*3;
+      k = filter->k;
       if (i)
       {
          do

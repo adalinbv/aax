@@ -297,12 +297,6 @@ _batch_freqfilter_float_fma3(float32_ptr dptr, const_float32_ptr sptr, int t, si
       float h0, h1;
       int stage;
 
-      if (filter->state == AAX_BESSEL) {
-         k = filter->k * (filter->high_gain - filter->low_gain);
-      } else {
-         k = filter->k * filter->high_gain;
-      }
-
       cptr = filter->coeff;
       hist = filter->freqfilter->history[t];
       stage = filter->no_stages;
@@ -313,6 +307,7 @@ _batch_freqfilter_float_fma3(float32_ptr dptr, const_float32_ptr sptr, int t, si
       h0 = hist[0];
       h1 = hist[1];
 
+      k = filter->k;
       if (filter->state == AAX_BUTTERWORTH)
       {
          float32_ptr d = dptr;

@@ -51,7 +51,6 @@ typedef void (*_batch_imadd_proc)(int32_ptr, const_int32_ptr, size_t, float, flo
 typedef void (*_batch_mul_value_proc)(void*, const void*, unsigned, size_t, float);
 typedef void (*_batch_dsp_1param_proc)(float32_ptr, const_float32_ptr, size_t, float);
 typedef void (*_batch_ema_proc)(int32_ptr, const_int32_ptr, size_t, float*, float);
-typedef void (*_batch_freqfilter_proc)(int32_ptr, const_int32_ptr, int, size_t, void*);
 typedef void (*_batch_ema_float_proc)(float32_ptr, const_float32_ptr, size_t, float*, float);
 typedef void (*_batch_freqfilter_float_proc)(float32_ptr, const_float32_ptr, int, size_t, void*);
 typedef void (*_batch_convolution_proc)(float32_ptr, const_float32_ptr, const_float32_ptr, unsigned int, unsigned int, int, float, float);
@@ -78,7 +77,6 @@ extern _batch_fmadd_proc _batch_fma3;
 extern _batch_fmadd_proc _batch_fma4;
 extern _batch_dsp_1param_proc _batch_dc_shift;
 extern _batch_dsp_1param_proc _batch_wavefold;
-extern _batch_freqfilter_proc _batch_freqfilter;
 extern _batch_ema_float_proc _batch_movingaverage_float;
 extern _batch_freqfilter_float_proc _batch_freqfilter_float;
 extern _batch_resample_proc _batch_resample;

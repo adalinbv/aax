@@ -618,7 +618,7 @@ _aax_butterworth_compute(float fc, void *flt)
       coef += 4;
    }
 
-   filter->k = k;
+   filter->k = k * filter->high_gain;
 }
 
 /**
@@ -714,7 +714,7 @@ _aax_bessel_compute(float fc, void *flt)
    }
 
    filter->Q = 1.0f;
-   filter->k = k;
+   filter->k = k * (filter->high_gain - filter->low_gain);
 }
 #else
 void
