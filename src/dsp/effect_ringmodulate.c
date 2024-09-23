@@ -52,11 +52,10 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxFilter rv = false;
-   int stereo;
+   int wstate;
 
    assert(effect->info);
 
-   stereo = (state & AAX_LFO_STEREO) ? true : false;
    state &= ~AAX_LFO_STEREO;
 
    if ((state & AAX_SOURCE_MASK) == 0) {
@@ -64,7 +63,8 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
    }
 
    effect->state = state;
-   switch (state & (AAX_SOURCE_MASK & ~AAX_PURE_WAVEFORM))
+   wstate = state & (AAX_SOURCE_MASK & ~AAX_PURE_WAVEFORM);
+   switch (wstate)
    {
    case AAX_CONSTANT:
    case AAX_SAWTOOTH:
@@ -92,6 +92,7 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
 
       if (modulator)
       {
+         float min, max;
          int constant;
          float gain;
 
@@ -101,21 +102,21 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
          modulator->amplitude = (gain < 0.0f) ? true : false;
          modulator->gain = fabsf(gain);
 
-         modulator->lfo.convert = _linear;
-         modulator->lfo.state = effect->state;
-         modulator->lfo.fs = effect->info->frequency;
-         modulator->lfo.period_rate = effect->info->period_rate;
-         modulator->lfo.min = effect->slot[0]->param[AAX_LFO_OFFSET];
-         modulator->lfo.max = modulator->lfo.min + effect->slot[0]->param[AAX_LFO_DEPTH];
-         modulator->lfo.envelope = false;
-         modulator->lfo.stereo_link = !stereo;
+         _lfo_setup(&modulator->lfo, effect->info, effect->state);
+         if (wstate == AAX_CONSTANT)
+         {
+            min = effect->slot[0]->param[AAX_LFO_OFFSET];
+            max = 0.0f;
+         }
+         else
+         {
+            min = effect->slot[0]->param[AAX_LFO_OFFSET];
+            max = min + effect->slot[0]->param[AAX_LFO_DEPTH];
+         }
 
-         modulator->lfo.min_sec = modulator->lfo.min/modulator->lfo.fs;
-         modulator->lfo.max_sec = modulator->lfo.max/modulator->lfo.fs;
-         modulator->lfo.depth = 1.0f;
-         modulator->lfo.offset = 0.0f;
+         modulator->lfo.min_sec = min/modulator->lfo.fs;
+         modulator->lfo.max_sec = max/modulator->lfo.fs;
          modulator->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
-         modulator->lfo.inverse = (state & AAX_INVERSE) ? true : false;
 
          constant = _lfo_set_timing(&modulator->lfo);
          if (!_lfo_set_function(&modulator->lfo, constant)) {
@@ -209,36 +210,35 @@ _modulator_run(MIX_PTR_T s, size_t end, size_t no_samples,
                void *data, void *env, unsigned int track)
 {
    _aaxRingBufferModulatorData *modulate = data;
-   float f, gain, p, step;
-   int rv = false;
-   int i;
+   float freq, gain, phase, step;
+   int i, rv = false;
 
    gain = modulate->gain;
-   f = modulate->lfo.get(&modulate->lfo, env, s, track, end);
-   if (f != 0.0f && gain > LEVEL_128DB)
+   freq = modulate->lfo.get(&modulate->lfo, env, s, track, end);
+   if (freq != 0.0f && gain > LEVEL_128DB)
    {
-      step = f/(GMATH_2PI*no_samples);
+      step = freq/(GMATH_2PI*no_samples);
 
-      p = modulate->phase[track];
+      phase = modulate->phase[track];
       if (modulate->amplitude)
       {
          gain *= 0.5f;
          for (i=0; i<end; ++i)
          {
-            s[i] *= (1.0f - gain*(1.0f + fast_sin(p)));
-            p = fmodf(p+step, GMATH_2PI);
+            s[i] *= (1.0f - gain*(1.0f + fast_sin(phase)));
+            phase = fmodf(phase+step, GMATH_2PI);
          }
       }
       else
       {
          for (i=0; i<end; ++i)
          {
-            s[i] *= gain*fast_sin(p);
-            p = fmodf(p+step, GMATH_2PI);
+            s[i] *= gain*fast_sin(phase);
+            phase = fmodf(phase+step, GMATH_2PI);
          }
       }
       assert(track < _AAX_MAX_SPEAKERS);
-      modulate->phase[track] = p;
+      modulate->phase[track] = phase;
 
       rv = true;
    }
