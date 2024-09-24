@@ -382,6 +382,16 @@ typedef struct
 
 } _aaxRingBufferWaveFoldData;
 
+typedef struct
+{
+   int (*run)(MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+
+   float gain;
+   float phase[RB_MAX_TRACKS];
+   _aaxLFOData lfo;
+
+} _aaxRingBufferFrequencyShiftData;
+
 
 /**
  * Function type definitions

@@ -26,6 +26,9 @@ extern "C" {
 #define EPS		1e-5
 #define _MAX_FE_SLOTS	4
 
+#define MIN_CUTOFF	20.0f
+#define MAX_CUTOFF	20000.0f
+
 #define LOG_60DB	-3.0f   // logf(LEVEL_60DB)
 
 #define LEVEL_32DB	0.02511886321008205413818f
@@ -116,6 +119,7 @@ enum _aax2dFiltersEffects
     RINGMODULATE_EFFECT,
     DELAY_LINE_EFFECT,		/* delay-line  */
     WAVEFOLD_EFFECT,
+    FREQUENCY_SHIFT_EFFECT,
     MAX_STEREO_EFFECT
 };
 
@@ -196,6 +200,9 @@ float _bar2kpa(float v);
 float _kpa2bar(float v);
 float _psi2kpa(float v);
 float _kpa2psi(float v);
+
+float _wrap_max(float v, float max);               // wrap between 0 and max
+float _wrap_minmax(float v, float min, float max); // wrap between min and max
 
 float _note2freq(int n);
 int _freq2note(float v);

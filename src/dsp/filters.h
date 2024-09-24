@@ -25,9 +25,6 @@ extern "C" {
 #include "common.h"
 #include "api.h"
 
-#define MIN_CUTOFF		20.0f
-#define MAX_CUTOFF		20000.0f
-
 aaxFilter _aaxFilterCreateHandle(_aaxMixerInfo*, enum aaxFilterType, unsigned, size_t);
 bool _aaxFilterDestroy(aaxFilter*);
 

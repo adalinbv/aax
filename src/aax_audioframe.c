@@ -633,6 +633,7 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
+      case AAX_FREQUENCY_SHIFT_EFFECT:
       case AAX_RINGMODULATOR_EFFECT:
       case AAX_DELAY_EFFECT:
          _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
@@ -684,6 +685,7 @@ aaxAudioFrameGetEffect(aaxFrame frame, enum aaxEffectType type)
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
       case AAX_REVERB_EFFECT:
+      case AAX_FREQUENCY_SHIFT_EFFECT:
       case AAX_RINGMODULATOR_EFFECT:
       case AAX_DELAY_EFFECT:
       {

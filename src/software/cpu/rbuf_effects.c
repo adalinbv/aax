@@ -101,6 +101,20 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
       }
    }
 
+   /* Frequency Shifter effect */
+   state = _EFFECT_GET_STATE(p2d, FREQUENCY_SHIFT_EFFECT);
+   if (state)
+   {
+      _aaxRingBufferFrequencyShiftData *freqshift;
+
+      freqshift = _EFFECT_GET_DATA(p2d, FREQUENCY_SHIFT_EFFECT);
+      if (freqshift)
+      {
+         r = freqshift->run(pdst, psrc, end, no_samples, freqshift, env, track);
+         if (r) BUFSWAP(pdst, psrc);
+      }
+   }
+
    /* bitcrusher filter */
    // Note: bitcrushing takes two steps.
    //       noise is added after the frequency filter.

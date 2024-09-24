@@ -1299,17 +1299,17 @@ _aaxEffectGetByName(const char *name)
 
    slen = strlen(name);
    for (i=0; i<slen; ++i) {
-      if (type[i] == '-') type[i] = '_';
+      if (type[i] == '_') type[i] = '-';
    }
 
    end = strchr(name, '.');
    if (end)
    {
-      while (end > name && *end != '_') --end;
+      while (end > name && *end != '-') --end;
       if (end) type[end-name] = 0;
    }
 
-   end = strrchr(name, '_');
+   end = strrchr(name, '-');
    if (end && !strcasecmp(end+1, "EFFECT")) {
       type[end-name] = 0;
    }
@@ -1318,11 +1318,11 @@ _aaxEffectGetByName(const char *name)
    if (!strncasecmp(name, "pitch", slen)) {
       rv = AAX_PITCH_EFFECT;
    }
-   else if (!strncasecmp(name, "dynamic_pitch", slen) ||
+   else if (!strncasecmp(name, "dynamic-pitch", slen) ||
             !strncasecmp(name, "vibrato", slen)) {
       rv = AAX_DYNAMIC_PITCH_EFFECT;
    }
-   else if (!strncasecmp(name, "timed_pitch", slen) ||
+   else if (!strncasecmp(name, "timed-pitch", slen) ||
             !strncasecmp(name, "envelope", slen)) {
       rv = AAX_TIMED_PITCH_EFFECT;
    }
@@ -1348,6 +1348,9 @@ _aaxEffectGetByName(const char *name)
    }
    else if (!strncasecmp(name, "wavefold", slen)) {
       rv = AAX_WAVEFOLD_EFFECT;
+   }
+   else if (!strncasecmp(name, "frequency-shift", slen)) {
+      rv = AAX_FREQUENCY_SHIFT_EFFECT;
    }
    else if (!strncasecmp(name, "reverb", slen)) {
       rv = AAX_REVERB_EFFECT;
@@ -1509,6 +1512,9 @@ aaxGetStringByType(int type, enum aaxTypeName name)
          break;
       case AAX_WAVEFOLD_EFFECT:
          rv = "wavefold";
+         break;
+      case AAX_FREQUENCY_SHIFT_EFFECT:
+         rv = "frequency-shift";
          break;
       case AAX_EFFECT_NONE:
       case AAX_EFFECT_MAX:

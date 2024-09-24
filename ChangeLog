@@ -3,6 +3,7 @@
 
  * Add a timed layer filter.
  * Add a dynamic wavefold effect.
+ * Add a frequency shifter effect.
  * Implement a 16-band equalizer which gets enabled instead of the 8-band
    equalizer when slot 2 or slot 3 of the filter contains gain information.
  * Increase the number of frequency bands for the graphic equalizer from 4 to 5

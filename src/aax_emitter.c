@@ -594,6 +594,7 @@ aaxEmitterGetEffect(const aaxEmitter emitter, enum aaxEffectType type)
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
+      case AAX_FREQUENCY_SHIFT_EFFECT:
       case AAX_RINGMODULATOR_EFFECT:
       case AAX_WAVEFOLD_EFFECT:
       case AAX_VELOCITY_EFFECT:
@@ -1485,6 +1486,7 @@ _emitterSetEffect(_emitter_t *handle, _effect_t *effect)
       _PROP_PITCH_SET_CHANGED(p3d);
       // intentional fallthrough
    case AAX_DISTORTION_EFFECT:
+   case AAX_FREQUENCY_SHIFT_EFFECT:
    case AAX_RINGMODULATOR_EFFECT:
    case AAX_WAVEFOLD_EFFECT:
    case AAX_FLANGING_EFFECT:

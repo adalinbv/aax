@@ -56,8 +56,6 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
 
    assert(effect->info);
 
-   state &= ~AAX_LFO_STEREO;
-
    if ((state & AAX_SOURCE_MASK) == 0) {
       state |= true;
    }
@@ -210,13 +208,16 @@ _modulator_run(MIX_PTR_T s, size_t end, size_t no_samples,
                void *data, void *env, unsigned int track)
 {
    _aaxRingBufferModulatorData *modulate = data;
-   float freq, gain, phase, step;
-   int i, rv = false;
+   float freq, gain;
+   int rv = false;
 
    gain = modulate->gain;
    freq = modulate->lfo.get(&modulate->lfo, env, s, track, end);
    if (freq != 0.0f && gain > LEVEL_128DB)
    {
+      float phase, step;
+      int i;
+
       step = freq/(GMATH_2PI*no_samples);
 
       phase = modulate->phase[track];

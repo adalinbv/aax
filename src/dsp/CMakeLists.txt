@@ -19,6 +19,7 @@ set(DSP_SOURCES
   effect_reverb.c
   effect_convolution.c
   effect_ringmodulate.c
+  effect_frequency_shift.c
   effect_wavefold.c
   effect_velocity.c
   filter_directional.c

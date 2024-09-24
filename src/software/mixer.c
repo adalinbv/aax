@@ -43,9 +43,10 @@ _aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *rendere
    _aaxRingBufferFreqFilterData* freq_filter;
    _aaxRingBufferOcclusionData *occlusion;
    _aaxRingBufferReverbData *reverb;
-   int bps, dist_state, ringmodulator;
    bool mono = data->mono;
+   bool mixer_dsp;
    float maxgain, gain;
+   int bps;
 
    assert(rb != 0);
 
@@ -55,12 +56,13 @@ _aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *rendere
    delay_effect = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    delay_line = _EFFECT_GET_DATA(p2d, DELAY_LINE_EFFECT);
    freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
-   dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
-   ringmodulator = _EFFECT_GET_STATE(p2d, RINGMODULATE_EFFECT);
    occlusion = _FILTER_GET_DATA(p2d, VOLUME_FILTER);
    reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
-   if (delay_effect || delay_line || freq_filter || dist_state ||
-      ringmodulator || occlusion || reverb)
+   mixer_dsp = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
+   mixer_dsp |= _EFFECT_GET_STATE(p2d, RINGMODULATE_EFFECT);
+   mixer_dsp |= _EFFECT_GET_STATE(p2d, FREQUENCY_SHIFT_EFFECT);
+   if (mixer_dsp || delay_effect || delay_line || freq_filter ||
+       occlusion || reverb)
    {
       _aaxRingBufferData *rbi = rb->handle;
       _aaxRingBufferSample *rbd = rbi->sample;

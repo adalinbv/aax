@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2007-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -16,100 +16,189 @@
 #include <aax/aax.h>
 
 #include "common.h"
+#include "dsptypes.h"
+#include "dsp.h"
 #include "api.h"
 #include "arch.h"
 
 
 /*
- * 1. Replace aaxDSP with aaxFilter or aaxEffect
- * 2. Replace DSP with the name of the dsp or effect
- * 3. Adjust NO_SLOTS if necessary
- * 4. Adjust DATA_TYPE to the name of the data-structure
- * 5. Implement the _aax<DSP>SetState function
- * 6. Adjust the table in _aax<DSP>MinMax for the minimum and maximum
+ * 1. Replace DSPtype with Filter or Effect
+ * 2. Replace dsptype with filter or effect
+ * 3. Replace DSPname with the name of the filter or effect
+ * 4. Replace dspname with the name of the filter or effect
+ * 5. Replace NO_SLOTS by the number of filter or effects slots
+ * 6. Replace _aaxRingBufferDSPnameData with the name of the data-structure
+ * 7. Replace AAX_DSP_template with the appropriate filter or effect
+ *    extension name.
+ * 8. Adjust the table in _aax<DSP>MinMax for the minimum and maximum
  *    allowed values vor every parameter in every slot
- * 7. Replace AAX_DSP_template with the appropriate dsp or effect name
+ * 9. Implement the _aax<DSPname>SetState function
  */
 
-#define NO_SLOTS	1
-#define DATA_TYPE	void
+#define VERSION 1.0
+#define DSIZE   sizeof(_aaxRingBufferDSPnameData)
 
-static aaxDSP
-_aaxDSPCreate(_aaxMixerInfo *info, enum aaxDSPType type)
+static int _dspname_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+static void _dspname_swap(void*, void*);
+
+static aaxDSPtype
+_aaxDSPnameCreate(_aaxMixerInfo *info, enum aaxDSPtypeType type)
 {
-   size_t dsize = sizeof(DATA_TYPE);
-   _dsp_t* dsp = _aaxDSPCreateHandle(info, type, NO_SLOTS, dsize);
-   aaxDSP rv = NULL;
+   size_t dsize = sizeof(_aaxRingBufferDSPnameData);
+   _dsptype_t* eff = _aaxDSPtypeCreateHandle(info, type, 1, dsize);
+   aaxDSPtype rv = NULL;
 
    if (eff)
    {
-      int i;
-
-      assert(NO_SLOTS < _MAX_FE_SLOTS);
-      for (i=0; i<NO_SLOTS; ++i) {
-         _aaxSetDefaultDSP2d(eff->slot[i], eff->pos, i);
-      }
-      dsp->slot[0]->destroy = destroy;
-      rv = (aaxDSP)dsp;
+      _aaxSetDefaultDSPtype2d(eff->slot[0], eff->pos, 0);
+      eff->slot[0]->swap = _dspname_swap;
+      rv = (aaxDSPtype)eff;
    }
    return rv;
 }
 
-static _dsp_t*
-_aaxNewDSPHandle(const aaxConfig config, enum aaxDSPType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
-{
-   _handle_t *handle = get_driver_handle(config);
-   _aaxMixerInfo* info = handle ? handle->info : _info;
-   size_t dsize = sizeof(DATA_TYPE);
-   _dsp_t* eff = _aaxDSPCreateHandle(info, type, NO_SLOTS, dsize);
-
-   if (rv)
-   {
-      unsigned int i, size = sizeof(_aaxDSPInfo);
-
-      for (i=0; i<NO_SLOTS; ++i)
-      {
-         memcpy(rv->slot[i], &p2d->dsp[rv->pos], size);
-         rv->slot[i]->data = NULL;
-      }
-      rv->slot[0]->destroy = destroy;
-
-      rv->state = p2d->dsp[rv->pos].state;
-   }
-   return rv;
-}
-
-// Note: If your Destroy function looks exactly like the following code then
-// it's better to reference aaxFilteDestroy or aaxEffectDestroy in the
-// _dsp_function_tbl function table below.
 static int
-_aaxDSPDestroy(_dsp_t* dsp)
+_dspname_reset(void *data)
 {
-   if (dsp->slot[0]->data)
-   {
-      dsp->slot[0]->destroy(dsp->slot[0]->data);
-      dsp->slot[0]->data_size = 0;
-      dsp->slot[0]->data = NULL;
+   _aaxRingBufferDSPnameData *dspname = data;
+   if (dspname) {
+      _lfo_reset(&dspname->lfo);
    }
-   free(dsp);
 
    return true;
 }
 
-static aaxDSP
-_aaxDSPSetState(_dsp_t* dsp, UNUSED(int state))
+void
+_dspname_swap(void *d, void *s)
 {
-   if (state) {
-      dsp->slot[0]->data = dsp->data
+   _aaxDSPtypeInfo *dst = d, *src = s;
+
+   if (src->data && src->data_size)
+   {
+      if (!dst->data) {
+          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+          dst->data_size = src->data_size;
+      }
+      else
+      {
+         _aaxRingBufferDSPnameData *deff = dst->data;
+         _aaxRingBufferDSPnameData *seff = src->data;
+
+         assert(dst->data_size == src->data_size);
+
+         _lfo_swap(&deff->lfo, &seff->lfo);
+      }
    }
+   dst->destroy = src->destroy;
+   dst->swap = src->swap;
+}
 
-   // Initialize the data structure based on the value of state
+static _dsptype_t*
+_aaxNewDSPnameHandle(const aaxConfig config, enum aaxDSPtypeType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
+{
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _dsptype_t* rv = _aaxDSPtypeCreateHandle(info, type, 2, 0);
 
-   return dsp;
+   if (rv)
+   {
+      _aax_dsp_copy(rv->slot[0], &p2d->dsptype[rv->pos]);
+      rv->slot[0]->swap = _dspname_swap;
+      rv->state = p2d->dsptype[rv->pos].state;
+   }
+   return rv;
+}
+
+static aaxDSPtype
+_aaxDSPnameSetState(_dsptype_t* dsptype, UNUSED(int state))
+{
+   void *handle = dsptype->handle;
+   aaxDSPtype rv = false;
+   int wstate;
+
+   assert(dsptype->info);
+
+   if ((state & AAX_SOURCE_MASK) == 0) {
+      state |= true;
+   }
+   
+   dsptype->state = state;
+   wstate = state & (AAX_SOURCE_MASK & ~AAX_PURE_WAVEFORM);
+   switch (wstate)
+   {
+   case AAX_CONSTANT:
+   case AAX_TRIANGLE:
+   case AAX_SINE:
+   case AAX_SQUARE:
+   case AAX_IMPULSE:
+   case AAX_SAWTOOTH:
+   case AAX_CYCLOID:
+   case AAX_RANDOMNESS:
+   case AAX_RANDOM_SELECT:
+   case AAX_ENVELOPE_FOLLOW:
+   case AAX_TIMED_TRANSITION:
+   {
+      _aaxRingBufferDSPnameData *dspname = dsptype->slot[0]->data;
+      if (dspname == NULL)
+      {
+         dspname = _aax_aligned_alloc(DSIZE);
+         dsptype->slot[0]->data = dspname;
+         if (dspname)
+         {
+            dsptype->slot[0]->data_size = DSIZE;
+            memset(dspname, 0, DSIZE);
+         }
+      }
+
+      if (dspname)
+      {
+         float min, max;
+         int constant;
+
+         dspname->run = _dspname_run;
+
+         _lfo_setup(&dspname->lfo, dsptype->info, dsptype->state);
+         if (wstate == AAX_CONSTANT)
+         {
+            min = dsptype->slot[0]->param[AAX_DC_OFFSET];
+            max = 0.0f;
+         }
+         else
+         {
+            min = dsptype->slot[0]->param[AAX_LFO_MIN];
+            max = dsptype->slot[0]->param[AAX_DC_OFFSET];
+         }
+         dspname->lfo.min_sec = min/dspname->lfo.fs;
+         dspname->lfo.max_sec = max/dspname->lfo.fs;
+         dspname->lfo.f = dsptype->slot[0]->param[AAX_LFO_FREQUENCY];
+
+         constant = _lfo_set_timing(&dspname->lfo);
+         if (!_lfo_set_function(&dspname->lfo, constant)) {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
+         }
+      }
+      else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+      break;
+   }
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      // intentional fall-through
+   case AAX_FALSE:
+      if (dsptype->slot[0]->data)
+      {
+         dsptype->slot[0]->destroy(dsptype->slot[0]->data);
+         dsptype->slot[0]->data_size = 0;
+         dsptype->slot[0]->data = NULL;
+      }
+      break;
+   }
+   rv = dsptype;
+   return rv;
 }
 
 static float
-_aaxDSPSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
+_aaxDSPnameSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
 
@@ -121,7 +210,7 @@ _aaxDSPSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 }
 
 static float
-_aaxDSPGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
+_aaxDSPnameGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
 
@@ -134,9 +223,9 @@ _aaxDSPGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 
 
 static float
-_aaxDSPMinMax(float val, int slot, unsigned char param)
+_aaxDSPnameMinMax(float val, int slot, unsigned char param)
 {
-   static const _dsp_minmax_tbl_t _aaxDSPRange[_MAX_FE_SLOTS] =
+   static const _eff_minmax_tbl_t _aaxDSPnameRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
     { { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
@@ -147,23 +236,31 @@ _aaxDSPMinMax(float val, int slot, unsigned char param)
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
 
-   return _MINMAX(val, _aaxDSPRange[slot].min[param],
-                       _aaxDSPRange[slot].max[param]);
+   return _MINMAX(val, _aaxDSPnameRange[slot].min[param],
+                       _aaxDSPnameRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
 
-_dsp_function_tbl _aaxDSP =
+_eff_function_tbl _aaxDSPname =
 {
-   true,
-   "AAX_DSP_template", 1.0f,
-   (_aaxDSPCreate*)&_aaxDSPCreate,
-   (_aaxDSPDestroy*)&_aaxDSPDestroy,
-   (_aaxDSPSetState*)&_aaxDSPSetState,
+   "AAX_DSP_template", VERSION,
+   (_aaxDSPtypeCreateFn*)&_aaxDSPnameCreate,
+   (_aaxDSPtypeDestroyFn*)&_aaxDSPtypeDestroy,
+   (_aaxDSPtypeResetFn*)&_dspname_reset,
+   (_aaxDSPtypeSetStateFn*)&_aaxDSPnameSetState,
    NULL,
-   (_aaxNewDSPHandle*)&_aaxNewDSPHandle,
-   (_aaxDSPConvert*)&_aaxDSPSet,
-   (_aaxDSPConvert*)&_aaxDSPGet,
-   (_aaxDSPConvert*)&_aaxDSPMinMax
+   (_aaxNewDSPtypeHandleFn*)&_aaxNewDSPnameHandle,
+   (_aaxDSPtypeConvertFn*)&_aaxDSPnameSet,
+   (_aaxDSPtypeConvertFn*)&_aaxDSPnameGet,
+   (_aaxDSPtypeConvertFn*)&_aaxDSPnameMinMax
 };
+
+int
+_dspname_run(MIX_PTR_T s, size_t end, size_t no_samples,
+              void *data, void *env, unsigned int track)
+{
+   int rv = false;
+   return rv;
+}
 

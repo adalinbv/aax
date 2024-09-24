@@ -535,6 +535,7 @@ enum aaxEffectType
    AAX_RINGMODULATOR_EFFECT,
    AAX_DELAY_EFFECT,
    AAX_WAVEFOLD_EFFECT,
+   AAX_FREQUENCY_SHIFT_EFFECT,
    AAX_EFFECT_MAX
 };
 
@@ -574,19 +575,20 @@ enum aaxParameter {	/* Filter & Effect parameter number definitions */
    AAX_LEVEL4 = 0x20, AAX_TIME4, AAX_LEVEL5, AAX_TIME5,
    AAX_LEVEL6 = 0x30, AAX_TIME6, AAX_LEVEL7, AAX_TIME7,
 
-   /** AAX_WAVEFOLD_EFECT first parameter is AAX_DC_OFFSET            **/
+   /** AAX_WAVEFOLD_EFECT first parameter is AAX_DC_OFFSET                   **/
    AAX_DC_OFFSET = 0,
-   /** AAX_BITCRUSHER_FILTER, first parameter is AAX_NOISE_LEVEL      **/
+   /** AAX_BITCRUSHER_FILTER, first parameter is AAX_NOISE_LEVEL             **/
    AAX_NOISE_LEVEL = 0,
    /* AAX_SAMPLE_RATE = 0x10, */ AAX_STATICITY = 0x11,
-   /** AAX_DYNAMIC_GAIN_FILTER, first parameter is AAX_INITIAL_DELAY  **/
-   /** AAX_DYNAMIC_PITCH_EFFECT, first parameter is AAX_INITIAL_DELAY **/
+   /** AAX_DYNAMIC_GAIN_FILTER, first parameter is AAX_INITIAL_DELAY         **/
+   /** AAX_DYNAMIC_PITCH_EFFECT, first parameter is AAX_INITIAL_DELAY        **/
    AAX_INITIAL_DELAY = 0,
-   /** AAX_RINGMODULATOR_EFFECT, first parameter is AAX_GAIN          **/
-   /** AAX_PHASING_EFFECT                                             **/
-   /** AAX_CHORUS_EFFECT                                              **/
-   /** AAX_FLANGING_EFFECT                                            **/
-   /** AAX_DELAY_EFFECT                                               **/
+   /** AAX_FREQUENCY_SHIFT_EFFECT, first parameter is AAX_GAIN               **/
+   /** AAX_RINGMODULATOR_EFFECT, first parameter is AAX_GAIN                 **/
+   /** AAX_PHASING_EFFECT                                                    **/
+   /** AAX_CHORUS_EFFECT                                                     **/
+   /** AAX_FLANGING_EFFECT                                                   **/
+   /** AAX_DELAY_EFFECT                                                      **/
    AAX_DELAY_GAIN = 0, AAX_LFO_FREQUENCY, AAX_LFO_MAX, AAX_LFO_MIN,
    AAX_DELAY_CUTOFF_FREQUENCY = 0x10, AAX_DELAY_CUTOFF_FREQUENCY_HF, AAX_FEEDBACK_GAIN, AAX_DELAY_RESONANCE,
    AAX_LFO_DEPTH = AAX_LFO_MAX, AAX_LFO_OFFSET = AAX_LFO_MIN,
