@@ -1664,7 +1664,7 @@ _aaxMixerInit(_handle_t *handle)
             // and the new refresh-rate.
             periods = _MAX(rintf(refrate/info->refresh_rate), 1.0f);
             info->refresh_rate = refrate/periods;
-            info->no_samples = TIME_TO_SAMPLES(freq, info->refresh_rate);
+            info->no_samples = TIME_TO_SAMPLES(freq/info->refresh_rate, 1.0f);
 
             /*
              * By mulitplying the delays with the sample frequency the
