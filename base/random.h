@@ -22,16 +22,16 @@ extern union
    uint32_t s[4];
 } _xor;
 
-void _aax_srandom();
-uint64_t xorshift128plus();
-uint64_t xoroshiro128plus();
+void _aax_srandom(void);
+uint64_t xorshift128plus(void);
+uint64_t xoroshiro128plus(void);
 
-float _aax_random();
-float _aax_seeded_random();
-float _aax_rand_sample();
+float _aax_random(void);
+float _aax_seeded_random(void);
+float _aax_rand_sample(void);
 void _aax_rand_sample8(float[8]);
 
-uint64_t _aax_rand();
+uint64_t _aax_rand(void);
 void _aax_srand(uint64_t);
 
 #if defined(__cplusplus)

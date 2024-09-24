@@ -138,23 +138,23 @@ extern _batch_cvt_to_intl_proc _batch_cvt32_intl_24;
 extern _batch_cvt_to_intl_proc _batch_cvtps_intl_24;
 extern _batch_cvt_to_intl_proc _batch_cvtpd_intl_24;
 
-unsigned int _aaxGetNoCores();
+unsigned int _aaxGetNoCores(void);
 int64_t _aaxGetCapabilities(const aaxConfig);
 
-uint32_t _aaxGetSIMDSupportLevel();
-const char* _aaxGetSIMDSupportString();
+uint32_t _aaxGetSIMDSupportLevel(void);
+const char* _aaxGetSIMDSupportString(void);
 
-bool _aaxArchDetectSSE2();
-bool _aaxArchDetectSSE3();
-bool _aaxArchDetectSSE4();
-bool _aaxArchDetectXOP();
-bool _aaxArchDetectAVX();
-bool _aaxArchDetectAVX2();
-bool _aaxArchDetectAVX512F();
+bool _aaxArchDetectSSE2(void);
+bool _aaxArchDetectSSE3(void);
+bool _aaxArchDetectSSE4(void);
+bool _aaxArchDetectXOP(void);
+bool _aaxArchDetectAVX(void);
+bool _aaxArchDetectAVX2(void);
+bool _aaxArchDetectAVX512F(void);
 
-bool _aaxArchDetectVFPV4();
-bool _aaxArchDetectNeon();
-bool _aaxArchDetectNeon64();
+bool _aaxArchDetectVFPV4(void);
+bool _aaxArchDetectNeon(void);
+bool _aaxArchDetectNeon64(void);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

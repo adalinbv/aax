@@ -59,7 +59,7 @@ typedef struct _aaxRendererData_t
 /* forward declaration */
 struct _aaxRenderer_t;
 
-typedef int (_renderer_detect_fn)();
+typedef int (_renderer_detect_fn)(void);
 typedef void* (_renderer_new_handle_fn)(int);
 typedef const char* (_render_get_info_fn)(void*);
 typedef void* (_renderer_open_fn)(void*);

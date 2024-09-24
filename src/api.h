@@ -56,7 +56,7 @@ extern "C" {
 enum aaxErrorType __aaxDriverErrorSet(void*,enum aaxErrorType, const char*);
 enum aaxErrorType __aaxErrorSet(enum aaxErrorType, const char*);
 
-unsigned long long _aax_get_free_memory();
+unsigned long long _aax_get_free_memory(void);
 
 /* --- Sensor --- */
 #define CAPTURE_ID	0x8FB82DEF
@@ -174,7 +174,7 @@ typedef struct aax_handle_t
 
 } _handle_t;
 
-_handle_t* new_handle();
+_handle_t* new_handle(void);
 _handle_t* get_handle(aaxConfig, const char*);
 _handle_t* get_valid_handle(aaxConfig, const char*);
 _handle_t* get_read_handle(aaxConfig, const char*);
@@ -449,11 +449,11 @@ int isSafeDir(const char*, char);
 
 char* systemLanguage(char**);
 
-const char* tmpDir();
-const char* userHomeDir();
+const char* tmpDir(void);
+const char* userHomeDir(void);
 char* systemDataFile(const char*);
 char* systemConfigFile(const char*);
-char* userConfigFile();
+char* userConfigFile(void);
 char* userCacheFile(const char*);
 
 #ifdef WIN32

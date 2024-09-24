@@ -18,7 +18,7 @@ extern "C" {
 
 #include "types.h"
 
-char is_bigendian();
+char is_bigendian(void);
 
 #define BYTE_ALIGN	1
 #define SIZE_ALIGNED(a)	((a) & MEMMASK) ? ((a)|MEMMASK)+1 : (a)

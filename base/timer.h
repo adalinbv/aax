@@ -54,7 +54,7 @@ typedef INT64   ssize_t;
 
 int usecSleep(unsigned int);
 int msecSleep(unsigned int);
-unsigned int getTimerResolution();
+unsigned int getTimerResolution(void);
 int setTimerResolution(unsigned int);
 int resetTimerResolution(unsigned int);
 
@@ -90,7 +90,7 @@ typedef struct
 } _aaxTimer;
 #endif
 
-_aaxTimer* _aaxTimerCreate();
+_aaxTimer* _aaxTimerCreate(void);
 void _aaxTimerDestroy(_aaxTimer*);
 double _aaxTimerGetFrequency(_aaxTimer*);
 double _aaxTimerElapsed(_aaxTimer*);

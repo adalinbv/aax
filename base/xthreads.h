@@ -97,7 +97,7 @@ extern AvSetMmThreadPriority_proc pAvSetMmThreadPriority;
 typedef thrd_t	_aaxThread;
 #endif
 
-void *_aaxThreadCreate();
+void *_aaxThreadCreate(void);
 int _aaxThreadSetAffinity(_aaxThread*, int);
 int _aaxThreadSetPriority(_aaxThread*, int);
 void _aaxThreadDestroy(_aaxThread*);
@@ -167,7 +167,7 @@ typedef struct
 
 } _aaxSignal;
 
-_aaxSignal *_aaxSignalCreate();
+_aaxSignal *_aaxSignalCreate(void);
 int _aaxSignalInit(_aaxSignal *);
 void _aaxSignalDestroy(_aaxSignal*);
 void _aaxSignalFree(_aaxSignal*);

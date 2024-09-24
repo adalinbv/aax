@@ -39,8 +39,8 @@ extern "C" {
 #include "base/geometry.h"
 #include "waveforms.h"
 
-void _aax_init_SSE();
-void _aax_init_NEON64();
+void _aax_init_SSE(void);
+void _aax_init_NEON64(void);
 
 typedef float*(*_aax_generate_waveform_proc)(float32_ptr, size_t, float, float, enum aaxSourceType);
 typedef float*(*_aax_generate_noise_proc)(float32_ptr, size_t, uint64_t, unsigned char, float);

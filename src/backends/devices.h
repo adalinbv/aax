@@ -47,7 +47,7 @@ typedef struct
 } _aaxConfig;
 
 
-_intBuffers *_aaxGetDriverBackends();
+_intBuffers *_aaxGetDriverBackends(void);
 _aaxDriverBackend *_aaxGetDriverBackendLoopback(unsigned int *);
 void *_aaxRemoveDriverBackends(_intBuffers **);
 
