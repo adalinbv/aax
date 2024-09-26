@@ -100,37 +100,33 @@ _mtx4dMul(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
 # endif
 #endif
 
-void (*mtx4fMul)(mtx4f_ptr, const mtx4f_ptr, const mtx4f_ptr) = _mtx4fMul;
-void (*mtx4dMul)(mtx4d_ptr, const mtx4d_ptr, const mtx4d_ptr) = _mtx4dMul;
+void (*mtx4dMultiply)(mtx4d_ptr, const mtx4d_ptr, const mtx4d_ptr);
 
 int main()
 {
-    mtx4f_t k, l, m, n;
     mtx4d_t k64, l64, m64, n64;
     float sse, avx;
     clock_t t;
     int i;
 
-    memset(&k, 0, sizeof(mtx4f_t));
-    memset(&l, 0, sizeof(mtx4f_t));
-    memset(&m, 0, sizeof(mtx4f_t));
-
-    t = clock();
-    for (i=0; i<1000; ++i) {
-        mtx4fMul(&k, &m, &n);
-    }
-    sse = (double)(clock() - t)/ CLOCKS_PER_SEC;
-
     memset(&k64, 0, sizeof(mtx4d_t));
     memset(&l64, 0, sizeof(mtx4d_t));
     memset(&m64, 0, sizeof(mtx4d_t));
 
+    mtx4dMultiply = _mtx4dMul_cpu;
     t = clock();
     for (i=0; i<1000; ++i) {
-        mtx4dMul(&l64, &m64, &n64);
+        mtx4dMultiply(&l64, &m64, &n64);
+    }
+    sse = (double)(clock() - t)/ CLOCKS_PER_SEC;
+
+    mtx4dMultiply = _mtx4dMul;
+    t = clock();
+    for (i=0; i<1000; ++i) {
+        mtx4dMultiply(&l64, &m64, &n64);
     }
     avx = (double)(clock() - t)/ CLOCKS_PER_SEC;
-    printf("float:\t%f ms\ndouble:\t%f\n x %2.1f\n", sse*1000.0f, avx*1000.0f, sse/avx);
+    printf("cpu:\t%f ms\nSIMD:\t%f\n x %2.1f\n", sse*1000.0f, avx*1000.0f, sse/avx);
 
    return 0;
 }

@@ -351,11 +351,17 @@ FN(mtx4fRotate,A)(mtx4f_ptr mtx, float angle_rad, float x, float y, float z)
 {
    if (angle_rad)
    {
-      float s = sinf(angle_rad);
-      float c = cosf(angle_rad);
-      float t = 1.0f - c;
       vec3f_t axis, tmp;
       mtx4f_t m, o;
+      float t, c, s;
+
+#if HAVE_SINCOS
+      sincosf(angle_rad, &s, &c);
+#else
+      s = sinf(angle_rad);
+      c = cosf(angle_rad);
+#endif
+      t = 1.0f - c;
 
       tmp.v3[0] = x;
       tmp.v3[1] = y;
