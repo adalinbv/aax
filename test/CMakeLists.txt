@@ -46,6 +46,7 @@ CREATE_TEST(testlfo)
 CREATE_TEST(testurl)
 CREATE_TEST(testc11threads)
 
+CREATE_TEST(testmatrix)
 CREATE_TEST(matrix_test)
 message("SSE2: ${SSE2_FOUND}, AVX: ${AVX_FOUND}")
 if(AVX_FOUND)
