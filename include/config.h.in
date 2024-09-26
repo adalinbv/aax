@@ -102,6 +102,9 @@
 #undef HAVE_MATH_H
 #cmakedefine HAVE_MATH_H @HAVE_MATH_H@
 
+#undef HAVE_SINCOS
+#cmakedefine HAVE_SINCOS @HAVE_SINCOS@
+
 /* Define to 1 if you have the `memmove' function. */
 #undef HAVE_MEMMOVE
 

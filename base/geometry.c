@@ -631,11 +631,17 @@ mtx4fRotate(mtx4f_ptr mtx, float angle_rad, float x, float y, float z)
 {
    if (angle_rad)
    {
-      float s = sinf(angle_rad);
-      float c = cosf(angle_rad);
-      float t = 1.0f - c;
       vec3f_t axis, tmp;
       mtx4f_t m, o;
+      float t, s, c;
+
+#if HAVE_SINCOS
+      sincosf(angle_rad, &s, &c);
+#else
+      s = sinf(angle_rad);
+      c = cosf(angle_rad);
+#endif
+      t = 1.0f - c;
 
       tmp.v3[0] = x;
       tmp.v3[1] = y;
@@ -673,11 +679,17 @@ mtx4dRotate(mtx4d_ptr mtx, double angle_rad, double x, double y, double z)
 {
    if (angle_rad)
    {
-      double s = sin(angle_rad);
-      double c = cos(angle_rad);
-      double t = 1.0 - c;
       vec3d_t axis, tmp;
       mtx4d_t m, o;
+      double t, s, c;
+
+#if HAVE_SINCOS
+      sincos(angle_rad, &s, &c);
+#else
+      s = sin(angle_rad);
+      c = cos(angle_rad);
+#endif
+      t = 1.0 - c;
 
       tmp.v3[0] = x;
       tmp.v3[1] = y;
