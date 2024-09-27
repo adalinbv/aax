@@ -19,6 +19,8 @@
 #define __GLUE(FUNC,NAME)	FUNC ## _ ## NAME
 #define GLUE(FUNC,NAME)		__GLUE(FUNC,NAME)
 
+mtx4dMulVec4_proc _mtx4dMulVec4;
+
 #if defined(__i386__)
 # define CPU	"cpu\t"
 # define SIMD   sse
