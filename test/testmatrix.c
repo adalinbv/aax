@@ -10,6 +10,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <base/geometry.h>
 #include <base/logging.h>
@@ -191,26 +192,21 @@ mat4_perspective_gl(double *m, double fovy, double aspect,
    memcpy(m, tmp, sizeof(tmp));
 }
 
-#if 0
-typedef union {
-    simd4d_t s4x4[4];
-    vec3d_t v34[4]; 
-    vec4d_t v44[4];
-    dx4x4_t m4;
-} mtx4d_t;
-#endif
-
-
 int main()
 {
    mtx4d_t m11, m12, rm1;
    mtx4d_t m21, m22;
+   float rad;
+
+   srand(time(NULL));
+   rad = GMATH_2PI*rand()/(double)(RAND_MAX);
 
    mtx4dSetIdentity(m11.m4);
    mtx4dTranslate(&m11, -1.0, 0.0, 0.0);
+   mtx4dInverseSimple(&m11, &m11);
 
    mtx4dSetIdentity(m12.m4);
-   mtx4dRotate(&m12, 2.0*M_PI/30.0, 0.0, 1.0, 0.0);
+   mtx4dRotate(&m12, rad, 0.0, 1.0, 0.0);
    
    mtx4dMul(&rm1, &m11, &m12);
 
@@ -218,11 +214,13 @@ int main()
 
    mat4_identity(*m21.m4);
    mat4_translate(*m21.m4, -1.0, 0.0, 0.0);
+   mat4_invert(*m21.m4);
 
    mat4_identity(*m22.m4);
-   mat4_rotate(*m22.m4, 2.0*M_PI/30.0, 0.0, 1.0, 0.0);
+   mat4_rotate(*m22.m4, rad, 0.0, 1.0, 0.0);
 
    mat4_multiply(*m21.m4, *m22.m4);
 
+   printf("own:\t\t\t\tcontoll:\n");
    PRINT_MATRICES(rm1, m21);
 }
