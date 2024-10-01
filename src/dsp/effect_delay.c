@@ -190,6 +190,7 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
 
             flt->high_gain = data->delay.gain;
             flt->low_gain = 0.0f;
+            _freqfilter_normalize_gains(flt);
 
             if (state & AAX_48DB_OCT) stages = 4;
             else if (state & AAX_36DB_OCT) stages = 3;

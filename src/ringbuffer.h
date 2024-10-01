@@ -150,7 +150,7 @@ typedef ALIGN16 struct {
 typedef struct
 {
    ALIGN16 float coeff[4*_AAX_MAX_STAGES] ALIGN16C;
-   float high_gain, low_gain;
+   float gain, high_gain, low_gain;
    float fc_low, fc_high;
    float Q, k, fs, fc;
    float resonance;

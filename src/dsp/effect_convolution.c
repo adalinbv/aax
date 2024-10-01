@@ -127,6 +127,7 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
 
             flt->high_gain = _lin2log(fc)/4.343409f;
             flt->low_gain = lfgain;
+            _freqfilter_normalize_gains(flt);
             flt->k = flt->low_gain/flt->high_gain;
 
             _aax_butterworth_compute(fc, flt);

@@ -189,6 +189,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
                flt->high_gain *= (2.0f*stages);
                flt->type = BANDPASS;
             }
+            _freqfilter_normalize_gains(flt);
             // start at band 9 (42.5Hz) of 24 bands and use every odd band
             // which equals to 8 bands in total.
             fc = _log2lin((offs+pos*2)*fband/bands);

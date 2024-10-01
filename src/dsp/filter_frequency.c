@@ -119,11 +119,9 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt->fc_low = fc;
          flt->fc_high = fmax;
 
-         flt->high_gain = fabsf(filter->slot[0]->param[AAX_LF_GAIN]);
-         if (flt->high_gain < LEVEL_128DB) flt->high_gain = 0.0f;
-
-         flt->low_gain = fabsf(filter->slot[0]->param[AAX_HF_GAIN]);
-         if (flt->low_gain < LEVEL_128DB) flt->low_gain = 0.0f;
+         flt->high_gain = filter->slot[0]->param[AAX_LF_GAIN];
+         flt->low_gain = filter->slot[0]->param[AAX_HF_GAIN];
+         _freqfilter_normalize_gains(flt);
 
          if (ostate == AAX_48DB_OCT) stages = 4;
          else if (ostate == AAX_36DB_OCT) stages = 3;
@@ -417,6 +415,42 @@ _freqfilter_destroy(void *ptr)
       _aax_aligned_free(data->freqfilter);
       _aax_aligned_free(data);
    }
+}
+
+void
+_freqfilter_normalize_gains(_aaxRingBufferFreqFilterData *flt)
+{
+   float high_gain = flt->high_gain;
+   float low_gain = flt->low_gain;
+   float gain = flt->gain;
+
+   if (high_gain < LEVEL_128DB) high_gain = 0.0f;
+   if (low_gain < LEVEL_128DB) low_gain = 0.0f;
+
+   gain = 1.0f;
+   if (high_gain > 1.0f)
+   {
+      gain = high_gain;
+      low_gain /= high_gain;
+      high_gain = 1.0f;
+   }
+   if (low_gain > 1.0f)
+   {
+      gain *= low_gain;
+      high_gain /= low_gain;
+      low_gain = 1.0f;
+   }
+   if (high_gain < 1.0f && low_gain < 1.0f)
+   {
+       float fact = 1.0f/_MAX(high_gain, low_gain);
+       high_gain *= fact;
+       low_gain *= fact;
+       gain /= fact;
+   }
+
+   flt->high_gain = high_gain;
+   flt->low_gain = low_gain;
+   flt->gain = gain;
 }
 
 // first order allpass:

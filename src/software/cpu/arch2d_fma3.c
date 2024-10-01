@@ -527,6 +527,7 @@ _batch_freqfilter_float_fma3(float32_ptr dptr, const_float32_ptr sptr, int t, si
          *hist++ = h0;
          *hist++ = h1;
       }
+      _batch_fmul_value(dptr, dptr, sizeof(MIX_T), num, filter->gain);
    }
 }
 

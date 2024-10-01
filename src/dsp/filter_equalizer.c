@@ -210,6 +210,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             flt[s]->fs = fs;
             flt[s]->low_gain = lp ? gain[s+1] : gain[s];
             flt[s]->high_gain = lp ? gain[s] : gain[s+1];
+            _freqfilter_normalize_gains(flt[s]);
             flt[s]->Q = filter->slot[s]->param[AAX_RESONANCE];
             _aax_butterworth_compute(fc, flt[s]);
          }

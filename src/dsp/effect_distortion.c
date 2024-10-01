@@ -158,6 +158,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
 
             flt->low_gain = (gain >= 0.0f) ? gain : 0.0f;
             flt->high_gain = (gain < 0.0f) ? -gain : 0.0f;
+            flt->gain = 1.0f;
 
             if (state & AAX_48DB_OCT) stages = 4;
             else if (state & AAX_36DB_OCT) stages = 3;

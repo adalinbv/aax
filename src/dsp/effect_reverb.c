@@ -291,6 +291,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
                flt->low_gain = _MIN(1.75f-0.75f*dfact, 1.0f);
                flt->high_gain = (reverb_gain) ? reverb_gain : 1.0f - 0.33f*dfact;
             }
+            _freqfilter_normalize_gains(flt);
             flt->k = flt->low_gain/flt->high_gain;
             flt->type = (flt->high_gain < flt->low_gain) ? LOWPASS : HIGHPASS;
 

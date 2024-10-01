@@ -34,8 +34,9 @@ void _aax_butterworth_compute(float, void*);
 
 int _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, float);
 void _freqfilter_reset(void*);
-void _freqfilter_data_swap( _aaxRingBufferFreqFilterData *dflt, _aaxRingBufferFreqFilterData *sflt);
+void _freqfilter_data_swap( _aaxRingBufferFreqFilterData*, _aaxRingBufferFreqFilterData*);
 void _freqfilter_destroy(void*);
+void _freqfilter_normalize_gains(_aaxRingBufferFreqFilterData*);
 
 // equalizers
 void _equalizer_swap(void*, void*);
