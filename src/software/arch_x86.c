@@ -352,7 +352,7 @@ _aaxGetSIMDSupportLevel()
             _batch_get_average_rms = _batch_get_average_rms_sse2;
             _batch_saturate24 = _batch_saturate24_sse2;
 
-            _batch_atanps = _batch_atanps_sse2;
+//          _batch_atanps = _batch_atanps_sse2;
             _batch_cvtps_24 = _batch_cvtps_24_sse2;
             _batch_cvt24_ps = _batch_cvt24_ps_sse2;
             _batch_cvt24_16 = _batch_cvt24_16_sse2;
