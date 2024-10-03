@@ -250,7 +250,7 @@ int main()		// x86		X86_64		ARM
       memcpy(dst1, src, MAXNUM*sizeof(float));
       batch_fmadd = _batch_fmadd_cpu;
 
-      TIMEFN(batch_fmadd(dst1, dst1, MAXNUM, FACTOR, 0.0f), eps, MAXNUM);
+      TIMEFN(batch_fmadd(dst1, dst1, MAXNUM, FACTOR, 0.0f), cpu, MAXNUM);
       printf("\nfmadd " CPU ":\t%f ms %c\n", cpu*1e3, (batch_fmadd == _batch_fmadd) ? '*' : ' ');
 
       if (simd)
@@ -745,7 +745,7 @@ int main()		// x86		X86_64		ARM
          memset(&history, 0, sizeof(history));
          batch_movingaverage_float = GLUE(_batch_ema_iir_float, SIMD);
 
-         TIMEFN(batch_movingaverage_float(dst2, src, MAXNUM, h, alpha), cpu, MAXNUM);
+         TIMEFN(batch_movingaverage_float(dst2, src, MAXNUM, h, alpha), eps, MAXNUM);
          printf("freq %s:\t%f ms - cpu x %3.2f %c", MKSTR(SIMD), eps*1e3, cpu/eps, (batch_movingaverage_float == _batch_movingaverage_float) ? '*' : ' ');
          TESTF("freq "MKSTR(SIMD), dst1, dst2);
       }
@@ -754,7 +754,7 @@ int main()		// x86		X86_64		ARM
          memset(&history, 0,sizeof(history));
          batch_movingaverage_float = GLUE(_batch_ema_iir_float, SIMD1);
 
-         TIMEFN(batch_movingaverage_float(dst2, src, MAXNUM, h, alpha), cpu, MAXNUM);
+         TIMEFN(batch_movingaverage_float(dst2, src, MAXNUM, h, alpha), eps, MAXNUM);
          printf("freq "MKSTR(SIMD1)":\t%f ms - cpu x %3.2f %c", eps*1e3, cpu/eps, (batch_movingaverage_float == _batch_movingaverage_float) ? '*' : ' ');
          TESTF("freq "MKSTR(SIMD1), dst1, dst2);
       }
@@ -771,14 +771,14 @@ int main()		// x86		X86_64		ARM
       printf("freq " CPU ":\t%f ms %c\n", cpu*1e3, (batch_allpass_float == _batch_allpass_float) ? '*' : ' ');
       cpu2 = cpu;
 
-      printf("\n== Butterworth filter:\n");
+      printf("\n== Butterworth filter (12dB/oct):\n");
       memset(&flt, 0, sizeof(_aaxRingBufferFreqFilterData));
       flt.freqfilter = &history;
       flt.fs = 44100.0f;
       flt.run = _freqfilter_run;
       flt.high_gain = 1.0f;
       flt.low_gain = 0.0f;
-      flt.no_stages = 4;
+      flt.no_stages = 1;
       flt.Q = 2.5f;
       flt.type = LOWPASS;
       flt.state = AAX_BUTTERWORTH;
@@ -834,13 +834,13 @@ int main()		// x86		X86_64		ARM
       flt.run = _freqfilter_run;
       flt.high_gain = 1.0f;
       flt.low_gain = 0.0f;
-      flt.no_stages = 4;
+      flt.no_stages = 1;
       flt.Q = 2.5f;
       flt.type = LOWPASS;
       flt.state = AAX_BESSEL;
       _aax_bessel_compute(2200.0f, &flt);
 
-      printf("\n== Bessel filter:\n");
+      printf("\n== Bessel filter (12dB/oct):\n");
       memset(&history, 0, sizeof(history));
       batch_freqfilter_float = _batch_freqfilter_float_cpu;
 
