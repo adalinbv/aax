@@ -808,7 +808,7 @@ _mp3_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    _driver_t *handle = fmt->id;
    void *buf = _aaxDataGetData(handle->mp3Buffer, 0);
    size_t bufsize = _aaxDataGetSize(handle->mp3Buffer);
-   float volume_fact = 0.7f;
+   float volume_fact = 0.5f;
    int t, res;
 
    assert(scratchlen >= *num*handle->no_tracks*sizeof(int32_t));

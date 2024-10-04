@@ -12,6 +12,7 @@
 #endif
 
 #include "software/rbuf_int.h"
+#include "base/random.h"
 #include "arch2d_simd.h"
 
 #define __FN(NAME,ARCH) _##NAME##_##ARCH
@@ -439,6 +440,53 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
    }
    return rv;
 }
+
+#define FC      50.0f // 50Hz high-pass EMA filter cutoff frequency
+float *
+FN(aax_generate_noise,A)(float32_ptr rv, size_t no_samples, uint64_t seed, unsigned char skip, float fs)
+{
+   if (rv)
+   {
+      float (*rnd_fn)() = _aax_random;
+      float rnd_skip = skip ? skip : 1.0f;
+      float ds, prev, alpha;
+      float *end = rv + no_samples;
+      float *ptr = rv;
+
+      if (seed)
+      {
+          _aax_srand(seed);
+          rnd_fn = _aax_seeded_random;
+      }
+
+      prev = 0.0f;
+      alpha = 1.0f;
+      // exponential moving average (ema) filter
+      // to filter frequencies below FC (50Hz)
+      _aax_ema_compute(FC, fs, &alpha);
+
+      ds = FC/fs;
+
+      memset(rv, 0, no_samples*sizeof(float));
+      do
+      {
+         float rnd = 0.5f*rnd_fn();
+         rnd = rnd - _MINMAX(rnd, -ds, ds);
+
+         // exponential moving average filter
+         prev = (1.0f-alpha)*prev + alpha*rnd;
+         *ptr += rnd - prev; // high-pass
+
+         ptr += (int)rnd_skip;
+         if (skip > 1) {
+            rnd_skip = 1.0f + fabsf((2*skip-rnd_skip)*rnd_fn());
+         }
+      }
+      while (ptr < end);
+   }
+   return rv;
+}
+
 
 void
 FN(batch_get_average_rms,A)(const_float32_ptr s, size_t num, float *rms, float *peak)

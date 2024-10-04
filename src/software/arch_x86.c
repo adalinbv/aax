@@ -348,6 +348,7 @@ _aaxGetSIMDSupportLevel()
             vec3dAltitudeVector = _vec3dAltitudeVector_sse2;
 
             _aax_generate_waveform_float = _aax_generate_waveform_sse2;
+//          _aax_generate_noise_float = _aax_generate_noise_sse2;
 
             _batch_get_average_rms = _batch_get_average_rms_sse2;
             _batch_saturate24 = _batch_saturate24_sse2;
@@ -400,6 +401,7 @@ _aaxGetSIMDSupportLevel()
                vec3fAltitudeVector = _vec3fAltitudeVector_sse_vex;
 
                _aax_generate_waveform_float = _aax_generate_waveform_sse_vex;
+               _aax_generate_noise_float = _aax_generate_noise_sse_vex;
 
                _batch_get_average_rms = _batch_get_average_rms_sse_vex;
                _batch_saturate24 = _batch_saturate24_sse_vex;
@@ -428,6 +430,7 @@ _aaxGetSIMDSupportLevel()
                vec3dAltitudeVector = _vec3dAltitudeVector_avx;
 
                _aax_generate_waveform_float = _aax_generate_waveform_avx;
+               _aax_generate_noise_float = _aax_generate_noise_avx;
                _batch_get_average_rms = _batch_get_average_rms_avx;
 
                _batch_cvt24_16 = _batch_cvt24_16_sse_vex;
@@ -460,6 +463,8 @@ _aaxGetSIMDSupportLevel()
                _batch_fmadd = _batch_fmadd_fma3;
 
                _aax_generate_waveform_float = _aax_generate_waveform_fma3;
+               _aax_generate_noise_float = _aax_generate_noise_fma3;
+
                _batch_get_average_rms = _batch_get_average_rms_fma3;
 
                _batch_atanps = _batch_atanps_fma3;
