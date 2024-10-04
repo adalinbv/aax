@@ -460,7 +460,7 @@ private:
         return rv;
     }
 
-    float frequency = 440.0f;
+    uint64_t frequency = 440;
     float fraction = 1.0f;
 };
 

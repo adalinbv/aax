@@ -320,7 +320,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       {
       case AAX_SAMPLE_RATE:
          if (handle->aaxs) rv = handle->info.base_frequency;
-         else rv = (unsigned int)roundf(handle->info.rate);
+         else rv = (int64_t)roundf(handle->info.rate);
          break;
       case AAX_TRACKS:
          rv = handle->info.no_tracks;
@@ -342,7 +342,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
                fact = handle->info.rate / rb->get_paramf(rb, RB_FREQUENCY);
             }
             rv = handle->info.no_samples - handle->pos;
-            rv *= (unsigned int)(fact*aaxGetBitsPerSample(handle->info.fmt));
+            rv *= (int64_t)(fact*aaxGetBitsPerSample(handle->info.fmt));
             rv /= 8;
          }
          else _aaxErrorSet(AAX_INVALID_STATE);
@@ -354,7 +354,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
             if (rb) {
                fact = handle->info.rate / rb->get_paramf(rb, RB_FREQUENCY);
             }
-            rv = (unsigned int)(fact*(handle->info.no_samples - handle->pos));
+            rv = (int64_t)(fact*(handle->info.no_samples - handle->pos));
          } else {
             _aaxErrorSet(AAX_INVALID_STATE);
          }
@@ -405,7 +405,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          }
          break;
       case AAX_LOOP_COUNT:
-         rv = (unsigned int)handle->info.loop_count;
+         rv = (int64_t)handle->info.loop_count;
          break;
       case AAX_LOOP_START:
          rv = roundf(handle->info.loop_start);
@@ -414,13 +414,13 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          rv = roundf(handle->info.loop_end);
          break;
       case AAX_BASE_FREQUENCY:
-         rv = (unsigned int)roundf(handle->info.base_frequency);
+         rv = (int64_t)roundf(handle->info.base_frequency);
          break;
       case AAX_LOW_FREQUENCY:
-         rv = (unsigned int)roundf(handle->info.low_frequency);
+         rv = (int64_t)roundf(handle->info.low_frequency);
          break;
       case AAX_HIGH_FREQUENCY:
-         rv = (unsigned int)roundf(handle->info.high_frequency);
+         rv = (int64_t)roundf(handle->info.high_frequency);
          break;
       case AAX_PITCH_FRACTION:
          rv = AAX_TO_INT(handle->info.pitch_fraction);
