@@ -40,7 +40,7 @@ inline float log(float v) { return powf(v, 0.1f); }
 inline float lin2log(float v) { return log10f(v); }
 inline float log2lin(float v) { return powf(10.0f, v); }
 inline float db2lin(float v) { return powf(10.0f, v/20.0f); }
-inline float lin2db(float v) { return 20.0f*log10f(std::max(v, 1e-9f)); }
+inline float lin2db(float v) { return 20.0f*log10f(std::max<float>(v, 1e-9f)); }
 
 static float level_60dB = db2lin(-60.0f);
 static float level_96dB = db2lin(-96.0f);
@@ -649,7 +649,7 @@ public:
     bool offset(float o) {
         return aaxEmitterSetOffsetSec(ptr, o);
     }
-    unsigned long offset(enum aaxType t) {
+    size_t offset(enum aaxType t) {
         return aaxEmitterGetOffset(ptr, t);
     }
     float offset() {
@@ -836,7 +836,7 @@ public:
         return aaxGetErrorString(error_no());
     }
 
-    unsigned long offset(enum aaxType t) {
+    size_t offset(enum aaxType t) {
         return aaxSensorGetOffset(ptr, t);
     }
 
@@ -1133,7 +1133,7 @@ public:
     }
 
     // ** support ******
-    unsigned long offset(enum aaxType t) {
+    size_t offset(enum aaxType t) {
         return aaxSensorGetOffset(ptr, t);
     }
 
