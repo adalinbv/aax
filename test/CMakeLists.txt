@@ -23,6 +23,7 @@ ENDFUNCTION()
 CREATE_CPP_TEST(testtieing)
 CREATE_CPP_TEST(teststrings)
 CREATE_CPP_TEST(testposition)
+CREATE_CPP_TEST(testenumeration)
 CREATE_CPP_TEST(testparam)
 
 CREATE_TEST(test3dmath)
