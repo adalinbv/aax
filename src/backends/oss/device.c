@@ -56,9 +56,10 @@
 #define MAX_NAME		40
 #define NO_FRAGMENTS		2
 #define DEFAULT_DEVNUM		0
-#define	DEFAULT_DEVNAME		"/dev/dsp0"
+#define	DEFAULT_NAME		"/dev/dsp0"
 #define DEFAULT_MIXER		"/dev/mixer0"
 #define DEFAULT_RENDERER	"OSS"
+#define DEFAULT_DEVNAME		"default"
 #define OSS_VERSION_4		0x040002
 #define MAX_ID_STRLEN		80
 
@@ -173,7 +174,7 @@ static int _oss_get_volume(_driver_t *);
 static void _oss_set_volume(_driver_t*, int32_t**, ssize_t, size_t, unsigned int, float);
 
 static const int _mode[] = { O_RDONLY, O_WRONLY };
-static const char *_const_oss_default_name = DEFAULT_DEVNAME;
+static const char *_const_oss_default_name = DEFAULT_NAME;
 static int _oss_default_nodenum = DEFAULT_DEVNUM;
 static char *_default_mixer = DEFAULT_MIXER;
 
@@ -1341,7 +1342,7 @@ detect_nodenum(const char *devname)
        rv = strtol(devname+8, NULL, 10);
    }
    else if (devname && strcasecmp(devname, "OSS") &&
-                       strcasecmp(devname, "default"))
+                       strcasecmp(devname, DEFAULT_DEVNAME))
    {
       int fd, err;
 

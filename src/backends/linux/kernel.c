@@ -1310,7 +1310,7 @@ _aaxLinuxDriverGetInterfaces(const void *id, const char *devname, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned char m = (mode == AAX_MODE_READ) ? 0 : 1;
-   char *rv = handle->ifname[m];
+   char *rv = handle ? handle->ifname[m] : NULL;
 
    if (!rv)
    {
@@ -1569,7 +1569,7 @@ detect_pcm(_driver_t *handle, char m)
    int fd, rv = false;
 
    handle->pcm = (char*)_const_kernel_default_pcm;
-   if (devname && strcasecmp(devname, "default"))
+   if (devname && strcasecmp(devname, DEFAULT_DEVNAME))
    {
       int card = 0, device = 0;
       char *ifname;
@@ -1676,7 +1676,7 @@ detect_cardnum(const char *devname)
        rv = strtol(devname+13, NULL, 10);
    }
    else if (devname && strcasecmp(devname, "Linux") &&
-                       strcasecmp(devname, "default"))
+                       strcasecmp(devname, DEFAULT_DEVNAME))
    {
       int fd, card = -1;
       do

@@ -572,7 +572,7 @@ _aaxALSADriverConnect(void *config, const void *id, xmlId *xid, const char *rend
             s = xmlAttributeGetString(xid, "name");
             if (s)
             {
-               if (strcasecmp(s, "default")) {
+               if (strcasecmp(s, DEFAULT_DEVNAME)) {
                   handle->name = _aax_strdup(s);
                } else {						/* 'default' */
                   handle->name = _aaxALSADriverGetDefaultInterface(handle,mode);
@@ -1067,7 +1067,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
             }
             handle->refresh_rate = *refresh_rate;
 
-            if (!handle->use_timer && strcmp(handle->devname, "default"))
+            if (!handle->use_timer && strcmp(handle->devname, DEFAULT_DEVNAME))
             {
                handle->latency = (float)(period_frames*periods)/(float)rate;
                if (handle->mode != AAX_MODE_READ) // && !handle->use_timer)
@@ -1798,7 +1798,7 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    int m = (mode > 0) ? 1 : 0;
-   char rv[1024]  = "default";
+   char rv[1024]  = DEFAULT_DEVNAME;
    void **hints = NULL;
    ssize_t len = 1024;
    int res;
@@ -1828,8 +1828,8 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
 
                if (handle && (!strcasecmp(handle->devname, name) ||
                               !strcasecmp(handle->devname, desc) ||
-                              (!strcasecmp(handle->devname, "default")
-                                && strstr(name, "default"))))
+                              (!strcasecmp(handle->devname, DEFAULT_DEVNAME)
+                                && strstr(name, DEFAULT_DEVNAME))))
                {
                   char *iface;
                   if (handle && !strcmp(desc, handle->devname))
@@ -1902,7 +1902,7 @@ _aaxALSADriverGetInterfaceName(const void *id)
             {
                if (!strcmp(name, handle->devname))
                {
-                  char rvname[1024]  = "default";
+                  char rvname[1024]  = DEFAULT_DEVNAME;
                   char *desc = psnd_device_name_get_hint(*lst, "DESC");
                   char *iface, *s = rvname;
 
@@ -2043,7 +2043,7 @@ _alsa_pcm_open(_driver_t *handle, int m)
       }
    }
 
-   if (!strcmp(handle->devname, "default"))
+   if (!strcmp(handle->devname, DEFAULT_DEVNAME))
    {
       free(handle->devname);
       handle->devname = _aax_strdup(name);
@@ -2431,7 +2431,7 @@ detect_devnum(_driver_t *handle, int m)
                   if (!found && !STRCMP(name, "front:"))
                   {
                      _sys_free(name);
-                     if (!strcasecmp(devname, "default"))
+                     if (!strcasecmp(devname, DEFAULT_DEVNAME))
                      {
                         devnum = ctr;
                         found = 1;

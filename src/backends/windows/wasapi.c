@@ -55,7 +55,7 @@
 #define DEFAULT_PERIODS		2
 #define MAX_ID_STRLEN		64
 #define DEFAULT_RENDERER	"WASAPI"
-#define DEFAULT_DEVNAME		NULL
+#define DEFAULT_DEVNAME		"default"
 #define CBSIZE		(sizeof(WAVEFORMATEXTENSIBLE)-sizeof(WAVEFORMATEX))
 
 #define _AAX_DRVLOG(p)		_aaxWASAPIDriverLog(id, 0, p, __func__)
@@ -221,8 +221,6 @@ enum _aaxFlags
    DRIVER_CONNECTED_MASK = 0x4000,
    DRIVER_REINIT_MASK    = 0x8000
 };
-
-const char* _wasapi_default_name = DEFAULT_DEVNAME;
 
 #if USE_EVENT_SESSION
 static struct IAudioSessionEventsVtbl _aaxAudioSessionEvents;
@@ -415,7 +413,7 @@ _aaxWASAPIDriverConnect(void *config, const void *id, xmlId *xid, const char *re
             s = xmlAttributeGetString(xid, "name");
             if (s)
             {
-               if (strcasecmp(s, "default"))  {
+               if (strcasecmp(s, DEFAULT_DEVNAME))  {
                   handle->devname = charToWChar(_aaxNametoMMDevciceName(s));
                } else {
                   handle->devname = NULL;
@@ -510,7 +508,7 @@ _aaxWASAPIDriverConnect(void *config, const void *id, xmlId *xid, const char *re
 
       if (SUCCEEDED(hr))
       {
-         if (renderer && strcasecmp(renderer, "default")) {
+         if (renderer && strcasecmp(renderer, DEFAULT_DEVNAME)) {
             handle->devname = charToWChar(_aaxNametoMMDevciceName(renderer));
          }
 

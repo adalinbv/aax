@@ -39,6 +39,7 @@
 #define NO_SAMPLES		512
 #define MAX_ID_STRLEN		64
 #define DEFAULT_RENDERER	"SLES"
+#define DEFAULT_DEVNAME		"default"
 #define	DEFAULT_INPUT_ID	SL_DEFAULTDEVICEID_AUDIOINPUT
 #define DEFAULT_OUTPUT_ID	SL_DEFAULTDEVICEID_AUDIOOUTPUT
 
@@ -245,7 +246,7 @@ _aaxSLESDriverConnect(void *config, const void *id, void *xid, const char *rende
             s = xmlAttributeGetString(xid, "name");
             if (s)
             {
-               if (strcasecmp(s, "default")) {
+               if (strcasecmp(s, DEFAULT_DEVNAME)) {
                   handle->name = _aax_strdup(s);
                }
                xmlFree(s);

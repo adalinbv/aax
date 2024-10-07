@@ -486,7 +486,7 @@ _aaxPulseAudioDriverConnect(void *config, const void *id, xmlId *xid, const char
             s = xmlAttributeGetString(xid, "name");
             if (s)
             {
-               if (strcasecmp(s, "default")) {
+               if (strcasecmp(s, DEFAULT_DEVNAME)) {
                   handle->driver = _aax_strdup(s);
                }
                xmlFree(s);

@@ -38,7 +38,7 @@
 #define MAX_ID_STRLEN		32
 
 #define DEFAULT_OUTPUT_RATE	48000
-#define DEFAULT_DEVNAME		"Default"
+#define DEFAULT_DEVNAME		"default"
 #define DEFAULT_RENDERER	"CoreAudio"
 
 #define _AAX_DRVLOG(a)		_aaxCoreAudioDriverLog(NULL, 0, 0, a)
@@ -204,7 +204,7 @@ _aaxCoreAudioDriverConnect(void *config, const void *id, void *xid, const char *
             s = xmlAttributeGetString(xid, "name");
             if (s)
             {
-               if (strcasecmp(s, "default")) {
+               if (strcasecmp(s, DEFAULT_DEVNAME)) {
                   handle->name = _aax_strdup(s);
                }
                xmlFree(s);
