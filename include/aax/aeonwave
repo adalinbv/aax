@@ -1118,17 +1118,19 @@ public:
         return aaxDriverGetSetup(_ec, AAX_NAME_STRING);
     }
     const char* devices(bool c_str=false) {
-        _e[2] = 0; _ed = c_str ? 0 : (_e[1] ? 0 : "");
+        _e[2] = 0; _ed = nullptr;
         if (_e[1]++ < aaxDriverGetDeviceCount(_ec, _em)) {
             _ed = aaxDriverGetDeviceNameByPos(_ec, _e[1]-1, _em);
         }
+        if (!c_str && !_ed) _ed = "";
         return _ed;
     }
     const char* interfaces(bool c_str=false) {
-        const char *ifs = c_str ? 0 : (_e[2] ? 0 : "");
+        const char *ifs = nullptr;
         if (_e[2]++ < aaxDriverGetInterfaceCount(_ec, _ed, _em)) {
             ifs = aaxDriverGetInterfaceNameByPos(_ec, _ed, _e[2]-1, _em);
         }
+        if (!c_str && ifs) ifs = "";
         return ifs;
     }
 
