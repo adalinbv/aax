@@ -198,9 +198,9 @@ typedef struct
 } _driver_t;
 
 DECL_STATIC_FUNCTION(ioctl);
+DECL_STATIC_FUNCTION(poll);
 DECL_FUNCTION(mmap);
 DECL_FUNCTION(munmap);
-DECL_FUNCTION(poll);
 
 static int detect_cardnum(const char*);
 static int detect_pcm(_driver_t*, char);
@@ -211,8 +211,7 @@ static void _set_min(struct snd_pcm_hw_params*, int, unsigned int);
 static unsigned int _get_int(struct snd_pcm_hw_params*, int);
 static unsigned int _set_int(struct snd_pcm_hw_params*, int, unsigned int);
 static unsigned int _get_minmax(struct snd_pcm_hw_params*, int, unsigned int, unsigned int*, unsigned int*);
-static float _kernel_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, snd_pcm_sframes_t, unsigned int, float);
-static int _kernel_get_volume(_driver_t*);
+static void _kernel_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, snd_pcm_sframes_t, unsigned int, float);
 
 
 static const char *_const_kernel_default_pcm = DEFAULT_PCM_NAME;
@@ -544,7 +543,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
       unsigned int tracks, rate, bits, periods, format;
       struct snd_pcm_hw_params hwparams;
       struct snd_pcm_sw_params swparams;
-      int err, fd = handle->fd;
+      int res, fd = handle->fd;
  
       rate = (unsigned int)*speed;
       tracks = *channels;
@@ -572,8 +571,8 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
           hwparams.flags |= SNDRV_PCM_HW_PARAMS_NO_PERIOD_WAKEUP;
       }
 
-      err = pioctl(fd, SNDRV_PCM_IOCTL_HW_REFINE, &hwparams);
-      if (err >= 0)
+      res = pioctl(fd, SNDRV_PCM_IOCTL_HW_REFINE, &hwparams);
+      if (res >= 0)
       {
          unsigned int min, max;
 
@@ -642,8 +641,8 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
                               SND_PCM_ACCESS_RW_INTERLEAVED);
       }
 
-      err = pioctl(handle->fd, SNDRV_PCM_IOCTL_HW_PARAMS, &hwparams);
-      if (err >= 0)
+      res = pioctl(handle->fd, SNDRV_PCM_IOCTL_HW_PARAMS, &hwparams);
+      if (res >= 0)
       {
          if (hwparams.info & SNDRV_PCM_INFO_PAUSE) {
             handle->can_pause = true;
@@ -667,8 +666,8 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
             swparams.start_threshold = period_frames*(periods-1);
             swparams.stop_threshold = periods*period_frames;
          }
-         err = pioctl(handle->fd, SNDRV_PCM_IOCTL_SW_PARAMS, &swparams);
-         if (err >= 0)
+         res = pioctl(handle->fd, SNDRV_PCM_IOCTL_SW_PARAMS, &swparams);
+         if (res >= 0)
          {
             int page_size = _get_pagesize();
             handle->status = pmmap(NULL, page_size, PROT_READ,
@@ -704,7 +703,6 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (handle->status)
             {
                handle->control->avail_min = 1;
-               _kernel_get_volume(handle);
 
                rate = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_RATE);
                tracks = _get_int(&hwparams, SNDRV_PCM_HW_PARAM_CHANNELS);
@@ -762,11 +760,11 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
                         _aaxRingBufferFree(rb);
                      }
 
-                     err = pioctl(handle->fd, SNDRV_PCM_IOCTL_DELAY, &delay);
-                     if (err >= 0) {
+                     res = pioctl(handle->fd, SNDRV_PCM_IOCTL_DELAY, &delay);
+                     if (res >= 0) {
                         handle->latency = (float)delay/(float)rate;
                      }
-                     err = 0;
+                     res = 0;
                   }
                }
                else
@@ -785,15 +783,14 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
                if (handle->render)
                {
                   const char *rstr = handle->render->info(handle->render->id);
+                  char *os_name = "";
 #if HAVE_SYS_UTSNAME_H
                   struct utsname utsname;
                   uname(&utsname);
-                  snprintf(_kernel_id_str, MAX_ID_STRLEN, "%s %s %s",
-                                       DEFAULT_RENDERER, utsname.release, rstr);
-#else
-                  snprintf(_kernel_id_str, MAX_ID_STRLEN, "%s %s",
-                                            DEFAULT_RENDERER, rstr);
+                  os_name = utsname.sysname;
 #endif
+                  snprintf(_kernel_id_str, MAX_ID_STRLEN, "%s %s %s",
+                                       DEFAULT_RENDERER, os_name, rstr);
                   rv = true;
                }
                else {
@@ -971,16 +968,7 @@ if (corr)
       if (ret >= 0)
       {
          *req_frames = _MAX(offs, 0);
-         gain = _kernel_set_volume(handle, NULL, init_offs, offs, tracks, gain);
-         if (gain > LEVEL_96DB && fabsf(gain-1.0f) > LEVEL_96DB)
-         {
-            unsigned int i;
-            for (i=0; i<tracks; i++)
-            {
-               int32_t *ptr = (int32_t*)sbuf[i]+init_offs;
-               _batch_imul_value(ptr, ptr, sizeof(int32_t), offs, gain);
-            }
-         }
+         _kernel_set_volume(handle, NULL, init_offs, offs, tracks, gain);
          rv = true;
       }
    }
@@ -1401,18 +1389,10 @@ _aaxLinuxDriverLog(const void *id, UNUSED(int prio), UNUSED(int type), const cha
    return (char*)&_errstr;
 }
 
-static int
-_kernel_get_volume(UNUSED(_driver_t *handle))
-{
-   int rv = 0;
-   return rv;
-}
-
-static float
+static void
 _kernel_set_volume(UNUSED(_driver_t *handle), _aaxRingBuffer *rb, ssize_t offset, snd_pcm_sframes_t period_frames, UNUSED(unsigned int no_tracks), float volume)
 {
    float gain = fabsf(volume);
-   float rv = 0;
 
 // TODO: hardware volume if available
 
@@ -1420,8 +1400,6 @@ _kernel_set_volume(UNUSED(_driver_t *handle), _aaxRingBuffer *rb, ssize_t offset
    if (rb && fabsf(gain - 1.0f) > LEVEL_32DB) {
       rb->data_multiply(rb, offset, period_frames, gain);
    }
-
-   return rv;
 }
 
 

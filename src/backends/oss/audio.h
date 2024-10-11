@@ -18,6 +18,48 @@ extern "C" {
 #include "config.h"
 #endif
 
+#include <fcntl.h>              /* SEEK_*, O_* */
+#if HAVE_IOCTL_H
+# include <sys/ioctl.h>
+#endif
+
+#ifdef __USE_GNU
+# undef __USE_GNU
+#endif
+#ifdef HAVE_POLL_H
+# include <poll.h>
+#elif HAVE_WINSOCK2_H
+# ifndef POLLRDNORM
+#  define POLLRDNORM    0x0100
+# endif
+# ifndef POLLRDBAND
+#  define POLLRDBAND    0x0200
+# endif
+# ifndef POLLIN
+#  define POLLIN        (POLLRDNORM|POLLRDBAND)
+# endif
+# ifndef POLLWRNORM
+#  define POLLWRNORM    0x0010
+# endif
+# ifndef POLLOUT
+#  define POLLOUT       (POLLWRNORM)
+# endif
+# ifndef POLLERR
+#  define POLLERR       0x0001
+# endif
+# ifndef POLLNVAL
+#  define POLLNVAL      0x0004
+# endif
+# ifndef _IOC
+#  define _IOC(inout,group,num,len) \
+              (inout | ((len & IOCPARM_MASK) << 16) | ((group) << 8) | (num))
+# endif
+# ifndef _IOWR
+#  define _IOWR(g,n,t)  _IOC(IOC_IN | IOC_OUT,  (g), (n), sizeof(t))
+# endif
+typedef int nfds_t;
+#endif
+
 typedef struct oss_sysinfo
 {
    char product[32];
@@ -184,6 +226,7 @@ typedef struct oss_card_info
 
 #define OSS_GETVERSION			0x80044d76
 #define SNDCTL_DSP_GETOSPACE		0x8010500c
+#define SNDCTL_DSP_GETISPACE		0x8010500d
 #define SNDCTL_DSP_GETODELAY		0x80045017
 #define SNDCTL_DSP_GETERROR		0x80685019
 
@@ -203,6 +246,7 @@ typedef struct oss_card_info
 typedef char oss_label_t[OSS_LABEL_SIZE];
 
 typedef int (*ioctl_proc)(int, int, void*);
+typedef int (*poll_proc)(struct pollfd[], nfds_t, int);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

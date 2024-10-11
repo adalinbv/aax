@@ -5,7 +5,8 @@ set(OSS_HEADERS
 )
 
 set(OSS_SOURCES
-  device.c
+  oss3.c
+  oss4.c
 )
 
 set(SOURCES "")

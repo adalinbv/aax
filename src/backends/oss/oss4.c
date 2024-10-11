@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2005-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2005-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2009-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -58,33 +58,33 @@
 #define DEFAULT_DEVNUM		0
 #define	DEFAULT_NAME		"/dev/dsp0"
 #define DEFAULT_MIXER		"/dev/mixer0"
-#define DEFAULT_RENDERER	"OSS"
+#define DEFAULT_RENDERER	"OSS4"
 #define DEFAULT_DEVNAME		"default"
 #define OSS_VERSION_4		0x040002
 #define MAX_ID_STRLEN		80
 
-#define _AAX_DRVLOG(a)         _aaxOSSDriverLog(id, 0, 0, a)
+#define _AAX_DRVLOG(a)         _aaxOSS4DriverLog(id, 0, 0, a)
 #define HW_VOLUME_SUPPORT(a)	((a->mixfd >= 0) && a->volumeMax)
 
-static _aaxDriverDetect _aaxOSSDriverDetect;
-static _aaxDriverNewHandle _aaxOSSDriverNewHandle;
-static _aaxDriverFreeHandle _aaxOSSDriverFreeHandle;
-static _aaxDriverGetDevices _aaxOSSDriverGetDevices;
-static _aaxDriverGetInterfaces _aaxOSSDriverGetInterfaces;
-static _aaxDriverConnect _aaxOSSDriverConnect;
-static _aaxDriverDisconnect _aaxOSSDriverDisconnect;
-static _aaxDriverSetup _aaxOSSDriverSetup;
-static _aaxDriverCaptureCallback _aaxOSSDriverCapture;
-static _aaxDriverPlaybackCallback _aaxOSSDriverPlayback;
-static _aaxDriverSetName _aaxOSSDriverSetName;
-static _aaxDriverGetName _aaxOSSDriverGetName;
-static _aaxDriverRender _aaxOSSDriverRender;
-static _aaxDriverState _aaxOSSDriverState;
-static _aaxDriverParam _aaxOSSDriverParam;
-static _aaxDriverLog _aaxOSSDriverLog;
+static _aaxDriverDetect _aaxOSS4DriverDetect;
+static _aaxDriverNewHandle _aaxOSS4DriverNewHandle;
+static _aaxDriverFreeHandle _aaxOSS4DriverFreeHandle;
+static _aaxDriverGetDevices _aaxOSS4DriverGetDevices;
+static _aaxDriverGetInterfaces _aaxOSS4DriverGetInterfaces;
+static _aaxDriverConnect _aaxOSS4DriverConnect;
+static _aaxDriverDisconnect _aaxOSS4DriverDisconnect;
+static _aaxDriverSetup _aaxOSS4DriverSetup;
+static _aaxDriverCaptureCallback _aaxOSS4DriverCapture;
+static _aaxDriverPlaybackCallback _aaxOSS4DriverPlayback;
+static _aaxDriverSetName _aaxOSS4DriverSetName;
+static _aaxDriverGetName _aaxOSS4DriverGetName;
+static _aaxDriverRender _aaxOSS4DriverRender;
+static _aaxDriverState _aaxOSS4DriverState;
+static _aaxDriverParam _aaxOSS4DriverParam;
+static _aaxDriverLog _aaxOSS4DriverLog;
 
 static char _oss_id_str[MAX_ID_STRLEN] = DEFAULT_RENDERER;
-const _aaxDriverBackend _aaxOSSDriverBackend =
+const _aaxDriverBackend _aaxOSS4DriverBackend =
 {
    AAX_VERSION_STR,
    DEFAULT_RENDERER,
@@ -94,22 +94,22 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
    (_aaxDriverRingBufferCreate *)&_aaxRingBufferCreate,
    (_aaxDriverRingBufferDestroy *)&_aaxRingBufferFree,
 
-   (_aaxDriverDetect *)&_aaxOSSDriverDetect,
-   (_aaxDriverNewHandle *)&_aaxOSSDriverNewHandle,
-   (_aaxDriverFreeHandle *)&_aaxOSSDriverFreeHandle,
-   (_aaxDriverGetDevices *)&_aaxOSSDriverGetDevices,
-   (_aaxDriverGetInterfaces *)&_aaxOSSDriverGetInterfaces,
+   (_aaxDriverDetect *)&_aaxOSS4DriverDetect,
+   (_aaxDriverNewHandle *)&_aaxOSS4DriverNewHandle,
+   (_aaxDriverFreeHandle *)&_aaxOSS4DriverFreeHandle,
+   (_aaxDriverGetDevices *)&_aaxOSS4DriverGetDevices,
+   (_aaxDriverGetInterfaces *)&_aaxOSS4DriverGetInterfaces,
 
-   (_aaxDriverSetName *)&_aaxOSSDriverSetName,
-   (_aaxDriverGetName *)&_aaxOSSDriverGetName,
-   (_aaxDriverRender *)&_aaxOSSDriverRender,
+   (_aaxDriverSetName *)&_aaxOSS4DriverSetName,
+   (_aaxDriverGetName *)&_aaxOSS4DriverGetName,
+   (_aaxDriverRender *)&_aaxOSS4DriverRender,
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
 
-   (_aaxDriverConnect *)&_aaxOSSDriverConnect,
-   (_aaxDriverDisconnect *)&_aaxOSSDriverDisconnect,
-   (_aaxDriverSetup *)&_aaxOSSDriverSetup,
-   (_aaxDriverCaptureCallback *)&_aaxOSSDriverCapture,
-   (_aaxDriverPlaybackCallback *)&_aaxOSSDriverPlayback,
+   (_aaxDriverConnect *)&_aaxOSS4DriverConnect,
+   (_aaxDriverDisconnect *)&_aaxOSS4DriverDisconnect,
+   (_aaxDriverSetup *)&_aaxOSS4DriverSetup,
+   (_aaxDriverCaptureCallback *)&_aaxOSS4DriverCapture,
+   (_aaxDriverPlaybackCallback *)&_aaxOSS4DriverPlayback,
    NULL,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
@@ -119,9 +119,9 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
 
    ( _aaxDriverGetSetSources*)_aaxSoftwareDriverGetSetSources,
 
-   (_aaxDriverState *)&_aaxOSSDriverState,
-   (_aaxDriverParam *)&_aaxOSSDriverParam,
-   (_aaxDriverLog *)&_aaxOSSDriverLog
+   (_aaxDriverState *)&_aaxOSS4DriverState,
+   (_aaxDriverParam *)&_aaxOSS4DriverParam,
+   (_aaxDriverLog *)&_aaxOSS4DriverLog
 };
 
 typedef struct
@@ -181,12 +181,12 @@ static char *_default_mixer = DEFAULT_MIXER;
 static void *audio = NULL;
 
 static int
-_aaxOSSDriverDetect(UNUSED(int mode))
+_aaxOSS4DriverDetect(UNUSED(int mode))
 {
    static int rv = false;
 
    _AAX_LOG(LOG_DEBUG, __func__);
-     
+
    if (TEST_FOR_FALSE(rv) && !audio) {
       audio = _aaxIsLibraryPresent(NULL, 0);
       if (audio) {
@@ -194,7 +194,7 @@ _aaxOSSDriverDetect(UNUSED(int mode))
       }
    }
 
-   if (audio && (get_oss_version() > 0)) {
+   if (audio && (get_oss_version() >= OSS_VERSION_4)) {
       rv = true;
    }
 
@@ -202,7 +202,7 @@ _aaxOSSDriverDetect(UNUSED(int mode))
 }
 
 static void *
-_aaxOSSDriverNewHandle(enum aaxRenderMode mode)
+_aaxOSS4DriverNewHandle(enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)calloc(1, sizeof(_driver_t));
 
@@ -226,7 +226,7 @@ _aaxOSSDriverNewHandle(enum aaxRenderMode mode)
 }
 
 static int
-_aaxOSSDriverFreeHandle(UNUSED(void *id))
+_aaxOSS4DriverFreeHandle(UNUSED(void *id))
 {
    _aaxCloseLibrary(audio);
    audio = NULL;
@@ -235,7 +235,7 @@ _aaxOSSDriverFreeHandle(UNUSED(void *id))
 }
 
 static void *
-_aaxOSSDriverConnect(void *config, const void *id, xmlId *xid, const char *renderer, enum aaxRenderMode mode)
+_aaxOSS4DriverConnect(void *config, const void *id, xmlId *xid, const char *renderer, enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
 
@@ -244,7 +244,7 @@ _aaxOSSDriverConnect(void *config, const void *id, xmlId *xid, const char *rende
    assert(mode < AAX_MODE_WRITE_MAX);
 
    if (!handle) {
-      id = handle = _aaxOSSDriverNewHandle(mode);
+      id = handle = _aaxOSS4DriverNewHandle(mode);
    }
 
    if (handle)
@@ -382,7 +382,7 @@ _aaxOSSDriverConnect(void *config, const void *id, xmlId *xid, const char *rende
 }
 
 static int
-_aaxOSSDriverDisconnect(void *id)
+_aaxOSS4DriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
    int rv = false;
@@ -401,6 +401,7 @@ _aaxOSSDriverDisconnect(void *id)
             free(handle->devnode);
          }
          handle->devnode = 0;
+printf("D: handle->devnode: %s\n", handle->devnode);
       }
 
       if (handle->mixfd >= 0)
@@ -426,7 +427,7 @@ _aaxOSSDriverDisconnect(void *id)
 }
 
 static int
-_aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
+_aaxOSS4DriverSetup(const void *id, float *refresh_rate, int *fmt,
                    unsigned int *tracks, float *speed, UNUSED(int *bitrate),
                    int registered, float period_rate)
 {
@@ -565,7 +566,7 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
       uname(&utsname);
       os_name = utsname.sysname;
 #endif
-      snprintf(_oss_id_str, MAX_ID_STRLEN ,"%s %2x.%2x.%2x %s %s",
+      snprintf(_oss_id_str, MAX_ID_STRLEN ,"%s %x.%x.%x %s %s",
                 DEFAULT_RENDERER, (version>>16), (version>>8 & 0xFF),
                 (version & 0xFF), os_name, rstr);
 
@@ -576,12 +577,12 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
 
 static ssize_t
-_aaxOSSDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, UNUSED(char batched))
+_aaxOSS4DriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, UNUSED(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs = *offset;
    ssize_t rv = false;
- 
+
    assert(handle->mode == O_RDONLY);
 
    *offset = 0;
@@ -620,7 +621,7 @@ _aaxOSSDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
 }
 
 static size_t
-_aaxOSSDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
+_aaxOSS4DriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
                       UNUSED(char batched))
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
@@ -653,7 +654,7 @@ _aaxOSSDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
       }
    }
 
-   if (handle->mode == 0)
+   if (handle->mode == AAX_MODE_READ)
       return 0;
 
    offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
@@ -684,7 +685,7 @@ _aaxOSSDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
    }
 
    pioctl(handle->fd, SNDCTL_DSP_GETOSPACE, &info);
-   if (outbuf_size <= (unsigned int)info.fragsize)
+   if (outbuf_size <= (unsigned int)info.bytes)
    {
       res = write(handle->fd, data, outbuf_size);
       if (res == -1)
@@ -706,7 +707,7 @@ _aaxOSSDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
 }
 
 static int
-_aaxOSSDriverSetName(const void *id, int type, const char *name)
+_aaxOSS4DriverSetName(const void *id, int type, const char *name)
 {
    _driver_t *handle = (_driver_t *)id;
    int ret = false;
@@ -722,7 +723,7 @@ _aaxOSSDriverSetName(const void *id, int type, const char *name)
 }
 
 static char *
-_aaxOSSDriverGetName(const void *id, int mode)
+_aaxOSS4DriverGetName(const void *id, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;
@@ -734,14 +735,14 @@ _aaxOSSDriverGetName(const void *id, int mode)
 }
 
 _aaxRenderer*
-_aaxOSSDriverRender(const void* config)
+_aaxOSS4DriverRender(const void* config)
 {
    _driver_t *handle = (_driver_t *)config;
    return handle->render;
 }
 
 static int
-_aaxOSSDriverState(const void *id, enum _aaxDriverState state)
+_aaxOSS4DriverState(const void *id, enum _aaxDriverState state)
 {
    _driver_t *handle = (_driver_t *)id;
    int rv = false;
@@ -757,7 +758,7 @@ _aaxOSSDriverState(const void *id, enum _aaxDriverState state)
       }
       break;
    case DRIVER_RESUME:
-      if (handle) 
+      if (handle)
       {
          handle->fd = open(handle->devnode, handle->mode|handle->exclusive);
          if (handle->fd)
@@ -825,7 +826,7 @@ _aaxOSSDriverState(const void *id, enum _aaxDriverState state)
 }
 
 static float
-_aaxOSSDriverParam(const void *id, enum _aaxDriverParam param)
+_aaxOSS4DriverParam(const void *id, enum _aaxDriverParam param)
 {
    _driver_t *handle = (_driver_t *)id;
    float rv = 0.0f;
@@ -895,7 +896,7 @@ _aaxOSSDriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static char *
-_aaxOSSDriverGetDevices(const void *id, int mode)
+_aaxOSS4DriverGetDevices(const void *id, int mode)
 {
    static char names[2][1024] = { "\0\0", "\0\0" };
    static time_t t_previous[2] = { 0, 0 };
@@ -1005,7 +1006,7 @@ _aaxOSSDriverGetDevices(const void *id, int mode)
 }
 
 static char *
-_aaxOSSDriverGetInterfaces(const void *id, const char *devname, int mode)
+_aaxOSS4DriverGetInterfaces(const void *id, const char *devname, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    int m = (mode > 0) ? 1 : 0;
@@ -1093,7 +1094,7 @@ _aaxOSSDriverGetInterfaces(const void *id, const char *devname, int mode)
 }
 
 static char *
-_aaxOSSDriverLog(const void *id, UNUSED(int prio), UNUSED(int type), const char *str)
+_aaxOSS4DriverLog(const void *id, UNUSED(int prio), UNUSED(int type), const char *str)
 {
    _driver_t *handle = (_driver_t *)id;
    static char _errstr[256] = "\0";
@@ -1257,8 +1258,8 @@ get_oss_version()
 
    if (version < 0)
    {
-      int fd = open(_const_oss_default_name, O_WRONLY);  /* open /dev/dsp */
-      if (fd < 0)                          /* test for /dev/dsp0 instead */
+      int fd = open(_const_oss_default_name, O_WRONLY);  /* open /dev/dsp0 */
+      if (fd < 0)                          /* test for /dev/dsp instead */
       {
          char *name = _aax_strdup(_const_oss_default_name);
 
@@ -1308,6 +1309,7 @@ detect_devnode(_driver_t *handle, UNUSED(char mode))
          if (err >= 0)
          {
             handle->devnode = _aax_strdup(ainfo.devnode);
+printf("A: handle->devnode: %s\n", handle->devnode);
             rv = true;
          }
       }
@@ -1320,13 +1322,32 @@ detect_devnode(_driver_t *handle, UNUSED(char mode))
       {
          snprintf(name, len, "/dev/dsp%i", handle->nodenum);
          handle->devnode = name;
+printf("B: handle->devnode: %s\n", handle->devnode);
          rv = true;
       }
    }
    else
    {
+      struct stat buffer;
+
       handle->devnode = (char*)_const_oss_default_name;
-      rv = true;
+      if (stat(handle->devnode, &buffer) != 0)
+      {
+         char *name = _aax_strdup(_const_oss_default_name);
+         *(name+strlen(name)-1) = '\0';
+         if (stat(name, &buffer) != 0) {
+            free(name);
+         }
+         else
+         {
+            handle->devnode = name;
+            rv = true;
+         }
+      }
+      else {
+         rv = true;
+      }
+printf("C: handle->devnode: %s\n", handle->devnode);
    }
 
    return rv;
