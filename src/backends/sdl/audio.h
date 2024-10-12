@@ -87,8 +87,8 @@ typedef void (*SDL_ClearError_proc)(void);
 typedef int (*SDL_GetNumAudioDevices_proc)(int);
 typedef const char* (*SDL_GetAudioDeviceName_proc)(int, int);
 
-typedef int (*SDL_Init_proc)(uint32_t);
-typedef void (*SDL_Quit_proc)(void);
+typedef int (*SDL_InitSubSystem_proc)(uint32_t);
+typedef void (*SDL_QuitSubSystem_proc)(uint32_t);
 typedef int (*SDL_AudioInit_proc)(const char*);
 typedef void (*SDL_AudioQuit_proc)(void);
 
