@@ -169,8 +169,8 @@ DECL_FUNCTION(SDL_GetNumAudioDrivers);
 DECL_FUNCTION(SDL_GetAudioDriver);
 DECL_FUNCTION(SDL_GetNumAudioDevices);
 DECL_FUNCTION(SDL_GetAudioDeviceName);
-DECL_FUNCTION(SDL_Init);
-DECL_FUNCTION(SDL_Quit);
+DECL_FUNCTION(SDL_InitSubSystem);
+DECL_FUNCTION(SDL_QuitSubSystem);
 DECL_FUNCTION(SDL_AudioInit);
 DECL_FUNCTION(SDL_AudioQuit);
 DECL_FUNCTION(SDL_OpenAudioDevice);
@@ -191,6 +191,7 @@ const char *_const_sdl_default_driver = DEFAULT_DEVNAME;
 const char *_const_sdl_default_device = NULL;
 
 static void *audio = NULL;
+static int initialized = 0;
 
 static int
 _aaxSDLDriverDetect(UNUSED(int mode))
@@ -212,10 +213,10 @@ _aaxSDLDriverDetect(UNUSED(int mode))
 
       _aaxGetSymError(0);
 
-      TIE_FUNCTION(SDL_Init);
-      if (pSDL_Init)
+      TIE_FUNCTION(SDL_InitSubSystem);
+      if (pSDL_InitSubSystem)
       {
-         TIE_FUNCTION(SDL_Quit);
+         TIE_FUNCTION(SDL_QuitSubSystem);
          TIE_FUNCTION(SDL_GetVersion);
          TIE_FUNCTION(SDL_GetNumAudioDrivers);
          TIE_FUNCTION(SDL_GetAudioDriver);
@@ -280,7 +281,9 @@ _aaxSDLDriverNewHandle(enum aaxRenderMode mode)
          handle->mutex = _aaxMutexCreate(handle->mutex);
       }
 
-      pSDL_Init(SDL_INIT_AUDIO);
+      if (_aaxAtomicIntAdd(&initialized, 1) == 0) {
+         pSDL_InitSubSystem(SDL_INIT_AUDIO);
+      }
    }
 
    return handle;
@@ -397,7 +400,7 @@ _aaxSDLDriverConnect(void *config, const void *id, xmlId *xid, const char *rende
       SDL_AudioSpec req, avail;
       uint32_t device;
 
-      memcpy(&req, &handle->spec, sizeof(SDL_AudioSpec));
+      req = handle->spec;
       device = pSDL_OpenAudioDevice(handle->devname, m, &req, &handle->spec,
               SDL_AUDIO_ALLOW_FREQUENCY_CHANGE|SDL_AUDIO_ALLOW_CHANNELS_CHANGE);
       if (device != 0)
@@ -464,10 +467,14 @@ _aaxSDLDriverDisconnect(void *id)
 
       ifname = handle->ifname[(handle->mode == AAX_MODE_READ) ? 1 : 0];
       if (ifname) free(ifname);
-      free(handle);
 
-      pSDL_AudioQuit();
-      pSDL_Quit();
+      _aaxAtomicIntSub(&initialized, 1);
+      if (initialized == 0)
+      {
+         pSDL_AudioQuit();
+         pSDL_QuitSubSystem(SDL_INIT_AUDIO);
+      }
+      free(handle);
 
       rv = true;
    }
@@ -492,8 +499,7 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
       SDL_AudioSpec req;
       int frame_sz;
 
-      memcpy(&req, &handle->spec, sizeof(SDL_AudioSpec));
-
+      req = handle->spec;
       req.freq = (unsigned int)*speed;
       req.channels = *tracks;
       if (req.channels > handle->spec.channels) {
@@ -879,19 +885,18 @@ _aaxSDLDriverGetDevices(UNUSED(const void *id), int mode)
 
          if (!show_all)
          {
-            // We already provide a file and none backend
+            // We already provide a file and none backend ourselves
             if (!strcmp(driver, "disk") || !strcmp(driver, "dummy")) continue;
-
-            // We already provide the pipewire backend
+            // We already provide the pipewire backend ourselves
             if (!strcmp(driver, "pipewire")) continue;
-            // We already provide the pulseaudio backend
+            // We already provide the pulseaudio backend ourselves
             if (!strcmp(driver, "pulseaudio")) continue;
-            // We already provide the alsa backend
+            // We already provide the alsa backend ourselves
             if (!strcmp(driver, "alsa")) continue;
-            // We already provide the oss backend
+            // We already provide the oss backend ourselves
             if (!strcmp(driver, "dsp") || !strcmp(driver, "dma")) continue;
 
-            // We already provide the windows backend
+            // We already provide the windows backend ourselves
             if (!strcmp(driver, "directsound") || !strcmp(driver, "winmm")) {
 #if defined(WIN32)
               // for XP use the directsound SDL fallback
