@@ -128,12 +128,10 @@ typedef struct _aaxMutex
    mtx_t mutex;
 #endif
 
-#ifndef NDEBUGTHREADS
    const char *name;
    const char *function;
    const char *last_file;
    size_t last_line;
-#endif
 } _aaxMutex;
 
 #ifndef NDEBUGTHREADS
