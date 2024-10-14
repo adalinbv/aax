@@ -14,8 +14,9 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <assert.h>
-#include <error.h>
-
+#if HAVE_ERROR_H
+# include <error.h>
+#endif
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>		/* read, write, close, lseek, access */
 #endif
@@ -121,13 +122,14 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
       int slen = strlen(remote);
       if (slen < 256)
       {
-         struct hostent *host;
-
          errno = 0;
          fd = socket(AF_INET, SOCK_STREAM, 0);
          if (fd >= 0)
          {
+            struct addrinfo *addr, hints = {0};
             struct timeval tv;
+            char port_str[16];
+            int status;
             int on = 1;
 
             tv.tv_sec = timeout_us / 1000000;
@@ -150,25 +152,14 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
  printf("socket receive buffer size: %u\n", n);
 #endif
 
-            host = gethostbyname(remote);
-            if (host)
+            hints.ai_family = AF_UNSPEC;     // don't care IPv4 or IPv6
+            hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
+            hints.ai_flags = AI_PASSIVE;
+            snprintf(port_str, 16, "%i", port);
+            status = getaddrinfo(remote, port_str, &hints, &addr);
+            if (status == 0)
             {
-               struct sockaddr_in dest_addr;
-
-               dest_addr.sin_family = AF_INET;
-               dest_addr.sin_port = htons(port);
-               dest_addr.sin_addr.s_addr = *(long*)(host->h_addr);
-               memset(&(dest_addr.sin_zero), '\0', 8);
-
-#if 0
-{
- char buffer[INET_ADDRSTRLEN];
- inet_ntop( AF_INET, &dest_addr.sin_addr, buffer, sizeof( buffer ));
- printf( "address:%s\n", buffer );
-}
-#endif
-               if (connect(fd, (struct sockaddr*)&dest_addr,
-                               sizeof(struct sockaddr)) >= 0)
+               if (connect(fd, addr->ai_addr, addr->ai_addrlen) >= 0)
                {
                   io->fds.fd = fd;
 
@@ -222,6 +213,7 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
             }
             else
             {
+               errno = status;
                closesocket(fd);
                fd = -1;
             }
