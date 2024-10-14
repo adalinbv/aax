@@ -193,7 +193,7 @@ DECL_STATIC_FUNCTION(poll);
 
 static int _oss3_open(_driver_t*);
 static int _oss3_get_version(void);
-static float _oss3_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, size_t, unsigned int, float);
+static void _oss3_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, size_t, unsigned int, float);
 
 static const char *_const_oss3_default_pcm = DEFAULT_PCM_NAME;
 static const char *_const_oss3_default_mixer = DEFAULT_MIXER_NAME;
@@ -674,16 +674,8 @@ if (corr)
             _batch_cvt24_16_intl(sbuf, scratch, offs, tracks, res);
 
             *req_frames = _MAX(offs, 0);
-            gain = _oss3_set_volume(handle, NULL, init_offs, offs, tracks, gain);
-            if (gain > LEVEL_96DB && fabsf(gain-1.0f) > LEVEL_96DB)
-            {
-               unsigned int i;
-               for (i=0; i<tracks; i++)
-               {
-                  int32_t *ptr = (int32_t*)sbuf[i]+init_offs;
-                  _batch_imul_value(ptr, ptr, sizeof(int32_t), offs, gain);
-               }
-            }
+            _oss3_set_volume(handle, NULL, init_offs, offs, tracks, gain);
+
             rv = true;
          }
          else {
@@ -986,18 +978,15 @@ _aaxOSS3DriverLog(const void *id, UNUSED(int prio), UNUSED(int type), const char
    return (char*)&_errstr;
 }
 
-static float
+static void
 _oss3_set_volume(UNUSED(_driver_t *handle), _aaxRingBuffer *rb, ssize_t offset, size_t period_frames, UNUSED(unsigned int no_tracks), float volume)
 {
    float gain = fabsf(volume);
-   float rv = 0;
 
    /* software volume fallback */
    if (rb && fabsf(gain - 1.0f) > LEVEL_32DB) {
       rb->data_multiply(rb, offset, period_frames, gain);
    }
-
-   return rv;
 }
 
 
