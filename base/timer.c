@@ -296,7 +296,7 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
  * dt_ms == 0 is a special case which make the time-slice available for other
  * waiting processes
  */
-#include <poll.h>
+#include "xpoll.h"
 int msecSleep(unsigned int dt_ms)
 {
    struct timeval delay;

@@ -7,58 +7,10 @@
  * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only
  */
 
-#ifndef __OSS_AUDIO_H
-#define __OSS_AUDIO_H 1
-
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif
+#pragma once
 
 #include <fcntl.h>              /* SEEK_*, O_* */
-#if HAVE_IOCTL_H
-# include <sys/ioctl.h>
-#endif
-
-#ifdef __USE_GNU
-# undef __USE_GNU
-#endif
-#ifdef HAVE_POLL_H
-# include <poll.h>
-#elif HAVE_WINSOCK2_H
-# ifndef POLLRDNORM
-#  define POLLRDNORM    0x0100
-# endif
-# ifndef POLLRDBAND
-#  define POLLRDBAND    0x0200
-# endif
-# ifndef POLLIN
-#  define POLLIN        (POLLRDNORM|POLLRDBAND)
-# endif
-# ifndef POLLWRNORM
-#  define POLLWRNORM    0x0010
-# endif
-# ifndef POLLOUT
-#  define POLLOUT       (POLLWRNORM)
-# endif
-# ifndef POLLERR
-#  define POLLERR       0x0001
-# endif
-# ifndef POLLNVAL
-#  define POLLNVAL      0x0004
-# endif
-# ifndef _IOC
-#  define _IOC(inout,group,num,len) \
-              (inout | ((len & IOCPARM_MASK) << 16) | ((group) << 8) | (num))
-# endif
-# ifndef _IOWR
-#  define _IOWR(g,n,t)  _IOC(IOC_IN | IOC_OUT,  (g), (n), sizeof(t))
-# endif
-typedef int nfds_t;
-#endif
+#include <base/xpoll.h>
 
 typedef struct oss_sysinfo
 {
@@ -247,10 +199,3 @@ typedef char oss_label_t[OSS_LABEL_SIZE];
 
 typedef int (*ioctl_proc)(int, int, void*);
 typedef int (*poll_proc)(struct pollfd[], nfds_t, int);
-
-#if defined(__cplusplus)
-}  /* extern "C" */
-#endif
-
-#endif /* __OSS_AUDIO_H */
-

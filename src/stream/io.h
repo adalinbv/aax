@@ -7,29 +7,9 @@
  * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only
  */
 
-#ifndef _AAX_IO_H
-#define _AAX_IO_H 1
+#pragma once
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#ifdef HAVE_POLL_H
-#include <poll.h>
-#elif HAVE_WINDOWS_H
-#else
-#define POLLIN	0
-struct pollfd {
-   int fd;
-   short events;
-   short revents;
-};
-#endif
-
+#include <base/xpoll.h>
 #include "protocol.h"
 
 typedef enum {
@@ -141,11 +121,3 @@ typedef const char* (*SSL_CIPHER_get_name_proc)(const void*);
 typedef const void* (*SSL_get_current_cipher_proc)(const void*);
 typedef int (*SSL_get_error_proc)(const void*, int);
 typedef void* (*TLS_client_method_proc)(void);
-
-
-#if defined(__cplusplus)
-}  /* extern "C" */
-#endif
-
-#endif /* !_AAX_IO_H */
-

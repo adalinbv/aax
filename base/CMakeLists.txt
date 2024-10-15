@@ -8,6 +8,7 @@ set(BASE_HEADERS
   logging.h
   memory.h
   xthreads.h
+  xpoll.h
   timer.h
   types.h
   random.h

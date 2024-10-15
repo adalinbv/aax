@@ -11,9 +11,7 @@
 #define _ALSA_KERNEL_H 1
 
 #include <fcntl.h>		/* SEEK_*, O_* */
-#if HAVE_IOCTL_H
-# include <sys/ioctl.h>
-#endif
+#include <base/xpoll.h>
 
 # ifndef __force
 #  define __force
@@ -40,43 +38,6 @@ void *mmap(void *addr, size_t len, int prot, int flags, int fildes, off_t off);
 int munmap(void *addr, size_t len);
 #else
 # include <sys/mman.h>
-#endif
-
-#ifdef __USE_GNU
-# undef __USE_GNU
-#endif
-#ifdef HAVE_POLL_H
-# include <poll.h>
-#elif HAVE_WINSOCK2_H
-# ifndef POLLRDNORM
-#  define POLLRDNORM	0x0100
-# endif
-# ifndef POLLRDBAND
-#  define POLLRDBAND	0x0200
-# endif
-# ifndef POLLIN
-#  define POLLIN	(POLLRDNORM|POLLRDBAND)
-# endif
-# ifndef POLLWRNORM
-#  define POLLWRNORM	0x0010
-# endif
-# ifndef POLLOUT
-#  define POLLOUT	(POLLWRNORM)
-# endif
-# ifndef POLLERR
-#  define POLLERR	0x0001
-# endif
-# ifndef POLLNVAL
-#  define POLLNVAL	0x0004
-# endif
-# ifndef _IOC
-#  define _IOC(inout,group,num,len) \
-              (inout | ((len & IOCPARM_MASK) << 16) | ((group) << 8) | (num))
-# endif
-# ifndef _IOWR
-#  define _IOWR(g,n,t)	_IOC(IOC_IN | IOC_OUT,  (g), (n), sizeof(t))
-# endif
-typedef int nfds_t;
 #endif
 
 #include "alsa.h"
