@@ -876,8 +876,8 @@ _aaxSoftwareMixerThread(void* config)
 unsigned int
 _aaxSoftwareDriverGetSetSources(unsigned int max, int num)
 {
-   static unsigned int _max_sources = _AAX_MAX_SOURCES_AVAIL;
-   static unsigned int _sources = _AAX_MAX_SOURCES_AVAIL;
+   static int _max_sources = _AAX_MAX_SOURCES_AVAIL;
+   static int _sources = _AAX_MAX_SOURCES_AVAIL;
    unsigned int abs_num = abs(num);
    unsigned int ret = _sources;
 

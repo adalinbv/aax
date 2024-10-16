@@ -8,15 +8,7 @@
  */
 #pragma once
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
 #define NDEBUGTHREADS
-
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #if HAVE_TIME_H
 #include <time.h>
@@ -46,9 +38,14 @@ int _aaxProcessSetPriority(int);
 # define _aaxAtomicIntIncrement(a)	(_aaxAtomicIntAdd((a),1)+1)
 # define _aaxAtomicIntDecrement(a)	(_aaxAtomicIntAdd((a),-1)-1)
 # define _aaxAtomicIntSub(a,b)		(_aaxAtomicIntAdd((a),-(b)))
-# define _aaxAtomicIntAdd(a,b)		atomic_fetch_add((a),(b))
-# define _aaxAtomicIntSet(a,b)		(_aaxAtomicPointerSwap(a,b))
-# define _aaxAtomicPointerSwap(a,b)	atomic_exchange((a),(b))
+# define _aaxAtomicIntSet(a,b)		_aaxAtomicPointerSwap((a),(b))
+#if defined(__FreeBSD__)
+#  define _aaxAtomicIntAdd(a,b)		__sync_fetch_and_add((a),(b))
+#  define _aaxAtomicPointerSwap(a,b)	__sync_lock_test_and_set((a),(b))
+# else
+#  define _aaxAtomicIntAdd(a,b)		atomic_fetch_add((a),(b))
+#  define _aaxAtomicPointerSwap(a,b)	atomic_exchange((a),(b))
+# endif
 
 #if HAVE_PTHREAD_H
 # include <pthread.h>			/* UNIX */
@@ -184,8 +181,3 @@ int _aaxSemaphoreWaitDebug(_aaxSemaphore*, char *, int);
 #endif
 int _aaxSemaphoreWaitNoTimeout(_aaxSemaphore*);
 int _aaxSemaphoreRelease(_aaxSemaphore*);
-
-#if defined(__cplusplus)
-}  /* extern "C" */
-#endif
-

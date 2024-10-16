@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.11)
 set(cmake_verbose_makefile TRUE)
 
 set(CMAKE_MAKEFILE_DEPENDS
@@ -27,7 +27,7 @@ option(WERROR "Treat compile warnings as errors"   OFF)
 option(RMALLOC "Enable memory debugging functions" OFF)
 option(BUILD_TESTING "Enable buildig test utilities" OFF)
 
-add_definitions(-D_XOPEN_SOURCE=600)
+add_definitions(-D_XOPEN_SOURCE=700)
 if(WIN32)
   set(EXTRA_LIBS ${EXTRA_LIBS} "-lwsock32 -lws2_32 -lwinmm")
   add_definitions(-DAAX_BUILD_LIBRARY=1)
@@ -75,7 +75,7 @@ set(VES_CONFIGURE_VARS CMAKE_INSTALL_LIBDIR)
 
 # read 'version' file into a variable (stripping any newlines or spaces)
 TODAY(DATE)
-file(READ version versionFile)
+file(READ aeonwave_version versionFile)
 string(STRIP ${versionFile} AAX_VERSION)
 set(VERSION AAX_VERSION)
 
@@ -145,6 +145,13 @@ if (PKG_PIPEWIRE_FOUND)
 endif()
 
 find_package(SSE REQUIRED)
+
+find_package(Iconv)
+if(Iconv_FOUND)
+ set(HAVE_ICONV_H 1)
+endif(Iconv_FOUND)
+
+
 if((GCC OR CLANG) AND RMALLOC)
   add_compile_options(-fsanitize=address)
   add_link_options(-fsanitize=address)
@@ -161,6 +168,7 @@ endif(NOT XML_FOUND)
 include_directories("${AeonWave_SOURCE_DIR}/src"
   ${AeonWave_SOURCE_DIR}
   ${XML_INCLUDE_DIR}
+  ${Iconv_INCLUDE_DIRS}
   include
   base
   ${AeonWave_BINARY_DIR}/include
@@ -415,9 +423,7 @@ endif(MSVC)
 
 # Check for the dlopen API (for alGetProcAddress)
 check_include_file(windows.h HAVE_WINDOWS_H -D_WIN32_WINNT=0x0501)
-if(NOT WIN32)
-check_include_file(iconv.h HAVE_ICONV_H)
-endif()
+check_include_file(error.h HAVE_ERROR_H)
 check_include_file(locale.h HAVE_LOCALE_H)
 check_include_file(threads.h HAVE_THREADS_H)
 check_include_file(inttypes.h HAVE_INTTYPES_H)
@@ -447,14 +453,22 @@ check_include_file(mmdeviceapi.h HAVE_MMDEVICEAPI_H)
 check_include_file(pulse/pulseaudio.h HAVE_PULSEAUDIO_H)
 if(UNIX)
   check_include_file(pthread.h HAVE_PTHREAD_H)
+  check_include_file(pthread_np.h HAVE_PTHREAD_NP_H)
   check_include_file(arm_neon.h HAVE_ARM_NEON_H)
   check_include_file(linux/hpet.h HAVE_HPET_H)
 endif(UNIX)
 
+if(HAVE_THREADS_H)
+  check_library_exists(stdthreads thrd_exit "" HAVE_LIBSTDTHREADS)
+  if(HAVE_LIBSTDTHREADS)
+    set(EXTRA_LIBS stdthreads ${EXTRA_LIBS})
+  endif(HAVE_LIBSTDTHREADS)
+endif(HAVE_THREADS_H)
+
 if(HAVE_PTHREAD_H)
   check_library_exists(pthread pthread_create "" HAVE_LIBPTHREAD)
   if(HAVE_LIBPTHREAD)
-    add_definitions(-D_REENTRANT -D_POSIX_C_SOURCE=199309L -D__USE_POSIX199309)
+    add_definitions(-D_REENTRANT -D_POSIX_C_SOURCE=200809L -D__USE_POSIX199309)
     set(EXTRA_LIBS pthread ${EXTRA_LIBS})
   endif(HAVE_LIBPTHREAD)
 endif(HAVE_PTHREAD_H)
@@ -515,6 +529,7 @@ endif()
 target_link_libraries(${LIBAEONWAVE}
   ${EXTRA_LIBS}
   ${XML_LIBRARY}
+  ${Iconv_LIBRARIES}
 )
 
 # Create the copyright file

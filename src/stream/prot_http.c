@@ -30,6 +30,13 @@
 #include "arch.h"
 #include "io.h"
 
+#ifndef ENODATA
+# define ENODATA	61
+#endif
+#ifndef ETIME
+# define ETIME		62
+#endif
+
 #define INCLUDE_ICY	0
 #define MAX_HEADER	512
 #define STREAMTITLE	"StreamTitle='"

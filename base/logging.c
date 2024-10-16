@@ -18,6 +18,10 @@ void (*_sys_free)(void*) = free;
 
 #include <unistd.h>
 #include <assert.h>
+#if defined(__FreeBSD__)
+# include<sys/sysctl.h>
+#endif
+
 #if WIN32
 	/* See: http://support.microsoft.com/kb/815661 */
 # include <tchar.h>
@@ -119,9 +123,8 @@ _aax_get_binary_name(const char *defname)
 {
    static char exe[1024];
    const char *rv = (defname) ? defname : "AeonWave Audio";
-   ssize_t ret = sizeof(exe);
-
 #if defined(__FreeBSD__)
+    size_t ret = sizeof(exe);
    int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1 };
    if (sysctl(mib, 4, exe, &ret, NULL, 0) == 0)
    {
@@ -129,6 +132,7 @@ _aax_get_binary_name(const char *defname)
       if (rv) rv++;
    }
 #elif defined(PROC_PATH)
+   ssize_t ret = sizeof(exe);
    ret = readlink(PROC_PATH, exe, sizeof(exe)-1);
    if(ret != -1)
    {  
@@ -137,6 +141,7 @@ _aax_get_binary_name(const char *defname)
       if (rv) rv++;
    }
 #elif defined(__APPLE__) && defined(__MACH__)
+   ssize_t ret = sizeof(exe);
    if (_NSGetExecutablePath(exe, &ret) == 0)
    {
       exe[ret] = 0;
@@ -144,6 +149,7 @@ _aax_get_binary_name(const char *defname)
       if (rv) rv++;
    }
 #elif defined(WIN32)
+   ssize_t ret = sizeof(exe);
    ret = GetModuleFileName(NULL, exe, sizeof(exe)-1);
    if (ret)
    {

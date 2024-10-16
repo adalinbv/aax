@@ -20,6 +20,7 @@ extern "C" {
 
 #include <base/geometry.h>
 #include <base/databuffer.h>
+#include <base/c11threads.h>
 
 #include <dsp/common.h>
 #include <dsp/lfo.h>
@@ -241,10 +242,10 @@ typedef ALIGN16 struct
    float feedback;
 
    _aaxLFOData lfo;
-   _aaxRingBufferOffsetData *offset;
-   _aaxRingBufferHistoryData *history;
-   _aaxRingBufferHistoryData *feedback_history;
-   _aaxRingBufferFreqFilterData *freq_filter;
+   _aaxRingBufferOffsetData* offset;
+   _aaxRingBufferHistoryData* history;
+   _aaxRingBufferHistoryData* feedback_history;
+   _aaxRingBufferFreqFilterData* freq_filter;
    size_t history_samples;
 
 } _aaxRingBufferDelayEffectData ALIGN16C;

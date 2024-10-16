@@ -68,9 +68,6 @@
 # include <locale.h>
 #endif
 #include <wchar.h>
-#ifdef HAVE_ICONV_H
-# include <iconv.h>
-#endif
 #include <errno.h>
 
 #include <base/localize.h>

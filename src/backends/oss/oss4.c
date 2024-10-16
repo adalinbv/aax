@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <stdarg.h>	// va_start
+#include <string.h>
 #if HAVE_STRINGS_H
 # include <strings.h>
 #endif

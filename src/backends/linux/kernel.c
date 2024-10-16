@@ -52,6 +52,10 @@
 #include "device.h"
 #include "audio.h"
 
+#ifndef MAP_FILE
+# define MAP_FILE 0
+#endif
+
 #define TIMER_BASED		true
 
 #define MAX_NAME		40

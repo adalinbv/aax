@@ -392,7 +392,11 @@ unsigned long long _aax_get_free_memory()
 #else
 unsigned long long _aax_get_free_memory()
 {
+#if defined(_SC_AVPHYS_PAGES)
    long pages = sysconf(_SC_AVPHYS_PAGES);
+#elif defined(_SC_PHYS_PAGES)
+   long pages = sysconf(_SC_PHYS_PAGES);
+#endif
    long page_size = sysconf(_SC_PAGE_SIZE);
    return pages * page_size;
 }

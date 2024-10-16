@@ -63,6 +63,7 @@
 #endif
 
 #if HAVE_ICONV_H
+# define LIBICONV_PLUG
 # include <iconv.h>
 #endif
 

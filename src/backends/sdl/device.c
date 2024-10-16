@@ -468,8 +468,7 @@ _aaxSDLDriverDisconnect(void *id)
       ifname = handle->ifname[(handle->mode == AAX_MODE_READ) ? 1 : 0];
       if (ifname) free(ifname);
 
-      _aaxAtomicIntSub(&initialized, 1);
-      if (initialized == 0)
+      if (_aaxAtomicIntSub(&initialized, 1) == 0)
       {
          pSDL_AudioQuit();
          pSDL_QuitSubSystem(SDL_INIT_AUDIO);

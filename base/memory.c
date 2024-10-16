@@ -234,7 +234,7 @@ writefp80le(uint8_t **ptr, double val, size_t *buflen)
 {
    if (*buflen >= 10)
    {
-      uint8_t sign = (val < 0) ? 0x800 : 0x000;
+      uint16_t sign = (val < 0) ? 0x800 : 0x000;
       uint64_t d, mantissa;
       uint16_t exponent;
 

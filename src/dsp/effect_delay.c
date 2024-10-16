@@ -739,7 +739,7 @@ _delay_swap(void *d, void *s)
 
          if (ddef->history_samples == sdef->history_samples) {
             ddef->history = _aaxAtomicPointerSwap(&sdef->history,
-                                                   ddef->history);
+                                                  ddef->history);
          }
          else
          {
@@ -765,7 +765,7 @@ _delay_swap(void *d, void *s)
          {
             if (!ddef->freq_filter) {
                ddef->freq_filter = _aaxAtomicPointerSwap(&sdef->freq_filter,
-                                                          ddef->freq_filter);
+                                                         ddef->freq_filter);
             } else {
                _freqfilter_data_swap(ddef->freq_filter, sdef->freq_filter);
             }

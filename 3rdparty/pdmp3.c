@@ -46,6 +46,7 @@
 #ifdef _WIN32
 #include <Windows.h>
 #else
+#define LIBICONV_PLUG
 #include <iconv.h>
 #endif
 #ifdef OUTPUT_SOUND

@@ -124,6 +124,10 @@
 #undef HAVE_PTHREAD_H
 #cmakedefine HAVE_PTHREAD_H @HAVE_PTHREAD_H@
 
+/* Define to 1 if you have the <pthread_np.h> header file. */
+#undef HAVE_PTHREAD_NP_H
+#cmakedefine HAVE_PTHREAD_NP_H @HAVE_PTHREAD_NP_H@
+
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
 
@@ -264,6 +268,10 @@
 
 /* pulseaudio */
 #cmakedefine HAVE_PULSEAUDIO_H @HAVE_PULSEAUDIO_H@
+
+/* define if error.h is available */
+#undef HAVE_ERROR_H
+#cmakedefine HAVE_ERROR_H @HAVE_ERROR_H@
 
 /* define if locale.h is available */
 #undef HAVE_LOCALE_H

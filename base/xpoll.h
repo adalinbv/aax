@@ -17,6 +17,9 @@
 # undef __USE_GNU
 #endif
 #ifdef HAVE_POLL_H
+# ifdef __BSD_VISIBLE
+#  undef __BSD_VISIBLE
+# endif
 # include <poll.h>
 
 #elif HAVE_WINSOCK2_H

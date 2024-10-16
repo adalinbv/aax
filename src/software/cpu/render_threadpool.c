@@ -378,8 +378,6 @@ _aaxWorkerThread(void *id)
    _aaxSemaphoreWait(handle->worker_start);
    if (thread->started == true)
    {
-      int *busy = &handle->workers_busy;
-      int *num = &handle->max_emitters;
       _aaxRendererData *data;
       _aaxRingBuffer *drb;
       MIX_T **scratch;
@@ -401,7 +399,8 @@ _aaxWorkerThread(void *id)
          {
          case THREAD_PROCESS_EMITTER:
          {
-            int max = _aaxAtomicIntSub(num, _AAX_MIN_EMITTERS_PER_WORKER);
+            int max = _aaxAtomicIntSub(&handle->max_emitters,
+                                       _AAX_MIN_EMITTERS_PER_WORKER);
             int r = false;
 
              /*
@@ -426,7 +425,8 @@ _aaxWorkerThread(void *id)
                      }
                   }
                   while(++pos < max);
-                  max = _aaxAtomicIntSub(num, _AAX_MIN_EMITTERS_PER_WORKER);
+                  max = _aaxAtomicIntSub(&handle->max_emitters,
+                                         _AAX_MIN_EMITTERS_PER_WORKER);
                }
                while (max > 0);
 
@@ -448,7 +448,7 @@ _aaxWorkerThread(void *id)
          case THREAD_PROCESS_AUDIOFRAME:
          case THREAD_PROCESS_CONVOLUTION:
          {
-            int track = _aaxAtomicIntSub(num, 1) - 1;
+            int track = _aaxAtomicIntSub(&handle->max_emitters, 1) - 1;
             data->callback(data->drb, data, NULL, track);
             break;
          }
@@ -457,7 +457,7 @@ _aaxWorkerThread(void *id)
          }
 
          /* if we're the last active worker trigger the signal */
-         if (_aaxAtomicIntDecrement(busy) == 0) {
+         if (_aaxAtomicIntDecrement(&handle->workers_busy) == 0) {
              _aaxSemaphoreRelease(handle->worker_ready);
          }
 

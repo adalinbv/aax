@@ -11,15 +11,15 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>	/* for NULL */
+#include <math.h>	/* for floorf */
+#include <assert.h>
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
 #else
 # include <string.h>
-#include <strings.h>
+# include <strings.h>
 #endif
-#include <stdio.h>              /* for NULL */
-#include <math.h>		/* for floorf */
-#include <assert.h>
 
 #include <xml.h>
 
@@ -1409,7 +1409,7 @@ static bool
 _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, float ratio_factor, float pitch_factor, float freq, unsigned int pitch_level, int voices, float spread, limitType limiter, float version)
 {
    enum aaxProcessingType ptype = AAX_OVERWRITE;
-   enum aaxSourceType wtype = AAX_NONE;
+   enum aaxSourceType wtype = (int)AAX_NONE;
    float staticity = 0.0f;
    float random = 0.0f;
    float phase = 0.0f;

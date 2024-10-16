@@ -8,7 +8,7 @@
  */
 
 #if HAVE_CONFIG_H
-#include "config.h"
+# include "config.h"
 #endif
 
 #ifdef HAVE_UNISTD_H
@@ -56,6 +56,9 @@
 
 #if HAVE_PTHREAD_H	/* UNIX */
 
+# if HAVE_PTHREAD_NP_H
+#  include <pthread_np.h>
+# endif
 # include <sys/time.h>
 # include <sys/resource.h>
 # ifdef HAVE_RMALLOC_H
@@ -472,7 +475,7 @@ _aaxMutexLockDebug(_aaxMutex *m, char *file, int line)
       {
          struct timespec to;
          int res;
-#ifdef __GNUC__
+#ifdef __LINUX__
          unsigned int mtx_count;
 
          /* only works for recursive locks */
@@ -513,7 +516,7 @@ _aaxMutexLockDebug(_aaxMutex *m, char *file, int line)
             printf("out of memory error %i in %s line %i\n", r, file, line);
          }
 
-#ifdef __GNUC__
+#ifdef __LINUX__
          /* only works for recursive locks */
          mtx_count = mutex->__data.__count;
          if (mtx_count != 1) {
@@ -580,7 +583,7 @@ _aaxMutexUnLockDebug(_aaxMutex *m, char *file, int line)
    int r = EINVAL;
    if (m)
    {
-# ifdef __GNUC__
+# ifdef __LINUX__
       unsigned int mtx_count;
       pthread_mutex_t *mutex = (pthread_mutex_t*)&m->mutex;
       mtx_count = mutex->__data.__count;
@@ -757,4 +760,5 @@ _aaxSignalTrigger(_aaxSignal *signal)
 
    return (rv == thrd_success) ? 0 : EINVAL;
 }
+
 #endif /* __MINGW32__ */

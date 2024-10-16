@@ -67,8 +67,7 @@ _aaxConvolutionThread(void *id)
 {
    _render_t *handle = (_render_t*)id;
    _aaxRendererData *data = handle->data;
-   int *num = &handle->no_tracks;
-   int track = _aaxAtomicIntSub(num, 1) - 1;
+   int track = _aaxAtomicIntSub(&handle->no_tracks, 1) - 1;
 
    data->callback(data->drb, data, NULL, track);
 

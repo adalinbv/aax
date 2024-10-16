@@ -18,6 +18,10 @@ extern "C" {
 #include "config.h"
 #endif
 
+#if HAVE_LOCALE_H
+# include <locale.h>
+#endif
+
 #include <xml.h>
 
 #include <base/geometry.h>

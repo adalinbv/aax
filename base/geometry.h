@@ -134,16 +134,16 @@ typedef union {
     dx4x4_t m4;
 } mtx4d_t;
 
-typedef vec3i_t* vec3i_ptr RESTRICT;
-typedef vec3f_t* vec3f_ptr RESTRICT;
-typedef vec3d_t* vec3d_ptr RESTRICT;
-typedef vec4i_t* vec4i_ptr RESTRICT;
-typedef vec4f_t* vec4f_ptr RESTRICT;
-typedef vec4d_t* vec4d_ptr RESTRICT;
-typedef mtx3f_t* mtx3f_ptr RESTRICT;
-typedef mtx3d_t* mtx3d_ptr RESTRICT;
-typedef mtx4f_t* mtx4f_ptr RESTRICT;
-typedef mtx4d_t* mtx4d_ptr RESTRICT;
+typedef vec3i_t* RESTRICT vec3i_ptr;
+typedef vec3f_t* RESTRICT vec3f_ptr;
+typedef vec3d_t* RESTRICT vec3d_ptr;
+typedef vec4i_t* RESTRICT vec4i_ptr;
+typedef vec4f_t* RESTRICT vec4f_ptr;
+typedef vec4d_t* RESTRICT vec4d_ptr;
+typedef mtx3f_t* RESTRICT mtx3f_ptr;
+typedef mtx3d_t* RESTRICT mtx3d_ptr;
+typedef mtx4f_t* RESTRICT mtx4f_ptr;
+typedef mtx4d_t* RESTRICT mtx4d_ptr;
 
 
 typedef void (*vec3fCopy_proc)(vec3f_ptr d, const vec3f_ptr v);
