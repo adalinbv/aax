@@ -108,8 +108,9 @@ include(GNUInstallDirs)
 include(package)
 include(inline)
 
-if (WIN32)
-else(WIN32)
+if(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+  add_definitions(-D__BSD_VISIBLE=1)
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 
   # DEBIAN
   set(CPACK_DEBIAN_PACKAGE_SECTION "libs")
@@ -129,7 +130,7 @@ else(WIN32)
   set(CPACK_RPM_PACKAGE_GROUP "System/Libraries")
   set(CPACK_RPM_PACKAGE_PROVIDES "libaax4-bin, libaax4-dev, libaax4-data")
 # set(CPACK_RPM_PACKAGE_SUGGESTS "libpipewire-0.3 libmpg123-0, libopus0")
-endif(WIN32)
+endif()
 
 # ZIP
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAX_VERSION}" CACHE INTERNAL "tarball basename")
