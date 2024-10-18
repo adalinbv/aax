@@ -175,6 +175,7 @@ _aaxGetProcAddress(void *handle, const char *func)
    assert(handle);
    assert(func);
 
+   dlerror(); // clear previous errors
    fptr = dlsym(handle, func);
    error = (char *)dlerror();
    if (error)
