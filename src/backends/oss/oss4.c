@@ -64,7 +64,7 @@
 #define DEFAULT_MIXER_NAME	"/dev/mixer"
 #define MAX_ID_STRLEN		96
 
-#define OSS_VERSION_4		0x040002
+#define OSS_VERSION_4		0x040000
 #define DEFAULT_RENDERER	"OSS4"
 
 static char *_aaxOSS4DriverLogVar(const void *, const char *, ...);
@@ -1283,7 +1283,11 @@ _oss4_get_version(void)
       if (fd >= 0)
       {
          int err = pioctl(fd, OSS_GETVERSION, &version);
-         if (err < 0) version = -1;
+#if __FreeBSD__
+         if (err == EINVAL) version = SOUND_VERSION;
+#else
+         if (err < 0) version = 0;
+#endif
          close(fd);
          fd = -1;
       }

@@ -12,6 +12,12 @@
 #include <fcntl.h>              /* SEEK_*, O_* */
 #include <base/xpoll.h>
 
+typedef int (*ioctl_proc)(int, int, void*);
+typedef int (*poll_proc)(struct pollfd[], nfds_t, int);
+
+#ifdef __FreeBSD__
+# include <sys/soundcard.h>
+#else
 typedef struct oss_sysinfo
 {
    char product[32];
@@ -196,6 +202,4 @@ typedef struct oss_card_info
 
 #define OSS_LABEL_SIZE			16
 typedef char oss_label_t[OSS_LABEL_SIZE];
-
-typedef int (*ioctl_proc)(int, int, void*);
-typedef int (*poll_proc)(struct pollfd[], nfds_t, int);
+#endif

@@ -221,10 +221,13 @@ _aaxOSS3DriverDetect(int mode)
 
    if (audio)
    {
+      int version;
+
       TIE_FUNCTION(ioctl);
       TIE_FUNCTION(poll);
 
-      if ((_oss3_get_version() <= OSS_VERSION_3_MAX))
+      version = _oss3_get_version();
+      if (version && (version <= OSS_VERSION_3_MAX))
       {
          struct stat buffer;
          if (stat(DEFAULT_PCM_NAME, &buffer) == 0)
@@ -1032,8 +1035,8 @@ _oss3_get_version(void)
       int fd = open(_const_oss3_default_pcm, O_WRONLY);  /* open /dev/dsp */
       if (fd >= 0)
       {
-         int err = pioctl(fd, OSS_GETVERSION, &version);
-         if (err < 0) version = -1;
+         int res = pioctl(fd, OSS_GETVERSION, &version);
+         if (res < 0) version = 0;
          close(fd);
          fd = -1;
       }
