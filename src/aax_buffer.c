@@ -1000,6 +1000,31 @@ static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX] =
   3 	/* AAX_PCM24S_PACKED */
 };
 
+static enum aaxSourceType _aaxWaveformCvt[2][AAX_LAST_WAVE+1][3] =
+{
+      //                    OPN2                    SID
+   { // AAX_RENDER_NORMAL   AAX_RENDER_SYNTHESIZER  AAX_RENDER_ARCADE
+      { AAX_WAVE_NONE,      AAX_WAVE_NONE,          AAX_WAVE_NONE     },
+      { AAX_CONSTANT,       AAX_CONSTANT,           AAX_CONSTANT      },
+      { AAX_SAWTOOTH,       AAX_SAWTOOTH,           AAX_PURE_SAWTOOTH },
+      { AAX_SQUARE,         AAX_SQUARE,             AAX_PURE_SQUARE   },
+      { AAX_TRIANGLE,       AAX_TRIANGLE,           AAX_PURE_TRIANGLE },
+      { AAX_SINE,           AAX_SINE,               AAX_PURE_TRIANGLE },
+      { AAX_CYCLOID,        AAX_SAWTOOTH,           AAX_PURE_SAWTOOTH },
+      { AAX_IMPULSE,        AAX_PURE_SAWTOOTH,      AAX_PURE_SAWTOOTH },
+   },
+   { // AAX_PURE_WAVEFORM
+      { AAX_WAVE_NONE,      AAX_WAVE_NONE,          AAX_WAVE_NONE     },
+      { AAX_CONSTANT,       AAX_CONSTANT,           AAX_CONSTANT      },
+      { AAX_PURE_SAWTOOTH,  AAX_SAWTOOTH,           AAX_PURE_SAWTOOTH },
+      { AAX_PURE_SQUARE,    AAX_SQUARE,             AAX_PURE_SQUARE   },
+      { AAX_PURE_TRIANGLE,  AAX_TRIANGLE,           AAX_PURE_TRIANGLE },
+      { AAX_PURE_SINE,      AAX_SINE,               AAX_PURE_TRIANGLE },
+      { AAX_PURE_CYCLOID,   AAX_SAWTOOTH,           AAX_PURE_SAWTOOTH },
+      { AAX_PURE_IMPULSE,   AAX_SAWTOOTH,           AAX_SAWTOOTH }
+   }
+};
+
 int _getMaxMipLevels(int n)
 {
    int rv = 0;
@@ -1415,9 +1440,11 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
    float phase = 0.0f;
    float pitch = 1.0f;
    float ratio = 0.0f;
-   int midi_mode;
+   int midi_mode, pos;
 
    midi_mode = handle->midi_mode;
+   pos = (midi_mode >> 26) & 0x3;
+
    if (RENDER_NORMAL(midi_mode))
    {
       if (xmlAttributeExists(xwid, "voices"))
@@ -1447,20 +1474,20 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
    }
 
    if (!xmlAttributeCompareString(xwid, "src", "sawtooth")) {
-      wtype = AAX_SAWTOOTH;
+      wtype = _aaxWaveformCvt[0][AAX_SAWTOOTH][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "square")) {
-      wtype = AAX_SQUARE;
+      wtype = _aaxWaveformCvt[0][AAX_SQUARE][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "triangle")) {
-      wtype = AAX_TRIANGLE;
+      wtype = _aaxWaveformCvt[0][AAX_TRIANGLE][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "sine")) {
-      wtype = AAX_SINE;
+      wtype = _aaxWaveformCvt[0][AAX_SINE][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "cycloid")) {
-      wtype = AAX_CYCLOID;
+      wtype = _aaxWaveformCvt[0][AAX_CYCLOID][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "impulse")) {
-      wtype = AAX_IMPULSE;
+      wtype = _aaxWaveformCvt[0][AAX_IMPULSE][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "true") ||
               !xmlAttributeCompareString(xwid, "src", "constant")) {
-      wtype = AAX_CONSTANT;
+      wtype = _aaxWaveformCvt[0][AAX_CONSTANT][pos];
    }
    else if (!xmlAttributeCompareString(xwid, "src","white-noise"))
    {
@@ -1478,19 +1505,19 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
       if (!RENDER_NORMAL(midi_mode)) pitch = 1.0f;
    }
    else if (!xmlAttributeCompareString(xwid, "src", "pure-sawtooth")) {
-      wtype = AAX_PURE_SAWTOOTH;
+      wtype = _aaxWaveformCvt[1][AAX_SAWTOOTH][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "pure-square")) {
-      wtype = AAX_PURE_SQUARE;
+      wtype = _aaxWaveformCvt[1][AAX_SQUARE][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "pure-triangle")) {
-      wtype = AAX_PURE_TRIANGLE;
+      wtype = _aaxWaveformCvt[1][AAX_TRIANGLE][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "pure-sine")) {
-      wtype = AAX_PURE_SINE;
+      wtype = _aaxWaveformCvt[1][AAX_SINE][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "pure-cycloid")) {
-      wtype = AAX_PURE_CYCLOID;
+      wtype = _aaxWaveformCvt[1][AAX_CYCLOID][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "pure-impulse")) {
-      wtype = AAX_PURE_IMPULSE;
-   }else {
-      wtype = AAX_WAVE_NONE;
+      wtype = _aaxWaveformCvt[1][AAX_IMPULSE][pos];
+   } else {
+      wtype = _aaxWaveformCvt[1][AAX_WAVE_NONE][pos];
    }
 
    if (xmlAttributeExists(xwid, "processing"))
