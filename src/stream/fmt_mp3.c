@@ -84,6 +84,8 @@ DECL_FUNCTION(lame_set_VBR);
 DECL_FUNCTION(lame_set_quality);
 DECL_FUNCTION(lame_encode_buffer_interleaved);
 DECL_FUNCTION(lame_encode_flush_nogap);
+DECL_FUNCTION(lame_set_mode);
+DECL_FUNCTION(lame_set_scale);
 
 DECL_FUNCTION(lame_get_lametag_frame);
 DECL_FUNCTION(lame_set_write_id3tag_automatic);
@@ -254,6 +256,8 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
             TIE_FUNCTION(lame_set_num_channels);
             TIE_FUNCTION(lame_set_brate);
             TIE_FUNCTION(lame_set_VBR);
+            TIE_FUNCTION(lame_set_mode);
+            TIE_FUNCTION(lame_set_scale);
             TIE_FUNCTION(lame_set_quality);
             TIE_FUNCTION(lame_encode_buffer_interleaved);
             TIE_FUNCTION(lame_encode_flush_nogap);
@@ -515,23 +519,26 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             pid3tag_set_genre(handle->id, handle->meta.genre);
             pid3tag_set_year(handle->id, handle->meta.date ? handle->meta.date : year);
             pid3tag_set_comment(handle->id, aaxGetString(AAX_VERSION_STRING));
-            plame_set_num_samples(handle->id, handle->no_samples);
-            plame_set_in_samplerate(handle->id, handle->info.rate);
-
-            do
-            {
-               ret = plame_set_num_channels(handle->id, handle->no_tracks);
-               if (ret < 0 && handle->no_tracks > 2) {
-                  handle->no_tracks -= 2;
-               }
-               else {
-                  break;
-               }
-            }
-            while (ret < 0);
 
             plame_set_write_id3tag_automatic(handle->id, 0);
-//          plame_init_params(handle->id);
+            plame_set_in_samplerate(handle->id, handle->info.rate);
+            if (handle->no_samples > 0) {
+               plame_set_num_samples(handle->id, handle->no_samples);
+            }
+            if (handle->no_tracks > 0)
+            {
+               do
+               {
+                  ret = plame_set_num_channels(handle->id, handle->no_tracks);
+                  if (ret < 0 && handle->no_tracks > 2) {
+                     handle->no_tracks -= 2;
+                  }
+                  else {
+                     break;
+                  }
+               }
+               while (ret < 0);
+            }
          }
       }
    }
@@ -559,7 +566,12 @@ _mp3_close(_fmt_t *fmt)
             _aax_mp3_init = false;
          }
       }
-      else {
+      else
+      {
+         unsigned char *buf = _aaxDataGetPtr(handle->mp3Buffer, 0);
+         size_t avail = _aaxDataGetDataAvail(handle->mp3Buffer, 0);
+
+         plame_encode_flush_nogap(handle->id, buf, avail);
          plame_close(handle->id);
       }
       _aaxDataDestroy(handle->mp3Buffer);
@@ -579,6 +591,8 @@ _mp3_setup(_fmt_t *fmt, UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_f
 
    if (!handle->capturing)
    {
+      int ret;
+
       if (handle->info.bitrate > 0)
       {
           plame_set_VBR(handle->id, vbr_off);
@@ -589,9 +603,14 @@ _mp3_setup(_fmt_t *fmt, UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_f
           plame_set_VBR(handle->id, vbr_off); //vbr_default);
           plame_set_brate(handle->id, 320);
       }
-      plame_set_quality(handle->id, 2); // 2=high  5 = medium  7=low
+//    plame_set_mode(handle->id, STEREO);
+//    plame_set_quality(handle->id, 2); // 2=high  5 = medium  7=low
+      plame_set_scale(handle->id, 0.33f); // Adjust the volume using scale factor
 
-      plame_init_params(handle->id);
+      ret = plame_init_params(handle->id);
+      if (ret < 0) {
+         _AAX_FILEDRVLOG(pmp3_plain_strerror(ret));
+      }
    }
 
    return true;
@@ -808,17 +827,11 @@ _mp3_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    _driver_t *handle = fmt->id;
    void *buf = _aaxDataGetData(handle->mp3Buffer, 0);
    size_t bufsize = _aaxDataGetSize(handle->mp3Buffer);
-   float volume_fact = 0.5f;
-   int t, res;
+   int res;
 
    assert(scratchlen >= *num*handle->no_tracks*sizeof(int32_t));
 
    handle->no_samples += *num;
-   for (t=0; t<handle->no_tracks; t++)
-   {
-      int32_t *ptr = (int32_t*)sptr[t]+offs;
-      _batch_imul_value(ptr, ptr, sizeof(int32_t), *num, volume_fact);
-   }
    _batch_cvt16_intl_24(scratch, sptr, offs, handle->no_tracks, *num);
    res = plame_encode_buffer_interleaved(handle->id, scratch, *num,
                                          buf, bufsize);

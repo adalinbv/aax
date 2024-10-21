@@ -284,8 +284,17 @@ typedef enum vbr_mode_e {
   vbr_default=vbr_mtrh  /* change this to change the default VBR mode of LAME */
 } vbr_mode;
 
+typedef enum MPEG_mode_e {
+   STEREO = 0,
+   JOINT_STEREO,
+   DUAL_CHANNEL,
+   MONO,
+   NOT_SET,
+   MAX_INDICATOR
+} MPEG_mode;
+
 typedef void* (*lame_init_proc)(void);
-typedef void* (*lame_init_params_proc)(void*);
+typedef int (*lame_init_params_proc)(void*);
 typedef int (*lame_close_proc)(void*);
 typedef int (*lame_set_num_samples_proc)(void*, int);
 typedef int (*lame_set_in_samplerate_proc)(void*, int);
@@ -294,6 +303,8 @@ typedef int (*lame_set_quality_proc)(void*, int);
 typedef int (*lame_set_brate_proc)(void*, int);
 typedef int (*lame_set_VBR_proc)(void*, enum vbr_mode_e);
 typedef int (*lame_set_VBR_quality_proc)(void*, float);
+typedef int (*lame_set_mode_proc)(void*, enum MPEG_mode_e);
+typedef int (*lame_set_scale_proc)(void*, float);
 
 typedef int (*lame_encode_buffer_interleaved_proc)(void*, short int[], int, unsigned char*, int);
 typedef int (*lame_encode_buffer_proc)(void*, short int[], short int[], int, unsigned char*, int);
