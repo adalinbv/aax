@@ -1011,7 +1011,7 @@ static enum aaxSourceType _aaxWaveformCvt[2][AAX_LAST_WAVE+1][3] =
       { AAX_TRIANGLE,       AAX_TRIANGLE,           AAX_PURE_TRIANGLE },
       { AAX_SINE,           AAX_SINE,               AAX_PURE_TRIANGLE },
       { AAX_CYCLOID,        AAX_SAWTOOTH,           AAX_PURE_SAWTOOTH },
-      { AAX_IMPULSE,        AAX_PURE_SAWTOOTH,      AAX_PURE_SAWTOOTH },
+      { AAX_IMPULSE,        AAX_SAWTOOTH,           AAX_PURE_IMPULSE  }
    },
    { // AAX_PURE_WAVEFORM
       { AAX_WAVE_NONE,      AAX_WAVE_NONE,          AAX_WAVE_NONE     },
@@ -1021,7 +1021,7 @@ static enum aaxSourceType _aaxWaveformCvt[2][AAX_LAST_WAVE+1][3] =
       { AAX_PURE_TRIANGLE,  AAX_TRIANGLE,           AAX_PURE_TRIANGLE },
       { AAX_PURE_SINE,      AAX_SINE,               AAX_PURE_TRIANGLE },
       { AAX_PURE_CYCLOID,   AAX_SAWTOOTH,           AAX_PURE_SAWTOOTH },
-      { AAX_PURE_IMPULSE,   AAX_SAWTOOTH,           AAX_SAWTOOTH }
+      { AAX_PURE_IMPULSE,   AAX_SAWTOOTH,           AAX_PURE_IMPULSE  }
    }
 };
 
@@ -1491,18 +1491,26 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
    }
    else if (!xmlAttributeCompareString(xwid, "src","white-noise"))
    {
-      wtype = AAX_WHITE_NOISE;
+     wtype = AAX_WHITE_NOISE;
       if (!RENDER_NORMAL(midi_mode)) pitch = 1.0f;
    }
    else if (!xmlAttributeCompareString(xwid, "src","pink-noise"))
    {
-      wtype = AAX_PINK_NOISE;
-      if (!RENDER_NORMAL(midi_mode)) pitch = 1.0f;
+      if (RENDER_NORMAL(midi_mode)) {
+         wtype = AAX_PINK_NOISE;
+      } else {
+         wtype = AAX_WHITE_NOISE;
+         pitch = 1.0f;
+      }
    }
    else if (!xmlAttributeCompareString(xwid, "src", "brownian-noise"))
    {
-      wtype = AAX_BROWNIAN_NOISE;
-      if (!RENDER_NORMAL(midi_mode)) pitch = 1.0f;
+      if (RENDER_NORMAL(midi_mode)) {
+         wtype = AAX_BROWNIAN_NOISE;
+      } else {
+         wtype = AAX_WHITE_NOISE;
+         pitch = 1.0f;
+      }
    }
    else if (!xmlAttributeCompareString(xwid, "src", "pure-sawtooth")) {
       wtype = _aaxWaveformCvt[1][AAX_SAWTOOTH][pos];
@@ -1941,7 +1949,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
 
          num = xmlNodeGetNum(xlid, "*");
          if (midi_mode == AAX_RENDER_ARCADE) waves = _MIN(3, num);
-         else if (midi_mode == AAX_RENDER_SYNTHESIZER) waves = _MIN(3, num);
+         else if (midi_mode == AAX_RENDER_SYNTHESIZER) waves = _MIN(4, num);
          else waves = num;
 
          xwid = xmlMarkId(xlid);

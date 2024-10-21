@@ -1871,11 +1871,11 @@ _aaxMixerSetRendering(_handle_t *handle)
 {
    if (handle->info->midi_mode == AAX_RENDER_SYNTHESIZER)
    {
-      aaxEffect eff = aaxEffectCreate(handle, AAX_PHASING_EFFECT);
       aaxFilter flt = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
+      aaxEffect eff = aaxEffectCreate(handle, AAX_PHASING_EFFECT);
       if (flt)
       {
-         aaxFilterSetSlot(flt, 0, AAX_LINEAR, 4400.0f, 1.0f, 0.3f, 1.0f);
+         aaxFilterSetSlot(flt, 0, AAX_LINEAR, 16000.0f, 1.0f, 0.3f, 1.0f);
          aaxFilterSetState(flt, true);
          aaxScenerySetFilter(handle, flt);
          aaxFilterDestroy(flt);
@@ -1888,7 +1888,20 @@ _aaxMixerSetRendering(_handle_t *handle)
          aaxEffectDestroy(eff);
       }
    }
-   if (handle->info->midi_mode)
+   else if (handle->info->midi_mode == AAX_RENDER_ARCADE)
+   {
+      aaxFilter flt = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
+      if (flt)
+      {
+         aaxFilterSetSlot(flt, 0, AAX_LINEAR, 8000.0f, 1.0f, 0.0f, 1.0f);
+         aaxFilterSetState(flt, true);
+         aaxScenerySetFilter(handle, flt);
+         aaxFilterDestroy(flt);
+      }
+   }
+
+   // switch to the default instrument set for synthesizer and arcade mode
+   if (!RENDER_NORMAL(handle->info->midi_mode))
    {
       if (handle->data_dir) free(handle->data_dir);
          handle->data_dir = systemDataFile("");

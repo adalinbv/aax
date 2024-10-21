@@ -67,9 +67,9 @@ aaxAudioFrameCreate(aaxConfig config)
          if (!RENDER_NORMAL(handle->info->midi_mode))
          {
             if (handle->info->midi_mode == AAX_RENDER_ARCADE) {
-               frame->max_emitters = 4;
+               frame->max_emitters = 3;
             } else {
-               frame->max_emitters = 9;
+               frame->max_emitters = 6;
             }
          }
 
