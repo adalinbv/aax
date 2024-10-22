@@ -72,6 +72,10 @@ inline const char* strerror(enum aaxErrorType e=error_no()) {
     return aaxGetErrorString(e);
 }
 
+inline enum aaxType type(const char *s, enum aaxTypeName type) {
+    return aaxType(aaxGetByName(s, type));
+}
+
 inline enum aaxType type(const char *s) {
     return aaxType(aaxGetByName(s, AAX_TYPE_NAME));
 }
@@ -80,8 +84,24 @@ inline enum aaxSourceType source_type(const char *s) {
     return aaxSourceType(aaxGetByName(s, AAX_SOURCE_NAME));
 }
 
-inline enum aaxSourceType frequency_filter_type(const char *s) {
+inline enum aaxSourceType filter_type(const char *s) {
     return aaxSourceType(aaxGetByName(s, AAX_FILTER_NAME));
+}
+
+inline enum aaxSourceType effect_type(const char *s) {
+    return aaxSourceType(aaxGetByName(s, AAX_EFFECT_NAME));
+}
+
+inline enum aaxSourceType processing_type(const char *s) {
+    return aaxSourceType(aaxGetByName(s, AAX_PROCESSING_NAME));
+}
+
+inline enum aaxSourceType modulation_type(const char *s) {
+    return aaxSourceType(aaxGetByName(s, AAX_MODULATION_NAME));
+}
+
+inline enum aaxSourceType frequency_filter_type(const char *s) {
+    return aaxSourceType(aaxGetByName(s, AAX_FREQUENCY_FILTER_NAME));
 }
 
 inline enum aaxDistanceModel distance_model(const char *s) {
