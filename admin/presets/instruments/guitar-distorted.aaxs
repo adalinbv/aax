@@ -69,6 +69,14 @@
  </emitter>
 
  <audioframe pan="0.3">
+  <effect type="chorus">
+   <slot n="0">
+    <param n="0">0.9</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.02</param>
+   </slot>
+  </effect>
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">100.0</param>
