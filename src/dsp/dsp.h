@@ -22,7 +22,7 @@ extern "C" {
 
 // volume
 #define DSP_STATE_TO_INDEX(a)		((a & AAX_DSP_STATE_MASK) >> 20)
-extern float _volume_curve[5];
+extern float _volume_curve[16];
 
 // frequency filters
 #define _aax_movingaverage_compute(fc, fs)	(1.f-expf(-GMATH_2PI*(fc)/(fs)))
