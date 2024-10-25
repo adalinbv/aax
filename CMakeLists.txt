@@ -497,6 +497,7 @@ endif(HAVE_DLFCN_H)
 check_function_exists(strdup HAVE_STRDUP)
 check_function_exists(strlcpy HAVE_STRLCPY)
 
+add_subdirectory(python)
 add_subdirectory(test)
 
 configure_file(
