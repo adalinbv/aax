@@ -1,12 +1,8 @@
 <?xml version="1.0"?>
 
 <aeonwave>
- <info version="0.1"/>
-
- <sound frequency="55">
+ <sound frequency="220">
   <waveform src="sine"/>
  </sound>
-
  <emitter looping="true"/>
-
 </aeonwave>

@@ -500,6 +500,8 @@ public:
         return freq/frequency;
     }
 
+    bool is_valid() { return !!closefn; }
+
 private:
     std::string preset_file(aaxConfig c, const char* name) {
         std::string rv = aaxDriverGetSetup(c, AAX_SHARED_DATA_DIR);
@@ -606,14 +608,15 @@ private:
 class Emitter : public Obj<aaxEmitter>
 {
 public:
-    Emitter() = default;
-
-    virtual ~Emitter() = default;
+    Emitter()
+      : Obj(aaxEmitterCreate(), aaxEmitterSetState, aaxEmitterDestroy) {}
 
     Emitter(enum aaxEmitterMode m)
       : Obj(aaxEmitterCreate(), aaxEmitterSetState, aaxEmitterDestroy) {
         aaxEmitterSetMode(ptr, AAX_POSITION, m);
     }
+
+    virtual ~Emitter() = default;
 
     Emitter(const Emitter&) = delete;
     Emitter(Emitter&&) = default;

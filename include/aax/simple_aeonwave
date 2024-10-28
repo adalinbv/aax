@@ -1,0 +1,135 @@
+/* -*-c++-*-
+ *
+ * SPDX-FileCopyrightText: Copyright © 2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2024 by Adalin B.V.
+ *
+ * Package Name: AeonWave Audio eXtentions library.
+ *
+ * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only
+ *                          WITH Universal-FOSS-exception-1.0
+ */
+
+#pragma once
+
+#include <aax/aeonwave>
+
+namespace aeonwave
+{
+
+// class definitions
+class SimpleParams
+{
+public:
+    SimpleParams() = default;
+    ~SimpleParams() = default;
+
+    void set_pitch(float p) { pitch = p; }
+    float get_pitch() { return pitch; }
+
+    void set_volume(float v) { volume = v; }
+    float get_volume() { return volume; }
+
+protected:
+    void set_matrix(float b) {
+        Matrix64 m;
+        m.rotate(M_PI_4f*b, 0.0, 1.0, 0.0);
+        m.inverse();
+    }
+    Matrix64& get_matrix() { return mtx; }
+
+    Param pitch = 1.0f;
+    Param volume = 1.0f;
+    Matrix64 mtx = mtx::identity;
+};
+
+
+class SoundSource : public SimpleParams
+{
+public:
+    SoundSource(AeonWave& m, std::string& file) : aax(m) {
+        emitter.tie(pitch, AAX_PITCH_EFFECT, AAX_PITCH);
+        emitter.tie(volume, AAX_VOLUME_FILTER, AAX_GAIN);
+        if (!file.empty()) {
+            emitter.add(aax.buffer(file));
+        }
+        emitter.set(AAX_INITIALIZED);
+        aax.add(emitter);
+    }
+    ~SoundSource() {
+        emitter.set(AAX_PROCESSED);
+        aax.remove(emitter);
+    }
+
+    SoundSource(const SoundSource&) = delete;
+    SoundSource(SoundSource&&) = delete;
+    
+    SoundSource& operator=(const SoundSource&) = delete;
+    SoundSource& operator=(SoundSource&&) = delete;
+ 
+    void play(float p=0.0f)
+    {
+        if (p != 0.0f) pitch = p;
+        emitter.set(AAX_PLAYING);
+    }
+    void pause() {
+        emitter.set(AAX_SUSPENDED);
+    }
+    void stop() {
+        emitter.set(AAX_STOPPED);
+    }
+
+    void set_looping(bool l) {
+        emitter.set(AAX_LOOPING, l);
+    }
+
+    void set_balance(float b) {
+        set_matrix(b);
+        emitter.matrix(get_matrix());
+    }
+
+private:
+    AeonWave& aax;
+    Emitter emitter;
+};
+
+class SimpleMixer : public SimpleParams
+{
+public:
+    SimpleMixer(const std::string d="",
+                enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) : aax(d, m)
+    {
+        aax.tie(pitch, AAX_PITCH_EFFECT, AAX_PITCH);
+        aax.tie(volume, AAX_VOLUME_FILTER, AAX_GAIN);
+        aax.set(AAX_INITIALIZED);
+        aax.set(AAX_PLAYING);
+    }
+    ~SimpleMixer() {
+        aax.set(AAX_PROCESSED);
+    }
+
+    SimpleMixer(const SimpleMixer&) = delete;
+    SimpleMixer(SimpleMixer&&) = delete;
+
+    SimpleMixer& operator=(const SimpleMixer&) = delete;
+    SimpleMixer& operator=(SimpleMixer&&) = delete;
+
+    SoundSource& source(std::string name, std::string file="") {
+        auto ret = sources.insert(
+          { name, std::unique_ptr<SoundSource>(new SoundSource(aax, file)) }
+        );
+        auto& it = ret.first;
+        return *it->second.get();
+    }
+
+    void set_balance(float b) {
+        set_matrix(b);
+        aax.matrix(get_matrix());
+    }
+
+private:
+    AeonWave aax;
+    std::map<std::string, std::unique_ptr<SoundSource>> sources;
+};
+
+}; // namespace aeonwave
+

@@ -12,12 +12,16 @@ FUNCTION(CREATE_CPP_TEST TEST_NAME)
   add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
   target_link_libraries(${TEST_NAME} ${LIBAEONWAVE}-static ${EXTRA_LIBS})
   add_test(${TEST_NAME} ${EXECUTABLE_OUTPUT_PATH}/${TEST_NAME})
+  set_target_properties(${TEST_NAME} PROPERTIES
+            COMPILE_DEFINITIONS "SRC_PATH=\"${PROJECT_SOURCE_DIR}/test\"")
 ENDFUNCTION()
 
 FUNCTION(CREATE_TEST TEST_NAME)
   add_executable(${TEST_NAME} ${TEST_NAME}.c)
   target_link_libraries(${TEST_NAME} ${LIBAEONWAVE}-static ${EXTRA_LIBS})
   add_test(${TEST_NAME} ${EXECUTABLE_OUTPUT_PATH}/${TEST_NAME})
+  set_target_properties(${TEST_NAME} PROPERTIES
+            COMPILE_DEFINITIONS "SRC_PATH=\"${PROJECT_SOURCE_DIR}/test\"")
 ENDFUNCTION()
 
 CREATE_CPP_TEST(testtieing)
@@ -25,6 +29,7 @@ CREATE_CPP_TEST(teststrings)
 CREATE_CPP_TEST(testposition)
 CREATE_CPP_TEST(testenumeration)
 CREATE_CPP_TEST(testparam)
+CREATE_CPP_TEST(testsimple)
 
 CREATE_TEST(test3dmath)
 CREATE_TEST(testarch2d)
