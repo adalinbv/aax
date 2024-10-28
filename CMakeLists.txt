@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.15...3.29)
 set(cmake_verbose_makefile TRUE)
 
 set(CMAKE_MAKEFILE_DEPENDS

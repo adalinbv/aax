@@ -1,8 +1,9 @@
-find_package(pybind11 QUIET)
+find_package(pybind11 CONFIG QUIET)
 
 if(pybind11_FOUND)
-  add_library(aeonwave MODULE bindings.cpp)
+  find_package(Python3 REQUIRED)
+  pybind11_add_module(aeonwave bindings.cpp)
   target_link_libraries(aeonwave PRIVATE pybind11::module aax)
-  set_target_properties(aeonwave PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
-                                            SUFFIX "${PYTHON_MODULE_EXTENSION}")
+  install(TARGETS aeonwave
+          LIBRARY DESTINATION ${Python3_SITELIB} COMPONENT Libraries)
 endif()
