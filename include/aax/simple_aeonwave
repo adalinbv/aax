@@ -33,7 +33,6 @@ protected:
     void set_matrix(float b) {
         Matrix64 m;
         m.rotate(M_PI_4f*b, 0.0, 1.0, 0.0);
-        m.inverse();
     }
     Matrix64& get_matrix() { return mtx; }
 
@@ -78,13 +77,13 @@ public:
         emitter.set(AAX_STOPPED);
     }
 
-    void set_looping(bool l) {
+    void set_looping(bool l=true) {
         emitter.set(AAX_LOOPING, l);
     }
 
     void set_balance(float b) {
         set_matrix(b);
-        emitter.matrix(get_matrix());
+        emitter.matrix(mtx);
     }
 
 private:
@@ -123,7 +122,8 @@ public:
 
     void set_balance(float b) {
         set_matrix(b);
-        aax.matrix(get_matrix());
+        mtx.inverse();
+        aax.matrix(mtx);
     }
 
 private:

@@ -7,4 +7,7 @@ source = mixer.source("sine", "test-sine.aaxs")
 
 source.play(2.0)
 time.sleep(1)
+source.set_pitch(1.0)
+time.sleep(1)
+
 source.stop()

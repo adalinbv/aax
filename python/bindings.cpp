@@ -23,7 +23,10 @@ PYBIND11_MODULE(aeonwave,m) {
                py::arg("p")=0.0f)
         .def("pause", &aax::SoundSource::pause)
         .def("stop", &aax::SoundSource::stop)
-        .def("set_looping", &aax::SoundSource::set_looping)
+        .def("set_pitch", &aax::SoundSource::set_pitch)
+        .def("set_volume", &aax::SoundSource::set_volume)
+        .def("set_looping", &aax::SoundSource::set_looping,
+              py::arg("l")=true)
         .def("set_balance", &aax::SoundSource::set_balance)
         ;
 
