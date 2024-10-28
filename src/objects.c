@@ -552,14 +552,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
       if (midi && !RENDER_NORMAL(midi->mode) &&
           (ftype != AAX_FREQUENCY_FILTER && ftype != AAX_DYNAMIC_GAIN_FILTER))
       {
-         // as is the timed-gain filter in synthesizer mode
-         if (midi->mode == AAX_RENDER_SYNTHESIZER)
-         {
-            if (ftype != AAX_TIMED_GAIN_FILTER) {
-               return rv;
-            }
-         }
-         else { // AAX_RENDER_ARCADE
+         if (ftype != AAX_TIMED_GAIN_FILTER) {
             return rv;
          }
       }
