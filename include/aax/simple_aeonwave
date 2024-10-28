@@ -11,6 +11,28 @@
 
 #pragma once
 
+/**
+ * The Simple AonWave API is intended for simple use cases where there
+ * is just a final mixer and a number of sound sources.
+ * Adjustable source properties are pitch, volume and balance.
+ * Adjustable source states are play, pause and stop.
+ * To resume after a pause call play again.
+ *
+ * Sources are referenced using a name-string.
+ * Calling mixer.source() with a name which is already in use, but with a
+ * different sound file, will replace the previous occurence of the soundsource.
+ *
+ * example to play a source called "sine" using the "test-sine.aaxs" file:
+ *   aeonwave::SimpleMixer mixer;
+ *
+ *   auto& source = mixer.source("sine", SRC_PATH"/test-sine.aaxs");
+ *   source.set_volume(0.7f);
+ *   source.set_pitch(1.2f);
+ *   source.play();
+ *   ...
+ *   source.stop();
+ */
+
 #include <aax/aeonwave>
 
 namespace aeonwave
@@ -113,10 +135,13 @@ public:
     SimpleMixer& operator=(SimpleMixer&&) = delete;
 
     SoundSource& source(std::string name, std::string file="") {
-        auto ret = sources.insert(
-          { name, std::unique_ptr<SoundSource>(new SoundSource(aax, file)) }
-        );
-        auto& it = ret.first;
+        auto it = sources.find(name);
+        if (it == sources.end() || !file.empty()) {
+            auto ret = sources.insert(
+              { name, std::unique_ptr<SoundSource>(new SoundSource(aax, file)) }
+            );
+            it = ret.first;
+        }
         return *it->second.get();
     }
 
