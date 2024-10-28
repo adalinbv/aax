@@ -148,13 +148,10 @@ else(WIN32)
 
   INSTALL(FILES
           "${PROJECT_SOURCE_DIR}/COPYING.v2"
+          "${PROJECT_SOURCE_DIR}/COPYING.v3"
+          "${PROJECT_SOURCE_DIR}/COPYING.foss_exception"
           DESTINATION /usr/share/doc/${PACKAGE}-bin
           COMPONENT Libraries
-  )
-  INSTALL(FILES
-          "${PROJECT_SOURCE_DIR}/COPYING.v2"
-          DESTINATION /usr/share/doc/${PACKAGE}-dev
-          COMPONENT Headers
   )
 
   EXECUTE_PROCESS(COMMAND "cp" -f -p ChangeLog debian/ChangeLog
