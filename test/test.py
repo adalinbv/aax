@@ -1,10 +1,10 @@
 import aeonwave
+import time
 
-aax = aeonwave.AeonWave(aeonwave.aaxRenderMode.AAX_MODE_WRITE_STEREO);
-aax.set(aeonwave.aaxState.AAX_INITIALIZED)
-aax.set(AAX_PLAYING)
-buffer = aax.get("test-sine.aaxs");
+mixer = aeonwave.SimpleMixer()
 
-emitter = aeonwave.Emitter();
-emitter.add(buffer);
-emitter.play();
+source = mixer.source("sine", "test-sine.aaxs")
+
+source.play(2.0)
+time.sleep(1)
+source.stop()

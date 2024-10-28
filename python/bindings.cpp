@@ -1,90 +1,10 @@
 #include <pybind11/pybind11.h>
-#include <aax/aeonwave>
+#include <aax/simple_aeonwave>
 
 namespace aax = aeonwave;
 namespace py = pybind11;
 
 PYBIND11_MODULE(aeonwave,m) {
-    py::enum_<aaxEmitterMode>(m, "aaxEmitterMode")
-        .value("AAX_STEREO", AAX_STEREO)
-        .value("AAX_ABSOLUTE", AAX_ABSOLUTE)
-        .value("AAX_RELATIVE", AAX_RELATIVE)
-        .value("AAX_INDOOR", AAX_INDOOR)
-        .export_values();
-
-    py::enum_<aaxModeType>(m, "aaxModeType")
-        .value("AAX_POSITION", AAX_POSITION)
-        .value("AAX_LOOPING", AAX_LOOPING)
-        .value("AAX_BUFFER_TRACK", AAX_BUFFER_TRACK)
-        .value("AAX_RENDER_MODE", AAX_RENDER_MODE)
-        .export_values();
-
-    py::enum_<aaxState>(m, "aaxState")
-        .value("AAX_INITIALIZED", AAX_INITIALIZED)
-        .value("AAX_PLAYING", AAX_PLAYING)
-        .value("AAX_STOPPED", AAX_STOPPED)
-        .value("AAX_SUSPENDED", AAX_SUSPENDED)
-        .value("AAX_CAPTURING", AAX_CAPTURING)
-        .value("AAX_PROCESSED", AAX_PROCESSED)
-        .value("AAX_STANDBY", AAX_STANDBY)
-        .value("AAX_UPDATE", AAX_UPDATE)
-        .value("AAX_MAXIMUM", AAX_MAXIMUM)
-        .export_values();
-
-    py::enum_<aaxFilterType>(m, "aaxFilterType")
-        .value("AAX_EQUALIZER", AAX_EQUALIZER)
-        .value("AAX_VOLUME_FILTER", AAX_VOLUME_FILTER)
-        .value("AAX_DYNAMIC_GAIN_FILTER", AAX_DYNAMIC_GAIN_FILTER)
-        .value("AAX_TIMED_GAIN_FILTER", AAX_TIMED_GAIN_FILTER)
-        .value("AAX_DIRECTIONAL_FILTER", AAX_DIRECTIONAL_FILTER)
-        .value("AAX_DISTANCE_FILTER", AAX_DISTANCE_FILTER)
-        .value("AAX_FREQUENCY_FILTER", AAX_FREQUENCY_FILTER)
-        .value("AAX_BITCRUSHER_FILTER", AAX_BITCRUSHER_FILTER)
-        .value("AAX_GRAPHIC_EQUALIZER", AAX_GRAPHIC_EQUALIZER)
-        .value("AAX_COMPRESSOR", AAX_COMPRESSOR)
-        .value("AAX_DYNAMIC_LAYER_FILTER", AAX_DYNAMIC_LAYER_FILTER)
-        .value("AAX_TIMED_LAYER_FILTER", AAX_TIMED_LAYER_FILTER)
-        .export_values();
-
-    py::enum_<aaxEffectType>(m, "aaxEffectType")
-        .value("AAX_PITCH_EFFECT", AAX_PITCH_EFFECT)
-        .value("AAX_DYNAMIC_PITCH_EFFECT", AAX_DYNAMIC_PITCH_EFFECT)
-        .value("AAX_TIMED_PITCH_EFFECT", AAX_TIMED_PITCH_EFFECT)
-        .value("AAX_DISTORTION_EFFECT", AAX_DISTORTION_EFFECT)
-        .value("AAX_PHASING_EFFECT", AAX_PHASING_EFFECT)
-        .value("AAX_CHORUS_EFFECT", AAX_CHORUS_EFFECT)
-        .value("AAX_FLANGING_EFFECT", AAX_FLANGING_EFFECT)
-        .value("AAX_VELOCITY_EFFECT", AAX_VELOCITY_EFFECT)
-        .value("AAX_REVERB_EFFECT", AAX_REVERB_EFFECT)
-        .value("AAX_CONVOLUTION_EFFECT", AAX_CONVOLUTION_EFFECT)
-        .value("AAX_RINGMODULATOR_EFFECT", AAX_RINGMODULATOR_EFFECT)
-        .value("AAX_DELAY_EFFECT", AAX_DELAY_EFFECT)
-        .value("AAX_WAVEFOLD_EFFECT", AAX_WAVEFOLD_EFFECT)
-        .value("AAX_FREQUENCY_SHIFT_EFFECT", AAX_FREQUENCY_SHIFT_EFFECT)
-        .export_values();
-
-    py::enum_<aaxType>(m, "aaxType")
-        .value("AAX_LINEAR", AAX_LINEAR)
-        .value("AAX_DECIBEL", AAX_DECIBEL)
-        .value("AAX_RADIANS", AAX_RADIANS)
-        .value("AAX_DEGREES", AAX_DEGREES)
-        .value("AAX_BYTES", AAX_BYTES)
-        .value("AAX_FRAMES", AAX_FRAMES)
-        .value("AAX_SAMPLES", AAX_SAMPLES)
-        .value("AAX_MICROSECONDS", AAX_MICROSECONDS)
-        .value("AAX_DEGREES_CELSIUS", AAX_DEGREES_CELSIUS)
-        .value("AAX_DEGREES_FAHRENHEIT", AAX_DEGREES_FAHRENHEIT)
-        .value("AAX_ATMOSPHERE", AAX_ATMOSPHERE)
-        .value("AAX_BAR", AAX_BAR)
-        .value("AAX_POUNDS_PER_SQUARE_INCH", AAX_POUNDS_PER_SQUARE_INCH)
-        .value("AAX_PSI", AAX_PSI)
-        .value("AAX_BITS_PER_SAMPLE", AAX_BITS_PER_SAMPLE)
-        .value("AAX_BPS", AAX_BPS)
-        .value("AAX_MILLISECONDS", AAX_MILLISECONDS)
-        .value("AAX_SECONDS", AAX_SECONDS)
-        .value("AAX_PERCENT", AAX_PERCENT)
-        .export_values();
-
     py::enum_<aaxRenderMode>(m, "aaxRenderMode")
         .value("AAX_MODE_READ", AAX_MODE_READ)
         .value("AAX_MODE_WRITE_STEREO", AAX_MODE_WRITE_STEREO)
@@ -94,202 +14,27 @@ PYBIND11_MODULE(aeonwave,m) {
         .value("AAX_MODE_WRITE_SURROUND", AAX_MODE_WRITE_SURROUND)
         .export_values();
 
-    py::enum_<aaxSetupType>(m, "aaxSetupType")
-        .value("AAX_FREQUENCY", AAX_FREQUENCY)
-        .value("AAX_TRACKS", AAX_TRACKS)
-        .value("AAX_FORMAT", AAX_FORMAT)
-        .value("AAX_TRACK_SIZE", AAX_TRACK_SIZE)
-        .value("AAX_LOOP_START", AAX_LOOP_START)
-        .value("AAX_LOOP_END", AAX_LOOP_END)
-        .value("AAX_BLOCK_ALIGNMENT", AAX_BLOCK_ALIGNMENT)
-        .value("AAX_SAMPLED_RELEASE", AAX_SAMPLED_RELEASE)
-        .value("AAX_CAPABILITIES", AAX_CAPABILITIES)
-        .export_values();
-
-    py::enum_<aaxParameter>(m, "aaxParameter")
-        .value("AAX_GAIN", AAX_GAIN)
-        .value("AAX_MIN_GAIN", AAX_MIN_GAIN)
-        .value("AAX_MAX_GAIN", AAX_MAX_GAIN)
-        .value("AAX_AGC_RESPONSE_RATE", AAX_AGC_RESPONSE_RATE)
-        .value("AAX_OBJECT_WIDTH", AAX_OBJECT_WIDTH)
-        .value("AAX_OBJECT_HEIGHT", AAX_OBJECT_HEIGHT)
-        .value("AAX_OBJECT_DEPTH", AAX_OBJECT_DEPTH)
-        .value("AAX_OBJECT_DENSITY_FACTOR", AAX_OBJECT_DENSITY_FACTOR)
-
-        .value("AAX_INNER_ANGLE", AAX_INNER_ANGLE)
-        .value("AAX_OUTER_ANGLE", AAX_OUTER_ANGLE)
-        .value("AAX_OUTER_GAIN", AAX_OUTER_GAIN)
-        .value("AAX_FORWARD_GAIN", AAX_FORWARD_GAIN)
-
-        .value("AAX_REF_DISTANCE", AAX_REF_DISTANCE)
-        .value("AAX_MAX_DISTANCE", AAX_MAX_DISTANCE)
-        .value("AAX_ROLLOFF_FACTOR", AAX_ROLLOFF_FACTOR)
-        .value("AAX_TEMPERATURE", AAX_TEMPERATURE)
-        .value("AAX_ATMOSPHERIC_PRESSURE", AAX_ATMOSPHERIC_PRESSURE)
-        .value("AAX_RELATIVE_HUMIDITY", AAX_RELATIVE_HUMIDITY)
-
-        .value("AAX_CUTOFF_FREQUENCY", AAX_CUTOFF_FREQUENCY)
-        .value("AAX_LF_GAIN", AAX_LF_GAIN)
-        .value("AAX_HF_GAIN", AAX_HF_GAIN)
-        .value("AAX_RESONANCE", AAX_RESONANCE)
-        .value("AAX_CUTOFF_FREQUENCY_HF", AAX_CUTOFF_FREQUENCY_HF)
-        .value("AAX_LF_GAIN_HF", AAX_LF_GAIN_HF)
-        .value("AAX_HF_GAIN_HF", AAX_HF_GAIN_HF)
-        .value("AAX_SWEEP_RATE", AAX_SWEEP_RATE)
-
-        .value("AAX_EQUALIZER_LF", AAX_EQUALIZER_LF)
-        .value("AAX_LF_GAIN_LOW", AAX_LF_GAIN_LOW)
-        .value("AAX_LF_GAIN_HIGH", AAX_LF_GAIN_HIGH)
-        .value("AAX_RESONANCE_LF", AAX_RESONANCE_LF)
-        .value("AAX_EQUALIZER_MF", AAX_EQUALIZER_MF)
-        .value("AAX_MF_GAIN_LOW", AAX_MF_GAIN_LOW)
-        .value("AAX_MF_GAIN_HIGH", AAX_MF_GAIN_HIGH)
-        .value("AAX_RESONANCE_MF", AAX_RESONANCE_MF)
-        .value("AAX_EQUALIZER_HMF", AAX_EQUALIZER_HMF)
-        .value("AAX_HMF_GAIN_LOW", AAX_HMF_GAIN_LOW)
-        .value("AAX_HMF_GAIN_HIGH", AAX_HMF_GAIN_HIGH)
-        .value("AAX_RESONANCE_HMF", AAX_RESONANCE_HMF)
-        .value("AAX_EQUALIZER_HF", AAX_EQUALIZER_HF)
-        .value("AAX_HF_GAIN_LOW", AAX_HF_GAIN_LOW)
-        .value("AAX_HF_GAIN_HIGH", AAX_HF_GAIN_HIGH)
-        .value("AAX_RESONANCE_HF", AAX_RESONANCE_HF)
-
-        .value("AAX_GAIN_BAND0", AAX_GAIN_BAND0)
-        .value("AAX_GAIN_BAND1", AAX_GAIN_BAND1)
-        .value("AAX_GAIN_BAND2", AAX_GAIN_BAND2)
-        .value("AAX_GAIN_BAND3", AAX_GAIN_BAND3)
-        .value("AAX_GAIN_BAND4", AAX_GAIN_BAND4)
-        .value("AAX_GAIN_BAND5", AAX_GAIN_BAND5)
-        .value("AAX_GAIN_BAND6", AAX_GAIN_BAND6)
-        .value("AAX_GAIN_BAND7", AAX_GAIN_BAND7)
-        .value("AAX_GAIN_BAND8", AAX_GAIN_BAND8)
-        .value("AAX_GAIN_BAND9", AAX_GAIN_BAND9)
-        .value("AAX_GAIN_BAND10", AAX_GAIN_BAND10)
-        .value("AAX_GAIN_BAND11", AAX_GAIN_BAND11)
-        .value("AAX_GAIN_BAND12", AAX_GAIN_BAND12)
-        .value("AAX_GAIN_BAND13", AAX_GAIN_BAND13)
-        .value("AAX_GAIN_BAND14", AAX_GAIN_BAND14)
-        .value("AAX_GAIN_BAND15", AAX_GAIN_BAND15)
-
-        .value("AAX_DC_OFFSET", AAX_DC_OFFSET)
-        .value("AAX_NOISE_LEVEL", AAX_NOISE_LEVEL)
-        .value("AAX_INITIAL_DELAY", AAX_INITIAL_DELAY)
-        .value("AAX_DELAY_GAIN", AAX_DELAY_GAIN)
-        .value("AAX_LFO_FREQUENCY", AAX_LFO_FREQUENCY)
-        .value("AAX_LFO_MAX", AAX_LFO_MAX)
-        .value("AAX_LFO_MIN", AAX_LFO_MIN)
-        .value("AAX_DELAY_CUTOFF_FREQUENCY", AAX_DELAY_CUTOFF_FREQUENCY)
-        .value("AAX_DELAY_CUTOFF_FREQUENCY_HF", AAX_DELAY_CUTOFF_FREQUENCY_HF)
-        .value("AAX_FEEDBACK_GAIN", AAX_FEEDBACK_GAIN)
-        .value("AAX_DELAY_RESONANCE", AAX_DELAY_RESONANCE)
-        .value("AAX_LFO_DEPTH", AAX_LFO_DEPTH)
-        .value("AAX_LFO_OFFSET", AAX_LFO_OFFSET)
-        .value("AAX_DELAY_TIME", AAX_DELAY_TIME)
-
-        .value("AAX_ATTACK_RATE", AAX_ATTACK_RATE)
-        .value("AAX_RELEASE_RATE", AAX_RELEASE_RATE)
-        .value("AAX_COMPRESSION_RATIO", AAX_COMPRESSION_RATIO)
-        .value("AAX_THRESHOLD", AAX_THRESHOLD)
-        .value("AAX_GATE_PERIOD", AAX_GATE_PERIOD)
-        .value("AAX_GATE_THRESHOLD", AAX_GATE_THRESHOLD)
-
-        .value("AAX_PITCH", AAX_PITCH)
-        .value("AAX_MAX_PITCH", AAX_MAX_PITCH)
-        .value("AAX_PITCH_START", AAX_PITCH_START)
-        .value("AAX_PITCH_RATE", AAX_PITCH_RATE)
-
-        .value("AAX_DISTORTION_FACTOR", AAX_DISTORTION_FACTOR)
-        .value("AAX_CLIPPING_FACTOR", AAX_CLIPPING_FACTOR)
-        .value("AAX_MIX_FACTOR", AAX_MIX_FACTOR)
-        .value("AAX_ASYMMETRY", AAX_ASYMMETRY)
-        .value("AAX_WET_CUTOFF_FREQUENCY", AAX_WET_CUTOFF_FREQUENCY)
-        .value("AAX_WET_CUTOFF_FREQUENCY_HF", AAX_WET_CUTOFF_FREQUENCY_HF)
-        .value("AAX_WET_GAIN", AAX_WET_GAIN)
-        .value("AAX_WET_RESONANCE", AAX_WET_RESONANCE)
-
-        .value("AAX_CUTOFF_FREQUENCY_LP", AAX_CUTOFF_FREQUENCY_LP)
-        .value("AAX_DELAY_DEPTH", AAX_DELAY_DEPTH)
-        .value("AAX_DECAY_LEVEL", AAX_DECAY_LEVEL)
-        .value("AAX_DECAY_DEPTH", AAX_DECAY_DEPTH)
-        .value("AAX_CUTOFF_FREQUENCY_HP", AAX_CUTOFF_FREQUENCY_HP)
-        .value("AAX_REFLECTIONS_DELAY", AAX_REFLECTIONS_DELAY)
-        .value("AAX_REVERB_GAIN", AAX_REVERB_GAIN)
-        .value("AAX_DECAY_DELAY", AAX_DECAY_DELAY)
-
-        .value("AAX_SOUND_VELOCITY", AAX_SOUND_VELOCITY)
-        .value("AAX_DOPPLER_FACTOR", AAX_DOPPLER_FACTOR)
-        .value("AAX_LIGHT_VELOCITY", AAX_LIGHT_VELOCITY)
-
-        .export_values();
-
-    py::class_<aax::dsp>(m, "dsp")
+    py::class_<aax::SoundSource>(m, "SoundSource")
         // constructors
-        .def(py::init<>())
+        .def(py::init<aax::AeonWave&,std::string&>())
 
         // methods
-        .def("set", py::overload_cast<uint64_t>(&aax::dsp::set))
-        .def("set", py::overload_cast<unsigned,float,float,float,float,enum aaxType>(&aax::dsp::set),py::arg("s"),py::arg("p1"),py::arg("p2"),py::arg("p3"),py::arg("p4"),py::arg("t")=AAX_LINEAR)
-        .def("set", py::overload_cast<enum aaxParameter,float,enum aaxType>(&aax::dsp::set),py::arg("s"),py::arg("v"),py::arg("t")=AAX_LINEAR)
-        .def("state", &aax::dsp::state)
+        .def("play", &aax::SoundSource::play,
+               py::arg("p")=0.0f)
+        .def("pause", &aax::SoundSource::pause)
+        .def("stop", &aax::SoundSource::stop)
+        .def("set_looping", &aax::SoundSource::set_looping)
+        .def("set_balance", &aax::SoundSource::set_balance)
         ;
 
-    py::class_<aax::Buffer>(m, "Buffer")
+    py::class_<aax::SimpleMixer>(m, "SimpleMixer")
         // constructors
-        .def(py::init<>())
+        .def(py::init<const std::string,enum aaxRenderMode>(),
+               py::arg("d")="", py::arg("m")=AAX_MODE_WRITE_STEREO)
 
         // methods
-        .def("set", py::overload_cast<enum aaxSetupType,int64_t>(&aax::Buffer::set))
-        .def("get", &aax::Buffer::get)
-        .def("getf", &aax::Buffer::getf)
-        ;
-
-    py::class_<aax::Emitter>(m, "Emitter")
-        // constructors
-        .def(py::init<>())
-        .def(py::init<enum aaxEmitterMode>())
-
-        // methods
-        .def("set", py::overload_cast<enum aaxModeType,int>(&aax::Emitter::set))
-        .def("set", py::overload_cast<enum aaxState>(&aax::Emitter::set))
-        .def("set", py::overload_cast<aax::dsp&>(&aax::Emitter::set))
-        .def("get", py::overload_cast<enum aaxModeType>(&aax::Emitter::get))
-        .def("get", py::overload_cast<enum aaxFilterType>(&aax::Emitter::get))
-        .def("get", py::overload_cast<enum aaxEffectType>(&aax::Emitter::get))
-        .def("get", py::overload_cast<aax::Matrix64&>(&aax::Emitter::get))
-        .def("get", py::overload_cast<aax::Vector&>(&aax::Emitter::get))
-        .def("get", py::overload_cast<unsigned int,bool>(&aax::Emitter::get))
-        .def("get", py::overload_cast<enum aaxState>(&aax::Emitter::get))
-        .def("getf", &aax::Emitter::getf)
-        .def("offset", py::overload_cast<unsigned long,enum aaxType>(&aax::Emitter::offset))
-        .def("offset", py::overload_cast<float>(&aax::Emitter::offset))
-        .def("offset", py::overload_cast<enum aaxType>(&aax::Emitter::offset))
-        .def("offset", py::overload_cast<>(&aax::Emitter::offset))
-        .def("matrix", &aax::Emitter::matrix)
-        .def("velocity", &aax::Emitter::velocity)
-        .def("add", &aax::Emitter::add)
-        .def("remove_buffer", &aax::Emitter::remove_buffer)
-        ;
-
-    py::class_<aax::AeonWave>(m, "AeonWave")
-        // constructors
-        .def(py::init<>())
-        .def(py::init<enum aaxRenderMode>())
-        .def(py::init<const char*,enum aaxRenderMode>())
-
-        // methods
-        .def("sensor_matrix", &aax::AeonWave::sensor_matrix)
-        .def("sensor_velocity", &aax::AeonWave::sensor_velocity)
-        .def("add", py::overload_cast<aax::Frame&>(&aax::AeonWave::add))
-        .def("add", py::overload_cast<aax::Emitter&>(&aax::AeonWave::add))
-        .def("add", py::overload_cast<aax::Buffer&>(&aax::AeonWave::add))
-        .def("remove", py::overload_cast<aax::Frame&>(&aax::AeonWave::remove))
-        .def("remove", py::overload_cast<aax::Emitter&>(&aax::AeonWave::remove))
-
-        .def("buffer", &aax::AeonWave::buffer)
-        .def("destroy", &aax::AeonWave::destroy)
-        .def("buffer_avail", &aax::AeonWave::buffer_avail)
-        .def("playback", py::overload_cast<const std::string>(&aax::AeonWave::playback))
-        .def("stop", &aax::AeonWave::stop)
-        .def("playing", &aax::AeonWave::playing)
+        .def("source", &aax::SimpleMixer::source,
+               py::return_value_policy::reference)
+        .def("set_balance", &aax::SimpleMixer::set_balance)
         ;
 }
