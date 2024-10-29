@@ -8,7 +8,11 @@
  */
 #pragma once
 
-#define NDEBUGTHREADS
+#ifdef NDEBUG
+# define NDEBUGTHREADS
+#else
+# undef NDEBUGTHREADS
+#endif
 
 #if HAVE_TIME_H
 #include <time.h>
@@ -132,13 +136,15 @@ typedef struct _aaxMutex
 } _aaxMutex;
 
 #ifndef NDEBUGTHREADS
-void *_aaxMutexCreateDebug(_aaxMutex *, const char *, const char *);
+int _aaxMutexLockDebug(_aaxMutex*, char *, int);
 int _aaxMutexUnLockDebug(_aaxMutex *, char *, int);
+void *_aaxMutexCreateDebug(_aaxMutex *, const char *, const char *);
 # define _aaxMutexCreate(a) _aaxMutexCreateDebug(a, __FILE__, __func__)
 # define _aaxMutexLock(a) _aaxMutexLockDebug(a, __FILE__, __LINE__)
 # define _aaxMutexUnLock(a) _aaxMutexUnLockDebug(a, __FILE__, __LINE__)
 #else
 # ifdef TIMED_MUTEX
+int _aaxMutexUnLockDebug(_aaxMutex *, char *, int);
 #  define _aaxMutexLock(a) _aaxMutexLockDebug(a, __FILE__, __LINE__)
 # else
 int _aaxMutexLock(_aaxMutex *);
@@ -148,7 +154,6 @@ void*_aaxMutexCreate(_aaxMutex *);
 int _aaxMutexLock(_aaxMutex *);
 #endif
 int _aaxMutexLockTimed(_aaxMutex*, float);
-int _aaxMutexLockDebug(_aaxMutex*, char *, int);
 void _aaxMutexDestroy(_aaxMutex*);
 
 /* -- Conditions/Signals ----------------------------------------------- */

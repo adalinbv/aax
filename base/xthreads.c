@@ -451,6 +451,7 @@ _aaxMutexDestroy(_aaxMutex *m)
    }
 }
 
+#ifdef NDEBUGTHREADS
 int
 _aaxMutexLock(_aaxMutex *m)
 {
@@ -462,6 +463,7 @@ _aaxMutexLock(_aaxMutex *m)
    }
    return r;
 }
+#endif
 
 int
 _aaxMutexLockDebug(_aaxMutex *m, char *file, int line)
