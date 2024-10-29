@@ -68,7 +68,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
                            (e3d && _intBufGetNumNoLock(e3d, _AAX_EMITTER)));
 
    _intBuffers *sensors = fmixer->devices;
-   bool active_sensors = (sensors && _intBufGetNumNoLock(sensors, _AAX_SENSOR));
+   bool active_sensors = (sensors && _intBufGetNumNoLock(sensors, _AAX_DEVICE));
 
    _intBuffers *frames = fmixer->frames;
    bool active_frames = ((frames && _intBufGetNumNoLock(frames, _AAX_FRAME)) ||
