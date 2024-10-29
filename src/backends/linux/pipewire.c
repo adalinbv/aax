@@ -176,7 +176,7 @@ typedef struct
 
    _aaxTimer *callback_timer;
    size_t callback_avail;
-   float callback_dt;
+// float callback_dt;
 
    struct _meta_t meta;
 
@@ -1999,7 +1999,7 @@ stream_playback_cb(void *be_ptr)
       }
 
       be_handle->callback_avail = 0;
-      be_handle->callback_dt = _aaxTimerElapsed(be_handle->callback_timer);
+//    be_handle->callback_dt = _aaxTimerElapsed(be_handle->callback_timer);
 
       if (_IS_PLAYING(handle) && be_handle->dataBuffer)
       {

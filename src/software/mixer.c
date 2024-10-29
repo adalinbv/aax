@@ -404,7 +404,10 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
    assert(handle->backend.ptr);
    assert(handle->info->no_tracks);
 
-   _aaxTimerStart(handle->timer);
+// FIXME: pipewire calls this function from a callback function
+//        which messes things up; We might need to keep a timer for
+//        every backend instead.
+// _aaxTimerStart(handle->timer);
 
    batched = handle->batch_finished ? true : false;
 
@@ -569,8 +572,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
       }
    }
 
-   handle->elapsed = _aaxTimerElapsed(handle->timer);
-   _aaxTimerStop(handle->timer);
+// handle->elapsed = _aaxTimerElapsed(handle->timer);
+// _aaxTimerStop(handle->timer);
 
    return res;
 }

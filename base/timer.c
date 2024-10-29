@@ -335,33 +335,19 @@ resetTimerResolution(UNUSED(unsigned int dt_ms)) {
 
 /** highres timing code */
 static void
-__aaxTimerSub(struct timespec *tso,
-               struct timespec *ts1, struct timespec *ts2)
-{
-   double dt1, dt2;
-
-   dt2 = ts2->tv_sec + ts2->tv_nsec*1e-9;
-   dt1 = ts1->tv_sec + ts1->tv_nsec*1e-9;
-   dt1 -= dt2;
-
-   dt2 = floor(dt1);
-   tso->tv_sec = dt2;
-   tso->tv_nsec = rint((dt1-dt2)*1e9);
-}
-
-static void
 __aaxTimerAdd(struct timespec *tso,
                struct timespec *ts1, struct timespec *ts2)
 {
    double dt1, dt2;
 
-   dt2 = ts2->tv_sec + ts2->tv_nsec*1e-9;
    dt1 = ts1->tv_sec + ts1->tv_nsec*1e-9;
+   dt2 = ts2->tv_sec + ts2->tv_nsec*1e-9;
+
    dt1 -= dt2;
 
    dt2 = floor(dt1);
    tso->tv_sec = dt2;
-   tso->tv_nsec = rint((dt1-dt2)*1e9);
+   tso->tv_nsec = (dt1-dt2)*1e9;
 
    if (tso->tv_nsec >= 1000000000L)
    {
@@ -384,10 +370,11 @@ _aaxTimerCreate()
 
          rv->tfreq = 1.0/(sec + nsec/1000000000.0);
 
+         // calculate timerOverhead
          res = clock_gettime(CLOCK_MONOTONIC, &rv->prevTimerCount);
          res |= clock_gettime(CLOCK_MONOTONIC, &rv->timerCount);
          if (!res) {
-            __aaxTimerSub(&rv->timerOverhead,
+            __aaxTimerAdd(&rv->timerOverhead,
                            &rv->timerCount, &rv->prevTimerCount);
          }
 
@@ -428,8 +415,10 @@ _aaxTimerElapsed(_aaxTimer *tm)
    {
       int res;
 
+      // set prevTimerCount from timerCount and timerOverhead
       __aaxTimerAdd(&tm->prevTimerCount, &tm->timerCount, &tm->timerOverhead);
 
+      // set the new timerCount
       res = clock_gettime(CLOCK_MONOTONIC, &tm->timerCount);
       if (!res)
       {

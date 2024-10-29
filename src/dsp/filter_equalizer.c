@@ -354,9 +354,7 @@ _equalizer_run(void *rb, MIX_PTR_T dptr, UNUSED(MIX_PTR_T scratch),
    int s;
 
    assert(dptr != 0);
-   assert(data_lf != NULL);
-   assert(data_mf != NULL);
-   assert(data_hf != NULL);
+   assert(filter != NULL);
    assert(dmin < dmax);
    assert(track < _AAX_MAX_SPEAKERS);
 
