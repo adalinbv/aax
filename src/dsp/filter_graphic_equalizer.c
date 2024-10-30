@@ -181,7 +181,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
             flt->low_gain = 0.0f;
             if (pos == 0) {
                flt->type = LOWPASS;
-            } else if (pos == 7) {
+            } else if (pos == (eq->no_bands-1)) {
                flt->type = HIGHPASS;
             }
             else
