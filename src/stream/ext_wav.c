@@ -104,7 +104,7 @@ typedef struct
    size_t max_samples;
    _buffer_info_t info;
 
-   enum wavFormat wav_format;
+   enum wavFormat compression_code;
    char copy_to_buffer;
    char rf64;
 
@@ -189,7 +189,7 @@ _wav_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          }
          else /* playback */
          {
-            handle->wav_format = _getWAVFormatFromAAXFormat(format);
+            handle->compression_code = _getWAVFormatFromAAXFormat(format);
             if (format == AAX_IMA4_ADPCM) {
                handle->info.blocksize = 512;
             }
@@ -234,7 +234,7 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             fact = true;
          }
 
-         fmt = _getFmtFromWAVFormat(handle->wav_format);
+         fmt = _getFmtFromWAVFormat(handle->compression_code);
 
          if (!handle->fmt) {
             handle->fmt = _fmt_create(fmt, handle->mode);
@@ -295,7 +295,7 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             if (extensible) {
                s = EXTENSIBLE_WAVE_FORMAT;
             } else {
-               s = handle->wav_format;
+               s = handle->compression_code;
             }
             write16le(&ch, s, &size);				// [5]
 
@@ -399,7 +399,7 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             {
                _fmt_type_t fmt;
 
-               fmt = _getFmtFromWAVFormat(handle->wav_format);
+               fmt = _getFmtFromWAVFormat(handle->compression_code);
                handle->fmt = _fmt_create(fmt, handle->mode);
                if (!handle->fmt) {
                   *bufsize = 0;
@@ -582,7 +582,7 @@ _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
       void *data = _aaxDataGetData(handle->wavBuffer, 0);
       ssize_t avail = _aaxDataGetDataAvail(handle->wavBuffer, 0);
 
-      if (handle->wav_format == MSADPCM_WAVE_FILE) {
+      if (handle->compression_code == MSADPCM_WAVE_FILE) {
          _wav_cvt_msadpcm_to_ima4(handle, data, &avail);
       }
 
@@ -971,8 +971,8 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       *step = rv = ch-buf+EVEN(curr);
       handle->io.read.size -= rv;
 
-      handle->wav_format = read16le(&ch, &bufsize);
-      extensible = (handle->wav_format == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
+      handle->compression_code = read16le(&ch, &bufsize);
+      extensible = (handle->compression_code == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
 
       handle->info.no_tracks = read16le(&ch, &bufsize);
       handle->info.rate = read32le(&ch, &bufsize);
@@ -991,7 +991,7 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
          handle->io.read.channel_mask = _aaxRouterFromMSChannelMask(curr,
                                                   handle->info.no_tracks);
 
-         handle->wav_format = read32le(&ch, &bufsize);
+         handle->compression_code = read32le(&ch, &bufsize);
       }
       else if (rv > 16)
       {
@@ -1000,7 +1000,7 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       }
       handle->bitrate *= handle->bits_sample;
 
-      switch(handle->wav_format)
+      switch(handle->compression_code)
       {
       case MP3_WAVE_FILE:
          handle->bits_sample = 16;
@@ -1015,12 +1015,12 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
 
       if (handle->bits_sample >= 4 && handle->bits_sample <= 64)
       {
-         if (handle->wav_format == PCM_WAVE_FILE)
+         if (handle->compression_code == PCM_WAVE_FILE)
          {
             handle->info.blocksize = handle->bits_sample*handle->info.no_tracks/8;
             handle->bitrate = handle->info.rate*handle->bits_sample*handle->info.no_tracks;
          }
-         handle->info.fmt = _getAAXFormatFromWAVFormat(handle->wav_format,
+         handle->info.fmt = _getAAXFormatFromWAVFormat(handle->compression_code,
                                                            handle->bits_sample);
          if (handle->info.fmt == AAX_FORMAT_NONE) {
             rv = __F_EOF;
@@ -1050,7 +1050,7 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
    printf("final:\n");
    printf(" ChunkSize: %li\n", handle->io.read.size);
    printf(" NumChannels: %i\n", handle->info.no_tracks);
-   printf(" AudioFormat: %i\n", handle->wav_format);
+   printf(" AudioFormat: %i\n", handle->compression_code);
    printf(" SampleRate: %5.1f\n", handle->info.rate);
    printf(" BitsPerSample: %i\n", handle->bits_sample);
    printf(" BlockAlign: %i\n", handle->info.blocksize);
@@ -1069,8 +1069,8 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       *step = rv = ch-buf+EVEN(curr);
       handle->io.read.size -= rv;
 
-      curr = read32le(&ch, &bufsize); // no. samples
-      if (curr != -1)
+      curr = read32le(&ch, &bufsize); // no. samples per channel
+      if (curr != -1 && handle->compression_code != PCM_WAVE_FILE)
       {
          handle->info.no_samples = curr;
          handle->max_samples = curr;
