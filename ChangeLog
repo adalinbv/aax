@@ -1,27 +1,29 @@
-* Mon Oct 28 2024 - tech@adalin.org
+* Fri Nov 01 2024 - tech@adalin.org
 - AeonWave (4.1.0) stable; urgency=medium
 
  * Add a timed layer filter.
  * Add a dynamic wavefold effect.
  * Add a frequency shifter effect.
+ * Add support for additional volume curves beside squared which can be defined
+   using the state of the volume filer.
  * Implement a 16-band equalizer which gets enabled instead of the 8-band
    equalizer when slot 2 or slot 3 of the filter contains gain information.
  * Increase the number of frequency bands for the graphic equalizer from 4 to 5
  * Increase the number of envelope stages from 6 to 8 for all timed filters
    and effects.
+ * Implement a SimpleMixer C++ API. The idea is that AAXS files already allow
+   dynamic playback of sounds, or sound files, without the need to change the
+   code. Therefore only simple bindings like start, stop and pause and pitch,
+   volume and panning have to be implemented.
+ * Make it possible to get the pan property from buffers.
  * Rework SIMD support code for X86_64 and ARM and increase rendering speed
    for several functions across the various rendering paths.
- * Add support for additional volume curves beside squared which can be defined
-   using the state of the volume filer.
- * Make it possible to get the pan property from buffers
  * Do not filter high-frequencies as much as before.
  * Fix the LFO always being defined for the distortion effect.
- * Implement a SimpleMixer C++ API which is useful in cases where one just
-   wants to play a few sound files at a certain pitch and gain.
  * Add python3 bindings for the SimpleMixer API which will be generated when
    pybind11 is found.
 
--- Erik Hofman <tech@adalin.org>  Mon 28 Oct 2024 09:59:11 + 0100
+-- Erik Hofman <tech@adalin.org>  Fri 01 Nov 2024 13:50:31 + 0100
 
 
 * Thu Jul 04 2024 - tech@adalin.org
