@@ -41,6 +41,7 @@
 static float _gains_v0[AAX_MAX_WAVE][2];
 static float _gains[AAX_MAX_WAVE][2];
 
+static void _aax_noise_filter(float32_ptr, const_float32_ptr, size_t, float);
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_add_data(int32_t*, const_float32_ptr, unsigned int, float, limitType);
 static void _aax_mul_data(int32_t*, const_float32_ptr, unsigned int, float, limitType);
@@ -159,6 +160,7 @@ void
 _bufferMixWhiteNoise(int32_t* data, _data_t *scratch, size_t no_samples, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, bool modulate, limitType limiter)
 {
    gain = fabsf(gain);
+   pitch = _MINMAX(pitch, 0.01f, 1.0f);
    if (data && gain && no_samples*sizeof(int32_t) < _aaxDataGetSize(scratch))
    {
       size_t noise_samples = pitch*no_samples + NOISE_PADDING;
@@ -167,7 +169,7 @@ _bufferMixWhiteNoise(int32_t* data, _data_t *scratch, size_t no_samples, float p
       if (ptr2)
       {
          ptr = _aaxDataGetData(scratch, 1);
-         _batch_resample_float(ptr, ptr2, 0, no_samples, 0, pitch);
+         _aax_noise_filter(ptr, ptr2, no_samples, pitch);
          if (modulate) {
             _aax_mul_data(data, ptr, no_samples, fabsf(gain), limiter);
          } else {
@@ -181,6 +183,7 @@ void
 _bufferMixPinkNoise(int32_t* data, _data_t *scratch, size_t no_samples, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, bool modulate, limitType limiter)
 {
    gain = fabsf(gain);
+   pitch = _MINMAX(pitch, 0.01f, 1.0f);
    if (data && gain && no_samples*sizeof(int32_t) < _aaxDataGetSize(scratch))
    { // _aax_pinknoise_filter requires twice the noise_samples buffer space
       float *ptr2, *ptr = _aaxDataGetData(scratch, 0);
@@ -195,7 +198,7 @@ _bufferMixPinkNoise(int32_t* data, _data_t *scratch, size_t no_samples, float pi
          ptr = _aaxDataGetData(scratch, 1);
          _aax_pinknoise_filter(ptr2, noise_samples, fs);
          _batch_fmul_value(ptr2, ptr2, sizeof(float), noise_samples, 1.5f);
-         _batch_resample_float(ptr, ptr2+NOISE_PADDING/2, 0, no_samples, 0, pitch);
+         _aax_noise_filter(ptr, ptr2+NOISE_PADDING/2, no_samples, pitch);
 
          if (modulate) {
             _aax_mul_data(data, ptr, no_samples, fabsf(gain), limiter);
@@ -210,6 +213,7 @@ void
 _bufferMixBrownianNoise(int32_t* data, _data_t *scratch, size_t no_samples, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, bool modulate, limitType limiter)
 {
    gain = fabsf(gain);
+   pitch = _MINMAX(pitch, 0.01f, 1.0f);
    if (data && gain && no_samples*sizeof(int32_t) < _aaxDataGetSize(scratch))
    {
       float *ptr2, *ptr = _aaxDataGetData(scratch, 0);
@@ -225,7 +229,7 @@ _bufferMixBrownianNoise(int32_t* data, _data_t *scratch, size_t no_samples, floa
          ptr = _aaxDataGetData(scratch, 1);
          _batch_movingaverage_float(ptr2, ptr2, noise_samples, &hist, k);
          _batch_fmul_value(ptr2, ptr2, sizeof(int32_t), noise_samples, 3.5f);
-         _batch_resample_float(ptr, ptr2, 0, no_samples, 0, pitch);
+         _aax_noise_filter(ptr, ptr2, no_samples, pitch);
 
          if (modulate) {
             _aax_mul_data(data, ptr, no_samples, fabsf(gain), limiter);
@@ -351,48 +355,6 @@ ALIGN float _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS] =
   }
 };
 
-#if 0
-#define AVERAGE_SAMPS          8
-static void
-_aax_resample_float(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, UNUSED(float smu), float freq_factor)
-{
-   size_t i, smax = floorf(dmax * freq_factor);
-   const float *s = sptr + dmin;
-   float *d = dptr;
-   float smu = 0.0f;
-   float samp, dsamp;
-
-   samp = *(s+smax-1);
-   dsamp = *(++s) - samp;
-   i = dmax;
-   if (i)
-   {
-      do
-      {
-         *d++ = samp + (dsamp * smu);
-         smu += freq_factor;
-         if (smu >= 1.0f)
-         {
-            smu -= 1.0f;
-            samp = *s++;
-            dsamp = *s - samp;
-         }
-      }
-      while (--i);
-
-      for (i=0; i<AVERAGE_SAMPS; i++)
-      {
-         float fact = 0.5f - (float)i/(4.0f*AVERAGE_SAMPS);
-         float dst = dptr[dmax-i-1];
-         float src = dptr[i];
-
-         dptr[dmax-i-1] = fact*src + (1.0f - fact)*dst;
-         dptr[i] = (1.0f - fact)*src + fact*dst;
-      }
-   }
-}
-#endif
-
 static void
 _aax_add_data(int32_t* data, const_float32_ptr mix, unsigned int no_samples, float gain, limitType limiter)
 {
@@ -438,6 +400,18 @@ _aax_mul_data(int32_t* data, const_float32_ptr mix, unsigned int no_samples, flo
       do {
          *d++ *= *m++ * gain;
       } while (--i);
+   }
+}
+
+void
+_aax_noise_filter(float32_ptr dst, const_float32_ptr src, size_t no_samples, float pitch)
+{
+   if (pitch <= 1.0f) {
+      _batch_resample_float(dst, src, 0, no_samples, 0, pitch);
+   }
+   else
+   {
+// high-pass frequency filter
    }
 }
 

@@ -1321,7 +1321,7 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSour
 }
 
 bool
-_aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceType type, int track, float fs, float rate, float ratio, uint64_t seed, unsigned char skip, bool modulate, int limiter)
+_aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceType type, int track, float fs, float pitch, float ratio, uint64_t seed, unsigned char skip, bool modulate, int limiter)
 {
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
@@ -1333,9 +1333,7 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceT
       size_t no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
       int32_t **data = rb->get_tracks_ptr(rb, RB_WRITE);
       int32_t *ptr = data[track];
-      float pitch;
 
-      pitch = _MINMAX(rate, 0.01f, 1.0f);
       switch (type)
       {
       case AAX_WHITE_NOISE:
