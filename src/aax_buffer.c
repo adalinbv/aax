@@ -1492,7 +1492,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
    else if (!xmlAttributeCompareString(xwid, "src","white-noise"))
    {
      wtype = AAX_WHITE_NOISE;
-      if (!RENDER_NORMAL(midi_mode)) pitch = 1.0f;
+      if (!RENDER_NORMAL(midi_mode)) pitch = 8.0f;
    }
    else if (!xmlAttributeCompareString(xwid, "src","pink-noise"))
    {
@@ -1500,7 +1500,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
          wtype = AAX_PINK_NOISE;
       } else {
          wtype = AAX_WHITE_NOISE;
-         pitch = 1.0f;
+         pitch = 6.0f;
       }
    }
    else if (!xmlAttributeCompareString(xwid, "src", "brownian-noise"))
