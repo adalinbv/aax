@@ -35,6 +35,10 @@
 
 #include <aax/aeonwave>
 
+#ifndef M_PI_4f
+# define M_PI_4f		0.78539816339744830962f
+#endif
+
 namespace aeonwave
 {
 
