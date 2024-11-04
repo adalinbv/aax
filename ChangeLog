@@ -4,6 +4,8 @@
  * Add a timed layer filter.
  * Add a dynamic wavefold effect.
  * Add a frequency shifter effect.
+ * Allow pitch values up to 10.0 for noise types in the sound section of AAXS
+   files. When pitch is greater than 1.0 a high-pass filter is applied.
  * Add support for additional volume curves beside squared which can be defined
    using the state of the volume filer.
  * Implement a 16-band equalizer which gets enabled instead of the 8-band
@@ -11,15 +13,16 @@
  * Increase the number of frequency bands for the graphic equalizer from 4 to 5
  * Increase the number of envelope stages from 6 to 8 for all timed filters
    and effects.
- * Implement a SimpleMixer C++ API. The idea is that AAXS files already allow
-   dynamic playback of sounds, or sound files, without the need to change the
-   code. Therefore only simple bindings like start, stop and pause and pitch,
-   volume and panning have to be implemented.
- * Make it possible to get the pan property from buffers.
+ * Make it possible to read the pan property from a buffer if the associated
+   sound file defines it.
  * Rework SIMD support code for X86_64 and ARM and increase rendering speed
    for several functions across the various rendering paths.
  * Do not filter high-frequencies as much as before.
  * Fix the LFO always being defined for the distortion effect.
+ * Implement a SimpleMixer C++ API. The idea is that AAXS files already allow
+   dynamic playback of sounds, or sound files, without the need to change the
+   code. Therefore only simple bindings like start, stop and pause and pitch,
+   volume and panning may be sufficient in some cases.
  * Add python3 bindings for the SimpleMixer API which will be generated when
    pybind11 is found.
 
@@ -47,7 +50,7 @@
      aaxGetDistanceModelByName, aaxMaxFilter and aaxMaxEffect.
    + Remove the aaxBufferProcessWaveform function. The aax-utils package
      contains a bufferProcessWaveform function in src/driver.[ch] which emulates
-     this function by constructing an AAXS string which can be assigned to a 
+     this function by constructing an AAXS string which can be assigned to a
      buffer. AAXS files remain forward and backward compatible.
    + remove AAX_CONFIG_HD; use AAX_CONFIG instead.
  * Rename aeonwave.hpp to aeonwave
@@ -162,7 +165,7 @@
  * Re-synchronize the midi instruments with the master repository.
  * Handle PulseAudio returning a different audio-format than requested.
  * Accept any version of libssl as long as it supports the correct functions.
- * Make it possible to return buffer meta-data after calling the 
+ * Make it possible to return buffer meta-data after calling the
    aaxBufferReadFromStream function. The meta-data is available until the next
    call to aaxBufferReadFromStream, by calling the aaxDriverGetSetup function.
  * Report I/O errors. Especially when an https connection is requested and SSL
