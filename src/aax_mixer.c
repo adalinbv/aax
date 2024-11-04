@@ -1882,7 +1882,7 @@ _aaxMixerSetRendering(_handle_t *handle)
       }
       if (eff)
       {
-         aaxEffectSetSlot(eff, 0, AAX_LINEAR, 0.7f, 0.1f, 0.05f, 0.7f);
+         aaxEffectSetSlot(eff, 0, AAX_LINEAR, 0.3f, 0.1f, 0.05f, 0.7f);
          aaxEffectSetState(eff, AAX_SINE);
          aaxMixerSetEffect(handle, eff);
          aaxEffectDestroy(eff);
@@ -1890,10 +1890,11 @@ _aaxMixerSetRendering(_handle_t *handle)
    }
    else if (handle->info->midi_mode == AAX_RENDER_ARCADE)
    {
-      aaxFilter flt = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
-      if (flt)
-      {
-         aaxFilterSetSlot(flt, 0, AAX_LINEAR, 8000.0f, 1.0f, 0.0f, 1.0f);
+      aaxFilter flt = aaxFilterCreate(handle, AAX_BITCRUSHER_FILTER);
+      if (flt) // 8-bit
+      {        
+         aaxFilterSetSlot(flt, 0, AAX_LINEAR, 0.0f, 0.0f, 0.0f, 0.45f);
+         aaxFilterSetSlot(flt, 1, AAX_LINEAR, 16000.0f, 0.0f, 0.0f, 0.0f);
          aaxFilterSetState(flt, true);
          aaxScenerySetFilter(handle, flt);
          aaxFilterDestroy(flt);
