@@ -89,7 +89,7 @@ _aaxCPUOpen(void* id)
 static int
 _aaxCPUClose(void* id)
 {
-   if (id) free(id);
+   if (id && id != (void*)-1) free(id);
    return true;
 }
 
