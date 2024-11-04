@@ -22,7 +22,7 @@
 _aaxRenderer*
 _aaxSoftwareInitRenderer(float dt, enum aaxRenderMode mode, int registered)
 {
-   _aaxRenderer *rv = NULL;
+   static _aaxRenderer *rv = NULL;
 
    if (registered || mode == AAX_MODE_READ)
    {
@@ -32,35 +32,31 @@ _aaxSoftwareInitRenderer(float dt, enum aaxRenderMode mode, int registered)
    else if (!rv)
    {
       _aaxRendererDetect* rtype;
-      int i = -1, found = -1;
+      int i = -1;
 
       /* first find the last available renderer */
       while ((rtype = _aaxRenderTypes[++i]) != NULL)
       {
          _aaxRenderer* type = rtype();
-         if (type && type->detect()) {
-            found = i;
+         if (type && type->detect())
+         {
+            if (rv) free(rv);
+            rv = type;
          }
-         if (type) free(type);
-      }
-
-      if (found >= 0)
-      {
-         _aaxRendererDetect* rtype = _aaxRenderTypes[found];
-         rv = rtype();
       }
    }
 
    if (rv)
    {
-      _aaxRenderer* type = rv;
-      if (type->detect())
+      if (rv->detect())
       {
-         type->id = type->setup(_MIN(floorf(1000.0f * dt), 1));
-         if (type->id)
-         {
-            type->open(type->id);
-            rv = type;
+         rv->id = rv->setup(_MIN(floorf(1000.0f * dt), 1));
+         if (rv->id) {
+            rv->open(rv->id);
+         }
+         else {
+            free(rv);
+            rv = NULL;
          }
       }
    }
