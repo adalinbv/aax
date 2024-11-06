@@ -221,13 +221,10 @@ _aaxOSS3DriverDetect(int mode)
 
    if (audio)
    {
-      int version;
-
       TIE_FUNCTION(ioctl);
       TIE_FUNCTION(poll);
 
-      version = _oss3_get_version();
-      if (version && (version <= OSS_VERSION_3_MAX))
+      if (_oss3_get_version() <= OSS_VERSION_3_MAX)
       {
          struct stat buffer;
          if (stat(DEFAULT_PCM_NAME, &buffer) == 0)
@@ -482,7 +479,7 @@ _aaxOSS3DriverSetup(const void *id, float *refresh_rate, int *fmt,
       unsigned int tracks, rate, periods, format;
       size_t frame_sz, frag_size, period_frames;
       int res, fd = handle->fd;
- 
+
       format = handle->format;
       periods = handle->no_periods;
       rate = (unsigned int)*speed;
@@ -630,7 +627,7 @@ _aaxOSS3DriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_
    ssize_t offs = *offset;
    ssize_t init_offs = offs;
    ssize_t rv = false;
- 
+
    assert(handle->mode == AAX_MODE_READ);
 
    *offset = 0;
@@ -801,7 +798,7 @@ _aaxOSS3DriverState(const void *id, enum _aaxDriverState state)
       }
       break;
    case DRIVER_RESUME:
-      if (handle && handle->pause) 
+      if (handle && handle->pause)
       {
          handle->pause = 0;
          handle->fd = _oss3_open(handle);
@@ -998,19 +995,21 @@ _oss3_set_volume(UNUSED(_driver_t *handle), _aaxRingBuffer *rb, ssize_t offset, 
 static int
 _oss3_open(_driver_t *handle)
 {
-   int fd = open(handle->pcm, handle->mode|handle->exclusive);
+   int fd;
+
+   fd = open(handle->pcm, handle->mode|handle->exclusive);
    if (fd >= 0)
    {
       unsigned int param;
       int err, frag;
-   
+
       frag = log2i(handle->period_frames);
       frag |= DEFAULT_PERIODS << 16;
       pioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag);
 
       param = handle->format;
       err = pioctl(fd, SNDCTL_DSP_SETFMT, &param);
-      if (err >= 0) 
+      if (err >= 0)
       {
          param = handle->no_tracks;
          err = pioctl(fd, SNDCTL_DSP_CHANNELS, &param);
@@ -1035,8 +1034,9 @@ _oss3_get_version(void)
       int fd = open(_const_oss3_default_pcm, O_WRONLY);  /* open /dev/dsp */
       if (fd >= 0)
       {
-         int res = pioctl(fd, OSS_GETVERSION, &version);
-         if (res < 0) version = 0;
+         if (pioctl(fd, OSS_GETVERSION, &version) < 0) {
+            version = 0;
+         }
          close(fd);
          fd = -1;
       }
