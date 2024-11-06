@@ -983,7 +983,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          doffs = noffs - offs; // difference between current and new offset
 
          // first process the delayed (wet) signal
-         if (abs(doffs) > 1)
+         if (labs(doffs) > 1)
          {
             float samples = (float)no_samples;
             float pitch = _MAX((samples-doffs)/samples, 0.001f);
