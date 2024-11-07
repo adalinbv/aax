@@ -24,7 +24,7 @@
   <layer n="0">
    <waveform src="square" ratio="1.9"/>
    <waveform src="sine" processing="add" ratio="0.05" pitch="1.87"/>
-   <waveform src="pink-noise" processing="add" ratio="0.1" pitch="0.3"/>
+   <waveform src="pink-noise" processing="add" ratio="0.7" pitch="7.0"/>
    <waveform src="sine" processing="mix" ratio="0.5" pitch="0.5"/>
   </layer>
  </sound>
