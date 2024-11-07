@@ -60,9 +60,9 @@
   </effect>
   <effect type="wavefold">
    <slot n="0">
-    <param n="0">0.9</param>
+    <param n="0">0.3</param>
     <param n="1">1.5</param>
-    <param n="2">0.23</param>
+    <param n="2">0.11</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
