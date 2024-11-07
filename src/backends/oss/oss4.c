@@ -56,12 +56,13 @@
 #define TIMER_BASED		true
 
 #define MAX_NAME		40
+#define MAX_DEVNODE		16
 #define MAX_DEVICES		16
 #define DEFAULT_PERIODS		1
 #define DEFAULT_DEVNUM		0
 #define DEFAULT_DEVNAME		"default"
 #define	DEFAULT_PCM_NAME	"/dev/dsp0"
-#define DEFAULT_MIXER_NAME	"/dev/mixer"
+#define DEFAULT_MIXER_NAME	"/dev/mixer0"
 #define MAX_ID_STRLEN		96
 
 #define OSS_VERSION_4		0x040000
@@ -140,7 +141,7 @@ typedef struct
    _aaxRenderer *render;
    enum aaxRenderMode mode;
 
-   char *pcm;
+   char pcm[MAX_DEVNODE]; // "/dev/dspXX\0"
    int fd;
 
    size_t threshold;		/* sensor buffer threshold for padding */
@@ -165,7 +166,6 @@ typedef struct
    char **scratch;
    ssize_t buf_len;
 
-   char *devnode;
    char *ifname[2];
    int nodenum;
 // int setup;
@@ -235,7 +235,7 @@ _aaxOSS4DriverDetect(int mode)
       TIE_FUNCTION(ioctl);
       TIE_FUNCTION(poll);
 
-      if ((_oss4_get_version() >= OSS_VERSION_4))
+      if (_oss4_get_version() >= OSS_VERSION_4)
       {
          struct stat buffer;
          if (stat(DEFAULT_PCM_NAME, &buffer) == 0)
@@ -268,7 +268,7 @@ _aaxOSS4DriverNewHandle(enum aaxRenderMode mode)
 //    char m = (mode == AAX_MODE_READ) ? 0 : 1;
 //    const char *name;
 
-      handle->pcm = (char*)_const_oss4_default_pcm;
+      snprintf(handle->pcm , MAX_DEVNODE, "%s", _const_oss4_default_pcm);
       handle->name = (char*)_const_oss4_default_name;
       handle->frequency_hz = (float)48000.0f;
       handle->bits_sample = 16;
@@ -288,7 +288,6 @@ _aaxOSS4DriverNewHandle(enum aaxRenderMode mode)
          handle->format = AFMT_S16_LE;
       }
       handle->mode = mode;
-      handle->exclusive = O_EXCL;
       handle->fd = -1;
       if (handle->mode != AAX_MODE_READ) { // Always interupt based for capture
          handle->use_timer = TIMER_BASED;
@@ -343,18 +342,19 @@ _aaxOSS4DriverConnect(void *config, const void *id, xmlId *xid, const char *rend
             handle->use_timer = false;
          }
 
-         if (!handle->devnode)
+         if (xmlNodeTest(xid, "shared")) {
+            handle->exclusive = xmlNodeGetBool(xid, "shared") ? O_EXCL : 0;
+         }
+
+         s = xmlAttributeGetString(xid, "name");
+         if (s)
          {
-            s = xmlAttributeGetString(xid, "name");
-            if (s)
-            {
-               handle->nodenum = _oss4_detect_nodenum(s);
-               if (handle->name != _const_oss4_default_name) {
-                  free(handle->name);
-               }
-               handle->name = _aax_strdup(s);
-               xmlFree(s); 
+            handle->nodenum = _oss4_detect_nodenum(s);
+            if (handle->name != _const_oss4_default_name) {
+               free(handle->name);
             }
+            handle->name = _aax_strdup(s);
+            xmlFree(s);
          }
 
          f = (float)xmlNodeGetDouble(xid, "frequency-hz");
@@ -470,10 +470,6 @@ _aaxOSS4DriverDisconnect(void *id)
          free(handle->name);
       }
 
-      if (handle->pcm != _const_oss4_default_pcm) {
-         free(handle->pcm);
-      }
-
       if (handle->render)
       {
          handle->render->close(handle->render->id);
@@ -505,7 +501,10 @@ _aaxOSS4DriverSetup(const void *id, float *refresh_rate, int *fmt,
       unsigned int tracks, rate, periods, format;
       size_t frame_sz, frag_size, period_frames;
       int res, fd = handle->fd;
- 
+      audio_buf_info info;
+      int enable = 0;
+      int delay;
+
       format = handle->format;
       periods = handle->no_periods;
       rate = (unsigned int)*speed;
@@ -552,51 +551,44 @@ _aaxOSS4DriverSetup(const void *id, float *refresh_rate, int *fmt,
          }
       }
 
-      if (_oss4_get_version() >= OSS_VERSION_4)
+      /* disable sample conversion */
+      res = pioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
+
+      _oss4_get_volume(handle);
+
+      info.fragsize = 0;
+      if ((res >= 0) && (handle->mode == O_WRONLY)) {
+         res = pioctl(fd, SNDCTL_DSP_GETOSPACE, &info);
+      }
+
+      if (res >= 0)
       {
-         audio_buf_info info;
-         int enable = 0;
-         int delay;
+         oss_audioinfo ainfo;
 
-         /* disable sample conversion */
-         res = pioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
+         handle->fragsize = info.fragsize;
 
-         _oss4_get_volume(handle);
-   
-         info.fragsize = 0;
-         if ((res >= 0) && (handle->mode == O_WRONLY)) {
-            res = pioctl(fd, SNDCTL_DSP_GETOSPACE, &info);
-         }
+         period_frames = info.fragsize/(tracks*handle->bits_sample/8);
+         period_rate = (float)rate/period_frames;
+         *refresh_rate = period_rate;
 
+         ainfo.dev = handle->nodenum;
+         res = pioctl(handle->fd, SNDCTL_AUDIOINFO_EX, &ainfo);
          if (res >= 0)
          {
-            oss_audioinfo ainfo;
-
-            handle->fragsize = info.fragsize;
-
-            period_frames = info.fragsize/(tracks*handle->bits_sample/8);
-            period_rate = (float)rate/period_frames;
-            *refresh_rate = period_rate;
-
-            ainfo.dev = handle->nodenum;
-            res = pioctl(handle->fd, SNDCTL_AUDIOINFO_EX, &ainfo);
-            if (res >= 0)
-            {
-               handle->min_tracks = ainfo.min_channels;
-               handle->max_tracks = ainfo.max_channels;
-               handle->min_frequency = ainfo.min_rate;
-               handle->max_frequency = ainfo.max_rate;
-            }
+            handle->min_tracks = ainfo.min_channels;
+            handle->max_tracks = ainfo.max_channels;
+            handle->min_frequency = ainfo.min_rate;
+            handle->max_frequency = ainfo.max_rate;
          }
+      }
 
-         handle->latency = 0.0f;
-         res = pioctl(fd, SNDCTL_DSP_GETODELAY, &delay);
-         if (res >= 0)
-         {
-            handle->latency = (float)delay;
-            handle->latency /= (float)(rate*tracks*handle->bits_sample/8);
-         }
-      } // _oss4_get_version() >= OSS_VERSION_4
+      handle->latency = 0.0f;
+      res = pioctl(fd, SNDCTL_DSP_GETODELAY, &delay);
+      if (res >= 0)
+      {
+         handle->latency = (float)delay;
+         handle->latency /= (float)(rate*tracks*handle->bits_sample/8);
+      }
 
       handle->frequency_hz = rate;
       handle->no_tracks = tracks;
@@ -699,7 +691,7 @@ _aaxOSS4DriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_
    ssize_t offs = *offset;
    ssize_t init_offs = offs;
    ssize_t rv = false;
- 
+
    assert(handle->mode == AAX_MODE_READ);
 
    *offset = 0;
@@ -870,45 +862,17 @@ _aaxOSS4DriverState(const void *id, enum _aaxDriverState state)
       }
       break;
    case DRIVER_RESUME:
-      if (handle && handle->pause) 
+      if (handle && handle->pause)
       {
          handle->pause = 0;
          handle->fd = _oss4_open(handle);
-         if (handle->fd >= 0)
-         {
-            int err, frag, fd = handle->fd;
-            unsigned int param;
-
-            if (_oss4_get_version() >= OSS_VERSION_4)
-            {
-               int enable = 0;
-               err = pioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
-            }
-   
-            frag = log2i(handle->fragsize);
-            frag |= DEFAULT_PERIODS << 16;
-            pioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag);
-         
-            param = handle->format;
-            err = pioctl(fd, SNDCTL_DSP_SETFMT, &param);
-            if (err >= 0)
-            {
-               param = handle->no_tracks;
-               err = pioctl(fd, SNDCTL_DSP_CHANNELS, &param);
-            }
-            if (err >= 0)
-            {
-               param = (unsigned int)handle->frequency_hz;
-               err = pioctl(fd, SNDCTL_DSP_SPEED, &param);
-            }
-            if (err >= 0) {
-               rv = true;
-            }
+         if (handle->fd >= 0) {
+            rv = true;
          }
       }
       break;
    case DRIVER_AVAILABLE:
-      if (handle && _oss4_get_version() >= OSS_VERSION_4)
+      if (handle)
       {
          oss_audioinfo ainfo;
          int err;
@@ -916,7 +880,7 @@ _aaxOSS4DriverState(const void *id, enum _aaxDriverState state)
          ainfo.dev = handle->nodenum;
          err = pioctl(handle->fd, SNDCTL_AUDIOINFO_EX, &ainfo);
          if (err >= 0 && ainfo.enabled) {
-           rv = true;
+            rv = true;
          }
       }
       break;
@@ -1018,91 +982,45 @@ _aaxOSS4DriverGetDevices(UNUSED(const void *id), int mode)
    t_now = time(NULL);
    if (t_now > (t_previous[m]+5))
    {
-      _driver_t *handle = (_driver_t*)id;
       int fd;
 
       t_previous[m] = t_now;
 
-      if (handle && handle->mixfd >= 0) {
-         fd = handle->mixfd;
-      }
-      else {
-         fd = open(_const_oss4_default_mixer, O_RDWR);
-      }
-
+      fd = open(_const_oss4_default_mixer, O_RDWR);
       if (fd >= 0)
       {
-         int version = _oss4_get_version();
+         oss_sysinfo info;
+         int len = 1024;
+         char *ptr;
 
-         if (version >= OSS_VERSION_4)
+         ptr = (char *)&names[m];
+         *ptr = 0; *(ptr+1) = 0;
+
+         if (pioctl(fd, SNDCTL_SYSINFO, &info) >= 0)
          {
-            oss_sysinfo info;
-            int err = pioctl(fd, SNDCTL_SYSINFO, &info);
-
-            if (err >= 0)
+            int i;
+            for (i=0; i<info.numaudios; ++i)
             {
-               oss_audioinfo ainfo;
-               char name[64] = "";
-               size_t len;
-               int i, j;
-               char *ptr;
+               oss_card_info cinfo;
+               size_t slen;
 
-               len = 1024;
-               ptr = (char *)&names[m];
-               for (i = 0; i < info.numcards; i++)
-               {
-                  size_t slen;
-                  char *p;
+               cinfo.card = i;
+               if (pioctl(fd, SNDCTL_CARDINFO, &cinfo) < 0) continue;
 
-                  ainfo.dev = i;
-                  err = pioctl (fd, SNDCTL_AUDIOINFO_EX, &ainfo);
-                  if (err < 0) continue;
+               slen = strlen(cinfo.shortname)+strlen(cinfo.longname)+2;
+               if (slen > (len-1)) break;
 
-                  if (!ainfo.enabled) continue;
-                  if (ainfo.pid != -1) continue;                /* in use */
-                  if (ainfo.caps & PCM_CAP_VIRTUAL) continue;
-                  if (((ainfo.caps & PCM_CAP_OUTPUT) && !m) ||
-                      ((ainfo.caps & PCM_CAP_INPUT) && m)) continue;
-
-                  slen = strlen(name);
-                  if (slen && !strncasecmp(name, ainfo.name, slen)) continue;
-
-                  strlcpy(name, ainfo.name, 64);
-                  p = strstr(name, " rec");
-                  if (!p) p = strstr(name, " play");
-                  if (!p) p = strstr(name, " pcm");
-                  if (p) *p = 0;
-
-                  for (j=0; j<info.numcards; j++)
-                  {
-                     oss_card_info cinfo;
-
-                     cinfo.card = j;
-                     err = pioctl (fd, SNDCTL_CARDINFO, &cinfo);
-                     if (err < 0) continue;
-
-                     if (strstr(cinfo.longname, name))
-                     {
-                        snprintf(ptr, len, "%s", cinfo.longname);
-                        slen = strlen(ptr)+1;   /* skip the trailing 0 */
-                        if (slen > (len-1)) break;
-
-                        len -= slen;
-                        ptr += slen;
-                        break;
-                     }
-                  }
-               }
-               *ptr = 0;
+               snprintf(ptr, len, "%s %s", cinfo.shortname, cinfo.longname);
+               len -= slen;
+               ptr += slen;
             }
          }
-
-         if (!handle)
-         {
-            close(fd);
-            fd = -1;
-         }
+         close(fd);
       }
+
+      /* always end with "\0\0" no matter what */
+      names[m][1022] = 0;
+      names[m][1023] = 0;
    }
 
    return (char *)&names[m];
@@ -1115,78 +1033,64 @@ _aaxOSS4DriverGetInterfaces(const void *id, const char *devname, int mode)
    unsigned char m = (mode == AAX_MODE_READ) ? 0 : 1;
    char *rv = handle ? handle->ifname[m] : NULL;
 
-   if (!rv && devname)
+   if (!rv)
    {
-      int fd = open(_const_oss4_default_mixer, O_RDWR);
-      if (fd < 0)                          /* test for /dev/mixer0 instead */
-      {
-         char *mixer = _aax_strdup(_const_oss4_default_mixer);
+      char devlist[1024] = "\0\0";
+      char *ptr = devlist;
+      size_t len = 1024;
+      int fd;
 
-         *(mixer+strlen(mixer)-1) = '\0';
-         fd = open(mixer, O_WRONLY);
-         free(mixer);
-      }
-
+      fd = open(_const_oss4_default_mixer, O_RDWR);
       if (fd >= 0)
       {
-         int version = _oss4_get_version();
-
-         if (version >= OSS_VERSION_4)
+         oss_sysinfo info;
+         if (pioctl(fd, SNDCTL_SYSINFO, &info) >= 0)
          {
-            oss_sysinfo info;
-            int err = pioctl(fd, SNDCTL_SYSINFO, &info);
-
-            if (err >= 0)
+            int i;
+            for (i=0; i<info.numaudios; ++i)
             {
-               char interfaces[2048];
-               size_t buflen;
                oss_audioinfo ainfo;
-               char *ptr;
-               int i = 0;
+               unsigned int slen;
 
-               ptr = interfaces;
-               buflen = 2048;
+               ainfo.dev = i;
+               if (pioctl(fd, SNDCTL_AUDIOINFO_EX, &ainfo) < 0) continue;
 
-               for (i=0; i<info.numcards; i++)
+               if (!ainfo.enabled) continue;
+               if (ainfo.caps & PCM_CAP_VIRTUAL) continue;
+               if (((ainfo.caps & PCM_CAP_OUTPUT) && !m) ||
+                   ((ainfo.caps & PCM_CAP_INPUT) && m)) continue;
+
+               if (!strncmp(ainfo.name, devname, strlen(devname)))
                {
-                  size_t len;
-                  char name[128];
-                  char *p;
+                  slen = strlen(ainfo.name)-strlen(devname);
+                  if (slen > (len-1)) break;
 
-                  ainfo.dev = i;
-                  err = pioctl (fd, SNDCTL_AUDIOINFO_EX, &ainfo);
-                  if (err < 0) continue;
-
-                  if (!ainfo.enabled) continue;
-                  if (ainfo.pid != -1) continue;                /* in use */
-                  if (ainfo.caps & PCM_CAP_VIRTUAL) continue;
-                  if (((ainfo.caps & PCM_CAP_OUTPUT) && !m) ||
-                      ((ainfo.caps & PCM_CAP_INPUT) && m)) continue;
-
-                  snprintf(name, 128, "%s", ainfo.name);
-                  p = strstr(name, " rec");
-                  if (!p) p = strstr(name, " play");
-                  if (!p) p = strstr(name, " pcm");
-                  if (!p) continue;
-
-                  *p = 0;
-                  if (!strstr(devname, name)) continue;
-
-                  *p++ = ' ';
-                  snprintf(ptr, buflen, "%s", p);
-                  len = strlen(ptr)+1;  /* skip the trailing 0 */
-                  if (len > (buflen-1)) break;
-                  buflen -= len;
-                  ptr += len;
+                  snprintf(ptr, len, "%s", ainfo.name+strlen(devname)+1);
+                  len -= slen;
+                  ptr += slen;
+#if 0
+ printf("    name: '%s'\n", ainfo.name);
+ printf("    caps: %x\n", ainfo.caps);
+ printf("    min_rate: %i, max_rate: %i\n", ainfo.min_rate, ainfo.max_rate);
+ printf("    min_channels: %i, max_channels: %i\n", ainfo.min_channels, ainfo.max_channels);
+ printf("    latency: %i\n", ainfo.latency);
+ printf("    devnode: '%s'\n", ainfo.devnode);
+#endif
                }
+            }
 
-               if (ptr != interfaces)
+            if (ptr != devlist)
+            {
+               *ptr++ = '\0';
+               if (handle->ifname[m]) {
+                  rv = realloc(handle->ifname[m], ptr-devlist);
+               } else {
+                  rv = malloc(ptr-devlist);
+               }
+               if (rv)
                {
-                  *ptr++ = '\0';
-                  rv = handle->ifname[m] = malloc(ptr-interfaces);
-                  if (rv) {
-                     memcpy(handle->ifname[m], interfaces, ptr-interfaces);
-                  }
+                  handle->ifname[m] = rv;
+                  memcpy(handle->ifname[m], devlist, ptr-devlist);
                }
             }
          }
@@ -1244,20 +1148,17 @@ _oss4_open(_driver_t *handle)
    {
       unsigned int param;
       int err, frag;
+      int enable = 0;
 
-      if (_oss4_get_version() >= OSS_VERSION_4)
-      {
-         int enable = 0;
-         err = pioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
-      }
-   
+      err = pioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
+
       frag = log2i(handle->period_frames);
       frag |= DEFAULT_PERIODS << 16;
       pioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag);
 
       param = handle->format;
       err = pioctl(fd, SNDCTL_DSP_SETFMT, &param);
-      if (err >= 0) 
+      if (err >= 0)
       {
          param = handle->no_tracks;
          err = pioctl(fd, SNDCTL_DSP_CHANNELS, &param);
@@ -1279,15 +1180,22 @@ _oss4_get_version(void)
 
    if (version < 0)
    {
-      int fd = open(_const_oss4_default_pcm, O_WRONLY);  /* open /dev/dsp */
+      int fd = open(_const_oss4_default_pcm, O_WRONLY);  /* open /dev/dsp0 */
       if (fd >= 0)
       {
-         int err = pioctl(fd, OSS_GETVERSION, &version);
+         oss_sysinfo info;
+         if (pioctl(fd, SNDCTL_SYSINFO, &info) >= 0) {
+            version = info.versionnum;
+         }
+         else
+         {
+            int err = pioctl(fd, OSS_GETVERSION, &version);
 #if __FreeBSD__
-         if (err == EINVAL) version = SOUND_VERSION;
+            if (err == EINVAL) version = SOUND_VERSION;
 #else
-         if (err < 0) version = 0;
+            if (err < 0) version = 0;
 #endif
+         }
          close(fd);
          fd = -1;
       }
@@ -1305,38 +1213,14 @@ _oss4_get_volume(_driver_t *handle)
       int vlr = -1;
 
       handle->volumeMax = 100;
-      if (_oss4_get_version() >= OSS_VERSION_4)
-      {
-         errno = 0;
-         if (handle->mode == O_RDONLY) {
-            rv = pioctl(handle->fd, SNDCTL_DSP_GETRECVOL, &vlr);
-         } else {
-            rv = pioctl(handle->fd, SNDCTL_DSP_GETPLAYVOL, &vlr);
-         }     
-         handle->volumeCur = ((vlr & 0xFF) + ((vlr >> 8) & 0xFF))/2;
+
+      errno = 0;
+      if (handle->mode == O_RDONLY) {
+         rv = pioctl(handle->fd, SNDCTL_DSP_GETRECVOL, &vlr);
+      } else {
+         rv = pioctl(handle->fd, SNDCTL_DSP_GETPLAYVOL, &vlr);
       }
-      else
-      {        
-         int devs = 0;
-         if (handle->mode == O_RDONLY)
-         {
-            pioctl(handle->fd, SOUND_MIXER_READ_RECMASK, &devs);
-            if (devs & SOUND_MASK_IGAIN)
-            {
-               rv = pioctl(handle->mixfd, SOUND_MIXER_READ_IGAIN, &vlr);
-               handle->volumeCur = ((vlr & 0xFF) + ((vlr >> 8) & 0xFF))/2;
-            }
-         }
-         else
-         {
-            pioctl(handle->fd, SOUND_MIXER_READ_DEVMASK, &devs);
-            if (devs & SOUND_MASK_OGAIN)
-            {
-               rv = pioctl(handle->mixfd, SOUND_MIXER_READ_OGAIN, &vlr);
-               handle->volumeCur = ((vlr & 0xFF) + ((vlr >> 8) & 0xFF))/2;
-            }
-         }
-      }
+      handle->volumeCur = ((vlr & 0xFF) + ((vlr >> 8) & 0xFF))/2;
       handle->volumeInit = (float)handle->volumeCur/(float)handle->volumeMax;
 
       handle->volumeMin = 0;
@@ -1385,33 +1269,13 @@ _oss4_set_volume(UNUSED(_driver_t *handle), _aaxRingBuffer *rb, ssize_t offset, 
          int rv;
 
          handle->volumeCur = volume;
-         if (_oss4_get_version() >= OSS_VERSION_4)
-         {
-            if (handle->mode == O_RDONLY) {
-               rv = pioctl(handle->fd, SNDCTL_DSP_SETRECVOL, &vlr);
-            } else {
-               rv = pioctl(handle->fd, SNDCTL_DSP_SETPLAYVOL, &vlr);
-            }
-            if (rv < 0) volume = handle->volumeMax;
+
+         if (handle->mode == O_RDONLY) {
+            rv = pioctl(handle->fd, SNDCTL_DSP_SETRECVOL, &vlr);
+         } else {
+            rv = pioctl(handle->fd, SNDCTL_DSP_SETPLAYVOL, &vlr);
          }
-         else
-         {
-            int devs = 0;
-            if (handle->mode == O_RDONLY)
-            {
-               pioctl(handle->fd, SOUND_MIXER_READ_RECMASK, &devs);
-               if (devs & SOUND_MASK_IGAIN) {
-                  rv = pioctl(handle->mixfd, SOUND_MIXER_WRITE_IGAIN, &vlr);
-               }
-            }
-            else
-            {
-               pioctl(handle->fd, SOUND_MIXER_READ_DEVMASK, &devs);
-               if (devs & SOUND_MASK_OGAIN) {
-                  rv = pioctl(handle->mixfd, SOUND_MIXER_WRITE_OGAIN, &vlr);
-               }
-            }
-         }
+         if (rv < 0) volume = handle->volumeMax;
       }
 
       hwgain = (float)volume/handle->volumeMax;
@@ -1428,74 +1292,8 @@ _oss4_set_volume(UNUSED(_driver_t *handle), _aaxRingBuffer *rb, ssize_t offset, 
 static int
 _oss4_detect_devnode(_driver_t *handle, UNUSED(char mode))
 {
-   int version = _oss4_get_version();
-   int rv = false;
-
-   if (version >= OSS_VERSION_4)
-   {
-      oss_sysinfo info;
-      int err, fd = -1;
-
-      fd = open(_const_oss4_default_mixer, O_RDWR);
-      if (fd < 0)                       /* test for /dev/mixer0 instead */
-      {
-         char *mixer = _aax_strdup(_const_oss4_default_mixer);
-
-         *(mixer+strlen(mixer)-1) = '\0';
-         fd = open(mixer, O_WRONLY);
-         free(mixer);
-      }
-
-      err = pioctl(fd, SNDCTL_SYSINFO, &info);
-      if (err >= 0)
-      {
-         oss_audioinfo ainfo;
-
-         ainfo.dev = handle->nodenum;
-         err = pioctl (fd, SNDCTL_AUDIOINFO_EX, &ainfo);
-         if (err >= 0)
-         {
-            handle->devnode = _aax_strdup(ainfo.devnode);
-printf("A: handle->devnode: %s\n", handle->devnode);
-            rv = true;
-         }
-      }
-   }
-   else if (handle->nodenum > 0)
-   {
-      size_t len = strlen(_const_oss4_default_name)+12;
-      char *name = malloc(len);
-      if (name)
-      {
-         snprintf(name, len, "/dev/dsp%i", handle->nodenum);
-         handle->devnode = name;
-printf("B: handle->devnode: %s\n", handle->devnode);
-         rv = true;
-      }
-   }
-   else
-   {
-      struct stat buffer;
-
-      handle->devnode = (char*)_const_oss4_default_name;
-      if (stat(handle->devnode, &buffer) != 0)
-      {
-         char *name = _aax_strdup(_const_oss4_default_name);
-         *(name+strlen(name)-1) = '\0';
-         if (stat(name, &buffer) != 0) {
-            free(name);
-         }
-         else
-         {
-            handle->devnode = name;
-            rv = true;
-         }
-      }
-      else {
-         rv = true;
-      }
-printf("C: handle->devnode: %s\n", handle->devnode);
-   }
+   int fd, rv = true;
+   snprintf(handle->pcm, MAX_DEVNODE, "/dev/dsp%i", handle->nodenum);
 
    return rv;
 }
@@ -1503,83 +1301,16 @@ printf("C: handle->devnode: %s\n", handle->devnode);
 static int
 _oss4_detect_nodenum(const char *devname)
 {
-   int version = _oss4_get_version();
+   static int slen = strlen("/dev/dsp");
    int rv = _const_oss4_default_nodenum;
 
-   if (devname && !strncasecmp(devname, "/dev/dsp", 8) ) {
-       rv = strtol(devname+8, NULL, 10);
+   if (devname && !strncasecmp(devname, "/dev/dsp", slen) ) {
+      rv = strtol(devname+slen, NULL, 10);
    }
-   else if (devname && strcasecmp(devname, "OSS") &&
+   else if (devname && strcasecmp(devname, "OSS4") &&
                        strcasecmp(devname, DEFAULT_DEVNAME))
    {
-      int fd, err;
-
-      fd = open(_const_oss4_default_mixer, O_RDWR);
-      if (fd < 0)                       /* test for /dev/mixer0 instead */
-      {
-         char *mixer = _aax_strdup(_const_oss4_default_mixer);
-
-         *(mixer+strlen(mixer)-1) = '\0';
-         fd = open(_const_oss4_default_mixer, O_WRONLY);
-         free(mixer);
-      }
-
-      if (fd >= 0)
-      {
-         if (version >= OSS_VERSION_4)
-         {
-            oss_sysinfo info;
-            char name[255];
-            char *ptr;
-
-            snprintf(name, 255, "%s", devname);
-            ptr = strstr(name, ": ");
-            if (ptr) {
-               size_t slen = strlen(ptr+1);
-               memmove(ptr, ptr+1, slen);
-               *(ptr+slen) = 0;
-            }
-
-            err = pioctl(fd, SNDCTL_SYSINFO, &info);
-            if (err >= 0)
-            {
-               int i;
-               for (i = 0; i < info.numcards; i++)
-               {
-#if 1
-                  oss_audioinfo ainfo;
-
-                  ainfo.dev = i;
-                  if ((err = pioctl(fd, SNDCTL_AUDIOINFO_EX, &ainfo)) < 0) {
-                     continue;
-                  }
-
-                  if (strstr(name, ainfo.name))
-                  {
-                     rv = i;
-                     break;
-                  }
-#else
-                  oss_card_info cinfo;
-
-                  cinfo.card = i;
-                  if ( (err = pioctl (fd, SNDCTL_CARDINFO, &cinfo)) < 0) {
-                     continue;
-                  }
-
-                  if (!strcasecmp(name, cinfo.longname))
-                  {
-                     rv = cinfo.card;
-                     break;
-                  }
-#endif
-               }
-            }
-         }
-
-         close(fd);
-         fd = -1;
-      }
+      rv = strtol(devname+strlen("pcm"), NULL, 10);
    }
 
    return rv;
