@@ -299,12 +299,13 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
 #include "xpoll.h"
 int msecSleep(unsigned int dt_ms)
 {
-   struct timeval delay;
-   delay.tv_sec = 0;
-   delay.tv_usec = dt_ms*1000;
+   struct pollfd pfd = { -1, 0 };
+   int res;
+
    do {
-      (void) select(0, NULL, NULL, NULL, &delay);
-   } while ((delay.tv_usec > 0) || (delay.tv_sec > 0));
+      res = poll(&pfd, 0, dt_ms);
+   } while (res == -1 && errno == EINTR);
+
    return 0;
 }
 
