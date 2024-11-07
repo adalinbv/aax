@@ -2457,8 +2457,9 @@ _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
    {
       int r = _aaxThreadStart(handle->buffer_thread.ptr, _bufAAXSThread, &data,
 		              0, "aaxBufferAAXS");
-      if (r == thrd_success) {
-         _aaxThreadJoin(handle->buffer_thread.ptr);
+      if (r == thrd_success)
+      {
+         r = _aaxThreadJoin(handle->buffer_thread.ptr);
          if (r == thrd_success) rv = true;
       }
       else {

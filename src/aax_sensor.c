@@ -658,15 +658,9 @@ _aaxSensorCaptureStart(_handle_t *handle)
 
          handle->thread.started = true;
          ms = rintf(1000/handle->info->period_rate);
-#if 0
-         r = _aaxThreadStart(handle->thread.ptr,
-                             handle->backend.ptr->thread, handle, ms,
-			     "aaxSensor");
-#else
          r = _aaxThreadStart(handle->thread.ptr, _aaxSoftwareMixerThread,
                               handle, ms, "aaxSensor");
-#endif
-         if (r == 0)
+         if (r == thrd_success)
          {
             int p = 0;
             do

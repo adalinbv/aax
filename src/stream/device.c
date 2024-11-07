@@ -724,10 +724,10 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                }
             }
             else {
-               res = 0;
+               res = thrd_success;
             }
 
-            if (res == 0)
+            if (res == thrd_success)
             {
                if (handle->use_iothread) {
                   handle->iothread.started = true;

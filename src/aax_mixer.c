@@ -1762,7 +1762,7 @@ _aaxMixerStart(_handle_t *handle)
       ms = rintf(1000/handle->info->period_rate);
       r = _aaxThreadStart(handle->thread.ptr, handle->backend.ptr->thread,
                           handle, ms, "aaxMixer");
-      if (r == 0)
+      if (r == thrd_success)
       {
          int p = 0;
          do

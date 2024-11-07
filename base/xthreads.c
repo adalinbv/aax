@@ -258,7 +258,7 @@ int
 _aaxThreadStart(_aaxThread *t,  int(*handler)(void*), void *arg, UNUSED(unsigned int ms), const char *name)
 {
    int ret = thrd_create(t, handler, arg);
-   if (!ret && name)
+   if (ret == thrd_success && name)
    {
 #if HAVE_PTHREAD_H
       pthread_t *id = t;
@@ -285,9 +285,7 @@ _aaxThreadJoin(_aaxThread *t)
 
    assert(t);
 
-   ret = thrd_join(*t, 0);
-
-   return ret;
+   return thrd_join(*t, 0);
 }
 
 int

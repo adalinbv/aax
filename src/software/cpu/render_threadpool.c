@@ -178,7 +178,7 @@ _aaxWorkerSetup(int dt)
          thread->ptr = _aaxThreadCreate();
          res = _aaxThreadStart(thread->ptr, _aaxWorkerThread, handle, dt,
 			       "aaxWorker");
-         if (res == 0)
+         if (res == thrd_success)
          {
             int q = 100;
             while (q-- && thread->started != true) {
