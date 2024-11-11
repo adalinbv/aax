@@ -90,7 +90,7 @@ aaxEmitterCreate()
             handle->midi.attack_factor = 1.0f;
             handle->midi.release_factor = 1.0f;
             handle->midi.decay_factor = 1.0f;
-            handle->midi.mode = AAX_RENDER_NORMAL;
+            handle->midi.mode = AAX_RENDER_DEFAULT;
 
             rv = (aaxEmitter)handle;
          }
@@ -180,7 +180,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
                }
                else
                {
-                  if (!handle->midi.mode) {
+                  if (handle->midi.mode == AAX_RENDER_DEFAULT) {
                      handle->midi.mode = buffer->midi_mode;
                   }
                   rv = true;
@@ -672,6 +672,10 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          }
          break;
       }
+      case AAX_SYNTHESIZER:
+      case AAX_ARCADE:
+         handle->midi.mode = mode;
+         break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
