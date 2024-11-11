@@ -1999,10 +1999,8 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
             switch (handle->midi_mode)
             {
             case AAX_RENDER_ARCADE:
-               gain *= 0.6f*0.6f;
-               break;
             case AAX_RENDER_SYNTHESIZER:
-               gain *= 0.6f;
+               gain *= 0.7f;
                break;
             case AAX_RENDER_NORMAL:
             case AAX_RENDER_DEFAULT:
