@@ -35,7 +35,6 @@
 
 #include <3rdparty/MurmurHash3.h>
 
-// #include "analyze.h"
 #include "arch.h"
 #include "api.h"
 
@@ -1065,9 +1064,9 @@ free_buffer(_buffer_t* handle)
    {
       if (--handle->ref_counter == 0)
       {
-         unsigned char b;
-         for (b=0; b<handle->mip_levels; ++b) {
-            handle->ringbuffer[b] = _bufDestroyRingBuffer(handle, b);
+         int mip;
+         for (mip=0; mip<handle->mip_levels; ++mip) {
+            handle->ringbuffer[mip] = _bufDestroyRingBuffer(handle, mip);
          }
          if (handle->aaxs) free(handle->aaxs);
          if (handle->url) free(handle->url);
@@ -1713,102 +1712,12 @@ static inline float note2freq(uint8_t d) {
    return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
 }
 
-#if 0
-static int
-_bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fsize)
-{
-   _buffer_t* handle = aax_buf->parent;
-   bool rv = false;
-   FILE *infile;
-
-   infile = fopen(fname, "r");
-   if (infile)
-   {
-      void **data = malloc(fsize);
-      if (data)
-      {
-         char *end = (char*)data + fsize;
-         int b = 0, mip_levels = 0;
-         size_t *d = (size_t*)data;
-         size_t size;
-
-         size = fread(data, fsize, 1, infile);
-         if (size == 1)
-         {
-            while(*d != 0)
-            {
-               size_t offs = *d++;
-
-               // make sure the level-offsets are in ascending order
-               if (((char*)d >= end) || (*d && (offs >= *d)))
-               {
-                  b = -1;
-                  break;
-               }
-               mip_levels++;
-            }
-
-            // make sure the file-size matches the included data size
-            if (b >= 0)
-            {
-               *d++ = fsize;		// was 0, to be used below.
-               if ((char*)d < end)
-               {
-                  size = *d;
-                  if (size != fsize) b = -1;
-               }
-            }
-
-            if (b >= 0)
-            {
-                d = (size_t*)data;
-                if (mip_levels > MAX_MIP_LEVELS) {
-                   mip_levels = MAX_MIP_LEVELS;
-                }
-                handle->mip_levels = mip_levels;
-
-                for (b=0; b<mip_levels; ++b)
-                {
-                   unsigned int no_samples;
-                   _aaxRingBuffer *rb;
-                   void **tracks;
-                   char *ptr;
-
-                   rb = _bufGetRingBuffer(handle, handle->root, b);
-
-                   ptr = (char*)data + d[b];
-                   size = d[b+1] - d[b];
-                   no_samples = size/sizeof(float);
-
-                   if (rb->get_state(rb, RB_IS_VALID) == false)
-                   {
-                      rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
-                      rb->init(rb, false);
-                      handle->ringbuffer[b] = rb;
-                   }
-                   assert(size <= rb->get_parami(rb, RB_TRACKSIZE));
-
-                   tracks = (void**)rb->get_tracks_ptr(rb, RB_WRITE);
-                   memcpy(tracks[0], ptr, size);
-                   rb->release_tracks_ptr(rb);
-                }
-                rv = true;
-            }
-         }
-         free(data);
-      }
-   }
-
-   return rv;
-}
-#endif
-
 static bool
 _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
 {
    float high_frequency = handle->info.high_frequency;
    float freq = handle->info.base_frequency;
-   int b, layer, no_layers;
+   int mip, layer, no_layers;
    double duration = 1.0f;
    limitType limiter;
    float spread = 0;
@@ -1899,29 +1808,33 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
    }
    handle->info.no_tracks = no_layers;
 
-   for (b=0; b<handle->mip_levels; ++b)
+   // mip levels are handled by creating a new ringbuffer for every mip level
+   // and selecting the required ringbuffer later on.
+   for (mip=0; mip<handle->mip_levels; ++mip)
    {
-      _aaxRingBuffer *rb = _bufGetRingBuffer(handle, handle->root, b);
+      _aaxRingBuffer *rb = _bufGetRingBuffer(handle, handle->root, mip);
       if (rb)
       {
-         float mul = (float)(1 << b);
+         float mul = (float)(1 << mip);
          float pitch_fact = 1.0f/mul;
 
          if (duration >= 0.099f)
          {
-            float f = pitch_fact*rb->get_paramf(rb, RB_FREQUENCY);
+            float f = 4.0f*pitch_fact*rb->get_paramf(rb, RB_FREQUENCY);
             size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
 
             rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
             rb->set_parami(rb, RB_NO_TRACKS, handle->info.no_tracks);
             rb->set_parami(rb, RB_NO_LAYERS, handle->info.no_tracks);
-            handle->ringbuffer[b] = rb;
+            handle->ringbuffer[mip] = rb;
          }
       }
 
+      // sound layers are handled by creating a new audio track for every layer
+      // and mixing between the tracks later on.
       for (layer=0; layer<no_layers; ++layer)
       {
-         float mul = (float)(1 << b);
+         float mul = (float)(1 << mip);
          float frequency = mul*freq;
          float pitch = 1.0f;
          float ratio = 1.0f;
@@ -1971,7 +1884,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
                      int mode = limiter & 1; // mode 0 or 1 only
                      rv = _bufCreateWaveformFromAAXS(handle, xwid, layer,
                                                      ratio, pitch, frequency,
-                                                     b, voices, spread, mode,
+                                                     mip, voices, spread, mode,
                                                      version);
                      waves--;
                   }
@@ -1993,7 +1906,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
 
       if (midi_mode)
       {
-         if (!b && rb->get_state(rb, RB_IS_VALID))
+         if (mip == 0 && rb->get_state(rb, RB_IS_VALID))
          {
             float gain = handle->gain;
             switch (handle->midi_mode)
@@ -3151,11 +3064,12 @@ _bufGetDataPitchLevels(_buffer_t *handle)
 // _aaxRingBufferSample *rbd = rbi->sample;
    unsigned int no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    int format = handle->info.fmt & ~AAX_SPECIAL;
-   uint32_t b, offs, size;
+   uint32_t offs, size;
    void **data = NULL;
    void **tracks;
    size_t *d;
    char *ptr;
+   int mip;
 
    if (handle->info.no_tracks != 1) return data;
    if (handle->mip_levels <= 1) return data;
@@ -3179,13 +3093,13 @@ _bufGetDataPitchLevels(_buffer_t *handle)
 
 
    d = (size_t*)data;
-   for (b=0; b<handle->mip_levels; ++b)
+   for (mip=0; mip<handle->mip_levels; ++mip)
    {
       uint32_t len;
 
-      d[b] = (size_t)ptr;
+      d[mip] = (size_t)ptr;
 
-      rb = handle->ringbuffer[b];
+      rb = handle->ringbuffer[mip];
       if (!rb) break;
 
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
@@ -3203,8 +3117,8 @@ _bufGetDataPitchLevels(_buffer_t *handle)
       }
       ptr += len;
    }
-   d[b++] = 0;
-   d[b] = offs;
+   d[mip++] = 0;
+   d[mip] = offs;
 
    return data;
 }
