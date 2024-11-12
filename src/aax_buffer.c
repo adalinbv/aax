@@ -1824,7 +1824,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
 
          if (duration >= 0.099f)
          {
-            float f = 4.0f*pitch_fact*rb->get_paramf(rb, RB_FREQUENCY);
+            float f = pitch_fact*rb->get_paramf(rb, RB_FREQUENCY);
             size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
 
             rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
