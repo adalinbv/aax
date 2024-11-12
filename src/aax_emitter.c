@@ -43,6 +43,7 @@ static bool _emitterCreateEFFromAAXS(struct aax_emitter_t*, struct aax_embuffer_
 struct _arg_t {
    _emitter_t *handle;
    _embuffer_t *embuf;
+   int error;
 };
 
 AAX_API aaxEmitter AAX_APIENTRY
@@ -1810,6 +1811,10 @@ _emitterCreateEFFromAAXSThread(void *h)
       }
       xmlClose(xid);
    }
+
+   if (rv == false) {
+      arg->error = AAX_INVALID_STATE;
+   }
    return rv;
 }
 
@@ -1827,6 +1832,8 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf)
 
    arg.handle = handle;
    arg.embuf = embuf;
+   arg.error = AAX_ERROR_NONE;
+
    if (!config->emitter_thread.ptr) {
       config->emitter_thread.ptr = _aaxThreadCreate();
    }
@@ -1846,6 +1853,12 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf)
    }
    else {
       _emitterCreateEFFromAAXSThread(&arg);
+   }
+
+   if (arg.error)
+   {
+      _aaxErrorSet(arg.error);
+      rv = false;
    }
 
    return rv;
