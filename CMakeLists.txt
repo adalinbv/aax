@@ -154,8 +154,9 @@ endif(Iconv_FOUND)
 
 
 if((GCC OR CLANG) AND RMALLOC)
-  add_compile_options(-fsanitize=address)
-  add_link_options(-fsanitize=address)
+  set(C_FLAGS "${C_FLAGS} -fsanitize=address")
+  set(CXX_FLAGS "${CXX_FLAGS} -fsanitize=address")
+  set(LDFLAGS "${LD_FLAGS} -fsanitize=address")
   set(RMALLOC OFF)
   find_package(XML REQUIRED)
 else((GCC OR CLANG) AND RMALLOC)
@@ -190,45 +191,45 @@ set(C_FLAGS "${CMAKE_C_FLAGS}")
 set(CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 if(MSVC)
-  add_compile_options(/NODEFAULTLIB:msvcrt /NODEFAULTLIB:msvcrtd /NODEFAULTLIB:libcmt -DARCH64=1)
-  set_source_files_properties(src/software/cpu/arch2d_sse.c
-       PROPERTY COMPILE_FLAGS  "/arch:SSE /fp:fast -D__SSE__"
+  set(C_FLAGS "${C_FLAGS} /NODEFAULTLIB:msvcrt /NODEFAULTLIB:msvcrtd /NODEFAULTLIB:libcmt -DARCH64=1")
+  set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:SSE /fp:fast -D__SSE__"
   )
-  set_source_files_properties(src/software/cpu/arch3d_sse.c
-       PROPERTY COMPILE_FLAGS  "/arch:SSE -D__SSE__"
+  set_property(SOURCE src/software/cpu/arch3d_sse.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:SSE -D__SSE__"
   )
-  set_source_files_properties(src/software/cpu/arch2d_sse2.c
-       PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE2__"
+  set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE2__"
   )
-  set_source_files_properties(src/software/cpu/arch3d_sse2.c
-       PROPERTY COMPILE_FLAGS  "/arch:SSE2 -D__SSE2__"
+  set_property(SOURCE src/software/cpu/arch3d_sse2.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:SSE2 -D__SSE2__"
   )
-  set_source_files_properties(src/software/cpu/arch2d_sse3.c
-       PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
+  set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
   )
-  set_source_files_properties(src/software/cpu/arch3d_sse3.c
-       PROPERTY COMPILE_FLAGS  "/arch:SSE2 -D__SSE3__"
+  set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:SSE2 -D__SSE3__"
   )
-  set_source_files_properties(src/software/cpu/arch2d_sse4.c
-       PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE4__"
+  set_property(SOURCE src/software/cpu/arch2d_sse4.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE4__"
   )
-  set_source_files_properties(src/software/cpu/arch2d_sse_vex.c
-       PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
+  set_property(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
   )
-  set_source_files_properties(src/software/cpu/arch3d_sse_vex.c
-       PROPERTY COMPILE_FLAGS  "/arch:AVX -D__AVX__"
+  set_property(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:AVX -D__AVX__"
   )
-  set_source_files_properties(src/software/cpu/arch2d_avx.c
-       PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
+  set_property(SOURCE src/software/cpu/arch2d_avx.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
   )
-  set_source_files_properties(src/software/cpu/arch3d_avx.c
-       PROPERTY COMPILE_FLAGS  "/arch:AVX -D__AVX__"
+  set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:AVX -D__AVX__"
   )
-  set_source_files_properties(src/software/cpu/arch2d_fma3.c
-       PROPERTY COMPILE_FLAGS  "/arch:AVX2 /fp:fast -D__FMA__"
+  set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:AVX2 /fp:fast -D__FMA__"
   )
-  set_source_files_properties(src/software/cpu/arch3d_fma3.c
-       PROPERTY COMPILE_FLAGS  "/arch:AVX2 -D__FMA__"
+  set_property(SOURCE src/software/cpu/arch3d_fma3.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:AVX2 -D__FMA__"
   )
 
   # don't use a /O[012x] flag if you want custom optimizations
@@ -262,22 +263,21 @@ if(MSVC)
   endif()
 else(MSVC)
   if(GCC AND LTO)
-    add_compile_options(-flto=auto)
+    set(C_FLAGS "${C_FLAGS} -flto=auto")
   elseif (TINYCC)
-    add_compile_options(-Wall)
+    set(C_FLAGS "${C_FLAGS} -b -Wall")
   endif(GCC AND LTO)
 
   if(NOT MINGW)
     if (GCC)
-      add_compile_options(-Wl,--hash-style=both)
+      set(C_FLAGS "${C_FLAGS} -Wl,--hash-style=both")
      endif(GCC)
     if (GCC OR CLANG)
-      add_compile_options(-fPIC -Wpointer-arith -Wparentheses)
+      set(C_FLAGS "${C_FLAGS} -fPIC -Wpointer-arith -Wparentheses")
      endif(GCC OR CLANG)
    else(NOT MINGW)
      add_definitions(-D__STRICT_ANSI__)
-     add_compile_options(-g -Werror=format-security -Wall -fvisibility=hidden -funroll-loops)
-     add_compile_options($<$<COMPILE_LANGUAGE:C>:-std=c11>)
+     set(C_FLAGS "${C_FLAGS} -g -Werror=format-security -std=c11 -Wall -fvisibility=hidden -funroll-loops -std=c11")
      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--out-implib,${LIBAEONWAVE}.lib")
      foreach(flag_var
              CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
@@ -291,7 +291,9 @@ else(MSVC)
    endif(NOT MINGW)
 
    if (CLANG)
-     add_compile_options(-ffp-contract=fast)
+     set(C_FLAGS "${C_FLAGS} -ffp-contract=fast" CACHE STRING
+         "Hide unused clang options"
+         FORCE)
    endif(CLANG)
 
    if (GCC OR CLANG)
@@ -332,55 +334,55 @@ else(MSVC)
          FORCE)
 
      if(X86_64)
-       add_compile_options(-march=athlon64 -DARCH64=1 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize)
-       set_source_files_properties(src/software/cpu/arch2d_sse.c
-            PROPERTY COMPILE_FLAGS "-O3 -ffast-math"
+       set(C_FLAGS "${C_FLAGS} -march=athlon64 -DARCH64=1 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize ")
+       set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -O3 -ffast-math"
        )
-       set_source_files_properties(src/software/cpu/arch3d_sse.c
-            PROPERTY COMPILE_FLAGS "-O2"
+       set_property(SOURCE src/software/cpu/arch3d_sse.c APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -O2"
        )
-       set_source_files_properties(src/software/cpu/arch2d_sse2.c
-            PROPERTY COMPILE_FLAGS "-O3 -ffast-math"
+       set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -O3 -ffast-math"
        )
-       set_source_files_properties(src/software/cpu/arch3d_sse2.c
-            PROPERTY COMPILE_FLAGS "-O2"
+       set_property(SOURCE src/software/cpu/arch3d_sse2.c APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -O2"
        )
-       set_source_files_properties(src/software/cpu/arch2d_sse3.c
-            PROPERTY COMPILE_FLAGS "-msse3 -O3 -ffast-math"
+       set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse3 -O3 -ffast-math"
        )
-       set_source_files_properties(src/software/cpu/arch3d_sse3.c
-            PROPERTY COMPILE_FLAGS "-msse3 -O2"
+       set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse3 -O2"
        )
-       set_source_files_properties(src/software/cpu/arch2d_sse4.c
-            PROPERTY COMPILE_FLAGS "-msse4.1 -march=silvermont -O3 -ffast-math"
+       set_property(SOURCE src/software/cpu/arch2d_sse4.c APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse4.1 -march=silvermont -O3 -ffast-math"
        )
-       set_source_files_properties(src/software/cpu/arch2d_sse_vex.c
-            PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -O3 -ffast-math"
+       set_property(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -march=sandybridge -O3 -ffast-math"
        )
-       set_source_files_properties(src/software/cpu/arch3d_sse_vex.c
-            PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -O2"
+       set_property(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -march=sandybridge -O2"
        )
-       set_source_files_properties(src/software/cpu/arch2d_avx.c
-            PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -O3 -ffast-math"
+       set_property(SOURCE src/software/cpu/arch2d_avx.c APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -march=sandybridge -O3 -ffast-math"
        )
-       set_source_files_properties(src/software/cpu/arch3d_avx.c
-            PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -O2"
+       set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -march=sandybridge -O2"
        )
-       set_source_files_properties(src/software/cpu/arch2d_fma3.c
-            PROPERTY COMPILE_FLAGS "-mavx -mfma -march=haswell -O3 -ffast-math"
+       set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -mfma -march=haswell -O3 -ffast-math"
        )
-       set_source_files_properties(src/software/cpu/arch3d_fma3.c
-            PROPERTY COMPILE_FLAGS "-mavx -mfma -march=haswell -O2"
+       set_property(SOURCE src/software/cpu/arch3d_fma3.c APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -mfma -march=haswell -O2"
        )
-       set_source_files_properties(src/software/cpu/rbuf_effects.c
-           PROPERTY COMPILE_FLAGS "${OpenACC_C_FLAGS}"
+       set_property(SOURCE src/software/cpu/rbuf_effects.c  APPEND
+                   PROPERTY COMPILE_FLAGS "${C_FLAGS} ${OpenACC_C_FLAGS}"
        )
      elseif(X86)
        message("Unsupported build environment: X86")
      elseif(ARM)
-       add_compile_options(-falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize)
+       set(C_FLAGS "${C_FLAGS} -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize")
        if(ARM64)
-         add_compile_options(-march=armv8-a -moutline-atomics -DARCH64=1)
+         set(C_FLAGS "${C_FLAGS -march=armv8-a -moutline-atomics -DARCH64=1")
          set_source_files_properties(src/software/cpu/arch3d_vfpv3.c
               PROPERTY COMPILE_FLAGS "-O2 -D__ARM_VFPV3"
          )
