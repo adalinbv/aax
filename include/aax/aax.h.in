@@ -18,6 +18,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 
 #if defined _WIN32 || defined __CYGWIN__
 # define AAX_APIENTRY __cdecl
@@ -57,17 +58,8 @@ extern "C" {
 #define AAX_FALSE		false
 #define AAX_TRUE		true
 
-#ifdef _MSC_VER
-# include <float.h>
-# pragma warning( disable : 4056 )
-# define AAX_FPINFINITE		(FLT_MAX+FLT_MAX)
-# define AAX_FPNONE		(AAX_FPINFINITE-AAX_FPINFINITE)
-#else
-# define AAX_FPNONE		(0.0f/0.0f)
-# define AAX_FPINFINITE		(1.0f/0.0f)
-# if defined(__GNUC__) || defined(__TINYC__)
-# endif
-#endif
+# define AAX_FPINFINITE		INFINITY
+# define AAX_FPNONE		NAN
 
 #define AAX_PEAK_MAX		(1<<23)
 
