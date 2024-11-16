@@ -126,7 +126,7 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
     enum aaxFormat format;
     _batch_codec_proc codec;
     _batch_fmadd_proc add;
-    _batch_mul_value_proc multiply;
+    _batch_fmadd_proc multiply;
     _batch_resample_float_proc resample;
     _batch_freqfilter_float_proc freqfilter;
 

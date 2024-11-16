@@ -1213,8 +1213,11 @@ FN(batch_cvt16_intl_24,A)(void_ptr dst, const_int32_ptrptr src,
 }
 
 void
-FN(batch_fmul_value,A)(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_t num, float f)
+FN(batch_fmul_value,A)(float32_ptr dptr, const_float32_ptr spr, size_t num, float numerator, float denomerator)
 {
+   float f = numerator/denomerator;
+   size_t i, step;
+
    if (!num) return;
 
    if (fabsf(f - 1.0f) < LEVEL_128DB) {
@@ -1222,62 +1225,35 @@ FN(batch_fmul_value,A)(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_t 
    } else if  (fabsf(f) <= LEVEL_128DB) {
       memset(dptr, 0, num*bps);
    }
-   else if (num)
+
+   step = 2*sizeof(float32x4_t)/sizeof(float);
+
+   i = num/step;
+   if (i)
    {
-      size_t i = num;
+      float32x4_t *xdptr = (float32x4_t*)dptr;
+      float32x4_t *xsptr = (float32x4_t*)sptr;
+      float32x4_t sfact = vdupq_n_f32(f);
 
-      switch (bps)
+      num -= i*step;
+      s += i*step;
+      d += i*step;
+      do
       {
-      case 4:
-      {
-         float32_ptr s = (float32_ptr)sptr;
-         float32_ptr d = (float32_ptr)dptr;
-         size_t i, step;
+         xdptr[0] = vmulq_f32(sfact, vld1q_f32((const float*)&xsptr[0]));
+         xdptr[1] = vmulq_f32(sfact, vld1q_f32((const float*)&xsptr[1]));
 
-         step = 2*sizeof(float32x4_t)/sizeof(float);
-
-         i = num/step;
-         if (i)
-         {
-            float32x4_t *xdptr = (float32x4_t*)d;
-            float32x4_t *xsptr = (float32x4_t*)s;
-            float32x4_t sfact = vdupq_n_f32(f);
-
-            num -= i*step;
-            s += i*step;
-            d += i*step;
-            do
-            {
-               xdptr[0] = vmulq_f32(sfact, vld1q_f32((const float*)&xsptr[0]));
-               xdptr[1] = vmulq_f32(sfact, vld1q_f32((const float*)&xsptr[1]));
-
-               xsptr += 2;
-               xdptr += 2;
-            }
-            while(--i);
-         }
-
-         if (num) {
-            i = num;
-            do {
-               *d++ *= *s++;
-            } while(--i);
-         }
-         break;
+         xsptr += 2;
+         xdptr += 2;
       }
-      case 8:
-      {
-         double *s = (double*)sptr;
-         double *d = (double*)dptr;
-         do {
-            *d++ = *s++ * f;
-         }
-         while (--i);
-         break;
-      }
-      default:
-         break;
-      }
+      while(--i);
+   }
+
+   if (num) {
+      i = num;
+      do {
+         *d++ *= *s++;
+      } while(--i);
    }
 }
 

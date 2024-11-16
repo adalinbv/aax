@@ -237,7 +237,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
          }
          else if (mix > LEVEL_60DB) // mix layer 0 and layer 1
          {
-            drbd->multiply(s, s, sizeof(MIX_T), dno_samples, 1.0f - mix);
+            drbd->multiply(s, s, dno_samples, 1.0f - mix, 1.0f);
             drbd->add(s, sptr[mix_layer]+offs, dno_samples, mix, 0.0f);
          }
          // else use layer 0

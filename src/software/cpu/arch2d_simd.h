@@ -60,7 +60,7 @@ float* _aax_generate_noise_cpu(float32_ptr, size_t, uint64_t, unsigned char, flo
 
 void _batch_fmul_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_imul_value_cpu(void_ptr, const_void_ptr, unsigned, size_t, float);
-void _batch_fmul_value_cpu(void_ptr, const_void_ptr, unsigned, size_t, float);
+void _batch_fmul_value_cpu(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_imadd_cpu(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_cpu(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_dc_shift_cpu(float32_ptr, const_float32_ptr, size_t, float);
@@ -135,7 +135,7 @@ void _batch_get_average_rms_sse2(const_float32_ptr, size_t, float*, float*);
 void _batch_saturate24_sse2(void*, size_t);
 
 void _batch_fmul_sse2(void_ptr, const_void_ptr, size_t);
-void _batch_fmul_value_sse2(void_ptr, const_void_ptr, unsigned, size_t, float);
+void _batch_fmul_value_sse2(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_imadd_sse2(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_sse2(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_ema_iir_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
@@ -168,7 +168,7 @@ void _batch_get_average_rms_sse_vex(const_float32_ptr, size_t, float*, float*);
 void _batch_saturate24_sse_vex(void*, size_t);
 
 void _batch_fmul_sse_vex(void_ptr, const_void_ptr, size_t);
-void _batch_fmul_value_sse_vex(void_ptr, const_void_ptr, unsigned, size_t, float);
+void _batch_fmul_value_sse_vex(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_imadd_sse_vex(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_sse_vex(float32_ptr, const_float32_ptr, size_t, float, float);void _batch_ema_iir_float_sse_vex(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
 void _batch_freqfilter_float_sse_vex(float32_ptr, const_float32_ptr, int, size_t, void*);
@@ -186,7 +186,7 @@ void _batch_cvt16_intl_24_sse_vex(void_ptr, const_int32_ptrptr, size_t, unsigned
 /* AVX */
 void _batch_fmul_avx(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_avx(void_ptr, const_void_ptr, size_t);
-void _batch_fmul_value_avx(void_ptr, const_void_ptr, unsigned, size_t, float);
+void _batch_fmul_value_avx(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_fmadd_avx(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_fadd_avx(float32_ptr, const_float32_ptr, size_t);
 void _batch_dc_shift_avx(float32_ptr, const_float32_ptr, size_t, float);
@@ -219,7 +219,7 @@ float* _aax_generate_noise_vfpv2(float32_ptr, size_t, uint64_t, unsigned char, f
 
 void _batch_fmul_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_imul_value_vfpv2(void_ptr, const_void_ptr, unsigned, size_t, float);
-void _batch_fmul_value_vfpv2(void_ptr, const_void_ptr, unsigned, size_t, float);
+void _batch_fmul_value_vfpv2(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_imadd_vfpv2(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_vfpv2(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_ema_iir_float_vfpv2(float32_ptr, const_float32_ptr, size_t, float*, float);
@@ -287,7 +287,7 @@ float* _aax_generate_noise_vfpv4(float32_ptr, size_t, uint64_t, unsigned char, f
 
 void _batch_fmul_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_imul_value_vfpv4(void_ptr, const_void_ptr, unsigned, size_t, float);
-void _batch_fmul_value_vfpv4(void_ptr, const_void_ptr, unsigned, size_t, float);
+void _batch_fmul_value_vfpv4(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_imadd_vfpv4(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_vfpv4(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_dc_shift_vfpv4(float32_ptr, const_float32_ptr, size_t, float);
@@ -361,7 +361,7 @@ void _batch_dc_shift_neon(float32_ptr, const_float32_ptr, size_t, float);
 void _batch_wavefold_neon(float32_ptr, const_float32_ptr, size_t, float);
 void _batch_ema_iir_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
 void _batch_freqfilter_float_neon(float32_ptr, const_float32_ptr, int, size_t, void*);
-void _batch_fmul_value_neon(void_ptr, const_void_ptr, unsigned, size_t, float);
+void _batch_fmul_value_neon(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_fmul_neon(void_ptr, const_void_ptr, size_t);
 
 void _batch_atanps_neon(void_ptr, const_void_ptr, size_t);
@@ -381,7 +381,7 @@ void _batch_fmadd_neon64(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_dc_shift_neon64(float32_ptr, const_float32_ptr, size_t, float);
 void _batch_wavefold_neon64(float32_ptr, const_float32_ptr, size_t, float);
 void _batch_freqfilter_float_neon64(float32_ptr, const_float32_ptr, int, size_t, void*);
-void _batch_fmul_value_neon64(void_ptr, const_void_ptr, unsigned, size_t, float);
+void _batch_fmul_value_neon64(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_fmul_neon64(void_ptr, const_void_ptr, size_t);
 
 void _batch_atanps_neon64(void_ptr, const_void_ptr, size_t);

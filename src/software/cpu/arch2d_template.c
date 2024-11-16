@@ -267,49 +267,31 @@ FN(batch_imul_value,A)(void* dptr, const void* sptr, unsigned bps, size_t num, f
 }
 
 void
-FN(batch_fmul_value,A)(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_t num, float f)
+FN(batch_fmul_value,A)(float32_ptr dptr, const_float32_ptr sptr, size_t num, float numerator, float denomerator)
 {
+   float *s = (float*)sptr;
+   float *d = (float*)dptr;
+   float f = numerator/denomerator;
    size_t i = num;
 
    if (!num || (fabsf(f) <= LEVEL_90DB)) return;
 
    if (fabsf(f - 1.0f) < LEVEL_96DB)
    {
-      if (sptr != dptr) memcpy(dptr, sptr,  num*bps);
+      if (sptr != dptr) memcpy(dptr, sptr,  num*sizeof(float));
       return;
    }
 
    if (f <= LEVEL_96DB)
    {
-      memset(dptr, 0, num*bps);
+      memset(dptr, 0, num*sizeof(float));
       return;
    }
 
-   switch (bps)
-   {
-   case 4:
-   {
-      float *s = (float*)sptr;
-      float *d = (float*)dptr;
-      do {
-         *d++ = (*s++ * f);
-      }
-      while (--i);
-      break;
+   do {
+      *d++ = (*s++ * f);
    }
-   case 8:
-   {
-      double *s = (double*)sptr;
-      double *d = (double*)dptr;
-      do {
-         *d++ = (*s++ * f);
-      }
-      while (--i);
-      break;
-   }
-   default:
-      break;
-   }
+   while (--i);
 }
 
 void

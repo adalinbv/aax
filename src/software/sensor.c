@@ -346,8 +346,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
          /* if downmix requested devide track0 by the number of tracks */
          if ((dest_track == AAX_TRACK_MIX) && no_tracks)
          {
-            float fact = 1.0f/no_tracks;
-            drbd->multiply(otptr[0], otptr[0], sizeof(MIX_T), frames, fact);
+            drbd->multiply(otptr[0], otptr[0], frames, 1.0f, (float)no_tracks);
             dest_track = 0;
          }
 

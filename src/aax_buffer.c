@@ -3385,7 +3385,7 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect, int layer)
 
          /* make dptr the wet signal */
          if (fact > 0.0013f) {
-            rbd->multiply(dptr, dptr, bps, no_samples, 1.0f+64.f*fact);
+            rbd->multiply(dptr, dptr, no_samples, 1.0f+64.f*fact, 1.0f);
          }
 
          if ((fact > 0.01f) || (asym > 0.01f)) {
@@ -3393,8 +3393,7 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect, int layer)
          }
 
          /* mix with the dry signal */
-         mix_factor = mix/(0.5f+powf(fact, 0.25f));
-         rbd->multiply(dptr, dptr, bps, no_samples, mix_factor);
+         rbd->multiply(dptr, dptr, no_samples, mix, 0.5f+powf(fact, 0.25f));
          if (mix < 0.99f) {
             rbd->add(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
          }

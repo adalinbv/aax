@@ -354,8 +354,6 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
 
    if ((mix > 0.01f && fact > 0.0013f) || flt)
    {
-      float mix_factor;
-
       /* make dptr the wet signal */
       _aax_memcpy(dptr, sptr, no_samples*bps);
 
@@ -365,7 +363,7 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       }
 
       if (fact > 0.0013f) {
-         rbd->multiply(dptr, dptr, bps, no_samples, 1.0f+64.0f*fact);
+         rbd->multiply(dptr, dptr, no_samples, 1.0f+64.0f*fact, 1.0f);
       }
 
       if ((fact > 0.01f) || (asym > 0.01f)) {
@@ -373,8 +371,7 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       }
 
       /* mix with the dry signal */
-      mix_factor = mix/(0.5f+powf(fact, 0.25f));
-      rbd->multiply(dptr, dptr, bps, no_samples, mix_factor);
+      rbd->multiply(dptr, dptr, no_samples, mix, 0.5f+powf(fact, 0.25f));
       if (mix < 0.99f) {
          rbd->add(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
       }
