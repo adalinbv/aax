@@ -20,7 +20,8 @@
 #ifdef __AVX__
 
 static inline float
-hsum_ps_sse3(__m128 v) {
+hsum_ps_sse3(__m128 v)
+{
    __m128 shuf = _mm_movehdup_ps(v);
    __m128 sums = _mm_add_ps(v, shuf);
    shuf        = _mm_movehl_ps(shuf, sums);
@@ -29,7 +30,8 @@ hsum_ps_sse3(__m128 v) {
 }
 
 static inline float
-hsum256_ps_avx(__m256 v) {
+hsum256_ps_avx(__m256 v)
+{
    __m128 vlow  = _mm256_castps256_ps128(v);
    __m128 vhigh = _mm256_extractf128_ps(v, 1);
    vlow  = _mm_add_ps(vlow, vhigh);
@@ -37,8 +39,10 @@ hsum256_ps_avx(__m256 v) {
 }
 
 static inline __m256
-_mm256_abs_ps(__m256 x) {
-   return _mm256_andnot_ps(_mm256_set1_ps(-0.0f), x);
+_mm256_abs_ps(__m256 x)
+{
+   const __m256 sign_mask = _mm256_set1_ps(-0.0f);
+   return _mm256_andnot_ps(sign_mask, x);
 }
 
 static inline int
@@ -51,12 +55,9 @@ _mm256_testz_ps_avx(__m256 x)
 static inline __m256    // range -1.0f .. 1.0f
 fast_sin8_avx(__m256 x)
 {
-   __m256 four = _mm256_set1_ps(-4.0f);
+   const __m256 four = _mm256_set1_ps(-4.0f);
    return _mm256_mul_ps(four,_mm256_sub_ps(x, _mm256_mul_ps(x, _mm256_abs_ps(x))));
 }
-
-#define MUL     (65536.0f*256.0f)
-#define IMUL    (1.0f/MUL)
 
 // Use the slower, more accurate algorithm:
 //    M_PI_4*x - x*(fabs(x) - 1)*(0.2447 + 0.0663*fabs(x)); // -1 < x < 1
@@ -73,10 +74,57 @@ fast_atan8_avx(__m256 x)
                                     _mm256_mul_ps(mul, _mm256_mul_ps(x, x)))));
 }
 
+static inline FN_PREALIGN __m256
+_mm256_fmadd_ps(__m256 a, __m256 b, __m256 c) {
+   return _mm256_add_ps(_mm256_mul_ps(a, b), c);
+}
+static inline FN_PREALIGN __m256
+_mm256_atan_ps(__m256 a)
+{
+   // Preserve sign and take absolute value of input
+   const __m256 sign_mask = _mm256_set1_ps(-0.0f);
+   __m256 sign = _mm256_and_ps(a, sign_mask); // Preserve sign
+   __m256 abs_a = _mm256_andnot_ps(sign_mask, a); // Absolute value
+
+   // w = a > tan(PI / 8)
+   const __m256 tan_pi_8 = _mm256_set1_ps(GMATH_TAN_PI_8);
+   __m256 w = _mm256_cmp_ps(abs_a, tan_pi_8, _CMP_GT_OQ);
+
+   // x = a > tan(3 * PI / 8)
+   const __m256 tan_3pi_8 = _mm256_set1_ps(GMATH_TAN_3PI_8);
+   __m256 x = _mm256_cmp_ps(abs_a, tan_3pi_8, _CMP_GT_OQ);
+
+   // z = ~w & x
+   __m256 z = _mm256_andnot_ps(w, x);
+
+   // y = (~w & PI/2) | (z & PI/4)
+   __m256 y = _mm256_or_ps(_mm256_andnot_ps(w, _mm256_set1_ps(GMATH_PI_2)),
+                           _mm256_and_ps(z, _mm256_set1_ps(GMATH_PI_4)));
+
+   // w = (w & -1/a) | (z & (a - 1) * 1/(a + 1))
+   const __m256 one = _mm256_set1_ps(1.0f);
+   __m256 inv_a = _mm256_rcp_ps(a); // -1 / a
+   __m256 w_part1 = _mm256_and_ps(w, inv_a);
+   __m256 w_part2 = _mm256_and_ps(z, _mm256_mul_ps(_mm256_sub_ps(a, one), _mm256_rcp_ps(_mm256_add_ps(a, one))));
+   __m256 w_final = _mm256_or_ps(w_part1, w_part2);
+
+   // a = (~x & a) | w
+   __m256 adjusted_a = _mm256_or_ps(_mm256_andnot_ps(x, abs_a), w_final);
+
+   // Polynomial approximation for arctangent
+   __m256 poly, a2 = _mm256_mul_ps(adjusted_a, adjusted_a);
+   poly = _mm256_fmadd_ps(_mm256_set1_ps(ATAN_COEF1), a2, _mm256_set1_ps(ATAN_COEF2));
+   poly = _mm256_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF3));
+   poly = _mm256_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF4));
+   __m256 result = _mm256_fmadd_ps(poly, _mm256_mul_ps(a2, adjusted_a), adjusted_a);
+
+   return _mm256_or_ps(result, sign);
+}
+
 static inline __m256
 copysign_avx(__m256 x, __m256 y)
 {
-    __m256 sign_mask = _mm256_set1_ps(-0.0f); // This is 0x80000000 in binary
+    const __m256 sign_mask = _mm256_set1_ps(-0.0f);
     __m256 y_sign = _mm256_and_ps(y, sign_mask);
     __m256 abs_x = _mm256_andnot_ps(sign_mask, x);
     return _mm256_or_ps(abs_x, y_sign);
@@ -114,8 +162,8 @@ _batch_dc_shift_avx(float32_ptr d, const_float32_ptr s, size_t num, float offset
       i = num/step;
       if (i)
       {
+         const __m256 one = _mm256_set1_ps(1.0f);
          __m256 xoffs = _mm256_set1_ps(offset);
-         __m256 one = _mm256_set1_ps(1.0f);
 
          num -= i*step;
          d += i*step;
@@ -155,7 +203,7 @@ _batch_wavefold_avx(float32_ptr d, const_float32_ptr s, size_t num, float thresh
    size_t i, step;
    size_t dtmp, stmp;
 
-   if (!num || threshold == 0.0f) 
+   if (!num || threshold == 0.0f)
    {
       if (num && d != s) {
          memcpy(d, s, num*sizeof(float));
@@ -365,8 +413,8 @@ _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
+         const __m256 mul = _mm256_set1_ps((float)(1<<23));
          __m256 ymm0, ymm1, ymm2, ymm3, ymm4, ymm5;
-         __m256 mul = _mm256_set1_ps((float)(1<<23));
          __m256i *dptr = (__m256i*)d;
          __m256* sptr = (__m256*)s;
 
@@ -533,8 +581,8 @@ _batch_cvtps_24_avx(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
+         const __m256 mul = _mm256_rcp_ps(_mm256_set1_ps((float)(1<<23)));
          __m256 ymm0, ymm1, ymm2, ymm3, ymm4, ymm5;
-         __m256 mul = _mm256_set1_ps(1.0f/(float)(1<<23));
          __m256i* sptr = (__m256i*)s;
          __m256 *dptr = (__m256*)d;
 
@@ -987,7 +1035,8 @@ _batch_hmadd_avx(float32_ptr dst, const_float16_ptr src, size_t num, float v, fl
    size_t i, step, dtmp, stmp;
 
    if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
-   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB) {
+   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB)
+   {
       _batch_hadd_avx(dst, src, num);
       return;
    }
@@ -1184,7 +1233,8 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
    if (!num || (fabsf(v) <= LEVEL_128DB && !need_step)) return;
 
    // volume ~= 1.0f and no change requested: just add both buffers
-   if (fabsf(v - 1.0f) < LEVEL_90DB && !need_step) {
+   if (fabsf(v - 1.0f) < LEVEL_90DB && !need_step)
+   {
       _batch_fadd_avx(dst, src, num);
       return;
    }
@@ -1287,18 +1337,16 @@ _aax_generate_waveform_avx(float32_ptr rv, size_t no_samples, float freq, float 
    case AAX_IMPULSE:
       if (rv)
       {
+         const __m256 one = _mm256_set1_ps(1.0f); 
+         const __m256 two = _mm256_set1_ps(2.0f);
+         const __m256 eight = _mm256_set1_ps(8.0f);
          __m256 phase8, freq8, h8;
-         __m256 one, two, eight;
          __m256 ngain, nfreq;
          __m256 hdt, s, mask;
          int i, h;
          float *ptr;
 
          assert(MAX_HARMONICS % 8 == 0);
-
-         one = _mm256_set1_ps(1.0f);
-         two = _mm256_set1_ps(2.0f);
-         eight = _mm256_set1_ps(8.0f);
 
          phase8 = _mm256_set1_ps(-1.0f + phase/GMATH_PI);
          freq8 = _mm256_set1_ps(freq);
@@ -1436,10 +1484,10 @@ _batch_atanps_avx(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
-         __m256 xmin = _mm256_set1_ps(-1.55);
-         __m256 xmax = _mm256_set1_ps(1.55);
-         __m256 mul = _mm256_set1_ps(MUL*GMATH_1_PI_2);
-         __m256 imul = _mm256_set1_ps(IMUL);
+         const __m256 xmin = _mm256_set1_ps(-1.55);
+         const __m256 xmax = _mm256_set1_ps(1.55);
+         const __m256 mul = _mm256_set1_ps(MUL*GMATH_1_PI_2);
+         const __m256 imul = _mm256_set1_ps(IMUL);
          __m256 xmm0, xmm1;
 
          num -= i*step;

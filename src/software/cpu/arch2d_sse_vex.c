@@ -13,14 +13,16 @@
 #include "arch2d_sse_template.c"
 
 static inline __m128
-_mm_abs_ps(__m128 x) {
-   return _mm_andnot_ps(_mm_set1_ps(-0.0f), x);
+_mm_abs_ps(__m128 x)
+{
+   const __m128 sign_mask = _mm_set1_ps(-0.0f);
+   return _mm_andnot_ps(sign_mask, x);
 }
 
 static inline __m128
 copysign_sse_vex(__m128 x, __m128 y)
 {
-    __m128 sign_mask = _mm_set1_ps(-0.0f); // This is 0x80000000 in binary
+    const __m128 sign_mask = _mm_set1_ps(-0.0f); // This is 0x80000000 in binary
     __m128 y_sign = _mm_and_ps(y, sign_mask);
     __m128 abs_x = _mm_andnot_ps(sign_mask, x);
     return _mm_or_ps(abs_x, y_sign);
@@ -231,8 +233,8 @@ _batch_cvt24_ps_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
+         const __m128 mul = _mm_set1_ps((float)(1<<23));
          __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5;
-         __m128 mul = _mm_set1_ps((float)(1<<23));
 
          num -= i*step;
          s += i*step;
@@ -471,10 +473,13 @@ _batch_cvt24_16_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
       d += i*step;
       do
       {
-         if (tmp) {
+         if (tmp)
+         {
             xmm0 = _mm_loadu_si128(sptr++);
             xmm1 = _mm_loadu_si128(sptr++);
-         } else {
+         }
+         else
+         {
             xmm0 = _mm_load_si128(sptr++);
             xmm1 = _mm_load_si128(sptr++);
          }
@@ -551,10 +556,13 @@ _batch_cvt16_24_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
          xmm6 = _mm_srai_epi32(_mm_load_si128(sptr++), 8);
          xmm7 = _mm_srai_epi32(_mm_load_si128(sptr++), 8);
 
-         if (tmp) {
+         if (tmp)
+         {
             _mm_storeu_si128(dptr++, _mm_packs_epi32(xmm2, xmm3));
             _mm_storeu_si128(dptr++, _mm_packs_epi32(xmm6, xmm7));
-         } else {
+         }
+         else
+         {
             _mm_store_si128(dptr++, _mm_packs_epi32(xmm2, xmm3));
             _mm_store_si128(dptr++, _mm_packs_epi32(xmm6, xmm7));
          }
@@ -659,10 +667,13 @@ _batch_cvt16_intl_24_sse_vex(void_ptr dst, const_int32_ptrptr src,
          xmm4 = _mm_srli_epi32(xmm6, 8);
          xmm5 = _mm_slli_epi32(xmm7, 8);
 
-         if (tmp) {
+         if (tmp)
+         {
             _mm_storeu_si128(dptr++, _mm_or_si128(xmm1, xmm0));
             _mm_storeu_si128(dptr++, _mm_or_si128(xmm5, xmm4));
-         } else {
+         }
+         else
+         {
             _mm_store_si128(dptr++, _mm_or_si128(xmm1, xmm0));
             _mm_store_si128(dptr++, _mm_or_si128(xmm5, xmm4));
          }

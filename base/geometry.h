@@ -46,6 +46,10 @@ extern "C" {
 #define GMATH_RAD_TO_DEG	 57.29577951308232286465f
 #define GMATH_RAD_TO_DEG2	114.59155902616464572930f
 
+// Constants used in the Cephes atan approximation
+#define GMATH_TAN_PI_8		  0.4142135623730950344523f
+#define GMATH_TAN_3PI_8		  2.41421356237309492343f
+
 #define FLOAT  double
 #define MTX4_t mtx4d_t
 

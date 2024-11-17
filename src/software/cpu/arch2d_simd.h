@@ -39,6 +39,17 @@ extern "C" {
 #include "base/geometry.h"
 #include "waveforms.h"
 
+#define ATAN_MUL       (1.0f/1.571f)
+#define MUL            (65536.0f*256.0f)
+#define IMUL           (1.0f/MUL)
+
+// http://ijeais.org/wp-content/uploads/2018/07/IJAER180702.pdf
+// Polynomial coefficients for approximation
+#define ATAN_COEF1      8.05374449538f
+#define ATAN_COEF2     -1.38776856032f
+#define ATAN_COEF3      1.99777106478f
+#define ATAN_COEF4     -3.33329491539f
+
 void _aax_init_SSE(void);
 void _aax_init_NEON64(void);
 

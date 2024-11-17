@@ -302,9 +302,9 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
+         const __m128 mul = _mm_set1_ps((float)(1<<23));
          __m128i xmm4i, xmm5i, xmm6i, xmm7i;
          __m128 xmm0, xmm1, xmm2, xmm3;
-         __m128 mul = _mm_set1_ps((float)(1<<23));
 
          num -= i*step;
          d += i*step;

@@ -393,6 +393,42 @@ static inline float fast_atanf(float x) {
    return x*((GMATH_PI_4+0.273f) - 0.273f*fabsf(x));
 }
 
+static inline float
+FN(atan,A)(float a)
+{
+   // Preserve sign and take absolute value
+   float sign = copysign(1.0f, a);
+   a = fabsf(a);
+
+   // Compare with tan(π/8) and tan(3π/8)
+   float y, w;
+   if (a > GMATH_TAN_3PI_8)
+   {
+      y = GMATH_PI_2;
+      w = -1.0f / a;
+   }
+   else if (a > GMATH_TAN_PI_8)
+   {
+      y = GMATH_PI_4;
+      w = (a - 1.0f) / (a + 1.0f);
+   }
+   else
+   {
+      y = 0.0f;
+      w = a;
+   }
+
+   // Polynomial approximation for atan(w)
+   float poly, w2 = w * w;
+   poly = (ATAN_COEF1 * w2 + ATAN_COEF2);
+   poly = (poly * w2 + ATAN_COEF3);
+   poly = (poly * w2 + ATAN_COEF4);
+   poly = (poly * w2 * w + w);
+
+   // Combine result with y and restore the sign
+   return sign * (y + poly);
+}
+
 void
 FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
@@ -401,14 +437,19 @@ FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
       float* d = (float*)dptr;
       float* s = (float*)sptr;
       size_t i = num;
-
+   
       do {
+#if 0
+         float samp = *s++ * IMUL*GMATH_PI_2;
+         *d++ = FN(atan,A)(samp)*MUL*GMATH_1_PI_2;
+#else
          float samp = *s++ * IMUL;
          samp = _MINMAX(samp, -1.94139795f, 1.94139795f);
          *d++ = fast_atanf(samp)*(MUL*GMATH_1_PI_2);
+#endif
       } while (--i);
    }
-}
+} 
 
 void
 FN(batch_atan,A)(void_ptr dptr, const_void_ptr sptr, size_t num)

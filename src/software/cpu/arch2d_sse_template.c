@@ -27,7 +27,8 @@ FN(fast_sin,A)(float x)
 }
 
 static inline FN_PREALIGN float
-FN(hsum_ps,A)(__m128 v) {
+FN(hsum_ps,A)(__m128 v)
+{
    __m128 shuf = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));
    __m128 sums = _mm_add_ps(v, shuf);
    shuf = _mm_movehl_ps(shuf, sums);
@@ -36,8 +37,10 @@ FN(hsum_ps,A)(__m128 v) {
 }
 
 static inline __m128
-FN(mm_abs_ps,A)(__m128 x) {
-   return _mm_andnot_ps(_mm_set1_ps(-0.0f), x);
+FN(mm_abs_ps,A)(__m128 x)
+{
+   const __m128 sign_mask = _mm_set1_ps(-0.0f);
+   return _mm_andnot_ps(sign_mask, x);
 }
 
 static inline int
@@ -50,12 +53,9 @@ FN(mm_testz_ps,A)(__m128 x)
 static inline __m128	// range -1.0f .. 1.0f
 FN(fast_sin4,A)(__m128 x)
 {
-   __m128 four = _mm_set1_ps(-4.0f);
+   const __m128 four = _mm_set1_ps(-4.0f);
    return _mm_mul_ps(four, _mm_sub_ps(x, _mm_mul_ps(x, FN(mm_abs_ps,A)(x))));
 }
-
-#define MUL     (65536.0f*256.0f)
-#define IMUL    (1.0f/MUL)
 
 // Use the faster, less accurate algorithm:
 //    GMATH_PI_4*x + 0.273f*x * (1.0f-fabsf(x));
@@ -63,15 +63,60 @@ FN(fast_sin4,A)(__m128 x)
 static inline __m128
 FN(fast_atan4,A)(__m128 x)
 {
-  __m128 offs = _mm_set1_ps(GMATH_PI_4+0.273f);
-  __m128 mul = _mm_set1_ps(-0.273f);
+  const __m128 offs = _mm_set1_ps(GMATH_PI_4+0.273f);
+  const __m128 mul = _mm_set1_ps(-0.273f);
   return _mm_mul_ps(x, _mm_add_ps(offs, _mm_mul_ps(mul, FN(mm_abs_ps,A)(x))));
 }
+
+static inline FN_PREALIGN __m128
+_mm_fmadd_ps(__m128 a, __m128 b, __m128 c) {
+   return _mm_add_ps(_mm_mul_ps(a, b), c);
+}
+static inline FN_PREALIGN __m128
+FN(_mm_atan_ps,A)(__m128 a)
+{
+   const __m128 sign_mask = _mm_set1_ps(-0.0f);
+   __m128 sign = _mm_and_ps(a, sign_mask); // Preserve sign
+   a = _mm_andnot_ps(sign_mask, a); // Absolute value
+
+   // w = a > tan(PI / 8)
+   const __m128 tan_pi_8 = _mm_set1_ps(GMATH_TAN_PI_8);
+   __m128 w = _mm_cmpgt_ps(a, tan_pi_8);
+
+   // x = a > tan(3 * PI / 8)
+   const __m128 tan_3pi_8 = _mm_set1_ps(GMATH_TAN_3PI_8);
+   __m128 x = _mm_cmpgt_ps(a, tan_3pi_8);
+
+   // z = ~w & x
+   __m128 z = _mm_andnot_ps(w, x);
+
+   // y = (~w & PI/2) | (z & PI/4)
+   __m128 y = _mm_or_ps(_mm_andnot_ps(w, _mm_set1_ps(GMATH_PI_2)),
+                        _mm_and_ps(z, _mm_set1_ps(GMATH_PI_4)));
+
+   // w = (w & -1/a) | (z & (a - 1) * 1/(a + 1))
+   const __m128 one = _mm_set1_ps(1.0f);
+   __m128 inv_a = _mm_rcp_ps(a); // -1 / a
+   __m128 w_part1 = _mm_and_ps(w, inv_a);
+   __m128 w_part2 = _mm_and_ps(z, _mm_mul_ps(_mm_sub_ps(a, one), _mm_rcp_ps(_mm_add_ps(a, one))));
+   __m128 w_final = _mm_or_ps(w_part1, w_part2);
+
+   // a = (~x & a) | w
+   __m128 adjusted_a = _mm_or_ps(_mm_andnot_ps(x, a), w_final);
+
+   // Polynomial approximation for arctangent
+   __m128 poly, a2 = _mm_mul_ps(adjusted_a, adjusted_a);
+   poly = _mm_fmadd_ps(_mm_set1_ps(ATAN_COEF1), a2, _mm_set1_ps(ATAN_COEF2));
+   poly = _mm_fmadd_ps(poly, a2, _mm_set1_ps(ATAN_COEF3));
+   poly = _mm_fmadd_ps(poly, a2, _mm_set1_ps(ATAN_COEF4));
+   __m128 result = _mm_fmadd_ps(poly, _mm_mul_ps(a2, adjusted_a), adjusted_a);
+
+   return _mm_or_ps(result, sign);}
 
 static inline __m128
 FN(copysign,A)(__m128 x, __m128 y)
 {
-    __m128 sign_mask = _mm_set1_ps(-0.0f); // This is 0x80000000 in binary
+    const __m128 sign_mask = _mm_set1_ps(-0.0f); // This is 0x80000000 in binary
     __m128 y_sign = _mm_and_ps(y, sign_mask);
     __m128 abs_x = _mm_andnot_ps(sign_mask, x);
     return _mm_or_ps(abs_x, y_sign);
@@ -109,8 +154,8 @@ FN(batch_dc_shift,A)(float32_ptr d, const_float32_ptr s, size_t num, float offse
       i = num/step;
       if (i)
       {
+         const __m128 one = _mm_set1_ps(1.0f);
          __m128 xoffs = _mm_set1_ps(offset);
-         __m128 one = _mm_set1_ps(1.0f);
 
          num -= i*step;
          d += i*step;
@@ -239,18 +284,16 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
    case AAX_IMPULSE:
       if (rv)
       {
+         const __m128 one = _mm_set1_ps(1.0f);
+         const __m128 two = _mm_set1_ps(2.0f);
+         const __m128 four = _mm_set1_ps(4.0f);
          __m128 phase4, freq4, h4;
-         __m128 one, two, four;
          __m128 ngain, nfreq;
          __m128 hdt, s;
          int i, h;
          float *ptr;
 
          assert(MAX_HARMONICS % 4 == 0);
-
-         one = _mm_set1_ps(1.0f);
-         two = _mm_set1_ps(2.0f);
-         four = _mm_set1_ps(4.0f);
 
          phase4 = _mm_set1_ps(-1.0f + phase/GMATH_PI);
          freq4 = _mm_set1_ps(freq);
@@ -487,7 +530,7 @@ FN(batch_cvtps_24,A)(void_ptr dst, const_void_ptr src, size_t num)
       {
          __m128i xmm0i, xmm1i, xmm2i, xmm3i;
          __m128 xmm4, xmm5, xmm6, xmm7;
-         __m128 mul = _mm_set1_ps(1.0f/(float)(1<<23));
+         __m128 mul = _mm_rcp_ps(_mm_set1_ps((float)(1<<23)));
 
          num -= i*step;
          s += i*step;
@@ -556,10 +599,10 @@ FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
       i = num/step;
       if (i)
       {
-         __m128 xmin = _mm_set1_ps(-1.94139795f);
-         __m128 xmax = _mm_set1_ps(1.94139795f);
-         __m128 mul = _mm_set1_ps(MUL*GMATH_1_PI_2);
-         __m128 imul = _mm_set1_ps(IMUL);
+         const __m128 xmin = _mm_set1_ps(-1.94139795f);
+         const __m128 xmax = _mm_set1_ps(1.94139795f);
+         const __m128 mul = _mm_set1_ps(MUL*GMATH_1_PI_2);
+         const __m128 imul = _mm_set1_ps(IMUL);
          __m128 xmm0, xmm1;
 
          num -= i*step;
@@ -662,7 +705,8 @@ FN(batch_imadd,A)(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
    size_t i, step, dtmp, stmp;
 
    if (!num || (v <= LEVEL_90DB && vstep <= LEVEL_90DB)) return;
-   if (fabsf(v - 1.0f) < LEVEL_90DB && vstep <=  LEVEL_90DB) {
+   if (fabsf(v - 1.0f) < LEVEL_90DB && vstep <=  LEVEL_90DB)
+   {
       FN(batch_iadd,A)(dst, src, num);
       return;
    }
@@ -937,7 +981,8 @@ FN(batch_fmadd,A)(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    if (!num || (fabsf(v) <= LEVEL_96DB && !need_step)) return;
 
    // volume ~= 1.0f and no change requested: just add both buffers
-   if (fabsf(v - 1.0f) < LEVEL_90DB && !need_step) {
+   if (fabsf(v - 1.0f) < LEVEL_90DB && !need_step)
+   {
       FN(batch_fadd,A)(dst, src, num);
       return;
    }
@@ -1596,11 +1641,9 @@ FN(batch_resample_float,A)(float32_ptr d, const_float32_ptr s, size_t dmin, size
 
    if (fact < CUBIC_TRESHOLD) {
       FN(aaxBufResampleCubic_float,A)(d, s, dmin, dmax, smu, fact);
-   }
-   else if (fact < 1.0f) {
+   } else if (fact < 1.0f) {
       FN(aaxBufResampleLinear_float,A)(d, s, dmin, dmax, smu, fact);
-   }
-   else if (fact >= 1.0f) {
+   } else if (fact >= 1.0f) {
       FN(aaxBufResampleDecimate_float,A)(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_float,A)(d, s, dmin, dmax, smu, fact);

@@ -188,9 +188,6 @@ FN(fast_sin8,A)(float32x4x2_t x)
 // return FN(vmul2q_f32,A)(four, FN(vsub2q_f32,A)(x, FN(vmul2q_f32,A)(x, FN(vabs2q_f32,A)(x))));
 }
 
-#define MUL	(65536.0f*256.0f)
-#define IMUL	(1.0f/MUL)
-
 #if 1
 // Use the faster, less accurate algorithm
 //    GMATH_PI_4*x + 0.273f*x * (1.0f-fabsf(x));
@@ -219,6 +216,55 @@ FN(fast_atan4,A)(float32x4_t x)
                                            vmulq_f32(mull, vmulq_f32(x, x)))));
 }
 #endif
+
+static inline FN_PREALIGN float32x4_t
+FN(vatanq_f32,A)(float32x4_t a)
+{
+   // Preserve sign and take absolute value of input
+   uint32x4_t sign_mask = vdupq_n_u32(0x80000000); // Mask to extract sign bit
+   float32x4_t sign = vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(a), sign_mask));
+   float32x4_t abs_a = vabsq_f32(a); // Absolute value
+
+   // w = a > tan(PI / 8)
+   float32x4_t tan_pi_8 = vdupq_n_f32(GMATH_TAN_PI_8);
+   uint32x4_t w = vcgtq_f32(abs_a, tan_pi_8);
+
+   // x = a > tan(3 * PI / 8)
+   float32x4_t tan_3pi_8 = vdupq_n_f32(GMATH_TAN_3PI_8);
+   uint32x4_t x = vcgtq_f32(abs_a, tan_3pi_8);
+
+   // z = ~w & x
+   uint32x4_t z = vandq_u32(vmvnq_u32(w), x);
+
+   // y = (~w & PI/2) | (z & PI/4)
+   float32x4_t y = vbslq_f32(w, vdupq_n_f32(GMATH_PI_2), vdupq_n_f32(0.0f));   // (~w & PI/2)
+   y = vbslq_f32(z, vdupq_n_f32(GMATH_PI_4), y); // | (z & PI/4)
+
+   // w = (w & -1/a) | (z & (a - 1) * 1/(a + 1))
+   float32x4_t one = vdupq_n_f32(1.0f);
+   float32x4_t inv_a = vdivq_f32(one, abs_a); // -1 / a
+   float32x4_t w_part1 = vbslq_f32(w, inv_a, vdupq_n_f32(0.0f));
+
+   float32x4_t a_minus_1 = vsubq_f32(abs_a, one);
+   float32x4_t a_plus_1 = vaddq_f32(abs_a, one);
+   float32x4_t frac = vdivq_f32(a_minus_1, a_plus_1);
+   float32x4_t w_part2 = vmulq_f32(frac, vbslq_f32(z, vdupq_n_f32(1.0f), vdupq_n_f32(0.0f)));
+   float32x4_t w_final = vaddq_f32(w_part1, w_part2);
+
+   // a = (~x & a) | w
+   float32x4_t adjusted_a = vbslq_f32(x, w_final, abs_a);
+
+   // Polynomial approximation for arctangent
+   float32x4_t a2 = vmulq_f32(adjusted_a, adjusted_a);
+   float32x4_t poly = vmlaq_f32(vdupq_n_f32(ATAN_COEF2), vdupq_n_f32(COEF1), a2);
+   poly = vmlaq_f32(vdupq_n_f32(ATAN_COEF3), poly, a2);
+   poly = vmlaq_f32(vdupq_n_f32(ATAN_COEF4), poly, a2);
+   float32x4_t result = vmlaq_f32(poly, vmulq_f32(a2, adjusted_a), adjusted_a);
+
+   result = vreinterpretq_f32_u32(vorrq_u32(vreinterpretq_u32_f32(result), vreinterpretq_u32_f32(sign)));
+
+   return result;
+}
 
 static inline float32x4_t
 FN(copysign,A)(float32x4_t x, float32x4_t y)
@@ -630,10 +676,10 @@ FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
       i = num/step;
       if (i)
       {
-        float32x4_t xmin = vmovq_n_f32(-1.55f);
-        float32x4_t xmax = vmovq_n_f32(1.55f);
-        float32x4_t mul = vmovq_n_f32(MUL*GMATH_1_PI_2);
-        float32x4_t imul = vmovq_n_f32(IMUL);
+        const float32x4_t xmin = vmovq_n_f32(-1.55f);
+        const float32x4_t xmax = vmovq_n_f32(1.55f);
+        const float32x4_t mul = vmovq_n_f32(MUL*GMATH_1_PI_2);
+        const float32x4_t imul = vmovq_n_f32(IMUL);
         float32x4_t res0, res1;
 
          num -= i*step;
@@ -788,7 +834,8 @@ FN(batch_iadd,A)(int32_ptr d, const_int32_ptr src, size_t num)
    }
 
    i = num - size*step;
-   if (i) {
+   if (i)
+   {
       do {
          *d++ += *s++;
       } while(--i);
@@ -803,7 +850,8 @@ FN(batch_imadd,A)(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
    size_t i, size, step;
 
    if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
-   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB) {
+   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB)
+   {
       FN(batch_iadd,A)(dst, src, num);
       return;
    }
@@ -857,7 +905,8 @@ FN(batch_imadd,A)(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
    }
 
    i = num - size*step;
-   if (i) {
+   if (i)
+   {
       vstep /= 16;
       do {
          *d++ += *s++ * v;
@@ -898,7 +947,8 @@ FN(batch_fadd,A)(float32_ptr dst, const_float32_ptr src, size_t num)
       while(--i);
    }
 
-   if (num) {
+   if (num)
+   {
       i = num;
       do {
          *d++ += *s++;
@@ -918,7 +968,8 @@ FN(batch_fmadd,A)(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    if (!num || (fabsf(v) <= LEVEL_96DB && !need_step)) return;
 
    // volume ~= 1.0f and no change requested: just add both buffers
-   if (fabsf(v - 1.0f) < LEVEL_90DB && !need_step) {
+   if (fabsf(v - 1.0f) < LEVEL_90DB && !need_step)
+   {
       FN(batch_fadd,A)(dst, src, num);
       return;
    }
@@ -1249,7 +1300,8 @@ FN(batch_fmul_value,A)(float32_ptr dptr, const_float32_ptr spr, size_t num, floa
       while(--i);
    }
 
-   if (num) {
+   if (num)
+   {
       i = num;
       do {
          *d++ *= *s++;
@@ -1289,7 +1341,8 @@ FN(batch_fmul,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
       }
       while(--i);
 
-      if (num) {
+      if (num)
+      {
          i = num;
          do {
             *d++ *= *s++;
@@ -1578,11 +1631,9 @@ FN(batch_resample_float,A)(float32_ptr d, const_float32_ptr s, size_t dmin, size
 
    if (fact < CUBIC_TRESHOLD) {
       FN(aaxBufResampleCubic_float,A)(d, s, dmin, dmax, smu, fact);
-   }
-   else if (fact < 1.0f) {
+   } else if (fact < 1.0f) {
       FN(aaxBufResampleLinear_float,A)(d, s, dmin, dmax, smu, fact);
-   }
-   else if (fact >= 1.0f) {
+   } else if (fact >= 1.0f) {
       FN(aaxBufResampleDecimate_float,A)(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_float,A)(d, s, dmin, dmax, smu, fact);
