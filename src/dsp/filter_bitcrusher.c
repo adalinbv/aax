@@ -370,12 +370,10 @@ _bitcrusher_run(MIX_PTR_T s, size_t end, size_t no_samples,
    /* bitcrushing */
    if (level > 0.01f)
    {
-      unsigned bps = sizeof(MIX_T);
-
       level = powf(2.0f, 8+sqrtf(0.95f*level)*13.5f); // (24-bits/sample)
-      _batch_fmul_value(s, s, bps, no_samples, 1.0f/level);
+      _batch_fmul_value(s, s, no_samples, 1.0f, level);
       _batch_roundps(s, s, no_samples);
-      _batch_fmul_value(s, s, bps, no_samples, level);
+      _batch_fmul_value(s, s, no_samples, level, 1.0f);
       rv = true;
    }
    return rv;

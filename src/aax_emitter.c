@@ -43,6 +43,7 @@ static bool _emitterCreateEFFromAAXS(struct aax_emitter_t*, struct aax_embuffer_
 struct _arg_t {
    _emitter_t *handle;
    _embuffer_t *embuf;
+   int error;
 };
 
 AAX_API aaxEmitter AAX_APIENTRY
@@ -90,7 +91,7 @@ aaxEmitterCreate()
             handle->midi.attack_factor = 1.0f;
             handle->midi.release_factor = 1.0f;
             handle->midi.decay_factor = 1.0f;
-            handle->midi.mode = AAX_RENDER_NORMAL;
+            handle->midi.mode = AAX_RENDER_DEFAULT;
 
             rv = (aaxEmitter)handle;
          }
@@ -180,7 +181,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
                }
                else
                {
-                  if (!handle->midi.mode) {
+                  if (handle->midi.mode == AAX_RENDER_DEFAULT) {
                      handle->midi.mode = buffer->midi_mode;
                   }
                   rv = true;
@@ -672,6 +673,10 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          }
          break;
       }
+      case AAX_SYNTHESIZER:
+      case AAX_ARCADE:
+         handle->midi.mode = mode;
+         break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
@@ -1806,6 +1811,10 @@ _emitterCreateEFFromAAXSThread(void *h)
       }
       xmlClose(xid);
    }
+
+   if (rv == false) {
+      arg->error = AAX_INVALID_STATE;
+   }
    return rv;
 }
 
@@ -1823,6 +1832,8 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf)
 
    arg.handle = handle;
    arg.embuf = embuf;
+   arg.error = AAX_ERROR_NONE;
+
    if (!config->emitter_thread.ptr) {
       config->emitter_thread.ptr = _aaxThreadCreate();
    }
@@ -1842,6 +1853,12 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf)
    }
    else {
       _emitterCreateEFFromAAXSThread(&arg);
+   }
+
+   if (arg.error)
+   {
+      _aaxErrorSet(arg.error);
+      rv = false;
    }
 
    return rv;

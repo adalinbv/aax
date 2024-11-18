@@ -19,7 +19,8 @@
 
 //
 static inline float
-hsum_ps_sse3(__m128 v) {
+hsum_ps_sse3(__m128 v)
+{
    __m128 shuf = _mm_movehdup_ps(v);
    __m128 sums = _mm_add_ps(v, shuf);
    shuf        = _mm_movehl_ps(shuf, sums);
@@ -28,7 +29,8 @@ hsum_ps_sse3(__m128 v) {
 }
 
 static inline float
-hsum256_ps_fma3(__m256 v) {
+hsum256_ps_fma3(__m256 v)
+{
    __m128 vlow  = _mm256_castps256_ps128(v);
    __m128 vhigh = _mm256_extractf128_ps(v, 1);
    vlow  = _mm_add_ps(vlow, vhigh);
@@ -36,9 +38,10 @@ hsum256_ps_fma3(__m256 v) {
 }
 
 static inline __m256
-_mm256_abs_ps(__m256 x) {
-   const __m256 nzero = _mm256_set1_ps(-0.0f);
-   return _mm256_andnot_ps(nzero, x);
+_mm256_abs_ps(__m256 x)
+{
+   const __m256 sign_mask = _mm256_set1_ps(-0.0f);
+   return _mm256_andnot_ps(sign_mask, x);
 }
 
 static inline int
@@ -72,6 +75,50 @@ fast_atan8_fma3(__m256 x)
                              _mm256_add_ps(_mm256_mul_ps(add, _mm256_abs_ps(x)),
                                     _mm256_mul_ps(mull, _mm256_mul_ps(x, x)))));
 }
+
+static inline FN_PREALIGN __m256
+_mm256_atan_ps(__m256 a)
+{
+   // Preserve sign and take absolute value of input
+   const __m256 sign_mask = _mm256_set1_ps(-0.0f);
+   __m256 sign = _mm256_and_ps(a, sign_mask); // Preserve sign
+   a = _mm256_andnot_ps(sign_mask, a); // Absolute value
+
+   // w = a > tan(PI / 8)
+   const __m256 tan_pi_8 = _mm256_set1_ps(GMATH_TAN_PI_8);
+   __m256 w = _mm256_cmp_ps(a, tan_pi_8, _CMP_GT_OQ);
+
+   // x = a > tan(3 * PI / 8)
+   const __m256 tan_3pi_8 = _mm256_set1_ps(GMATH_TAN_3PI_8);
+   __m256 x = _mm256_cmp_ps(a, tan_3pi_8, _CMP_GT_OQ);
+
+   // z = ~w & x
+   __m256 z = _mm256_andnot_ps(w, x);
+
+   // y = (~w & PI/2) | (z & PI/4)
+   __m256 y = _mm256_or_ps(_mm256_andnot_ps(w, _mm256_set1_ps(GMATH_PI_2)),
+                           _mm256_and_ps(z, _mm256_set1_ps(GMATH_PI_4)));
+
+   // w = (w & -1/a) | (z & (a - 1) * 1/(a + 1))
+   const __m256 one = _mm256_set1_ps(1.0f);
+   __m256 inv_a = _mm256_rcp_ps(a); // -1 / a
+   __m256 w_part1 = _mm256_and_ps(w, inv_a);
+   __m256 w_part2 = _mm256_and_ps(z, _mm256_mul_ps(_mm256_sub_ps(a, one), _mm256_rcp_ps(_mm256_add_ps(a, one))));
+   __m256 w_final = _mm256_or_ps(w_part1, w_part2);
+
+   // a = (~x & a) | w
+   __m256 adjusted_a = _mm256_or_ps(_mm256_andnot_ps(x, a), w_final);
+
+   // Polynomial approximation for arctangent
+   __m256 poly, a2 = _mm256_mul_ps(adjusted_a, adjusted_a);
+   poly = _mm256_fmadd_ps(_mm256_set1_ps(ATAN_COEF1), a2, _mm256_set1_ps(ATAN_COEF2));
+   poly = _mm256_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF3));
+   poly = _mm256_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF4));
+   __m256 result = _mm256_fmadd_ps(poly, _mm256_mul_ps(a2, adjusted_a), adjusted_a);
+
+   return _mm256_or_ps(result, sign);
+}
+
 
 void
 _batch_get_average_rms_fma3(const_float32_ptr s, size_t num, float *rms, float *peak)
@@ -191,7 +238,8 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    if (!num || (fabsf(v) <= LEVEL_128DB && !need_step)) return;
 
    // volume ~= 1.0f and no change requested: just add both buffers
-   if (fabsf(v - 1.0f) < LEVEL_90DB && !need_step) {
+   if (fabsf(v - 1.0f) < LEVEL_90DB && !need_step)
+   {
       _batch_fadd_avx(dst, src, num);
       return;
    }
@@ -527,7 +575,7 @@ _batch_freqfilter_float_fma3(float32_ptr dptr, const_float32_ptr sptr, int t, si
          *hist++ = h0;
          *hist++ = h1;
       }
-      _batch_fmul_value(dptr, dptr, sizeof(MIX_T), num, filter->gain);
+      _batch_fmul_value(dptr, dptr, num, filter->gain, 1.0f);
    }
 }
 
@@ -696,11 +744,9 @@ _batch_resample_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin, size
 
    if (fact < CUBIC_TRESHOLD) {
       _aaxBufResampleCubic_float_fma3(d, s, dmin, dmax, smu, fact);
-   }
-   else if (fact < 1.0f) {
+   } else if (fact < 1.0f) {
       _aaxBufResampleLinear_float_fma3(d, s, dmin, dmax, smu, fact);
-   }
-   else if (fact >= 1.0f) {
+   } else if (fact >= 1.0f) {
       _aaxBufResampleDecimate_float_fma3(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_float_fma3(d, s, dmin, dmax, smu, fact);
@@ -726,18 +772,16 @@ _aax_generate_waveform_fma3(float32_ptr rv, size_t no_samples, float freq, float
    case AAX_IMPULSE:
       if (rv)
       {
+         const __m256 one = _mm256_set1_ps(1.0f);
+         const __m256 two = _mm256_set1_ps(2.0f); 
+         const __m256 eight = _mm256_set1_ps(8.0f);
          __m256 phase8, freq8, h8;
-         __m256 one, two, eight;
          __m256 ngain, nfreq;
          __m256 hdt, s, mask;
          int i, h;
          float *ptr;
 
          assert(MAX_HARMONICS % 8 == 0);
-
-         one = _mm256_set1_ps(1.0f);
-         two = _mm256_set1_ps(2.0f);
-         eight = _mm256_set1_ps(8.0f);
 
          phase8 = _mm256_set1_ps(-1.0f + phase/GMATH_PI);
          freq8 = _mm256_set1_ps(freq);
@@ -848,10 +892,10 @@ _aax_generate_noise_fma3(float32_ptr rv, size_t no_samples, uint64_t seed, unsig
 }
 
 void
-_batch_atanps_fma3(void_ptr dst, const_void_ptr src, size_t num)
+_batch_atanps_fma3(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
-   float *d = (float*)dst;
-   float *s = (float*)src;
+   float *d = (float*)dptr;
+   float *s = (float*)sptr;
    size_t i, step;
    size_t dtmp, stmp;
 

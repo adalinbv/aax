@@ -35,7 +35,6 @@
 
 #include <3rdparty/MurmurHash3.h>
 
-// #include "analyze.h"
 #include "arch.h"
 #include "api.h"
 
@@ -1065,9 +1064,9 @@ free_buffer(_buffer_t* handle)
    {
       if (--handle->ref_counter == 0)
       {
-         unsigned char b;
-         for (b=0; b<handle->mip_levels; ++b) {
-            handle->ringbuffer[b] = _bufDestroyRingBuffer(handle, b);
+         int mip;
+         for (mip=0; mip<handle->mip_levels; ++mip) {
+            handle->ringbuffer[mip] = _bufDestroyRingBuffer(handle, mip);
          }
          if (handle->aaxs) free(handle->aaxs);
          if (handle->url) free(handle->url);
@@ -1441,6 +1440,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
    float pitch = 1.0f;
    float ratio = 0.0f;
    int midi_mode, pos;
+   bool rv = true;
 
    midi_mode = handle->midi_mode;
    pos = (midi_mode >> 26) & 0x3;
@@ -1475,16 +1475,28 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
 
    if (!xmlAttributeCompareString(xwid, "src", "sawtooth")) {
       wtype = _aaxWaveformCvt[0][AAX_SAWTOOTH][pos];
+   } else if (!xmlAttributeCompareString(xwid, "src", "pure-sawtooth")) {
+      wtype = _aaxWaveformCvt[1][AAX_SAWTOOTH][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "square")) {
       wtype = _aaxWaveformCvt[0][AAX_SQUARE][pos];
+   } else if (!xmlAttributeCompareString(xwid, "src", "pure-square")) {
+      wtype = _aaxWaveformCvt[1][AAX_SQUARE][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "triangle")) {
       wtype = _aaxWaveformCvt[0][AAX_TRIANGLE][pos];
+   } else if (!xmlAttributeCompareString(xwid, "src", "pure-triangle")) {
+      wtype = _aaxWaveformCvt[1][AAX_TRIANGLE][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "sine")) {
       wtype = _aaxWaveformCvt[0][AAX_SINE][pos];
+   } else if (!xmlAttributeCompareString(xwid, "src", "pure-sine")) {
+      wtype = _aaxWaveformCvt[1][AAX_SINE][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "cycloid")) {
       wtype = _aaxWaveformCvt[0][AAX_CYCLOID][pos];
+   } else if (!xmlAttributeCompareString(xwid, "src", "pure-cycloid")) {
+      wtype = _aaxWaveformCvt[1][AAX_CYCLOID][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "impulse")) {
       wtype = _aaxWaveformCvt[0][AAX_IMPULSE][pos];
+   } else if (!xmlAttributeCompareString(xwid, "src", "pure-impulse")) {
+      wtype = _aaxWaveformCvt[1][AAX_IMPULSE][pos];
    } else if (!xmlAttributeCompareString(xwid, "src", "true") ||
               !xmlAttributeCompareString(xwid, "src", "constant")) {
       wtype = _aaxWaveformCvt[0][AAX_CONSTANT][pos];
@@ -1511,48 +1523,46 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
          wtype = AAX_WHITE_NOISE;
          pitch = 1.0f;
       }
-   }
-   else if (!xmlAttributeCompareString(xwid, "src", "pure-sawtooth")) {
-      wtype = _aaxWaveformCvt[1][AAX_SAWTOOTH][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "pure-square")) {
-      wtype = _aaxWaveformCvt[1][AAX_SQUARE][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "pure-triangle")) {
-      wtype = _aaxWaveformCvt[1][AAX_TRIANGLE][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "pure-sine")) {
-      wtype = _aaxWaveformCvt[1][AAX_SINE][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "pure-cycloid")) {
-      wtype = _aaxWaveformCvt[1][AAX_CYCLOID][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "pure-impulse")) {
-      wtype = _aaxWaveformCvt[1][AAX_IMPULSE][pos];
    } else {
-      wtype = _aaxWaveformCvt[1][AAX_WAVE_NONE][pos];
+      rv = false;
    }
 
-   if (xmlAttributeExists(xwid, "processing"))
+   if (rv)
    {
-      if (!xmlAttributeCompareString(xwid, "processing", "add"))
+      if (xmlAttributeExists(xwid, "processing"))
       {
-         ptype = AAX_ADD;
-         if (!ratio) ratio = 1.0f;
-         if (!pitch) pitch = 1.0f;
-         pitch *= pitch_factor;
-         ratio *= ratio_factor;
+         if (!xmlAttributeCompareString(xwid, "processing", "add"))
+         {
+            ptype = AAX_ADD;
+            if (!ratio) ratio = 1.0f;
+            if (!pitch) pitch = 1.0f;
+            pitch *= pitch_factor;
+            ratio *= ratio_factor;
+         }
+         else if (!xmlAttributeCompareString(xwid, "processing", "modulate"))
+         {
+            ptype = AAX_RINGMODULATE;
+            if (!ratio) ratio = 1.0f;
+            if (!pitch) pitch = 1.0f;
+         }
+         else if (!xmlAttributeCompareString(xwid, "processing", "mix"))
+         {
+            ptype = AAX_MIX;
+            if (!ratio) ratio = 0.5f;
+            if (!pitch) pitch = 1.0f;
+            pitch *= pitch_factor;
+            ratio *= ratio_factor;
+         }
+         else /* (!xmlAttributeCompareString(xwid, "processing", "overwrite")) */
+         {
+            ptype = AAX_OVERWRITE;
+            if (!ratio) ratio = 1.0f;
+            if (!pitch) pitch = 1.0f;
+            pitch *= pitch_factor;
+            ratio *= ratio_factor;
+         }
       }
-      else if (!xmlAttributeCompareString(xwid, "processing", "modulate"))
-      {
-         ptype = AAX_RINGMODULATE;
-         if (!ratio) ratio = 1.0f;
-         if (!pitch) pitch = 1.0f;
-      }
-      else if (!xmlAttributeCompareString(xwid, "processing", "mix"))
-      {
-         ptype = AAX_MIX;
-         if (!ratio) ratio = 0.5f;
-         if (!pitch) pitch = 1.0f;
-         pitch *= pitch_factor;
-         ratio *= ratio_factor;
-      }
-      else /* (!xmlAttributeCompareString(xwid, "processing", "overwrite")) */
+      else
       {
          ptype = AAX_OVERWRITE;
          if (!ratio) ratio = 1.0f;
@@ -1560,21 +1570,14 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
          pitch *= pitch_factor;
          ratio *= ratio_factor;
       }
-   }
-   else
-   {
-      ptype = AAX_OVERWRITE;
-      if (!ratio) ratio = 1.0f;
-      if (!pitch) pitch = 1.0f;
-      pitch *= pitch_factor;
-      ratio *= ratio_factor;
-   }
 
-   spread = spread*_log2lin(_lin2log(freq)/3.3f);
-   if (ptype == AAX_RINGMODULATE) voices = 1;
-   return _bufProcessWaveform(handle, track, freq, phase, pitch,
+      spread = spread*_log2lin(_lin2log(freq)/3.3f);
+      if (ptype == AAX_RINGMODULATE) voices = 1;
+      rv = _bufProcessWaveform(handle, track, freq, phase, pitch,
                               staticity, random, pitch_level, voices, spread,
                               wtype, ratio, ptype, limiter, version);
+   }
+   return rv;
 }
 
 static int
@@ -1713,102 +1716,12 @@ static inline float note2freq(uint8_t d) {
    return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
 }
 
-#if 0
-static int
-_bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fsize)
-{
-   _buffer_t* handle = aax_buf->parent;
-   bool rv = false;
-   FILE *infile;
-
-   infile = fopen(fname, "r");
-   if (infile)
-   {
-      void **data = malloc(fsize);
-      if (data)
-      {
-         char *end = (char*)data + fsize;
-         int b = 0, mip_levels = 0;
-         size_t *d = (size_t*)data;
-         size_t size;
-
-         size = fread(data, fsize, 1, infile);
-         if (size == 1)
-         {
-            while(*d != 0)
-            {
-               size_t offs = *d++;
-
-               // make sure the level-offsets are in ascending order
-               if (((char*)d >= end) || (*d && (offs >= *d)))
-               {
-                  b = -1;
-                  break;
-               }
-               mip_levels++;
-            }
-
-            // make sure the file-size matches the included data size
-            if (b >= 0)
-            {
-               *d++ = fsize;		// was 0, to be used below.
-               if ((char*)d < end)
-               {
-                  size = *d;
-                  if (size != fsize) b = -1;
-               }
-            }
-
-            if (b >= 0)
-            {
-                d = (size_t*)data;
-                if (mip_levels > MAX_MIP_LEVELS) {
-                   mip_levels = MAX_MIP_LEVELS;
-                }
-                handle->mip_levels = mip_levels;
-
-                for (b=0; b<mip_levels; ++b)
-                {
-                   unsigned int no_samples;
-                   _aaxRingBuffer *rb;
-                   void **tracks;
-                   char *ptr;
-
-                   rb = _bufGetRingBuffer(handle, handle->root, b);
-
-                   ptr = (char*)data + d[b];
-                   size = d[b+1] - d[b];
-                   no_samples = size/sizeof(float);
-
-                   if (rb->get_state(rb, RB_IS_VALID) == false)
-                   {
-                      rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
-                      rb->init(rb, false);
-                      handle->ringbuffer[b] = rb;
-                   }
-                   assert(size <= rb->get_parami(rb, RB_TRACKSIZE));
-
-                   tracks = (void**)rb->get_tracks_ptr(rb, RB_WRITE);
-                   memcpy(tracks[0], ptr, size);
-                   rb->release_tracks_ptr(rb);
-                }
-                rv = true;
-            }
-         }
-         free(data);
-      }
-   }
-
-   return rv;
-}
-#endif
-
 static bool
 _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
 {
    float high_frequency = handle->info.high_frequency;
    float freq = handle->info.base_frequency;
-   int b, layer, no_layers;
+   int mip, layer, no_layers;
    double duration = 1.0f;
    limitType limiter;
    float spread = 0;
@@ -1899,12 +1812,14 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
    }
    handle->info.no_tracks = no_layers;
 
-   for (b=0; b<handle->mip_levels; ++b)
+   // mip levels are handled by creating a new ringbuffer for every mip level
+   // and selecting the required ringbuffer later on.
+   for (mip=0; mip<handle->mip_levels; ++mip)
    {
-      _aaxRingBuffer *rb = _bufGetRingBuffer(handle, handle->root, b);
+      _aaxRingBuffer *rb = _bufGetRingBuffer(handle, handle->root, mip);
       if (rb)
       {
-         float mul = (float)(1 << b);
+         float mul = (float)(1 << mip);
          float pitch_fact = 1.0f/mul;
 
          if (duration >= 0.099f)
@@ -1915,13 +1830,15 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
             rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
             rb->set_parami(rb, RB_NO_TRACKS, handle->info.no_tracks);
             rb->set_parami(rb, RB_NO_LAYERS, handle->info.no_tracks);
-            handle->ringbuffer[b] = rb;
+            handle->ringbuffer[mip] = rb;
          }
       }
 
+      // sound layers are handled by creating a new audio track for every layer
+      // and mixing between the tracks later on.
       for (layer=0; layer<no_layers; ++layer)
       {
-         float mul = (float)(1 << b);
+         float mul = (float)(1 << mip);
          float frequency = mul*freq;
          float pitch = 1.0f;
          float ratio = 1.0f;
@@ -1971,7 +1888,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
                      int mode = limiter & 1; // mode 0 or 1 only
                      rv = _bufCreateWaveformFromAAXS(handle, xwid, layer,
                                                      ratio, pitch, frequency,
-                                                     b, voices, spread, mode,
+                                                     mip, voices, spread, mode,
                                                      version);
                      waves--;
                   }
@@ -1991,50 +1908,51 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
          if (xwid) xmlFree(xwid);
       } // layer
 
-      if (midi_mode)
+      if (rv)
       {
-         if (!b && rb->get_state(rb, RB_IS_VALID))
+         if (midi_mode)
          {
-            float gain = handle->gain;
-            switch (handle->midi_mode)
+            if (mip == 0 && rb->get_state(rb, RB_IS_VALID))
             {
-            case AAX_RENDER_ARCADE:
-               gain *= 0.6f*0.6f;
-               break;
-            case AAX_RENDER_SYNTHESIZER:
-               gain *= 0.6f;
-               break;
-            case AAX_RENDER_NORMAL:
-            case AAX_RENDER_DEFAULT:
-            default:
-               break;
+               float gain = handle->gain;
+               switch (handle->midi_mode)
+               {
+               case AAX_RENDER_ARCADE:
+               case AAX_RENDER_SYNTHESIZER:
+                  gain *= 0.7f;
+                  break;
+               case AAX_RENDER_NORMAL:
+               case AAX_RENDER_DEFAULT:
+               default:
+                  break;
+               }
+               handle->gain = _bufNormalize(rb, gain);
             }
-            handle->gain = _bufNormalize(rb, gain);
          }
-      }
-      else if (limiter) {
-         _bufLimit(rb);
-      }
+         else if (limiter) {
+            _bufLimit(rb);
+         }
 
-      if (0 && handle->to_mixer) {
-         _bufConvertDataToMixerFormat(handle, rb);
-      }
-      else if (bits == 16)
-      {
-         _aaxRingBufferData *rbi = rb->handle;
-         _aaxRingBufferSample *rbd = rbi->sample;
-         unsigned int no_samples;
-
-         no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-         for (layer=0; layer<no_layers; ++layer)
+         if (0 && handle->to_mixer) {
+            _bufConvertDataToMixerFormat(handle, rb);
+         }
+         else if (bits == 16)
          {
-            void *dptr = rbd->track[layer];
-            _batch_cvt16_24(dptr, dptr, no_samples);
+            _aaxRingBufferData *rbi = rb->handle;
+            _aaxRingBufferSample *rbd = rbi->sample;
+            unsigned int no_samples;
+
+            no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+            for (layer=0; layer<no_layers; ++layer)
+            {
+               void *dptr = rbd->track[layer];
+               _batch_cvt16_24(dptr, dptr, no_samples);
+            }
+            rb->set_parami(rb, RB_FORMAT, AAX_PCM16S);
+            handle->info.fmt = AAX_PCM16S;
          }
-         rb->set_parami(rb, RB_FORMAT, AAX_PCM16S);
-         handle->info.fmt = AAX_PCM16S;
-      }
-   } // mip-level
+      } // mip-level
+   }
 
    if (xlid != xsid) {
       xmlFree(xlid);
@@ -2283,7 +2201,9 @@ _bufAAXSThread(void *d)
 
    if (handle->aaxs) free(handle->aaxs);
    handle->aaxs = strdup(aaxs);
-   if (!handle->aaxs) {
+   if (!handle->aaxs)
+   {
+      aax_buf->error = AAX_INSUFFICIENT_RESOURCES;
       return false;
    }
 
@@ -2421,8 +2341,10 @@ _bufAAXSThread(void *d)
             free(fname);
          }
       }
-      else {
-         rv = _bufAAXSThreadCreateWaveform(aax_buf, xid);
+      else
+      {
+         _bufAAXSThreadCreateWaveform(aax_buf, xid);
+         rv = true;
       }
       xmlClose(xid);
    }
@@ -2430,6 +2352,9 @@ _bufAAXSThread(void *d)
       aax_buf->error = AAX_INVALID_PARAMETER+2;
    }
 
+   if (rv == false) {
+      aax_buf->error = AAX_INVALID_STATE;
+   }
    return rv;
 }
 
@@ -2456,7 +2381,7 @@ _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
    if (handle->buffer_thread.ptr)
    {
       int r = _aaxThreadStart(handle->buffer_thread.ptr, _bufAAXSThread, &data,
-		              0, "aaxBufferAAXS");
+                              0, "aaxBufferAAXS");
       if (r == thrd_success)
       {
          r = _aaxThreadJoin(handle->buffer_thread.ptr);
@@ -2473,10 +2398,10 @@ _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
    _aax_free_meta(&handle->meta);
    handle->meta = data.meta;
 
-   if (data.error) {
+   if (data.error)
+   {
       _aaxErrorSet(data.error);
-   } else {
-      rv = true;
+      rv = false;
    }
 
    return rv;
@@ -3153,11 +3078,12 @@ _bufGetDataPitchLevels(_buffer_t *handle)
 // _aaxRingBufferSample *rbd = rbi->sample;
    unsigned int no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    int format = handle->info.fmt & ~AAX_SPECIAL;
-   uint32_t b, offs, size;
+   uint32_t offs, size;
    void **data = NULL;
    void **tracks;
    size_t *d;
    char *ptr;
+   int mip;
 
    if (handle->info.no_tracks != 1) return data;
    if (handle->mip_levels <= 1) return data;
@@ -3181,13 +3107,13 @@ _bufGetDataPitchLevels(_buffer_t *handle)
 
 
    d = (size_t*)data;
-   for (b=0; b<handle->mip_levels; ++b)
+   for (mip=0; mip<handle->mip_levels; ++mip)
    {
       uint32_t len;
 
-      d[b] = (size_t)ptr;
+      d[mip] = (size_t)ptr;
 
-      rb = handle->ringbuffer[b];
+      rb = handle->ringbuffer[mip];
       if (!rb) break;
 
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
@@ -3205,8 +3131,8 @@ _bufGetDataPitchLevels(_buffer_t *handle)
       }
       ptr += len;
    }
-   d[b++] = 0;
-   d[b] = offs;
+   d[mip++] = 0;
+   d[mip] = offs;
 
    return data;
 }
@@ -3461,7 +3387,7 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect, int layer)
 
          /* make dptr the wet signal */
          if (fact > 0.0013f) {
-            rbd->multiply(dptr, dptr, bps, no_samples, 1.0f+64.f*fact);
+            rbd->multiply(dptr, dptr, no_samples, 1.0f+64.f*fact, 1.0f);
          }
 
          if ((fact > 0.01f) || (asym > 0.01f)) {
@@ -3469,8 +3395,7 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect, int layer)
          }
 
          /* mix with the dry signal */
-         mix_factor = mix/(0.5f+powf(fact, 0.25f));
-         rbd->multiply(dptr, dptr, bps, no_samples, mix_factor);
+         rbd->multiply(dptr, dptr, no_samples, mix, 0.5f+powf(fact, 0.25f));
          if (mix < 0.99f) {
             rbd->add(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
          }

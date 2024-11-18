@@ -989,11 +989,11 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
             float pitch = _MAX((samples-doffs)/samples, 0.001f);
             float smu = effect->delay.smu;
             rbd->resample(dptr, nsptr-offs, 0, no_samples, smu, pitch);
-            rbd->multiply(dptr, dptr, bps, no_samples, gain);
+            rbd->multiply(dptr, dptr, no_samples, gain, 1.0f);
             effect->delay.smu = fmodf(smu+pitch*no_samples, 1.0f);
          }
          else {
-            rbd->multiply(dptr, nsptr-offs, bps, no_samples, gain);
+            rbd->multiply(dptr, nsptr-offs, no_samples, gain, 1.0f);
          }
 
          if (flt)

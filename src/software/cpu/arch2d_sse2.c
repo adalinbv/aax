@@ -106,157 +106,91 @@ _batch_wavefold_sse2(float32_ptr d, const_float32_ptr s, size_t num, float thres
 }
 
 void
-_batch_fmul_value_sse2(void_ptr dptr, const_void_ptr sptr, unsigned bps, size_t num, float f)
+_batch_fmul_value_sse2(float32_ptr dptr, const_float32_ptr sptr, size_t num, float numerator, float denomerator)
 {
+   const_float32_ptr s = (float32_ptr)sptr;
+   float32_ptr d = (float32_ptr)dptr;
+   size_t i, step, dtmp, stmp;
+   float f = numerator/denomerator;
+
    if (!num) return;
 
    if (fabsf(f - 1.0f) < LEVEL_96DB)
    {
-      if (sptr != dptr) memcpy(dptr, sptr,  num*bps);
+      if (sptr != dptr) memcpy(dptr, sptr,  num*sizeof(float));
       return;
    }
 
    if (fabsf(f) <= LEVEL_96DB)
    {
-      memset(dptr, 0, num*bps);
+      memset(dptr, 0, num*sizeof(float));
       return;
    }
 
-   if (bps == 4)
+   /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
+   dtmp = (size_t)d & MEMMASK16;
+   stmp = (size_t)s & MEMMASK16;
+   if (dtmp && num)
    {
-      const_float32_ptr s = (float32_ptr)sptr;
-      float32_ptr d = (float32_ptr)dptr;
-      size_t i, step, dtmp, stmp;
-
-      /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
-      dtmp = (size_t)d & MEMMASK16;
-      stmp = (size_t)s & MEMMASK16;
-      if (dtmp && num)
+      i = (MEMALIGN16 - dtmp)/sizeof(float);
+      if (i <= num)
       {
-         i = (MEMALIGN16 - dtmp)/sizeof(float);
-         if (i <= num)
-         {
-            num -= i;
-            do {
-               *d++ = *s++ * f;
-            } while(--i);
-         }
-      }
-
-      step = 3*sizeof(__m128)/sizeof(float);
-
-      i = num/step;
-      if (i)
-      {
-         __m128* sptr = (__m128*)s;
-         __m128* dptr = (__m128*)d;
-         __m128 tv = _mm_set1_ps(f);
-         __m128 xmm0, xmm1, xmm2;
-
-         num -= i*step;
-         s += i*step;
-         d += i*step;
-         if (stmp)
-         {
-            do
-            {
-               xmm0 = _mm_mul_ps(tv, _mm_loadu_ps((const float*)(sptr++)));
-               xmm1 = _mm_mul_ps(tv, _mm_loadu_ps((const float*)(sptr++)));
-               xmm2 = _mm_mul_ps(tv, _mm_loadu_ps((const float*)(sptr++)));
-
-               _mm_store_ps((float*)dptr++, xmm0);
-               _mm_store_ps((float*)dptr++, xmm1);
-               _mm_store_ps((float*)dptr++, xmm2);
-            }
-            while(--i);
-         }
-         else
-         {
-            do
-            {
-               xmm0 = _mm_mul_ps(tv, _mm_load_ps((const float*)(sptr++)));
-               xmm1 = _mm_mul_ps(tv, _mm_load_ps((const float*)(sptr++)));
-               xmm2 = _mm_mul_ps(tv, _mm_load_ps((const float*)(sptr++)));
-
-               _mm_store_ps((float*)dptr++, xmm0);
-               _mm_store_ps((float*)dptr++, xmm1);
-               _mm_store_ps((float*)dptr++, xmm2);
-            }
-            while(--i);
-         }
-      }
-
-      if (num)
-      {
-         i = num;
+         num -= i;
          do {
             *d++ = *s++ * f;
          } while(--i);
       }
    }
-   else if (bps == 8)
+
+   step = 3*sizeof(__m128)/sizeof(float);
+
+   i = num/step;
+   if (i)
    {
-      const_double64_ptr s = (double64_ptr)sptr;
-      double64_ptr d = (double64_ptr)dptr;
-      size_t i, step, dtmp, stmp;
+      __m128* sptr = (__m128*)s;
+      __m128* dptr = (__m128*)d;
+      __m128 tv = _mm_mul_ps(_mm_set1_ps(numerator), _mm_rcp_ps(_mm_set1_ps(denomerator)));
+      __m128 xmm0, xmm1, xmm2;
 
-      stmp = (size_t)s & MEMMASK16;
-      dtmp = (size_t)d & MEMMASK16;
-      if (dtmp && num)
+      num -= i*step;
+      s += i*step;
+      d += i*step;
+      if (stmp)
       {
-         i = (MEMALIGN16 - dtmp)/sizeof(double);
-         if (i <= num)
+         do
          {
-            num -= i;
-            do {
-               *d++ = *s++ * f;
-            } while(--i);
+            xmm0 = _mm_mul_ps(tv, _mm_loadu_ps((const float*)(sptr++)));
+            xmm1 = _mm_mul_ps(tv, _mm_loadu_ps((const float*)(sptr++)));
+            xmm2 = _mm_mul_ps(tv, _mm_loadu_ps((const float*)(sptr++)));
+
+            _mm_store_ps((float*)dptr++, xmm0);
+            _mm_store_ps((float*)dptr++, xmm1);
+            _mm_store_ps((float*)dptr++, xmm2);
          }
+         while(--i);
       }
-
-      step = sizeof(__m128d)/sizeof(double);
-
-      i = num/step;
-      if (i)
+      else
       {
-         __m128d* sptr = (__m128d*)s;
-         __m128d* dptr = (__m128d*)d;
-         __m128d tv = _mm_set1_pd(f);
-         __m128d xmm0;
-
-         num -= i*step;
-         s += i*step;
-         d += i*step;
-         if (stmp)
+         do
          {
-            do
-            {
-               xmm0 = _mm_mul_pd(tv, _mm_loadu_pd((const double*)(sptr++)));
-               _mm_store_pd((double*)dptr++, xmm0);
-            }
-            while(--i);
-         }
-         else
-         {
-            do
-            {
-               xmm0 = _mm_mul_pd(tv, _mm_load_pd((const double*)(sptr++)));
-               _mm_store_pd((double*)dptr++, xmm0);
-            }
-            while(--i);
-         }
-      }
+            xmm0 = _mm_mul_ps(tv, _mm_load_ps((const float*)(sptr++)));
+            xmm1 = _mm_mul_ps(tv, _mm_load_ps((const float*)(sptr++)));
+            xmm2 = _mm_mul_ps(tv, _mm_load_ps((const float*)(sptr++)));
 
-      if (num)
-      {
-         i = num;
-         do {
-            *d++ = *s++ * f;
-         } while(--i);
+            _mm_store_ps((float*)dptr++, xmm0);
+            _mm_store_ps((float*)dptr++, xmm1);
+            _mm_store_ps((float*)dptr++, xmm2);
+         }
+         while(--i);
       }
    }
-   else {
-      _batch_fmul_value_cpu(dptr, sptr, bps, num, f);
+
+   if (num)
+   {
+      i = num;
+      do {
+         *d++ = *s++ * f;
+      } while(--i);
    }
 }
 
@@ -368,9 +302,9 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
+         const __m128 mul = _mm_set1_ps((float)(1<<23));
          __m128i xmm4i, xmm5i, xmm6i, xmm7i;
          __m128 xmm0, xmm1, xmm2, xmm3;
-         __m128 mul = _mm_set1_ps((float)(1<<23));
 
          num -= i*step;
          d += i*step;

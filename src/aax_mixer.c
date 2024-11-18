@@ -1238,7 +1238,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
          }
 
          src->info = handle->info;
-         if (!emitter->midi.mode) {
+         if (emitter->midi.mode == AAX_RENDER_DEFAULT) {
             emitter->midi.mode = src->info->midi_mode;
          }
 
@@ -1904,8 +1904,8 @@ _aaxMixerSetRendering(_handle_t *handle)
    // switch to the default instrument set for synthesizer and arcade mode
    if (!RENDER_NORMAL(handle->info->midi_mode))
    {
-      if (handle->data_dir) free(handle->data_dir);
-         handle->data_dir = systemDataFile("");
+      free(handle->data_dir);
+      handle->data_dir = systemDataFile("");
    }
 }
 

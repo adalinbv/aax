@@ -1368,10 +1368,8 @@ _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, f
       _aaxRingBufferData *rbi = rb->handle;
       _aaxRingBufferSample *rbd = rbi->sample;
       size_t track, no_tracks = rbd->no_tracks;
-      unsigned char bps;
-      int32_t **data;
+      float32_ptr data;
 
-      bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
       if (!no_samples)
       {
          no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
@@ -1381,7 +1379,7 @@ _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, f
       for (track=0; track<no_tracks; track++)
       {
          data = rbd->track[track];
-         rbd->multiply(data+offs, data+offs, bps, no_samples, ratio_orig);
+         rbd->multiply(data+offs, data+offs, no_samples, ratio_orig, 1.0f);
       }
    }
    return true;

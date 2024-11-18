@@ -297,25 +297,19 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
  * waiting processes
  */
 #include "xpoll.h"
-int msecSleep(unsigned int dt_ms)
-{
-   struct pollfd pfd = { -1, 0 };
-   int res;
-
-   do {
-      res = poll(&pfd, 0, dt_ms);
-   } while (res == -1 && errno == EINTR);
-
-   return 0;
+int msecSleep(unsigned int dt_ms) {
+   return usecSleep(dt_ms*1000);
 }
 
 int usecSleep(unsigned int dt_us)
 {
-   static struct timespec s;
-   s.tv_sec = (dt_us/1000000);
-   s.tv_nsec = (dt_us % 1000000)*1000L;
-   while(nanosleep(&s,&s)==-1 && errno == EINTR)
-      continue;
+   struct timespec req, rem;
+   req.tv_sec = (dt_us/1000000);
+   req.tv_nsec = (dt_us % 1000000)*1000L;
+   while (nanosleep(&req, &rem) == -1 && errno == EINTR) {
+      // Interrupted by a signal, continue sleeping for remaining time
+      req = rem;
+   }
    return 0;
 }
 

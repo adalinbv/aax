@@ -18,6 +18,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 
 #if defined _WIN32 || defined __CYGWIN__
 # define AAX_APIENTRY __cdecl
@@ -57,17 +58,8 @@ extern "C" {
 #define AAX_FALSE		false
 #define AAX_TRUE		true
 
-#ifdef _MSC_VER
-# include <float.h>
-# pragma warning( disable : 4056 )
-# define AAX_FPINFINITE		(FLT_MAX+FLT_MAX)
-# define AAX_FPNONE		(AAX_FPINFINITE-AAX_FPINFINITE)
-#else
-# define AAX_FPNONE		(0.0f/0.0f)
-# define AAX_FPINFINITE		(1.0f/0.0f)
-# if defined(__GNUC__) || defined(__TINYC__)
-# endif
-#endif
+# define AAX_FPINFINITE		INFINITY
+# define AAX_FPNONE		NAN
 
 #define AAX_PEAK_MAX		(1<<23)
 
@@ -206,6 +198,9 @@ enum aaxModeType
    AAX_BUFFER_TRACK,
    AAX_RENDER_MODE,
    AAX_MODE_TYPE_MAX,
+
+   AAX_SYNTHESIZER    = 0x4000000, // same as AAX_RENDER_SYNTHESIZER
+   AAX_ARCADE         = 0x8000000  // same as AAX_RENDER_ARCADE
 };
 
 /* Can be used in combination with AAX_TRACK0 - AAX_TRACK7 */
@@ -421,8 +416,8 @@ enum aaxCapabilities
    AAX_SIMD_MASK              = 0xF00,
 
    AAX_RENDER_NORMAL          = 0,
-   AAX_RENDER_SYNTHESIZER     = 0x4000000,
-   AAX_RENDER_ARCADE          = 0x8000000,
+   AAX_RENDER_SYNTHESIZER     = AAX_SYNTHESIZER,
+   AAX_RENDER_ARCADE          = AAX_ARCADE,
    AAX_RENDER_DEFAULT         = (AAX_RENDER_SYNTHESIZER|AAX_RENDER_ARCADE),
    AAX_RENDER_MASK            = AAX_RENDER_DEFAULT
 };

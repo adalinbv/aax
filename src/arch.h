@@ -48,7 +48,7 @@ typedef void (*_batch_codec_proc)(void_ptr, const_void_ptr, size_t);
 
 typedef void (*_batch_fmadd_proc)(float32_ptr, const_float32_ptr, size_t, float, float);
 typedef void (*_batch_imadd_proc)(int32_ptr, const_int32_ptr, size_t, float, float);
-typedef void (*_batch_mul_value_proc)(void*, const void*, unsigned, size_t, float);
+typedef void (*_batch_imul_value_proc)(void*, const void*, unsigned, size_t, float);
 typedef void (*_batch_dsp_1param_proc)(float32_ptr, const_float32_ptr, size_t, float);
 typedef void (*_batch_ema_proc)(int32_ptr, const_int32_ptr, size_t, float*, float);
 typedef void (*_batch_ema_float_proc)(float32_ptr, const_float32_ptr, size_t, float*, float);
@@ -69,8 +69,8 @@ extern _aax_malloc_proc _aax_malloc;
 extern _aax_free_proc _aax_free;
 
 extern _batch_cvt_to_proc _batch_fmul;
-extern _batch_mul_value_proc _batch_imul_value;
-extern _batch_mul_value_proc _batch_fmul_value;
+extern _batch_imul_value_proc _batch_imul_value;
+extern _batch_fmadd_proc _batch_fmul_value;
 extern _batch_imadd_proc _batch_imadd;
 extern _batch_fmadd_proc _batch_fmadd;
 extern _batch_fmadd_proc _batch_fma3;

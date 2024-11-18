@@ -337,15 +337,6 @@ _aaxSensorPostProcess(const _aaxRendererData *data)
          rbd->add(tracks[lfe_track], tmp, no_samples, 1.0f, 0.0f);
          rbd->add(dptr, tmp, no_samples, -1.0f, 0.0f);
       }
-
-#if 0
-      if (fabsf(info->balance) > LEVEL_96DB)
-      { // balance == -1.0: full left, balance == 1.0: full right
-         int i = (t % 2); // 0 == left, 1 == right
-         float level =
-         _batch_fmul_value(dptr, dptr, sizeof(MIX_T), no_samples, level);
-      }
-#endif
    }
 
    rb->limit(rb, RB_COMPRESS);
