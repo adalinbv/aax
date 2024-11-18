@@ -256,7 +256,7 @@ FN(vatanq_f32,A)(float32x4_t a)
 
    // Polynomial approximation for arctangent
    float32x4_t a2 = vmulq_f32(adjusted_a, adjusted_a);
-   float32x4_t poly = vmlaq_f32(vdupq_n_f32(ATAN_COEF2), vdupq_n_f32(COEF1), a2);
+   float32x4_t poly = vmlaq_f32(vdupq_n_f32(ATAN_COEF2), vdupq_n_f32(ATAN_COEF1), a2);
    poly = vmlaq_f32(vdupq_n_f32(ATAN_COEF3), poly, a2);
    poly = vmlaq_f32(vdupq_n_f32(ATAN_COEF4), poly, a2);
    float32x4_t result = vmlaq_f32(poly, vmulq_f32(a2, adjusted_a), adjusted_a);
@@ -1264,7 +1264,7 @@ FN(batch_cvt16_intl_24,A)(void_ptr dst, const_int32_ptrptr src,
 }
 
 void
-FN(batch_fmul_value,A)(float32_ptr dptr, const_float32_ptr spr, size_t num, float numerator, float denomerator)
+FN(batch_fmul_value,A)(float32_ptr dptr, const_float32_ptr sptr, size_t num, float numerator, float denomerator)
 {
    float f = numerator/denomerator;
    size_t i, step;
@@ -1272,9 +1272,9 @@ FN(batch_fmul_value,A)(float32_ptr dptr, const_float32_ptr spr, size_t num, floa
    if (!num) return;
 
    if (fabsf(f - 1.0f) < LEVEL_128DB) {
-      if (sptr != dptr) memcpy(dptr, sptr,  num*bps);
+      if (sptr != dptr) memcpy(dptr, sptr,  num*sizeof(float));
    } else if  (fabsf(f) <= LEVEL_128DB) {
-      memset(dptr, 0, num*bps);
+      memset(dptr, 0, num*sizeof(float));
    }
 
    step = 2*sizeof(float32x4_t)/sizeof(float);
@@ -1287,8 +1287,8 @@ FN(batch_fmul_value,A)(float32_ptr dptr, const_float32_ptr spr, size_t num, floa
       float32x4_t sfact = vdupq_n_f32(f);
 
       num -= i*step;
-      s += i*step;
-      d += i*step;
+      sptr += i*step;
+      dptr += i*step;
       do
       {
          xdptr[0] = vmulq_f32(sfact, vld1q_f32((const float*)&xsptr[0]));
@@ -1304,7 +1304,7 @@ FN(batch_fmul_value,A)(float32_ptr dptr, const_float32_ptr spr, size_t num, floa
    {
       i = num;
       do {
-         *d++ *= *s++;
+         *dptr++ *= *sptr++;
       } while(--i);
    }
 }
