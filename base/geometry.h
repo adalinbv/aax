@@ -57,7 +57,7 @@ typedef ALIGN32 double	dx4x4_t[4][4] ALIGN32C;
 
 #if defined __ARM_NEON
 typedef union {
-   float64x4_t f64x4;
+// float64x4_t f64x4;
    float64x2_t f64x2[2];
 } simd4d_t;
 typedef float32x4_t	simd4f_t;
