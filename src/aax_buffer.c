@@ -2341,8 +2341,10 @@ _bufAAXSThread(void *d)
             free(fname);
          }
       }
-      else {
-         rv = _bufAAXSThreadCreateWaveform(aax_buf, xid);
+      else
+      {
+         _bufAAXSThreadCreateWaveform(aax_buf, xid);
+         rv = true;
       }
       xmlClose(xid);
    }
