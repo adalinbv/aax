@@ -51,6 +51,19 @@ extern "C" {
 #define _NOLOCK			false
 #define _LOCK			true
 
+#if defined(_MSC_VER)
+# ifdef _WIN64
+#  define AAX_SET_FLUSH_ZERO_ON  _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON)
+# else
+#  define AAX_SET_FLUSH_ZERO_ON
+# endif
+#elif defined(__x86_64__) || defined(__i386__)
+# define AAX_SET_FLUSH_ZERO_ON  _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON)
+#elif defined(__ARM_NEON)
+# define AAX_SET_FLUSH_ZERO_ON
+#endif
+
+
 /* --- Error support -- */
 #define _aaxErrorSet(a)		__aaxDriverErrorSet(handle,(a),__func__)
 enum aaxErrorType __aaxDriverErrorSet(void*,enum aaxErrorType, const char*);

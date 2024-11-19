@@ -80,9 +80,7 @@ _aax_generate_noise_proc aax_generate_noise_float;
 void _batch_atan_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt);
 
-#if defined __i386__
-# define CPU    "cpu"
-#elif defined __x86_64__
+#if defined __x86_64__
 # define CPU   "cpu+sse2"
 # define SIMD   sse2
 # define SIMD1  sse_vex
@@ -121,17 +119,14 @@ int main()		// x86		X86_64		ARM
    _aaxTimer *ts;
    _data_t *buf;
 
-#if defined(__i386__)
-   simd = _aaxArchDetectSSE2();
-// simd3 = _aaxArchDetectSSE3();
-   simd4 = _aaxArchDetectSSE4();
-#elif defined(__x86_64__)
+#if defined(__x86_64__)
    simd = 1;
    simd1 = _aaxArchDetectAVX();
    simd2 = _aaxArchDetectAVX();
 // simd3 = _aaxArchDetectSSE3();
    simd4 = _aaxArchDetectSSE4();
    fma = _aaxArchDetectFMA3();
+   _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
 #elif defined __aarch64__
    simd = _aaxArchDetectVFPV4();
    simd3 = simd4 = _aaxArchDetectNeon();
