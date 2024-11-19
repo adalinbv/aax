@@ -280,7 +280,7 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
 
    if (((size_t)d & MEMMASK16) != 0 || ((size_t)s & MEMMASK16) != 0)
    {
-      float mul = (float)(1<<23);
+      float mul = MUL;
       size_t i = num;
       do {
          *d++ = (int32_t)(*s++ * mul);
@@ -302,7 +302,7 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
-         const __m128 mul = _mm_set1_ps((float)(1<<23));
+         const __m128 mul = _mm_set1_ps(MUL);
          __m128i xmm4i, xmm5i, xmm6i, xmm7i;
          __m128 xmm0, xmm1, xmm2, xmm3;
 
@@ -336,7 +336,7 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
 
       if (num)
       {
-         float mul = (float)(1<<23);
+         float mul = MUL;
          i = num;
          do {
             *d++ = (int32_t)(*s++ * mul);

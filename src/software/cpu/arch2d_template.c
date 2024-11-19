@@ -379,9 +379,6 @@ FN(batch_cvtps24_24,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
    }
 }
 
-#define MUL	(65536.0f*256.0f)
-#define IMUL	(1.0f/MUL)
-
 // range: 0.0 .. 1.0
 // slower, more accurate:
 //     GMATH_PI_4*x - x*(fabsf(x) - 1)*(0.2447 + 0.0663*fabsf(x));
@@ -491,7 +488,7 @@ FN(batch_cvt24_ph,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
-      static const float mul = (float)(1<<23);
+      static const float mul = MUL;
       int32_t* d = (int32_t*)dptr;
       int16_t* s = (int16_t*)sptr;
       size_t i = num;
@@ -509,7 +506,7 @@ FN(batch_cvt24_ps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
-      static const float mul = (float)(1<<23);
+      static const float mul = MUL;
       int32_t* d = (int32_t*)dptr;
       float* s = (float*)sptr;
       size_t i = num;
@@ -526,7 +523,7 @@ FN(batch_cvtph_24,A)(void_ptr dst, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
-      static const float mul = 1.0f/(float)(1<<23);
+      static const float mul = IMUL;
       int32_t* s = (int32_t*)sptr;
       int16_t* d = (int16_t*)dst;
       size_t i = num;
@@ -543,7 +540,7 @@ FN(batch_cvtps_24,A)(void_ptr dst, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
-      static const float mul = 1.0f/(float)(1<<23);
+      static const float mul = IMUL;
       int32_t* s = (int32_t*)sptr;
       float* d = (float*)dst;
       size_t i = num;
@@ -559,7 +556,7 @@ FN(batch_cvt24_pd,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
-      static const double mul = (double)(1<<23);
+      static const double mul = MUL;
       int32_t* d = (int32_t*)dptr;
       double* s = (double*)sptr;
       size_t i = num;
@@ -726,7 +723,7 @@ FN(batch_cvt24_ph_intl,A)(int32_ptrptr dptr, const_void_ptr sptr, size_t offset,
       }
       else if (tracks)
       {
-         static const float mul = (float)(1<<23);
+         static const float mul = MUL;
          size_t t;
 
          for (t=0; t<tracks; t++)
@@ -759,7 +756,7 @@ FN(batch_cvt24_ps_intl,A)(int32_ptrptr dptr, const_void_ptr sptr, size_t offset,
       }
       else if (tracks)
       {
-         static const float mul = (float)(1<<23);
+         static const float mul = MUL;
          size_t t;
 
          for (t=0; t<tracks; t++)
@@ -788,7 +785,7 @@ FN(batch_cvt24_pd_intl,A)(int32_ptrptr dptr, const_void_ptr sptr, size_t offset,
       }
       else if (tracks)
       {
-         static const double mul = (double)(1<<23);
+         static const double mul = MUL;
          size_t t;
          for (t=0; t<tracks; t++)
          {
@@ -811,7 +808,7 @@ FN(batch_cvtpd_24,A)(void_ptr dst, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
-      static const double mul = 1.0/(double)(1<<23);
+      static const double mul = IMUL;
       int32_t* s = (int32_t*)sptr;
       double* d = (double*)dst;
       size_t i = num;
@@ -1028,7 +1025,7 @@ FN(batch_cvt24_intl_ps,A)(void_ptr dptr, const_int32_ptrptr sptr, size_t offset,
 {
    if (num)
    {
-      static const float mul = (float)(1<<23);
+      static const float mul = MUL;
       size_t t;
 
       for (t=0; t<tracks; t++)
@@ -1076,7 +1073,7 @@ FN(batch_cvtps_intl_24,A)(void_ptr dptr, const_int32_ptrptr sptr, size_t offset,
 {
    if (num)
    {
-      static const float mul = 1.0/(float)(1<<23);
+      static const float mul = IMUL;
       size_t t;
 
       for (t=0; t<tracks; t++)
@@ -1100,7 +1097,7 @@ FN(batch_cvtpd_intl_24,A)(void_ptr dptr, const_int32_ptrptr sptr, size_t offset,
 {
    if (num)
    {
-      static const double mul = 1.0/(double)(1<<23);
+      static const double mul = IMUL;
       size_t t;
 
       for (t=0; t<tracks; t++)

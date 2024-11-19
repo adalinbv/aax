@@ -530,7 +530,7 @@ FN(batch_cvtps_24,A)(void_ptr dst, const_void_ptr src, size_t num)
       {
          __m128i xmm0i, xmm1i, xmm2i, xmm3i;
          __m128 xmm4, xmm5, xmm6, xmm7;
-         __m128 mul = _mm_rcp_ps(_mm_set1_ps((float)(1<<23)));
+         __m128 mul = _mm_rcp_ps(_mm_set1_ps(MUL));
 
          num -= i*step;
          s += i*step;
@@ -562,7 +562,7 @@ FN(batch_cvtps_24,A)(void_ptr dst, const_void_ptr src, size_t num)
 
       if (num)
       {
-         float mul = 1.0f/(float)(1<<23);
+         float mul = IMUL;
          i = num;
          do {
             *d++ = (float)(*s++) * mul;

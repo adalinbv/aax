@@ -58,9 +58,6 @@ fast_sin8_fma3(__m256 x)	// -4.0f*(-x*fabsf(x) + x)
    return _mm256_mul_ps(four, _mm256_fmadd_ps(-x, _mm256_abs_ps(x), x));
 }
 
-#define MUL     (65536.0f*256.0f)
-#define IMUL    (1.0f/MUL)
-
 // Use the slower, more accurate algorithm:
 //    M_PI_4*x - x*(fabs(x) - 1)*(0.2447 + 0.0663*fabs(x)); // -1 < x < 1
 //    which equals to: x*(1.03 - 0.1784*abs(x) - 0.0663*x*x)

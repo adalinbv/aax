@@ -392,7 +392,7 @@ _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
       }
       else
       {
-         float mul = (float)(1<<23);
+         float mul = MUL;
          size_t i = num;
          do {
             *d++ = (int32_t)(*s++ * mul);
@@ -413,7 +413,7 @@ _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
-         const __m256 mul = _mm256_set1_ps((float)(1<<23));
+         const __m256 mul = _mm256_set1_ps(MUL);
          __m256 ymm0, ymm1, ymm2, ymm3, ymm4, ymm5;
          __m256i *dptr = (__m256i*)d;
          __m256* sptr = (__m256*)s;
@@ -461,7 +461,7 @@ _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
 
       if (num)
       {
-         float mul = (float)(1<<23);
+         float mul = MUL;
          i = num;
          do {
             *d++ = (int32_t)(*s++ * mul);
@@ -581,7 +581,7 @@ _batch_cvtps_24_avx(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
-         const __m256 mul = _mm256_rcp_ps(_mm256_set1_ps((float)(1<<23)));
+         const __m256 mul = _mm256_rcp_ps(_mm256_set1_ps(MUL));
          __m256 ymm0, ymm1, ymm2, ymm3, ymm4, ymm5;
          __m256i* sptr = (__m256i*)s;
          __m256 *dptr = (__m256*)d;
@@ -629,7 +629,7 @@ _batch_cvtps_24_avx(void_ptr dst, const_void_ptr src, size_t num)
 
       if (num)
       {
-         float mul = 1.0f/(float)(1<<23);
+         float mul = IMUL;
          i = num;
          do {
             *d++ = (float)(*s++) * mul;

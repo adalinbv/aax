@@ -61,7 +61,7 @@ extern "C" {
 # define AAX_FPINFINITE		INFINITY
 # define AAX_FPNONE		NAN
 
-#define AAX_PEAK_MAX		(1<<23)
+#define AAX_PEAK_MAX		8388607
 
 /* Allow floating point values to be parsed as 64-bit signed integer. */
 /* Values are converted to and from Q32.32 fixed point format.        */

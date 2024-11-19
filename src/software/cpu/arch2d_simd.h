@@ -35,13 +35,14 @@ extern "C" {
 
 #include <arch.h>
 
+#include <aax/aax.h>
+
 #include "base/types.h"
 #include "base/geometry.h"
 #include "waveforms.h"
 
-#define ATAN_MUL       (1.0f/1.571f)
-#define MUL            (65536.0f*256.0f)
-#define IMUL           (1.0f/MUL)
+#define MUL            AAX_PEAK_MAX
+#define IMUL           (1.0f/AAX_PEAK_MAX)
 
 // http://ijeais.org/wp-content/uploads/2018/07/IJAER180702.pdf
 // Polynomial coefficients for approximation
