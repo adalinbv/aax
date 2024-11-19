@@ -196,6 +196,7 @@ _aaxGetSIMDSupportLevel()
 //       _batch_cvt32_24 = _batch_cvt32_24_vfpv4;
          _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv4;
          _batch_cvtps24_24 = _batch_cvtps24_24_vfpv4;
+         _batch_limit = _batch_limit_vfpv4;
          _batch_atanps = _batch_atanps_vfpv4;
          _batch_cvt24_ps = _batch_cvt24_ps_vfpv4;
          _batch_cvtps_24 = _batch_cvtps_24_vfpv4;
@@ -315,6 +316,7 @@ _aaxGetSIMDSupportLevel()
          _batch_freqfilter_float = _batch_freqfilter_float_neon;
 
   	 _batch_fmadd = _batch_fmadd_neon;
+         _batch_limit = _batch_limit_neon;
   	 _batch_atanps = _batch_atanps_neon;
          _batch_fmul = _batch_fmul_neon;
 	 _batch_fmul_value = _batch_fmul_value_neon;
@@ -332,6 +334,7 @@ _aaxGetSIMDSupportLevel()
          _batch_freqfilter_float = _batch_freqfilter_float_neon64;
 
   	 _batch_fmadd = _batch_fmadd_neon64;
+         _batch_limit = _batch_limit_neon64;
   	 _batch_atanps = _batch_atanps_neon64;
          _batch_fmul = _batch_fmul_neon64;
          _batch_fmul_value = _batch_fmul_value_neon64;

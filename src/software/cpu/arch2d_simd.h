@@ -63,6 +63,7 @@ extern _aax_generate_noise_proc _aax_generate_noise_float;
 /* CPU*/
 void _batch_cvt24_24_cpu(void_ptr, const void*, size_t);
 void _batch_roundps_cpu(void_ptr, const_void_ptr, size_t);
+void _batch_limit_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_atan_cpu(void_ptr, const_void_ptr, size_t);
 
@@ -151,6 +152,7 @@ void _batch_imadd_sse2(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_sse2(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_ema_iir_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
 void _batch_freqfilter_float_sse2(float32_ptr, const_float32_ptr, int, size_t, void*);
+void _batch_limit_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_sse2(void_ptr, const_void_ptr, size_t);
@@ -183,6 +185,7 @@ void _batch_fmul_value_sse_vex(float32_ptr, const_float32_ptr, size_t, float, fl
 void _batch_imadd_sse_vex(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_sse_vex(float32_ptr, const_float32_ptr, size_t, float, float);void _batch_ema_iir_float_sse_vex(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
 void _batch_freqfilter_float_sse_vex(float32_ptr, const_float32_ptr, int, size_t, void*);
+void _batch_limit_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_sse_vex(void_ptr, const_void_ptr, size_t);
@@ -196,6 +199,7 @@ void _batch_cvt16_intl_24_sse_vex(void_ptr, const_int32_ptrptr, size_t, unsigned
 
 /* AVX */
 void _batch_fmul_avx(void_ptr, const_void_ptr, size_t);
+void _batch_limit_avx(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_avx(void_ptr, const_void_ptr, size_t);
 void _batch_fmul_value_avx(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_fmadd_avx(float32_ptr, const_float32_ptr, size_t, float, float);
@@ -217,12 +221,14 @@ void _batch_fmadd_fma3(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_freqfilter_float_fma3(float32_ptr, const_float32_ptr, int, size_t, void*);
 void _batch_resample_float_fma3(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
 void _batch_get_average_rms_fma3(const_float32_ptr, size_t, float*, float*);
+void _batch_limit_fma3(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_fma3(void_ptr, const_void_ptr, size_t);
 float* _aax_generate_waveform_fma3(float32_ptr, size_t, float, float, enum aaxSourceType);
 float* _aax_generate_noise_fma3(float32_ptr, size_t, uint64_t, unsigned char, float);
 
 /* VFPv2 */
 void _batch_cvt24_24_vfpv2(void_ptr, const void*, size_t);
+void _batch_limit_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_vfpv2(void_ptr, const_void_ptr, size_t);
 
 float* _aax_generate_waveform_vfpv2(float32_ptr, size_t, float, float, enum aaxSourceType);
@@ -291,6 +297,7 @@ void _batch_cvtpd_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned i
 
 /* VFPv4 */
 void _batch_cvt24_24_vfpv4(void_ptr, const void*, size_t);
+void _batch_limit_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_vfpv4(void_ptr, const_void_ptr, size_t);
 
 float* _aax_generate_waveform_vfpv4(float32_ptr, size_t, float, float, enum aaxSourceType);
@@ -375,6 +382,7 @@ void _batch_freqfilter_float_neon(float32_ptr, const_float32_ptr, int, size_t, v
 void _batch_fmul_value_neon(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_fmul_neon(void_ptr, const_void_ptr, size_t);
 
+void _batch_limit_neon(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_neon(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_neon(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_neon(void_ptr, const_void_ptr, size_t);
@@ -395,6 +403,7 @@ void _batch_freqfilter_float_neon64(float32_ptr, const_float32_ptr, int, size_t,
 void _batch_fmul_value_neon64(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_fmul_neon64(void_ptr, const_void_ptr, size_t);
 
+void _batch_limit_neon64(void_ptr, const_void_ptr, size_t);
 void _batch_atanps_neon64(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_neon64(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_neon64(void_ptr, const_void_ptr, size_t);

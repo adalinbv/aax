@@ -353,7 +353,8 @@ _aaxGetSIMDSupportLevel()
             _batch_get_average_rms = _batch_get_average_rms_sse2;
             _batch_saturate24 = _batch_saturate24_sse2;
 
-//          _batch_atanps = _batch_atanps_sse2;
+//          _batch_limit = _batch_limit_sse2;
+            _batch_atanps = _batch_atanps_sse2;
             _batch_cvtps_24 = _batch_cvtps_24_sse2;
             _batch_cvt24_ps = _batch_cvt24_ps_sse2;
             _batch_cvt24_16 = _batch_cvt24_16_sse2;
@@ -406,6 +407,7 @@ _aaxGetSIMDSupportLevel()
                _batch_get_average_rms = _batch_get_average_rms_sse_vex;
                _batch_saturate24 = _batch_saturate24_sse_vex;
 
+               _batch_limit = _batch_limit_sse_vex;
                _batch_atanps = _batch_atanps_sse_vex;
                _batch_cvtps_24 = _batch_cvtps_24_sse_vex;
                _batch_cvt24_ps = _batch_cvt24_ps_sse_vex;
@@ -440,6 +442,7 @@ _aaxGetSIMDSupportLevel()
                // CPU is faster on __x86_64__ as it already supports SSE2
                _batch_roundps = _batch_roundps_cpu;
 
+               _batch_limit = _batch_limit_avx;
                _batch_atanps = _batch_atanps_avx;
                _batch_movingaverage_float = _batch_ema_iir_float_sse_vex;
                _batch_freqfilter_float = _batch_freqfilter_float_sse_vex;
@@ -467,6 +470,7 @@ _aaxGetSIMDSupportLevel()
 
                _batch_get_average_rms = _batch_get_average_rms_fma3;
 
+               _batch_limit = _batch_limit_fma3;
                _batch_atanps = _batch_atanps_fma3;
                _batch_freqfilter_float = _batch_freqfilter_float_fma3;
                _batch_resample_float = _batch_resample_float_fma3;

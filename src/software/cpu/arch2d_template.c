@@ -431,6 +431,23 @@ FN(atan,A)(float a)
 }
 
 void
+FN(batch_limit,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
+{
+   if (num)
+   {
+      float* d = (float*)dptr;
+      float* s = (float*)sptr;
+      size_t i = num;
+
+      do {
+         float samp = *s++ * IMUL;
+         samp = _MINMAX(samp, -1.94139795f, 1.94139795f);
+         *d++ = FN(fast_atan,A)(samp)*(MUL*GMATH_1_PI_2);
+      } while (--i);
+   }
+}
+
+void
 FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
@@ -438,19 +455,13 @@ FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
       float* d = (float*)dptr;
       float* s = (float*)sptr;
       size_t i = num;
-   
+
       do {
-#if 0
-         float samp = *s++ * IMUL*GMATH_PI_2;
-         *d++ = FN(atan,A)(samp)*MUL*GMATH_1_PI_2;
-#else
          float samp = *s++ * IMUL;
-         samp = _MINMAX(samp, -1.94139795f, 1.94139795f);
-         *d++ = FN(fast_atan,A)(samp)*(MUL*GMATH_1_PI_2);
-#endif
+         *d++ = FN(atan,A)(samp)*GMATH_1_PI_2 * MUL;
       } while (--i);
    }
-} 
+}
 
 void
 FN(batch_atan,A)(void_ptr dptr, const_void_ptr sptr, size_t num)

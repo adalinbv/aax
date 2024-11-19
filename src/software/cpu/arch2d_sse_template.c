@@ -572,7 +572,7 @@ FN(batch_cvtps_24,A)(void_ptr dst, const_void_ptr src, size_t num)
 }
 
 void
-FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
+FN(batch_limit,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    float *d = (float*)dptr;
    float *s = (float*)sptr;
@@ -585,7 +585,7 @@ FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
    stmp = (size_t)s & MEMMASK16;
    if (dtmp || stmp)  			/* improperly aligned,            */
    {                                    /* let the compiler figure it out */
-      _batch_atanps_cpu(d, s, num);
+      _batch_limit_cpu(d, s, num);
       return;
    }
 
@@ -617,6 +617,56 @@ FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
             xmm1 = _mm_mul_ps(mul, FN(fast_atan4,A)(xmm0));
 
             _mm_store_ps((float*)dptr++, xmm1);
+         }
+         while(--i);
+      }
+
+      if (num) {
+         _batch_limit_cpu(d, s, num);
+      }
+   }
+}
+
+void
+FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
+{
+   float *d = (float*)dptr;
+   float *s = (float*)sptr;
+   size_t i, step;
+   size_t dtmp, stmp;
+
+   if (!num) return;
+
+   dtmp = (size_t)d & MEMMASK16;
+   stmp = (size_t)s & MEMMASK16;
+   if (dtmp || stmp)                    /* improperly aligned,            */
+   {                                    /* let the compiler figure it out */
+      _batch_atanps_cpu(d, s, num);
+      return;
+   }
+
+   if (num)
+   {
+      __m128 *dptr = (__m128*)d;
+      __m128* sptr = (__m128*)s;
+
+      step = sizeof(__m128)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         const __m128 mul = _mm_set1_ps(MUL*GMATH_1_PI_2);
+         const __m128 imul = _mm_set1_ps(IMUL);
+         __m128 xmm0, xmm1;
+
+         num -= i*step;
+         s += i*step;
+         d += i*step;
+         do
+         {
+            xmm0 = _mm_mul_ps(imul, _mm_load_ps((const float*)sptr++));
+            xmm1 = FN(_mm_atan_ps,A)(xmm0);
+            _mm_store_ps((float*)dptr++, _mm_mul_ps(xmm1, mul));
          }
          while(--i);
       }

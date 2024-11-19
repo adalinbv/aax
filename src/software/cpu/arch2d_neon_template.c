@@ -660,7 +660,7 @@ FN(batch_cvtps24_24,A)(void_ptr dst, const_void_ptr src, size_t num)
 }
 
 void
-FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
+FN(batch_limit,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    float32_ptr d = (float32_ptr)dptr;
    float32_ptr s = (float32_ptr)sptr;
@@ -694,6 +694,45 @@ FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
             res1 = vmulq_f32(mul, FN(fast_atan4,A)(res0));
 
             vst1q_f32((float*)xdptr++, res1);
+         }
+         while(--i);
+      }
+
+      if (num) {
+         _batch_limit_cpu(d, s, num);
+      }
+   }
+}
+
+void
+FN(batch_atanps,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
+{
+   float32_ptr d = (float32_ptr)dptr;
+   float32_ptr s = (float32_ptr)sptr;
+   size_t i, step;
+
+   if (num)
+   {
+      float32x4_t *xdptr = (float32x4_t*)d;
+      float32x4_t *xsptr = (float32x4_t*)s;
+
+      step = sizeof(float32x4_t)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+        const float32x4_t mul = vmovq_n_f32(MUL*GMATH_1_PI_2);
+        const float32x4_t imul = vmovq_n_f32(IMUL);
+        float32x4_t res0, res1;
+
+         num -= i*step;
+         s += i*step;
+         d += i*step;
+         do
+         {
+            res0 = vmulq_f32(mul, vld1q_f32((const float*)xsptr++));
+            res1 = FN(vatanq_f32,A)(res0);
+            vst1q_f32((float*)xdptr++, vmulq_f32(mul, res1));
          }
          while(--i);
       }

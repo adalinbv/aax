@@ -773,7 +773,7 @@ _aax_generate_waveform_fma3(float32_ptr rv, size_t no_samples, float freq, float
       if (rv)
       {
          const __m256 one = _mm256_set1_ps(1.0f);
-         const __m256 two = _mm256_set1_ps(2.0f); 
+         const __m256 two = _mm256_set1_ps(2.0f);
          const __m256 eight = _mm256_set1_ps(8.0f);
          __m256 phase8, freq8, h8;
          __m256 ngain, nfreq;
@@ -892,7 +892,7 @@ _aax_generate_noise_fma3(float32_ptr rv, size_t no_samples, uint64_t seed, unsig
 }
 
 void
-_batch_atanps_fma3(void_ptr dptr, const_void_ptr sptr, size_t num)
+_batch_limit_fma3(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    float *d = (float*)dptr;
    float *s = (float*)sptr;
@@ -905,7 +905,7 @@ _batch_atanps_fma3(void_ptr dptr, const_void_ptr sptr, size_t num)
    stmp = (size_t)s & MEMMASK;
    if (dtmp || stmp)                    /* improperly aligned,            */
    {                                    /* let the compiler figure it out */
-      _batch_atanps_sse2(d, s, num);
+      _batch_limit_sse2(d, s, num);
       return;
    }
 
@@ -937,6 +937,59 @@ _batch_atanps_fma3(void_ptr dptr, const_void_ptr sptr, size_t num)
             xmm1 = _mm256_mul_ps(mul, fast_atan8_fma3(xmm0));
 
             _mm256_store_ps((float*)dptr++, xmm1);
+         }
+         while(--i);
+         _mm256_zeroupper();
+      }
+
+      if (num) {
+         _batch_limit_sse2(d, s, num);
+      }
+   }
+}
+
+void
+_batch_atanps_fma3(void_ptr dst, const_void_ptr src, size_t num)
+{
+   float *d = (float*)dst;
+   float *s = (float*)src;
+   size_t i, step;
+   size_t dtmp, stmp;
+
+   if (!num) return;
+
+   dtmp = (size_t)d & MEMMASK;
+   stmp = (size_t)s & MEMMASK;
+   if (dtmp || stmp)                    /* improperly aligned,            */
+   {                                    /* let the compiler figure it out */
+      _batch_atanps_sse2(d, s, num);
+      return;
+   }
+
+   if (num)
+   {
+      __m256 *dptr = (__m256*)d;
+      __m256* sptr = (__m256*)s;
+
+      step = sizeof(__m256)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         const __m256 xmin = _mm256_set1_ps(-1.55);
+         const __m256 xmax = _mm256_set1_ps(1.55);
+         const __m256 mul = _mm256_set1_ps(MUL*GMATH_1_PI_2);
+         const __m256 imul = _mm256_set1_ps(IMUL);
+         __m256 xmm0, xmm1;
+
+         num -= i*step;
+         s += i*step;
+         d += i*step;
+         do
+         {
+            xmm0 = _mm256_mul_ps(imul, _mm256_load_ps((const float*)sptr++));
+            xmm1 = _mm256_atan_ps(xmm0);
+            _mm256_store_ps((float*)dptr++, _mm256_mul_ps(xmm1, mul));
          }
          while(--i);
          _mm256_zeroupper();
