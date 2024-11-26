@@ -162,6 +162,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          bitcrush->fs = filter->slot[1]->param[AAX_SAMPLE_RATE & 0xF];
 
          /* bit reduction */
+         bitcrush->level = depth;
          if (((state & AAX_SOURCE_MASK) == AAX_ENVELOPE_FOLLOW ||
               (state & AAX_SOURCE_MASK) == AAX_TIMED_TRANSITION) &&
              (state & AAX_LFO_EXPONENTIAL))
@@ -175,8 +176,8 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          bitcrush->lfo.period_rate = filter->info->period_rate;
          bitcrush->lfo.stereo_link = !stereo;
 
-         bitcrush->lfo.min_sec = offset/fs;
-         bitcrush->lfo.max_sec = bitcrush->lfo.min_sec + depth/fs;
+         bitcrush->lfo.min_sec = 0.0f;
+         bitcrush->lfo.max_sec = 1.0/fs;
          bitcrush->lfo.depth = 1.0f;
          bitcrush->lfo.offset = 0.0f;
          bitcrush->lfo.f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
@@ -335,18 +336,20 @@ _bitcrusher_run(MIX_PTR_T s, size_t end, size_t no_samples,
 {
    _aaxRingBufferBitCrusherData *bitcrush = data;
    int rv = false;
-   float level;
+   float lfo;
 
    /* sample rate decimation */
-   level = bitcrush->lfo.get(&bitcrush->lfo, env, s, track, end);
+   lfo = _ln(bitcrush->lfo.get(&bitcrush->lfo, env, s, track, end));
    if (bitcrush->fs)
    {
       float smu, freq_fact;
       int i = no_samples;
       MIX_T val;
 
-      if (bitcrush->lfo.get != _aaxLFOGetFixedValue) {
-         freq_fact = 1.0f - level*(bitcrush->lfo.fs - bitcrush->fs)/bitcrush->lfo.fs;
+      if (bitcrush->lfo.get != _aaxLFOGetFixedValue)
+      {
+         float fact = (bitcrush->lfo.fs - bitcrush->fs)/bitcrush->lfo.fs;
+         freq_fact = 1.0f - lfo*fact;
       } else {
          freq_fact = bitcrush->fs/bitcrush->lfo.fs;
       }
@@ -368,8 +371,9 @@ _bitcrusher_run(MIX_PTR_T s, size_t end, size_t no_samples,
    }
 
    /* bitcrushing */
-   if (level > 0.01f)
+   if (bitcrush->level > 0.01f)
    {
+      float level = lfo*bitcrush->level;
       level = powf(2.0f, 8+sqrtf(0.95f*level)*13.5f); // (24-bits/sample)
       _batch_fmul_value(s, s, no_samples, 1.0f, level);
       _batch_roundps(s, s, no_samples);

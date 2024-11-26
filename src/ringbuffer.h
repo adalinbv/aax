@@ -135,6 +135,7 @@ typedef struct
    _aaxLFOData env;
 
    float fs;
+   float level;
    float staticity;
 
    // moving average filters
