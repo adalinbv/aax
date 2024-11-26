@@ -443,14 +443,15 @@ public:
           frequency(get(AAX_BASE_FREQUENCY)), fraction(getf(AAX_PITCH_FRACTION))
     {}
 
-    Buffer(aaxConfig c, const char* name, bool o=true, bool s=false)
+    Buffer(aaxConfig c, const std::string& n, bool o=true, bool s=false)
     {
-        ptr = aaxBufferReadFromStream(c, name);
+        name = n;
+        ptr = aaxBufferReadFromStream(c, n.c_str());
         if (!ptr) { aaxGetErrorNo();
-            ptr = aaxBufferReadFromStream(c, aaxs_file(c, name).c_str());
+            ptr = aaxBufferReadFromStream(c, aaxs_file(c, n.c_str()).c_str());
         }
         if (!ptr) { aaxGetErrorNo();
-            ptr = aaxBufferReadFromStream(c, preset_file(c, name).c_str());
+            ptr = aaxBufferReadFromStream(c, preset_file(c, n.c_str()).c_str());
         }
         if (!ptr && !s) { aaxGetErrorNo();
             ptr = aaxBufferCreate(c , 1, 1, AAX_PCM16S);
@@ -460,8 +461,8 @@ public:
         }
     }
 
-    Buffer(aaxConfig c, const std::string& name, bool o=true, bool s=false)
-        : Buffer(c, name.c_str(), o, s) {}
+    Buffer(aaxConfig c, const char *name, bool o=true, bool s=false)
+        : Buffer(c, std::string(name), o, s) {}
 
     Buffer(const Buffer&) = default;
     Buffer(Buffer&&) = default;
@@ -500,6 +501,8 @@ public:
         return freq/frequency;
     }
 
+    const std::string& get_name() { return name; }
+
     bool is_valid() { return !!closefn; }
 
 private:
@@ -515,6 +518,7 @@ private:
         return rv;
     }
 
+    std::string name;
     uint64_t frequency = 440;
     float fraction = 1.0f;
 };
