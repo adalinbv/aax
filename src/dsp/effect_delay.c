@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright © 2007-2023 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2007-2024 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2009-2024 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -39,7 +39,7 @@
  * corresponding linear, typeless, values 0.0 .. 1.0
  */
 
-#define VERSION		1.15
+#define VERSION		1.2
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
 static void* _delay_create(void*, void*, bool, int, float);
@@ -53,7 +53,7 @@ static int _delay_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, si
 static aaxEffect
 _aaxDelayEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 2, DSIZE);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 3, DSIZE);
    aaxEffect rv = NULL;
 
    if (eff)
@@ -71,14 +71,22 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
 {
    void *handle = effect->handle;
    aaxEffect rv = false;
+   int stages, stereo;
 
    assert(effect->info);
+
+   stereo = (state & AAX_LFO_STEREO) ? true : false;
+   state &= ~AAX_LFO_STEREO;
+
+   stages = (state & AAX_ORDER_MASK) >> 8;
+   if (stages == 0) stages = 1;
+   state &= ~AAX_ORDER_MASK;
 
    if ((state & (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER)) == 0) {
       state |= (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
    }
 
-   if ((state & AAX_ALL_SOURCE_MASK) == 0 && (state & AAX_ORDER_MASK)) {
+   if ((state & AAX_ALL_SOURCE_MASK) == 0) {
       state |= AAX_CONSTANT;
    }
 
@@ -170,8 +178,36 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
             data->lfo.depth = 1.0f - data->lfo.offset;
          }
 
+         data->bitcrush.run = _bitcrusher_run;
+
+         /* sample rate conversion */
+         data->bitcrush.fs = effect->slot[2]->param[AAX_FEEDBACK_SAMPLE_RATE & 0xF];
+
+         /* bit reduction */
+         offset = effect->slot[2]->param[AAX_FEEDBACK_BITCRUSH_LEVEL & 0xF];
+         if (offset > LEVEL_32DB || fs > 1000.0f)
+         {
+            data->bitcrush.lfo.convert = _linear;
+            data->bitcrush.lfo.state = effect->state;
+            data->bitcrush.lfo.fs = fs;
+            data->bitcrush.lfo.period_rate = effect->info->period_rate;
+            data->bitcrush.lfo.stereo_link = !stereo;
+
+            data->bitcrush.lfo.min_sec = offset/fs;
+            data->bitcrush.lfo.max_sec = data->bitcrush.lfo.min_sec;
+            data->bitcrush.lfo.depth = 1.0f;
+            data->bitcrush.lfo.offset = 0.0f;
+
+            data->bitcrush.lfo.f = 0.0f;
+            data->bitcrush.lfo.inverse = (state & AAX_INVERSE) ? true : false;
+
+            constant = _lfo_set_timing(&data->bitcrush.lfo);
+            _lfo_set_function(&data->bitcrush.lfo, constant);
+         }
+
          constant = _lfo_set_timing(&data->lfo);
 
+         data->no_delays = stages;
          data->feedback = feedback_gain;
          data->delay.gain = delay_gain;
          for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
@@ -181,7 +217,7 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
          if (!_lfo_set_function(&data->lfo, constant)) {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
-         else if (flt) // add a frequecny filter
+         else if (flt) // add a frequency filter
          {
             int stages;
 
@@ -334,7 +370,7 @@ _aaxNewDelayEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2d
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 2, 0);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 3, 0);
 
    if (rv)
    {
@@ -416,7 +452,7 @@ _aaxDelayEffectMinMax(float val, int slot, unsigned char param)
    {    /* min[4] */                  /* max[4] */
     { { -2.0f,  0.01f,  0.0f, 0.0f  }, {     2.0f,    10.0f,  MAXL,  MAXL } },
     { { 20.0f, 20.0f, -0.98f, 0.01f }, { 22050.0f, 22050.0f, 0.98f, 80.0f } },
-    { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f,  0.0f,  0.0f } },
+    { {  0.0f,  0.0f,   0.0f, 0.0f  }, { 22050.0f,     1.0f,  1.0f,  1.0f } },
     { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f,  0.0f,  0.0f } }
    };
 
@@ -735,6 +771,7 @@ _delay_swap(void *d, void *s)
          ddef->state = sdef->state;
 
          _lfo_swap(&ddef->lfo, &sdef->lfo);
+         _bitcrusher_swap(&ddef->bitcrush, &sdef->bitcrush);
          ddef->offset = _aaxAtomicPointerSwap(&sdef->offset, ddef->offset);
 
          if (ddef->history_samples == sdef->history_samples) {
@@ -817,6 +854,7 @@ _delay_reset(void *ptr)
    if (data)
    {
       _lfo_reset(&data->lfo);
+      _bitcrusher_reset(&data->bitcrush);
       if (data->freq_filter) _freqfilter_reset(data->freq_filter);
    }
 }
@@ -949,9 +987,14 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          _aax_memcpy(nsptr-ds, effect->feedback_history->history[track], ds*bps);
          if (i >= step)
          {
+            _aaxRingBufferBitCrusherData *bitcrush = &effect->bitcrush;
             do
             {
-               rbd->add(nsptr, nsptr-coffs, step, gain, 0.0f);
+               memcpy(scratch, nsptr-coffs, step*sizeof(float));
+               if (bitcrush->lfo.get) {
+                  bitcrush->run(scratch, 0, step, bitcrush, NULL, track);
+               }
+               rbd->add(nsptr, scratch, step, gain, 0.0f);
 
                nsptr += step;
                coffs += sign;
@@ -978,22 +1021,33 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
       if (offs && volume > LEVEL_32DB)
       {
          _aaxRingBufferFreqFilterData *flt = effect->freq_filter;
+         int i, stages = effect->no_delays;
          ssize_t doffs;
 
+         memset(dptr, 0, no_samples*sizeof(float));
          doffs = noffs - offs; // difference between current and new offset
 
          // first process the delayed (wet) signal
-         if (labs(doffs) > 1)
+         if (labs(doffs) > 0)
          {
             float samples = (float)no_samples;
-            float pitch = _MAX((samples-doffs)/samples, 0.001f);
-            float smu = effect->delay.smu;
-            rbd->resample(dptr, nsptr-offs, 0, no_samples, smu, pitch);
-            rbd->multiply(dptr, dptr, no_samples, gain, 1.0f);
-            effect->delay.smu = fmodf(smu+pitch*no_samples, 1.0f);
+            offs /= stages;
+            doffs /= stages;
+            for (i=1; i<=stages; ++i)
+            {
+               float smu = effect->delay.smu[i-1];
+               float pitch = _MAX((samples-doffs*i)/samples, 0.001f);
+               rbd->resample(scratch, nsptr-offs*i, 0, no_samples, smu, pitch);
+               rbd->add(dptr, scratch, no_samples, gain, 0.0f);
+               effect->delay.smu[i-1] = fmodf(smu+pitch*no_samples, 1.0f);
+            }
          }
-         else {
-            rbd->multiply(dptr, nsptr-offs, no_samples, gain, 1.0f);
+         else
+         {
+            offs /= stages;
+            for (i=1; i<=stages; ++i) {
+               rbd->add(dptr, nsptr-offs*i, no_samples, gain, 0.0f);
+            }
          }
 
          if (flt)

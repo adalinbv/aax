@@ -43,6 +43,12 @@ void _equalizer_swap(void*, void*);
 int _equalizer_run(void*, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, _aaxRingBufferFreqFilterData*[_MAX_PARAM_EQ]);
 int _grapheq_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, _aaxRingBufferEqualizerData*);
 
+// bitcrusher
+int _bitcrusher_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+int _bitcrusher_add_noise(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+int _bitcrusher_reset(void*);
+void _bitcrusher_swap(void*, void*);
+
 // delay effects
 #define CHORUS_MIN		 10e-3f
 #define CHORUS_MAX		DELAY_EFFECTS_TIME

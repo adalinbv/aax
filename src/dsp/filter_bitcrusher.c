@@ -25,10 +25,6 @@
 #define VERSION 1.1
 #define DSIZE	sizeof(_aaxRingBufferBitCrusherData)
 
-static int _bitcrusher_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
-static int _bitcrusher_add_noise(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
-static void _bitcrusher_swap(void*, void*);
-
 static aaxFilter
 _aaxBitCrusherFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
@@ -44,7 +40,7 @@ _aaxBitCrusherFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    return rv;
 }
 
-static int
+int
 _bitcrusher_reset(void *data)
 {
    _aaxRingBufferBitCrusherData *bitcrush = data;
@@ -303,7 +299,7 @@ _aaxBitCrusherFilterMinMax(float val, int slot, unsigned char param)
   static const _flt_minmax_tbl_t _aaxBitCrusherRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
     { { 0.0f, 0.01f, 0.0f, 0.0f }, {     2.0f, 50.0f, 2.0f, 1.0f } },
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 44100.0f,  1.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 22050.0f,  1.0f, 0.0f, 0.0f } },
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,  0.0f, 0.0f, 0.0f } },
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {     0.0f,  0.0f, 0.0f, 0.0f } }
    };

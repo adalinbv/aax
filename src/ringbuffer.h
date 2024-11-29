@@ -216,8 +216,8 @@ typedef struct
 typedef struct
 {
    ALIGN16 size_t sample_offs[RB_MAX_TRACKS] ALIGN16C;
+  float smu[AAX_LAST_ORDER >> 8];
   float gain;
-  float smu;
 
 } _aaxRingBufferDelayData;
 
@@ -243,6 +243,7 @@ typedef ALIGN16 struct
    float feedback;
 
    _aaxLFOData lfo;
+   _aaxRingBufferBitCrusherData bitcrush;
    _aaxRingBufferOffsetData* offset;
    _aaxRingBufferHistoryData* history;
    _aaxRingBufferHistoryData* feedback_history;
