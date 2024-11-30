@@ -288,7 +288,7 @@ FN(batch_dc_shift,A)(float32_ptr d, const_float32_ptr s, size_t num, float offse
       return;
    }
 
-   step = sizeof(float32x4_t)/sizeof(float);
+   step = 2*sizeof(float32x4_t)/sizeof(float);
 
    i = num/step;
    if (i)
@@ -303,15 +303,23 @@ FN(batch_dc_shift,A)(float32_ptr d, const_float32_ptr s, size_t num, float offse
       s += i*step;
       do
       {
-          float32x4_t xsamp = vld1q_f32((const float*)xsptr++);
-          float32x4_t xfact;
+          float32x4_t xsamp1, xsamp2;
+          float32x4_t xfact1, xfact2;
 
-          xfact = FN(copysign,A)(xoffs, xsamp);
-          xfact = vsubq_f32(one, xfact);
+          xsamp1 = vld1q_f32((const float*)xsptr++);
+          xfact1 = FN(copysign,A)(xoffs, xsamp1);
 
-          xsamp = vmulq_f32(xsamp, xfact);
+          xsamp2 = vld1q_f32((const float*)xsptr++);
+          xfact2 = FN(copysign,A)(xoffs, xsamp2);
 
-          vst1q_f32((float*)xdptr++, vaddq_f32(xoffs, xsamp));
+          xfact1 = vsubq_f32(one, xfact1);
+          xfact2 = vsubq_f32(one, xfact2);
+
+          xsamp1 = vmulq_f32(xsamp1, xfact1);
+          xsamp2 = vmulq_f32(xsamp2, xfact2);
+
+          vst1q_f32((float*)xdptr++, vaddq_f32(xoffs, xsamp1));
+          vst1q_f32((float*)xdptr++, vaddq_f32(xoffs, xsamp2));
       } while(--i);
 
       if (num)
@@ -347,7 +355,7 @@ FN(batch_wavefold,A)(float32_ptr d, const_float32_ptr s, size_t num, float thres
       float32x4_t *xdptr = (float32x4_t*)d;
       float32x4_t *xsptr = (float32x4_t*)s;
 
-      step = sizeof(float32x4_t)/sizeof(float);
+      step = 2*sizeof(float32x4_t)/sizeof(float);
 
       i = num/step;
       if (i)
@@ -367,13 +375,28 @@ FN(batch_wavefold,A)(float32_ptr d, const_float32_ptr s, size_t num, float thres
          s += i*step;
          do
          {
-             float32x4_t xsamp = vld1q_f32((const float*)xsptr++);
-             float32x4_t xasamp = vabsq_f32(xsamp);
-             uint32x4_t xmask = vcgtq_f32(xasamp, xthresh);
+             float32x4_t xasamp1, xasamp2;
+             float32x4_t xsamp1, xsamp2;
+             float32x4_t xtmp1, xtmp2;
+             uint32x4_t xmask1, xmask2;
 
-             xasamp = FN(copysign,A)(vsubq_f32(xthresh2, xasamp), xsamp);
+             xsamp1 = vld1q_f32((const float*)xsptr++);
+             xsamp2 = vld1q_f32((const float*)xsptr++);
 
-             vst1q_f32((float*)xdptr++, vbslq_f32(xmask, xasamp, xsamp));
+             xasamp1 = vabsq_f32(xsamp1);
+             xasamp2 = vabsq_f32(xsamp2);
+
+             xmask1 = vcgtq_f32(xasamp1, xthresh);
+             xmask2 = vcgtq_f32(xasamp2, xthresh);
+
+             xtmp1 = vsubq_f32(xthresh2, xasamp1);
+             xtmp2 = vsubq_f32(xthresh2, xasamp2);
+
+             xasamp1 = FN(copysign,A)(xtmp1, xsamp1);
+             xasamp2 = FN(copysign,A)(xtmp2, xsamp2);
+
+             vst1q_f32((float*)xdptr++, vbslq_f32(xmask1, xasamp1, xsamp1));
+             vst1q_f32((float*)xdptr++, vbslq_f32(xmask2, xasamp2, xsamp2));
          } while(--i);
 
          if (num)
@@ -552,13 +575,14 @@ FN(batch_get_average_rms,A)(const_float32_ptr s, size_t num, float *rms, float *
    i = num/step;
    if (i)
    {
+      float32x4_t rms1, rms2, rms3;
       union {
          float32x4_t ps;
          float f[4];
-      } rms1, rms2, rms3, peak1, peak2, peak3;
+      } peak1, peak2, peak3;
 
       peak1.ps = peak2.ps = peak3.ps = vmovq_n_f32(0.0f);
-      rms1.ps = rms2.ps = rms3.ps = vmovq_n_f32(0.0f);
+      rms1 = rms2 = rms3 = vmovq_n_f32(0.0f);
 
       num -= i*step;
       do
@@ -574,9 +598,9 @@ FN(batch_get_average_rms,A)(const_float32_ptr s, size_t num, float *rms, float *
          val2 = vmulq_f32(smp2, smp2);
          val3 = vmulq_f32(smp3, smp3);
 
-         rms1.ps = vaddq_f32(rms1.ps, val1);
-         rms2.ps = vaddq_f32(rms2.ps, val2);
-         rms3.ps = vaddq_f32(rms3.ps, val3);
+         rms1 = vaddq_f32(rms1, val1);
+         rms2 = vaddq_f32(rms2, val2);
+         rms3 = vaddq_f32(rms3, val3);
 
          peak1.ps = vmaxq_f32(peak1.ps, val1);
          peak2.ps = vmaxq_f32(peak2.ps, val2);
@@ -584,9 +608,9 @@ FN(batch_get_average_rms,A)(const_float32_ptr s, size_t num, float *rms, float *
       }
       while(--i);
 
-      rms_total += rms1.f[0] + rms1.f[1] + rms1.f[2] + rms1.f[3];
-      rms_total += rms2.f[0] + rms2.f[1] + rms2.f[2] + rms2.f[3];
-      rms_total += rms3.f[0] + rms3.f[1] + rms3.f[2] + rms3.f[3];
+      rms_total += FN(hsum_float32x4,A)(rms1);
+      rms_total += FN(hsum_float32x4,A)(rms2);
+      rms_total += FN(hsum_float32x4,A)(rms3);
 
       peak1.ps = vmaxq_f32(peak1.ps, peak2.ps);
       peak1.ps = vmaxq_f32(peak1.ps, peak3.ps);
