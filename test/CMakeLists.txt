@@ -31,6 +31,7 @@ CREATE_CPP_TEST(testenumeration)
 CREATE_CPP_TEST(testparam)
 CREATE_CPP_TEST(testsimple)
 
+CREATE_TEST(testarch)
 CREATE_TEST(test3dmath)
 CREATE_TEST(testarch2d)
 CREATE_TEST(testregistering)
