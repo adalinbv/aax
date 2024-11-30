@@ -380,9 +380,8 @@ else(MSVC)
      elseif(X86)
        message("Unsupported build environment: X86")
      elseif(ARM)
-       set(C_FLAGS "${C_FLAGS} -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize")
        if(ARM64)
-         set(C_FLAGS "${C_FLAGS -march=armv8-a -moutline-atomics -DARCH64=1")
+         set(C_FLAGS "${C_FLAGS} -march=armv8.1-a -DARCH64=1 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize -moutline-atomics")
          set_source_files_properties(src/software/cpu/arch3d_vfpv3.c
               PROPERTY COMPILE_FLAGS "-O2 -D__ARM_VFPV3"
          )
@@ -420,6 +419,7 @@ else(MSVC)
           PROPERTY COMPILE_FLAGS "-O3 -ffast-math -DIMDCT_TABLES -DIMDCT_NTABLES -DPOW34_TABLE"
      )
    endif(GCC OR CLANG)
+   set(CMAKE_C_FLAGS "${C_FLAGS}")
 
    message("Build type: ${CMAKE_BUILD_TYPE}")
 endif(MSVC)

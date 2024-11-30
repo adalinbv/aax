@@ -50,7 +50,7 @@
 #define GLUE(FUNC,NAME)		__GLUE(FUNC,NAME)
 
 extern _batch_fmadd_proc _batch_fmadd;
-extern _batch_cvt_to_proc _batch_atanps;
+extern _batch_cvt_to_proc _batch_limit;
 extern _batch_cvt_to_proc _batch_fmul;
 extern _batch_dsp_1param_proc _batch_dc_shift;
 extern _batch_dsp_1param_proc _batch_wavefold;
@@ -64,7 +64,7 @@ extern _aax_generate_waveform_proc _aax_generate_waveform_float;
 extern _batch_convolution_proc _batch_convolution;
 
 _batch_fmadd_proc batch_fmadd;
-_batch_cvt_to_proc batch_atanps;
+_batch_cvt_to_proc batch_limit;
 _batch_cvt_to_proc batch_fmul;
 _batch_dsp_1param_proc batch_dc_shift;
 _batch_dsp_1param_proc batch_wavefold;
@@ -521,55 +521,55 @@ int main()		// x86		X86_64		ARM
       printf("\natanf:\t\t%f ms\n", cpu*1e3);
 
       memcpy(dst2, src, MAXNUM*sizeof(float));
-      batch_atanps = _batch_atanps_cpu;
+      batch_limit = _batch_limit_cpu;
 
-      TIMEFN(batch_atanps(dst2, dst2, MAXNUM), eps, MAXNUM);
-      printf("atan " CPU ":\t%f ms - atanf x %3.2f %c", eps*1e3, cpu/eps, (batch_atanps == _batch_atanps) ? '*' : ' ');
+      TIMEFN(batch_limit(dst2, dst2, MAXNUM), eps, MAXNUM);
+      printf("atan " CPU ":\t%f ms - atanf x %3.2f %c", eps*1e3, cpu/eps, (batch_limit == _batch_limit) ? '*' : ' ');
       TESTF("atan "MKSTR(SIMD), dst1, dst2);
 
       if (simd)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
-         batch_atanps = GLUE(_batch_atanps, SIMD);
+         batch_limit = GLUE(_batch_limit, SIMD);
 
-         TIMEFN(batch_atanps(dst2, dst2, MAXNUM), eps, MAXNUM);
-         printf("atan %s:\t%f ms - atanf x %3.2f %c", MKSTR(SIMD), eps*1e3, cpu/eps, (batch_atanps == _batch_atanps) ? '*' : ' ');
+         TIMEFN(batch_limit(dst2, dst2, MAXNUM), eps, MAXNUM);
+         printf("atan %s:\t%f ms - atanf x %3.2f %c", MKSTR(SIMD), eps*1e3, cpu/eps, (batch_limit == _batch_limit) ? '*' : ' ');
          TESTF("atan "MKSTR(SIMD), dst1, dst2);
       }
       if (simd1)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
-         batch_atanps = GLUE(_batch_atanps, SIMD1);
+         batch_limit = GLUE(_batch_limit, SIMD1);
 
-         TIMEFN(batch_atanps(dst2, dst2, MAXNUM), eps, MAXNUM);
-         printf("atan %s:\t%f ms - atanf x %3.2f %c", MKSTR(SIMD1), eps*1e3, cpu/eps, (batch_atanps == _batch_atanps) ? '*' : ' ');
+         TIMEFN(batch_limit(dst2, dst2, MAXNUM), eps, MAXNUM);
+         printf("atan %s:\t%f ms - atanf x %3.2f %c", MKSTR(SIMD1), eps*1e3, cpu/eps, (batch_limit == _batch_limit) ? '*' : ' ');
          TESTF("atan "MKSTR(SIMD1), dst1, dst2);
       }
       if (simd2)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
-         batch_atanps = GLUE(_batch_atanps, SIMD2);
+         batch_limit = GLUE(_batch_limit, SIMD2);
 
-         TIMEFN(batch_atanps(dst2, dst2, MAXNUM), eps, MAXNUM);
-         printf("atan %s:\t%f ms - atanf x %3.2f %c", MKSTR(SIMD2), eps*1e3, cpu/eps, (batch_atanps == _batch_atanps) ? '*' : ' ');
+         TIMEFN(batch_limit(dst2, dst2, MAXNUM), eps, MAXNUM);
+         printf("atan %s:\t%f ms - atanf x %3.2f %c", MKSTR(SIMD2), eps*1e3, cpu/eps, (batch_limit == _batch_limit) ? '*' : ' ');
          TESTF("atan "MKSTR(SIMD2), dst1, dst2);
       }
       if (simd3)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
-         batch_atanps = GLUE(_batch_atanps, SIMD3);
+         batch_limit = GLUE(_batch_limit, SIMD3);
 
-         TIMEFN(batch_atanps(dst2, dst2, MAXNUM), eps, MAXNUM);
-         printf("atan %s:\t%f ms - atanf x %3.2f %c", MKSTR(SIMD3), eps*1e3, cpu/eps, (batch_atanps == _batch_atanps) ? '*' : ' ');
+         TIMEFN(batch_limit(dst2, dst2, MAXNUM), eps, MAXNUM);
+         printf("atan %s:\t%f ms - atanf x %3.2f %c", MKSTR(SIMD3), eps*1e3, cpu/eps, (batch_limit == _batch_limit) ? '*' : ' ');
          TESTF("atan "MKSTR(SIMD3), dst1, dst2);
       }
       if (fma)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
-         batch_atanps = GLUE(_batch_atanps, FMA3);
+         batch_limit = GLUE(_batch_limit, FMA3);
 
-         TIMEFN(batch_atanps(dst2, dst2, MAXNUM), eps, MAXNUM);
-         printf("atan %s:\t%f ms - atanf x %3.2f %c", MKSTR(FMA3), eps*1e3, cpu/eps, (batch_atanps == _batch_atanps) ? '*' : ' ');
+         TIMEFN(batch_limit(dst2, dst2, MAXNUM), eps, MAXNUM);
+         printf("atan %s:\t%f ms - atanf x %3.2f %c", MKSTR(FMA3), eps*1e3, cpu/eps, (batch_limit == _batch_limit) ? '*' : ' ');
          TESTF("atan "MKSTR(FMA3), dst1, dst2);
       }
 
