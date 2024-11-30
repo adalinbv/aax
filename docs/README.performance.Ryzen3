@@ -1,0 +1,101 @@
+Hardware support: SSE/FMA3
+
+fadd cpu+sse2:	0.272814 ms  
+fadd sse2:	0.270509 ms - cpu x 1.01  
+fadd sse_vex:	0.285945 ms - cpu x 0.95  
+fadd avx:	0.279240 ms - cpu x 0.98  
+fadd fma3:	0.279728 ms - cpu x 0.98 *
+
+fixed volume:
+fmadd cpu+sse2:	0.302987 ms  
+fmadd sse2:	0.274978 ms - cpu x 1.10  
+fmadd sse_vex:	0.273512 ms - cpu x 1.11  
+fmadd avx:	0.322054 ms - cpu x 0.94  
+fmadd fma3:	0.291044 ms - cpu x 1.04 *
+
+with a volume ramp:
+fmadd cpu+sse2:	0.554496 ms  
+fmadd sse2:	0.355929 ms - cpu x 1.56  
+fmadd sse_vex:	0.341191 ms - cpu x 1.63  
+fmadd avx:	0.321634 ms - cpu x 1.72  
+fmadd fma3:	0.358723 ms - cpu x 1.55 *
+
+== by buffer:
+fmul cpu+sse2:	0.328061 ms  
+fmul sse2:	0.332671 ms - cpu x 0.99  
+fmul sse_vex:	0.349783 ms - cpu x 0.94  
+fmul avx:	0.306198 ms - cpu x 1.07 *
+
+== by value:
+fmul cpu+sse2:	0.263944 ms  
+fmul sse2:	0.247181 ms - cpu x 1.07  
+fmul sse_vex:	0.195217 ms - cpu x 1.35  
+fmul avx:	0.193960 ms - cpu x 1.36 *
+
+atanf:		3.804643 ms
+atan cpu+sse2:	2.045258 ms - atanf x 1.86  
+atan sse2:	1.269705 ms - atanf x 3.00  
+atan sse_vex:	1.202026 ms - atanf x 3.17  
+atan avx:	1.086084 ms - atanf x 3.50  
+atan fma3:	0.916502 ms - atanf x 4.15 *
+
+rms cpu+sse2:	0.257447 ms  
+rms sse2:	0.126839 ms - cpu x 2.03  
+rms sse_vex:	0.130959 ms - cpu x 1.97  	| error rms: 0.00%  peak: 0.00%
+rms avx:	0.115034 ms - cpu x 2.24  
+rms fma3:	0.107073 ms - cpu x 2.40 *
+
+== Resample:
+cubic cpu+sse2:	1.650778 ms  
+cubic sse2:	1.567103 ms - cpu x 1.05  	| max error < 0.01%
+cubic sse_vex:	1.553553 ms - cpu x 1.06  
+cubic fma3:	1.443828 ms - cpu x 1.14 *	| max error < 0.01%
+
+== EMA filter:
+freq cpu+sse2:	2.967277 ms  
+freq sse2:	2.975937 ms - cpu x 1.00  
+freq sse_vex:	3.040124 ms - cpu x 0.98 *
+
+== EMA allpass filter:
+freq cpu+sse2:	0.009361 ms *
+
+== Butterworth filter (12dB/oct):
+freq cpu+sse2:	2.997658 ms  
+freq sse2:	2.465374 ms - cpu x 1.22  	| max error <= 100.00%
+freq sse_vex:	2.460205 ms - cpu x 1.22  	| max error <= 100.00%
+freq fma3:	2.666177 ms - cpu x 1.12 *	| max error <= 100.00%
+
+== Bessel filter (12dB/oct):
+freq cpu+sse2:	2.865932 ms   - Butterworth x 1.05
+freq sse2:	2.207019 ms - cpu x 1.30  	| max error <= 100.00%
+freq sse_vex:	2.296909 ms - cpu x 1.25  	| max error <= 100.00%
+freq fma3:	2.694254 ms - cpu x 1.06 *	| max error <= 100.00%
+
+== DC-shift:
+DC cpu+sse2:	0.212397 ms  
+DC sse2:	0.213027 ms - cpu x 1.00  
+DC sse_vex:	0.190328 ms - cpu x 1.12  
+DC avx:		0.170980 ms - cpu x 1.24 *
+
+== wavefold:
+fold cpu+sse2:	0.330506 ms  
+fold sse2:	0.380165 ms - cpu x 0.87  
+fold sse_vex:	0.218963 ms - cpu x 1.51  
+fold sse4:	0.326036 ms - cpu x 1.01  
+fold avx:	0.209255 ms - cpu x 1.58 *
+
+== waveform generation:
+wave cpu+sse2:	69.327691 ms  
+wave sse2:	11.947468 ms - cpu x 5.80  	| max error <= 0.02%
+wave sse_vex:	12.069837 ms - cpu x 5.74  	| max error <= 0.02%
+wave avx:	7.335075 ms - cpu x 9.45  	| max error < 0.01%
+wave fma3:	7.220040 ms - cpu x 9.60 *	| max error < 0.01%
+
+== noise generation:
+noise cpu+sse2:	5.644627 ms  
+noise sse2:	5.742409 ms - cpu x 0.98  
+noise sse_vex:	5.715031 ms - cpu x 0.99  
+noise avx:	5.643859 ms - cpu x 1.00  
+noise fma3:	5.788716 ms - cpu x 0.98 *	| max error < 0.01%
+
+convolution (uses fastest fmadd):  0.831151 ms
