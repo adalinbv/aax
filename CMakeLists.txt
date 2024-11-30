@@ -334,7 +334,7 @@ else(MSVC)
          FORCE)
 
      if(X86_64)
-       set(C_FLAGS "${C_FLAGS} -march=athlon64 -DARCH64=1 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize ")
+       set(C_FLAGS "${C_FLAGS} -march=x86-64 -DARCH64=1 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize ")
        set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
                     PROPERTY COMPILE_FLAGS "${C_FLAGS} -O3 -ffast-math"
        )
