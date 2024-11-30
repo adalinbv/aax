@@ -269,7 +269,7 @@ FN(vatanq_f32,A)(float32x4_t a)
 static inline float32x4_t
 FN(copysign,A)(float32x4_t x, float32x4_t y)
 {
-    uint32x4_t sign_mask = vdupq_n_u32(0x80000000); // This is 0x80000000 in binary
+    const uint32x4_t sign_mask = vdupq_n_u32(0x80000000); // This is 0x80000000
     uint32x4_t y_sign = vandq_u32(vreinterpretq_u32_f32(y), sign_mask);
     uint32x4_t abs_x = vandq_u32(vreinterpretq_u32_f32(x), vmvnq_u32(sign_mask));
     return vreinterpretq_f32_u32(vorrq_u32(abs_x, y_sign));
@@ -293,10 +293,10 @@ FN(batch_dc_shift,A)(float32_ptr d, const_float32_ptr s, size_t num, float offse
    i = num/step;
    if (i)
    {
+      const float32x4_t one = vdupq_n_f32(1.0f);
+      float32x4_t xoffs = vdupq_n_f32(offset);
       float32x4_t *xsptr = (float32x4_t*)s;
       float32x4_t *xdptr = (float32x4_t*)d;
-      float32x4_t xoffs = vdupq_n_f32(offset);
-      float32x4_t one = vdupq_n_f32(1.0f);
 
       num -= i*step;
       d += i*step;
@@ -309,9 +309,9 @@ FN(batch_dc_shift,A)(float32_ptr d, const_float32_ptr s, size_t num, float offse
           xfact = FN(copysign,A)(xoffs, xsamp);
           xfact = vsubq_f32(one, xfact);
 
-          xsamp = vaddq_f32(xoffs, vmulq_f32(xsamp, xfact));
+          xsamp = vmulq_f32(xsamp, xfact);
 
-          vst1q_f32((float*)xdptr++, xsamp);
+          vst1q_f32((float*)xdptr++, vaddq_f32(xoffs, xsamp));
       } while(--i);
 
       if (num)
