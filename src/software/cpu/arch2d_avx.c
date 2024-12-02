@@ -310,13 +310,14 @@ _batch_get_average_rms_avx(const_float32_ptr s, size_t num, float *rms, float *p
       i = num/step;
       if (i)
       {
+         __m256 rms1, rms2, rms3;
          union {
              __m256 ps;
              float f[8];
-         } rms1, rms2, rms3, peak1, peak2, peak3;
+         } peak1, peak2, peak3;
 
          peak1.ps = peak2.ps = peak3.ps = _mm256_setzero_ps();
-         rms1.ps = rms2.ps = rms3.ps = _mm256_setzero_ps();
+         rms1 = rms2 = rms3 = _mm256_setzero_ps();
 
          s += i*step;
          num -= i*step;
@@ -331,9 +332,9 @@ _batch_get_average_rms_avx(const_float32_ptr s, size_t num, float *rms, float *p
             val2 = _mm256_mul_ps(smp2, smp2);
             val3 = _mm256_mul_ps(smp3, smp3);
 
-            rms1.ps = _mm256_add_ps(rms1.ps, val1);
-            rms2.ps = _mm256_add_ps(rms2.ps, val2);
-            rms3.ps = _mm256_add_ps(rms3.ps, val3);
+            rms1 = _mm256_add_ps(rms1, val1);
+            rms2 = _mm256_add_ps(rms2, val2);
+            rms3 = _mm256_add_ps(rms3, val3);
 
             peak1.ps = _mm256_max_ps(peak1.ps, val1);
             peak2.ps = _mm256_max_ps(peak2.ps, val2);
@@ -341,9 +342,9 @@ _batch_get_average_rms_avx(const_float32_ptr s, size_t num, float *rms, float *p
          }
          while(--i);
 
-         rms_total += hsum256_ps_avx(rms1.ps);
-         rms_total += hsum256_ps_avx(rms2.ps);
-         rms_total += hsum256_ps_avx(rms3.ps);
+         rms_total += hsum256_ps_avx(rms1);
+         rms_total += hsum256_ps_avx(rms2);
+         rms_total += hsum256_ps_avx(rms3);
 
          peak1.ps = _mm256_max_ps(peak1.ps, peak2.ps);
          peak1.ps = _mm256_max_ps(peak1.ps, peak3.ps);
