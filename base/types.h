@@ -38,7 +38,7 @@ extern "C" {
 # define OFF_T_MAX	(off_t)-1
 #endif
 
-#define MEMALIGN	32
+#define MEMALIGN	64
 #define MEMMASK		(MEMALIGN-1)
 #define MEMALIGN16	16
 #define MEMMASK16	(MEMALIGN16-1)

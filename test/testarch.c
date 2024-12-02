@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#if !(defined(__ARM_ARCH) || defined(_M_ARM))
+
 #if defined(_MSC_VER)
 #include <intrin.h> // For __cpuid on MSVC
 #else
@@ -59,3 +61,8 @@ int main() {
     return 0;
 }
 
+#else
+int main() {
+   return 0;
+}
+#endif // !(defined(__ARM_ARCH) || defined(_M_ARM))
