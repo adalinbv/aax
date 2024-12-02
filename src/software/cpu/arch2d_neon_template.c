@@ -19,12 +19,8 @@
 #define FN(NAME,ARCH)   __FN(NAME,ARCH)
 
 /*
- * http://gcc.gnu.org/projects/prefetch.html
- *
- * ARMv7 has (from ARM Architecture Reference Manual):
- *  PLD data preload with intent to read
- *  PLDW data preload with intent to write
- *  PLI instruction preload
+ * There are 32 64-bit or 16 128-bit NEON registers for ARMv7-A/v8-A AArch32.
+ * There are 32 128-bit NEON registers for ARMv8-A AArch64.
  *
  * ARMv8 AArch64 has a PRFM instruction with the following hints
  * (from LLVM and binutils code):
@@ -32,7 +28,14 @@
  *  Level l1, l2, l3
  *  KEEP (retained), STRM (streaming)
  *
- * Note: In NEON, the SIMD supports up to 16 operations at the same time.
+ * On the ARMv7-A platform, NEON instructions usually take more cycles than ARM
+ * instructions. To reduce instruction latency, it is better to avoid using the
+ * destination register of current instruction as the source register of next
+ * instruction.
+ *
+ * Align Memory Access:
+ *   Ensure memory is aligned to cache line boundaries (typically 64 bytes) to
+ *   optimize prefetch efficiency.
  *
  * SSE intrinsics to their ARM NEON equivalent:
  * http://codesuppository.blogspot.com/2015/02/
@@ -1063,10 +1066,21 @@ FN(batch_fmadd,A)(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          d += i*step;
          do
          {
+#if 1
+            // VMUL+VADD is fster than using VMLA
+            float32x4_t xtmp1, xtmp2;
+
+            xtmp1 = vmulq_f32(tv, vld1q_f32((const float*)&xsptr[0]));
+            xtmp2 = vmulq_f32(tv, vld1q_f32((const float*)&xsptr[1]));
+
+            xdptr[0] = vaddq_f32(xtmp1, vld1q_f32((const float*)&xdptr[0]));
+            xdptr[1] = vaddq_f32(xtmp2, vld1q_f32((const float*)&xdptr[1]));
+#else
             xdptr[0] = vmlaq_f32(vld1q_f32((const float*)&xdptr[0]),
                                  vld1q_f32((const float*)&xsptr[0]), tv);
             xdptr[1] = vmlaq_f32(vld1q_f32((const float*)&xdptr[1]),
                                  vld1q_f32((const float*)&xsptr[1]), tv);
+#endif
 
             tv = vaddq_f32(tv, dv);
 
