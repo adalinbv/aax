@@ -367,8 +367,6 @@ _aaxWorkerThread(void *id)
    struct threat_t *thread;
    int worker_no;
 
-   AAX_SET_FLUSH_ZERO_ON;
-
    worker_no = handle->worker_no;
    thread = &handle->thread[worker_no];
 

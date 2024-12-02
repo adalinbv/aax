@@ -14,14 +14,6 @@
 void
 _aax_init_SSE()
 {
-   const char *env = getenv("AAX_ENABLE_FTZ");
-
-   if (env && _aax_getbool(env))
-   {
-// https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-8/set-the-ftz-and-daz-flags.html
-      _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
-      _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-   }
 }
 
 static inline __m128

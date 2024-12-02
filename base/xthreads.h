@@ -28,6 +28,16 @@
 #define TIMED_MUTEX	1
 #endif
 
+#if defined(__x86_64__) || defined(__i386__) || defined(_WIN64)
+# include <pmmintrin.h>
+# include <xmmintrin.h>
+#  define AAX_SET_FLUSH_ZERO_ON  _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); \
+                              _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON)
+#else
+# define AAX_SET_FLUSH_ZERO_ON
+#endif
+
+
 enum {
    AAX_TIME_CRITICAL_PRIORITY = -20,
    AAX_HIGHEST_PRIORITY = -16,

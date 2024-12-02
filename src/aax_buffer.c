@@ -1973,8 +1973,6 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
    xmlId *xaid, *xiid;
    xmlId *xsid;
 
-   AAX_SET_FLUSH_ZERO_ON;
-
    xaid = xmlNodeGet(xid, "aeonwave");
    if (!xaid) return rv;
 

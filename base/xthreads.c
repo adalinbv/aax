@@ -273,6 +273,7 @@ _aaxThreadStart(_aaxThread *t,  int(*handler)(void*), void *arg, UNUSED(unsigned
 #endif
 
       _aaxThreadSetPriority(t, AAX_HIGH_PRIORITY);
+     AAX_SET_FLUSH_ZERO_ON;
    }
 
    return ret;
