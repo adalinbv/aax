@@ -1235,6 +1235,8 @@ FN(batch_ema_iir_float,A)(float32_ptr d, const_float32_ptr s, size_t num, float 
    }
 }
 
+#define NUM_BUTTERWORTH	4
+#define NUM_BESSEL	8
 void
 FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
 {
@@ -1263,30 +1265,21 @@ FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, si
       if (filter->state == AAX_BUTTERWORTH)
       {
          float32_ptr d = dptr;
-         int i = num/3;
-         int rest = num-i*3;
+         int j, i = num/NUM_BUTTERWORTH;
+         int rest = num-i*NUM_BUTTERWORTH;
 
          if (i)
          {
             do
             {
-               float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+               for (j=0; j<NUM_BUTTERWORTH; ++j)
+               {
+                  float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+                  *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
 
-               h1 = h0;
-               h0 = nsmp;
-
-               nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-              *d++ = nsmp        + h0 * cptr[2] + h1 * cptr[3];
-
-               h1 = h0;
-               h0 = nsmp;
-
-               nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = nsmp       + h0 * cptr[2] + h1 * cptr[3];
-
-               h1 = h0;
-               h0 = nsmp;
+                  h1 = h0;
+                  h0 = nsmp;
+               }
             }
             while (--i);
          }
@@ -1308,34 +1301,19 @@ FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, si
       else
       {
          float32_ptr d = dptr;
-         int i = num/4;
-         int rest = num-i*4;
+         int j, i = num/NUM_BESSEL;
+         int rest = num-i*NUM_BESSEL;
 
          do
          {
-            float smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
-            *d++ = smp;
+            for (j=0; j<NUM_BESSEL; ++j)
+            {
+               float smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               *d++ = smp;
 
-            h1 = h0;
-            h0 = smp;
-
-            smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
-            *d++ = smp;
-
-            h1 = h0;
-            h0 = smp;
-
-            smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
-            *d++ = smp;
-
-            h1 = h0;
-            h0 = smp;
-
-            smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
-            *d++ = smp;
-
-            h1 = h0;
-            h0 = smp;
+               h1 = h0;
+               h0 = smp;
+            }
          }
          while (--i);
 
@@ -1370,30 +1348,21 @@ FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, si
          if (filter->state == AAX_BUTTERWORTH)
          {
             float32_ptr d = dptr;
-            int i = num/3;
-            int rest = num-i*3;
+            int j, i = num/NUM_BUTTERWORTH;
+            int rest = num-i*NUM_BUTTERWORTH;
 
             if (i)
             {
                do
                {
-                  float nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
-                  *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
+                  for (j=0; j<NUM_BUTTERWORTH; ++j)
+                  {
+                     float nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
+                     *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
 
-                  h1 = h0;
-                  h0 = nsmp;
-
-                  nsmp = *d    + h0 * cptr[0] + h1 * cptr[1];
-                  *d++ = nsmp  + h0 * cptr[2] + h1 * cptr[3];
-
-                  h1 = h0;
-                  h0 = nsmp;
-
-                  nsmp = *d    + h0 * cptr[0] + h1 * cptr[1];
-                  *d++ = nsmp  + h0 * cptr[2] + h1 * cptr[3];
-
-                  h1 = h0;
-                  h0 = nsmp;
+                     h1 = h0;
+                     h0 = nsmp;
+                  }
                }
                while (--i);
             }
@@ -1415,34 +1384,19 @@ FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, si
          else
          {
             float32_ptr d = dptr;
-            int i = num/4;
-            int rest = num-i*4;
+            int j, i = num/NUM_BESSEL;
+            int rest = num-i*NUM_BESSEL;
 
             do
             {
-               float smp = *d  + ((h0 * c0) + (h1 * c1));
-               *d++ = smp;
+               for (j=0; j<NUM_BESSEL; ++j)
+               {
+                  float smp = *d  + ((h0 * c0) + (h1 * c1));
+                  *d++ = smp;
 
-               h1 = h0;
-               h0 = smp;
-
-               smp = *d  + ((h0 * c0) + (h1 * c1));
-               *d++ = smp;
-
-               h1 = h0;
-               h0 = smp;
-
-               smp = *d  + ((h0 * c0) + (h1 * c1));
-               *d++ = smp;
-
-               h1 = h0;
-               h0 = smp;
-
-               smp = *d  + ((h0 * c0) + (h1 * c1));
-               *d++ = smp;
-
-               h1 = h0;
-               h0 = smp;
+                  h1 = h0;
+                  h0 = smp;
+               }
             }
             while (--i);
 

@@ -1428,6 +1428,7 @@ FN(batch_fmul,A)(void_ptr dptr, const_void_ptr sptr, size_t num)
    }
 }
 
+#define NUM_BUTTERWORTH	4
 void
 FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
 {
@@ -1445,7 +1446,7 @@ FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, si
       float k, *cptr, *hist;
       float32_ptr d = dptr;
       float h0, h1;
-      int i, rest;
+      int j, i, rest;
       int stage;
 
       cptr = filter->coeff;
@@ -1456,30 +1457,21 @@ FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, si
       h0 = hist[0];
       h1 = hist[1];
 
-      i = num/3;
-      rest = num-i*3;
+      i = num/NUM_BUTTERWORTH;
+      rest = num-i*NUM_BUTTERWORTH;
       k = filter->k;
       if (i)
       {
          do
          {
-            float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-            *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+            for (j=0; j<NUM_BUTTERWORTH; ++j)
+            {
+               float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
 
-            h1 = h0;
-            h0 = nsmp;
-
-            nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-            *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
-
-            h1 = h0;
-            h0 = nsmp;
-
-            nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-            *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
-
-            h1 = h0;
-            h0 = nsmp;
+               h1 = h0;
+               h0 = nsmp;
+            }
          }
          while (--i);
       }
@@ -1510,29 +1502,20 @@ FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, si
          h0 = hist[0];
          h1 = hist[1];
 
-         i = num/3;
-         rest = num-i*3;
+         i = num/NUM_BUTTERWORTH;
+         rest = num-i*NUM_BUTTERWORTH;
          if (i)
          {
             do
             {
-               float nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
+               for (j=0; j<NUM_BUTTERWORTH; ++j)
+               {
+                  float nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
+                  *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
 
-               h1 = h0;
-               h0 = nsmp;
-
-               nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
-
-               h1 = h0;
-               h0 = nsmp;
-
-               nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
-
-               h1 = h0;
-               h0 = nsmp;
+                  h1 = h0;
+                  h0 = nsmp;
+               }
             }
             while (--i);
          }
