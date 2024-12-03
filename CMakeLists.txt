@@ -381,7 +381,7 @@ else(MSVC)
        message("Unsupported build environment: X86")
      elseif(ARM)
        if(ARM64)
-         set(C_FLAGS "${C_FLAGS} -march=armv8.1-a -DARCH64=1 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize -moutline-atomics")
+         set(C_FLAGS "${C_FLAGS} -march=armv8-a -DARCH64=1 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize -moutline-atomics")
          set_source_files_properties(src/software/cpu/arch3d_vfpv3.c
               PROPERTY COMPILE_FLAGS "-O2 -D__ARM_VFPV3"
          )

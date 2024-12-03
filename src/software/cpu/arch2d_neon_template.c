@@ -1434,12 +1434,6 @@ FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, si
 {
    _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
 
-#ifdef __arm__
-   if (filter->state == AAX_BESSEL) {
-      return _batch_freqfilter_float_cpu(dptr, sptr, t, num, flt);
-   }
-#endif
-
    if (num)
    {
       const_float32_ptr s = sptr;
