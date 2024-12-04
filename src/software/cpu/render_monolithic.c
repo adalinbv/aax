@@ -63,18 +63,6 @@ typedef struct
 } _render_t;
 
 static int
-_aaxConvolutionThread(void *id)
-{
-   _render_t *handle = (_render_t*)id;
-   _aaxRendererData *data = handle->data;
-   int track = _aaxAtomicIntSub(&handle->no_tracks, 1) - 1;
-
-   data->callback(data->drb, data, NULL, track);
-
-   return id ? true : false;
-}
-
-static int
 _aaxCPUDetect()
 {
    return true;
@@ -188,13 +176,11 @@ _aaxCPUProcess(struct _aaxRenderer_t *render, _aaxRendererData *data)
       handle.no_tracks = no_tracks;
       handle.data = data;
 
-      for (t=0; t<no_tracks; ++t) {
-         _aaxThreadStart(convolution->tid[t], _aaxConvolutionThread, &handle,
-			 0, "aaxConvolution");
-      }
-
-      for (t=0; t<no_tracks; ++t) {
-         _aaxThreadJoin(convolution->tid[t]);
+      for (t=0; t<no_tracks; ++t)
+      {
+         _render_t *handle = convolution->tid[t];
+         _aaxRendererData *data = handle->data;
+         data->callback(data->drb, data, NULL, t);
       }
 
       rv = true;
