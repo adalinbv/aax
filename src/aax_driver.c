@@ -551,9 +551,6 @@ aaxDriverDestroy(aaxConfig config)
 
       _intBufErase(&handle->sensors, _AAX_SENSOR, _aaxFreeSensor);
 
-      if (handle->emitter_thread.ptr) {
-         _aaxThreadDestroy(handle->emitter_thread.ptr);
-      }
       if (handle->buffer_thread.ptr) {
          _aaxThreadDestroy(handle->buffer_thread.ptr);
       }

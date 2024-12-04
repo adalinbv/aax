@@ -33,7 +33,6 @@
 #include "arch.h"
 #include "ringbuffer.h"
 
-
 static void _aaxFreeEmitterBuffer(void *);
 static bool _emitterSetFilter(_emitter_t*, _filter_t*);
 static bool _emitterSetEffect(_emitter_t*, _effect_t*);
@@ -1758,12 +1757,9 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
    return true;
 }
 
-int
-_emitterCreateEFFromAAXSThread(void *h)
-{
-   struct _arg_t *arg = (struct _arg_t*)h;
-   _emitter_t *handle = arg->handle;
-   _embuffer_t *embuf = arg->embuf;
+static bool
+_emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf)
+{ 
    _buffer_t* buffer = embuf->buffer;
    const char *aaxs = buffer->aaxs;
    bool rv = false;
@@ -1811,55 +1807,5 @@ _emitterCreateEFFromAAXSThread(void *h)
       }
       xmlClose(xid);
    }
-
-   if (rv == false) {
-      arg->error = AAX_INVALID_STATE;
-   }
-   return rv;
-}
-
-bool
-_emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf)
-{
-   _handle_t *config = handle->root;
-   struct _arg_t arg;
-   bool rv = false;
-
-   if (!config) {
-      config = handle->handle = embuf->buffer->handle;
-      handle->root = embuf->buffer->root;
-   }
-
-   arg.handle = handle;
-   arg.embuf = embuf;
-   arg.error = AAX_ERROR_NONE;
-
-   if (!config->emitter_thread.ptr) {
-      config->emitter_thread.ptr = _aaxThreadCreate();
-   }
-   if (config->emitter_thread.ptr)
-   {
-      int r = _aaxThreadStart(config->emitter_thread.ptr,
-                              _emitterCreateEFFromAAXSThread, &arg, 0,
-                              "aaxEmitterAAXS");
-      if (r == thrd_success)
-      {
-         r = _aaxThreadJoin(config->emitter_thread.ptr);
-         if (r == thrd_success) rv = true;
-      }
-      else {
-         _emitterCreateEFFromAAXSThread(&arg);
-      }
-   }
-   else {
-      _emitterCreateEFFromAAXSThread(&arg);
-   }
-
-   if (arg.error)
-   {
-      _aaxErrorSet(arg.error);
-      rv = false;
-   }
-
    return rv;
 }

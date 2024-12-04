@@ -1,90 +1,90 @@
 Hardware support: VFPv4/Neon64
 
-fadd cpu/neon:	0.612657 ms  
-fadd vfpv4:	0.612565 ms - cpu x 1.00  
-fadd neon:	0.510178 ms - cpu x 1.20  
-fadd neon64:	0.510158 ms - cpu x 1.20 *
+fadd cpu/neon:	0.614063 ms  
+fadd vfpv4:	0.613915 ms - cpu x 1.00  
+fadd neon:	0.550046 ms - cpu x 1.12  
+fadd neon64:	0.511528 ms - cpu x 1.20 *
 
 fixed volume:
-fmadd cpu/neon:	0.635601 ms  
-fmadd vfpv4:	0.617713 ms - cpu x 1.03  
-fmadd neon:	0.643935 ms - cpu x 0.99  
-fmadd neon64:	0.643712 ms - cpu x 0.99 *
+fmadd cpu/neon:	0.618249 ms  
+fmadd vfpv4:	0.618360 ms - cpu x 1.00  
+fmadd neon:	0.643786 ms - cpu x 0.96  
+fmadd neon64:	0.643952 ms - cpu x 0.96 *
 
 with a volume ramp:
-fmadd cpu/neon:	0.909151 ms  
-fmadd vfpv4:	0.927615 ms - cpu x 0.98  
-fmadd neon:	0.732378 ms - cpu x 1.24  
-fmadd neon64:	0.732841 ms - cpu x 1.24 *
+fmadd cpu/neon:	0.918225 ms  
+fmadd vfpv4:	0.909485 ms - cpu x 1.01  
+fmadd neon:	0.646415 ms - cpu x 1.42  
+fmadd neon64:	0.646304 ms - cpu x 1.42 *
 
 == by buffer:
-fmul cpu/neon:	0.637509 ms  
-fmul vfpv4:	0.607602 ms - cpu x 1.05  
-fmul neon:	0.502363 ms - cpu x 1.27  
-fmul neon64:	0.501807 ms - cpu x 1.27 *
+fmul cpu/neon:	0.653082 ms  
+fmul vfpv4:	0.618157 ms - cpu x 1.06  
+fmul neon:	0.502325 ms - cpu x 1.30  
+fmul neon64:	0.502343 ms - cpu x 1.30 *
 
 == by value:
-fmul cpu/neon:	0.553622 ms  
-fmul vfpv4:	0.554010 ms - cpu x 1.00  
-fmul neon:	0.462789 ms - cpu x 1.20  
-fmul neon64:	0.462845 ms - cpu x 1.20 *
+fmul cpu/neon:	0.554324 ms  
+fmul vfpv4:	0.554490 ms - cpu x 1.00  
+fmul neon:	0.462807 ms - cpu x 1.20  
+fmul neon64:	0.462825 ms - cpu x 1.20 *
 
-atanf:		15.521571 ms
-atan cpu/neon:	2.131020 ms - atanf x 7.28  
-atan vfpv4:	2.137021 ms - atanf x 7.26  
-atan neon:	2.121113 ms - atanf x 7.32  
-atan neon64:	2.112761 ms - atanf x 7.35 *
+atanf:		15.532109 ms
+atan cpu/neon:	2.138335 ms - atanf x 7.26  
+atan vfpv4:	2.131001 ms - atanf x 7.29  
+atan neon:	2.120112 ms - atanf x 7.33  
+atan neon64:	2.112909 ms - atanf x 7.35 *
 
-rms cpu/neon:	1.477401 ms  
-rms vfpv4:	1.483513 ms - cpu x 1.00  
-rms neon:	0.639194 ms - cpu x 2.31  	| error rms: 0.00%  peak: 0.00%
-rms neon64:	0.639175 ms - cpu x 2.31 *	| error rms: 0.00%  peak: 0.00%
+rms cpu/neon:	1.484716 ms  
+rms vfpv4:	1.477531 ms - cpu x 1.00  
+rms neon:	0.635212 ms - cpu x 2.34  
+rms neon64:	0.643897 ms - cpu x 2.31 *
 
 == Resample:
-cubic cpu/neon:	3.881064 ms  
-cubic vfpv4:	3.876361 ms - cpu x 1.00 *
-cubic neon:	3.885489 ms - cpu x 1.00  
-cubic neon64:	3.876398 ms - cpu x 1.00  
+cubic cpu/neon:	3.887212 ms  
+cubic vfpv4:	3.886786 ms - cpu x 1.00 *
+cubic neon:	3.885583 ms - cpu x 1.00  
+cubic neon64:	3.879824 ms - cpu x 1.00  
 
 == EMA filter:
-freq cpu/neon:	7.703814 ms  
-freq vfpv4:	7.703537 ms - cpu x 1.00 *
+freq cpu/neon:	7.699519 ms  
+freq vfpv4:	7.703055 ms - cpu x 1.00 *
 
 == EMA allpass filter:
-freq cpu/neon:	0.014686 ms *
+freq cpu/neon:	0.014667 ms *
 
 == Butterworth filter (12dB/oct):
-freq cpu/neon:	9.135476 ms  
-freq vfpv4:	9.129642 ms - cpu x 1.00  
-freq neon:	5.909512 ms - cpu x 1.55  	| max error < 0.01%
-freq neon64:	5.910901 ms - cpu x 1.55 *	| max error < 0.01%
+freq cpu/neon:	9.135976 ms  
+freq vfpv4:	9.128735 ms - cpu x 1.00  
+freq neon:	5.925493 ms - cpu x 1.54  	| max error < 0.01%
+freq neon64:	5.930993 ms - cpu x 1.54 *	| max error < 0.01%
 
 == Bessel filter (12dB/oct):
-freq cpu/neon:	9.846537 ms   - Butterworth x 0.93
-freq vfpv4:	9.822390 ms - cpu x 1.00  
-freq neon:	5.909363 ms - cpu x 1.67  	| max error < 0.01%
-freq neon64:	5.908216 ms - cpu x 1.67 *	| max error < 0.01%
+freq cpu/neon:	9.820224 ms   - Butterworth x 0.93
+freq vfpv4:	9.828335 ms - cpu x 1.00  
+freq neon:	5.924974 ms - cpu x 1.66  	| max error < 0.01%
+freq neon64:	5.928678 ms - cpu x 1.66 *	| max error < 0.01%
 
 == DC-shift:
-DC cpu/neon:	1.085650 ms  
-DC vfpv4:	1.081039 ms - cpu x 1.00 *
-DC neon:	1.252720 ms - cpu x 0.87  
-DC neon64:	1.257276 ms - cpu x 0.86  
+DC cpu/neon:	1.079407 ms  
+DC vfpv4:	1.079519 ms - cpu x 1.00 *
+DC neon:	1.073593 ms - cpu x 1.01  
+DC neon64:	1.066890 ms - cpu x 1.01  
 
 == wavefold:
-fold cpu/neon:	1.250628 ms  
-fold vfpv4:	1.251054 ms - cpu x 1.00 *
-fold neon:	1.494031 ms - cpu x 0.84  
-fold neon64:	1.495826 ms - cpu x 0.84  
+fold cpu/neon:	1.250923 ms  
+fold vfpv4:	1.257312 ms - cpu x 0.99 *
+fold neon:	1.361921 ms - cpu x 0.92  
+fold neon64:	1.361939 ms - cpu x 0.92  
 
 == waveform generation:
-wave cpu/neon:	134.773031 ms  
-wave vfpv4:	134.796327 ms - cpu x 1.00  
-wave neon:	29.521612 ms - cpu x 4.57  	| max error < 0.01%
-wave neon64:	29.517592 ms - cpu x 4.57 *	| max error < 0.01%
+wave cpu/neon:	134.838417 ms  
+wave vfpv4:	134.791529 ms - cpu x 1.00  
+wave neon:	29.522707 ms - cpu x 4.57  	| max error < 0.01%
+wave neon64:	29.526170 ms - cpu x 4.57 *	| max error < 0.01%
 
 == noise generation:
-noise cpu/neon:	23.449454 ms  
-noise vfpv4:	23.437659 ms - cpu x 1.00  
+noise cpu/neon:	23.477716 ms  
+noise vfpv4:	23.515733 ms - cpu x 1.00  
 
-convolution (uses fastest fmadd):  3.738882 ms
+convolution (uses fastest fmadd):  3.756345 ms
