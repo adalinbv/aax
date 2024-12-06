@@ -747,6 +747,8 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, bool stopped, float *velocity, _aaxEnvelo
    if (env)
    {
       unsigned char stage = env->stage;
+      if (env->reverse) stage = env->max_stages - stage;
+
       rv = _MAX(env->value, -1e-2f);
 
       if (stage < 2) {
@@ -756,6 +758,7 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, bool stopped, float *velocity, _aaxEnvelo
       if (stage <= env->max_stages)
       {
          float step = env->step[stage];
+         if (env->reverse) step = -step;
          if ((env->state == AAX_ENVELOPE_FOLLOW)  && (rv > LEVEL_60DB))
          {
             float fact;
@@ -787,6 +790,8 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, bool stopped, float *velocity, _aaxEnvelo
          {
             env->pos = 0;
             stage = ++env->stage;
+            if (env->stage > env->max_stages) env->stage = env->max_stages;
+            if (env->reverse) stage = env->max_stages - stage;
          }
       }
       else {

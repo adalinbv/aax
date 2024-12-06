@@ -1,4 +1,4 @@
-* Wed Nov 27 2024 - tech@adalin.org
+* Fri Dec 06 2024 - tech@adalin.org
 - AeonWave (4.1.0) stable; urgency=medium
 
  * Add a timed layer filter.
@@ -11,6 +11,10 @@
  * Implement a 16-band equalizer which gets enabled instead of the 8-band
    equalizer when slot 2 or slot 3 of the filter contains gain information.
  * Increase the number of frequency bands for the graphic equalizer from 4 to 5
+ * Add the option to reverse timed filters and effects. To work properly LEVEL0
+   of the timed-gain filter is required to be 0.0. To synchronize timed-pitch
+   and/or timed-layer effects with the timed-gain filter the durations need to
+   be equal.
  * Increase the number of envelope stages from 6 to 8 for all timed filters
    and effects.
  * Add support for additional volume curves beside squared which can be defined
@@ -28,7 +32,7 @@
  * Add python3 bindings for the SimpleMixer API which will be generated when
    pybind11 is found.
 
--- Erik Hofman <tech@adalin.org>  Wed 27 Nov 2024 09:48:21 + 0100
+-- Erik Hofman <tech@adalin.org>  Fri 06 Dec 2024 12:39:34 + 0100
 
 
 * Thu Jul 04 2024 - tech@adalin.org

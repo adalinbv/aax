@@ -23,7 +23,7 @@
 #include "arch.h"
 #include "api.h"
 
-#define VERSION	1.03
+#define VERSION	1.04
 #define DSIZE	sizeof(_aaxEnvelopeData)
 
 #define MAX_SLOTS	(_MAX_ENVELOPE_STAGES/2)
@@ -50,6 +50,10 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = NULL;
+   bool reverse;
+
+   reverse = (state & AAX_REVERSE) ? true : false;
+   state &= ~AAX_REVERSE;
 
    if TEST_FOR_TRUE(state)
    {
@@ -71,6 +75,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
          int i, stage;
 
          env->state = state;
+         env->reverse = reverse;
          if (state & AAX_REPEAT)
          {
             env->repeat0 = (state & ~AAX_REPEAT);

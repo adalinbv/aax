@@ -22,7 +22,7 @@
 #include "api.h"
 #include "arch.h"
 
-#define VERSION	1.0
+#define VERSION	1.01
 #define	DSIZE	sizeof(_aaxEnvelopeData)
 
 #define MAX_SLOTS	(_MAX_ENVELOPE_STAGES/2)
@@ -49,6 +49,10 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxEffect rv = false;
+   bool reverse;
+
+   reverse = (state & AAX_REVERSE) ? true : false;
+   state &= ~AAX_REVERSE;
 
    if TEST_FOR_TRUE(state)
    {
@@ -69,6 +73,7 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
 
          stage = 0;
          env->state = state;
+         env->reverse = reverse;
          env->sustain = true;
          env->value0 = env->value = env->value_max = nextval;
          env->max_stages = _MAX_ENVELOPE_STAGES-1;
@@ -218,7 +223,7 @@ _aaxTimedPitchEffectMinMax(float val, int slot, unsigned char param)
 
 _eff_function_tbl _aaxTimedPitchEffect =
 {
-   "AAX_timed_pitch_effect", VERSION,
+   "AAX_timed_pitch_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreateFn*)&_aaxTimedPitchEffectCreate,
    (_aaxEffectDestroyFn*)&_aaxEffectDestroy,
    (_aaxEffectResetFn*)&_env_reset,

@@ -23,7 +23,7 @@
 #include "arch.h"
 #include "api.h"
 
-#define VERSION	1.0
+#define VERSION	1.01
 #define DSIZE	sizeof(_aaxEnvelopeData)
 
 #define MAX_SLOTS       (_MAX_ENVELOPE_STAGES/2)
@@ -50,6 +50,10 @@ _aaxTimedLayerFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = NULL;
+   bool reverse;
+
+   reverse = (state & AAX_REVERSE) ? true : false;
+   state &= ~AAX_REVERSE;
 
    if TEST_FOR_TRUE(state)
    {
@@ -71,6 +75,7 @@ _aaxTimedLayerFilterSetState(_filter_t* filter, int state)
          int i, stage;
 
          env->state = state;
+         env->reverse = reverse;
          if (state & AAX_REPEAT)
          {
             env->repeat0 = (state & ~AAX_REPEAT);
@@ -305,7 +310,7 @@ _aaxTimedLayerFilterMinMax(float val, int slot, unsigned char param)
 
 _flt_function_tbl _aaxTimedLayerFilter =
 {
-   "AAX_timed_layer_filter", VERSION,
+   "AAX_timed_layer_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreateFn*)&_aaxTimedLayerFilterCreate,
    (_aaxFilterDestroyFn*)&_aaxFilterDestroy,
    (_aaxFilterResetFn*)&_env_reset,

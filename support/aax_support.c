@@ -749,6 +749,15 @@ _aaxGetSourceTypeByName(const char *wave, enum aaxTypeName type)
                rv |= AAX_INVERSE;
             }
 
+            invlen = strlen("reverse");
+            if (!strncasecmp(name, "reverse", invlen) &&
+                (len > ++invlen))
+            {
+               name += invlen;
+               len -= invlen;
+               rv |= AAX_REVERSE;
+            }
+
             invlen = strlen("pure");
             if (!strncasecmp(name, "pure", invlen) &&
                 (len > ++invlen))
@@ -809,6 +818,8 @@ _aaxGetSourceTypeByName(const char *wave, enum aaxTypeName type)
                rv |= AAX_CONSTANT;
             } else if (!strncasecmp(name, "inverse", len)) {
                rv |= AAX_CONSTANT|AAX_INVERSE;
+            } else if (!strncasecmp(name, "reverse", len)) {
+               rv |= AAX_CONSTANT|AAX_REVERSE;
             /* reverb */
             } else if (!strncasecmp(name, "empty", len)) {
                rv |= AAX_EMPTY_ROOM;
@@ -930,6 +941,9 @@ _aaxGetSourceNameByType(enum aaxSourceType type, enum aaxTypeName name)
 
    if (type & AAX_INVERSE) {
       SRC_ADD(p, l, m, "inverse-");
+   }
+   if (type & AAX_REVERSE) {
+      SRC_ADD(p, l, m, "reverse-");
    }
 
    if (type & AAX_PURE_WAVEFORM) {
