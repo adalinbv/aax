@@ -22,7 +22,7 @@
 _aaxRenderer*
 _aaxSoftwareInitRenderer(float dt, enum aaxRenderMode mode, int registered)
 {
-   static _aaxRenderer *rv = NULL;
+   _aaxRenderer *rv = NULL;
 
    if (registered || mode == AAX_MODE_READ)
    {
