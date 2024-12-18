@@ -199,7 +199,7 @@ _bufferMixPinkNoise(int32_t* data, _data_t *scratch, size_t no_samples, float ra
       {
          ptr = _aaxDataGetData(scratch, 1);
          _aax_pinknoise_filter(ptr2, noise_samples, fs);
-         _batch_fmul_value(ptr2, ptr2, sizeof(float), noise_samples, 1.5f);
+         _batch_fmul_value(ptr2, ptr2, noise_samples, 1.5f, 1.0f);
          _aax_noise_filter(ptr, ptr2+NOISE_PADDING/2, no_samples, rate, fs);
 
          if (modulate) {
@@ -231,7 +231,7 @@ _bufferMixBrownianNoise(int32_t* data, _data_t *scratch, size_t no_samples, floa
 
          ptr = _aaxDataGetData(scratch, 1);
          _batch_movingaverage_float(ptr2, ptr2, noise_samples, &hist, k);
-         _batch_fmul_value(ptr2, ptr2, sizeof(int32_t), noise_samples, 3.5f);
+         _batch_fmul_value(ptr2, ptr2, noise_samples, 3.5f, 1.0f);
          _aax_noise_filter(ptr, ptr2, no_samples, rate, fs);
 
          if (modulate) {

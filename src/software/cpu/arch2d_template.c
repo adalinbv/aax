@@ -1499,12 +1499,12 @@ void
 FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
 {
    _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
+   const_float32_ptr s = sptr;
+
    if (num)
    {
-      const_float32_ptr s = sptr;
-      float k, *cptr, *hist;
-      float c0, c1, c2, c3;
-      float smp, h0, h1;
+      float k, smp, *cptr, *hist;
+      float h0, h1;
       int stage;
 
       cptr = filter->coeff;
@@ -1513,38 +1513,20 @@ FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, si
       if (!stage) stage++;
 
       k = filter->k;
-      do
+      while(stage--)
       {
          float32_ptr d = dptr;
-         size_t i = num;
-
-         c0 = *cptr++;
-         c1 = *cptr++;
-         c2 = *cptr++;
-         c3 = *cptr++;
+         int j, i = num;
 
          h0 = hist[0];
          h1 = hist[1];
 
-         // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c3*z[n-2];
-         if (filter->state == AAX_BUTTERWORTH)
+         if (i)
          {
             do
             {
-               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
-               *d++ = smp       + ((h0 * c2) + (h1 * c3));
-
-               h1 = h0;
-               h0 = smp;
-            }
-            while (--i);
-         }
-         else
-         {
-            do
-            {
-               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
-               *d++ = smp;
+               smp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = smp       + h0 * cptr[2] + h1 * cptr[3];
 
                h1 = h0;
                h0 = smp;
@@ -1554,11 +1536,12 @@ FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
          *hist++ = h0;
          *hist++ = h1;
-         k = 1.0f;
+
          s = dptr;
+         cptr += 4;
+         k = 1.0f;
       }
-      while (--stage);
-      _batch_fmul_value(dptr, dptr, sizeof(MIX_T), num, filter->gain);
+      _batch_fmul_value(dptr, dptr, num, filter->gain, 1.0f);
    }
 }
 
