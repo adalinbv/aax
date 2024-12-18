@@ -960,6 +960,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
       volume = fabsf(gain);
       if (offs && volume > LEVEL_32DB)
       {
+         _aaxRingBufferBitCrusherData *bitcrush = &effect->bitcrush;
          ssize_t coffs, doffs;
          int i, step, sign;
 
@@ -984,17 +985,14 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          }
          effect->offset->step[track] = step;
 
-         _aax_memcpy(nsptr-ds, effect->feedback_history->history[track], ds*bps);
+         bitcrush->run(nsptr, 0, i, bitcrush, NULL, track);
+         _aax_memcpy(nsptr-ds, effect->feedback_history->history[track],ds*bps);
+
          if (i >= step)
          {
-            _aaxRingBufferBitCrusherData *bitcrush = &effect->bitcrush;
             do
             {
-               memcpy(scratch, nsptr-coffs, step*sizeof(float));
-               if (bitcrush->lfo.get) {
-                  bitcrush->run(scratch, 0, step, bitcrush, NULL, track);
-               }
-               rbd->add(nsptr, scratch, step, gain, 0.0f);
+               rbd->add(nsptr, nsptr-coffs, step, gain, 0.0f);
 
                nsptr += step;
                coffs += sign;
