@@ -345,7 +345,7 @@ _aaxALSADriverDetect(int mode)
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
-#if HAVE_PULSEAUDIO_H
+#if defined HAVE_PULSEAUDIO_H || defined HAVE_PIPEWIRE_H
 # if RELEASE
    const char *env = getenv("AAX_SHOW_ALSA_DEVICES");
    if (!env || !_aax_getbool(env)) {
