@@ -253,7 +253,11 @@ _lfo_set_timing(_aaxLFOData *lfo)
    {
       int t;
       for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
-         lfo->value[t] = lfo->value0[t] = lfo->min;
+         if (!lfo->stereo_link) {
+            lfo->value[t] = lfo->value0[t] = (t % 2) ? lfo->min : lfo->max;
+         } else {
+            lfo->value[t] = lfo->value0[t] = lfo->min;
+         }
       }
    }
 
