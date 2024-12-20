@@ -206,7 +206,7 @@ _lfo_set_timing(_aaxLFOData *lfo)
       for (t=0; t<_AAX_MAX_SPEAKERS; t++)
       {
          if (!lfo->stereo_link) {
-            lfo->value0[t] = (t % 2)*1e9f;
+            lfo->value0[t] = (t % 2) ? lfo->min : lfo->max;
          }
 
          // slowly work towards the new settings
