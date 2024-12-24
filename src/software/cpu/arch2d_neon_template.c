@@ -1348,10 +1348,15 @@ FN(batch_fmul_value,A)(float32_ptr dptr, const_float32_ptr sptr, size_t num, flo
 
    if (!num) return;
 
-   if (fabsf(f - 1.0f) < LEVEL_128DB) {
-      if (sptr != dptr) memcpy(dptr, sptr,  num*sizeof(float));
-   } else if  (fabsf(f) <= LEVEL_128DB) {
+   if (fabsf(f - 1.0f) < LEVEL_128DB)
+   {
+      if (sptr != dptr) memcpy(dptr, sptr, num*sizeof(float));
+      return;
+   }
+   else if (fabsf(f*AAX_PEAK_MAX) <= 1.0f)
+   {
       memset(dptr, 0, num*sizeof(float));
+      return;
    }
 
    step = 2*sizeof(float32x4_t)/sizeof(float);
