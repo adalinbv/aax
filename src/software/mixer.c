@@ -100,7 +100,7 @@ _aaxSoftwareMixerApplyTrackEffects(_aaxRingBuffer *rb, _aaxRendererData *rendere
    gain = _FILTER_GET(p2d, VOLUME_FILTER, AAX_GAIN);
    if (gain > maxgain) gain = maxgain;
    if (fabsf(gain-1.0f) > LEVEL_96DB) {
-      rb->data_multiply(rb, 0, 0, gain);
+      rb->data_multiply(rb, 0, 0, gain, 1.0f);
    }
 
    return true;
@@ -297,7 +297,7 @@ _aaxSensorPostProcess(const _aaxRendererData *data)
          if (compressor->inverse) gain = 1.0f/gain;
          if (gain < g) g = gain;
       }
-      rb->data_multiply(rb, 0, 0, g);
+      rb->data_multiply(rb, 0, 0, g, 1.0f);
    }
 
    if (sensor->filter[0])

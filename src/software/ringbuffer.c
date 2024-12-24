@@ -1361,9 +1361,9 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSourceT
 }
 
 int
-_aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, float ratio_orig)
+_aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, float numerator, float denomerator)
 {
-   if (fabsf(ratio_orig-1.0f) > LEVEL_96DB)
+   if (fabsf(numerator/denomerator - 1.0f) > LEVEL_96DB)
    {
       _aaxRingBufferData *rbi = rb->handle;
       _aaxRingBufferSample *rbd = rbi->sample;
@@ -1379,7 +1379,7 @@ _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, f
       for (track=0; track<no_tracks; track++)
       {
          data = rbd->track[track];
-         rbd->multiply(data+offs, data+offs, no_samples, ratio_orig, 1.0f);
+         rbd->multiply(data+offs, data+offs, no_samples, numerator,denomerator);
       }
    }
    return true;

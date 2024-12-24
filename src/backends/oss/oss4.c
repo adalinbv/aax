@@ -1285,7 +1285,7 @@ _oss4_set_volume(UNUSED(_driver_t *handle), _aaxRingBuffer *rb, ssize_t offset, 
 
    /* software volume fallback */
    if (rb && fabsf(hwgain - gain) > LEVEL_32DB) {
-      rb->data_multiply(rb, offset, period_frames, gain);
+      rb->data_multiply(rb, offset, period_frames, gain, 1.0f);
    }
 }
 

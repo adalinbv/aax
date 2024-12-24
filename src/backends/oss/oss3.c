@@ -985,7 +985,7 @@ _oss3_set_volume(UNUSED(_driver_t *handle), _aaxRingBuffer *rb, ssize_t offset, 
 
    /* software volume fallback */
    if (rb && fabsf(gain - 1.0f) > LEVEL_32DB) {
-      rb->data_multiply(rb, offset, period_frames, gain);
+      rb->data_multiply(rb, offset, period_frames, gain, 1.0f);
    }
 }
 

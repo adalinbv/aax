@@ -710,7 +710,7 @@ _aaxRingBufferDataMixDataFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, 
  * returns true if successful, false otherwise.
  */
 typedef int
-_aaxRingBufferDataMultiplyFn(struct _aaxRingBuffer_t*, size_t, size_t, float);
+_aaxRingBufferDataMultiplyFn(struct _aaxRingBuffer_t*, size_t, size_t, float, float);
 
 /**
  * Mix a waveform type from the waveform generator with existing data
