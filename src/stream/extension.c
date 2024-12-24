@@ -174,6 +174,7 @@ _ext_create(_ext_type_t extension)
          rv->fill = _raw_fill;
          rv->cvt_from_intl = _raw_cvt_from_intl;
          rv->cvt_to_intl = _raw_cvt_to_intl;
+         rv->cvt_to_intl_float = _raw_cvt_to_intl_float;
       }
       break;
    default:

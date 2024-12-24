@@ -116,7 +116,7 @@ _batch_fmul_value_sse_vex(float32_ptr dptr, const_float32_ptr sptr, size_t num, 
       if (sptr != dptr) memcpy(dptr, sptr, num*sizeof(float));
       return;
    }
-   else if (fabsf(f*AAX_PEAK_MAX) <= 1.0f)
+   else if (fabsf(f*AAX_PEAK_MAX) < LEVEL_128DB)
    {
       memset(dptr, 0, num*sizeof(float));
       return;

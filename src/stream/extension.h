@@ -191,7 +191,7 @@ typedef size_t (_ext_cvt_from_intl_fn)(struct _ext_st *handle, int32_ptrptr buf,
 //
 // handle must have been created using _ext_create(type);
 // buffer: buffer where to put the converted data
-// channels: array of audio channel buffers where the source data is stored
+// tracks: array of audio channel buffers where the source data is stored
 // offset: offset from the start of the buffer where to get the new data
 // *num: requested number of samples to convert
 //       outputs the actual number of samples which where converted
@@ -201,7 +201,8 @@ typedef size_t (_ext_cvt_from_intl_fn)(struct _ext_st *handle, int32_ptrptr buf,
 // Returns the number of processed bytes
 //         __F_NEED_MORE if more data is required before processing can start
 //         0 in case of an error
-typedef size_t (_ext_cvt_to_intl_fn)(struct _ext_st *handle, void_ptr buffer, const_int32_ptrptr channels, size_t offset, size_t *num, void_ptr scratch, size_t size);
+typedef size_t (_ext_cvt_to_intl_fn)(struct _ext_st *handle, void_ptr buffer, const_int32_ptrptr tracks, size_t offset, size_t *num, void_ptr scratch, size_t size);
+typedef size_t (_ext_cvt_to_intl_float_fn)(struct _ext_st *handle, void_ptr buffer, CONST_MIX_PTRPTR_T tracks, size_t offset, size_t *num, void_ptr scratch, size_t size);
 
 
 struct _ext_st
@@ -228,6 +229,7 @@ struct _ext_st
    _ext_fill_fn *fill;
    _ext_cvt_from_intl_fn *cvt_from_intl;
    _ext_cvt_to_intl_fn *cvt_to_intl;
+   _ext_cvt_to_intl_float_fn *cvt_to_intl_float;
 };
 typedef struct _ext_st _ext_t;
 
@@ -350,6 +352,7 @@ size_t _raw_copy(_ext_t*, int32_ptr, size_t, size_t*);
 size_t _raw_fill(_ext_t*, void_ptr, ssize_t*);
 size_t _raw_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
 size_t _raw_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
+size_t _raw_cvt_to_intl_float(_ext_t*, void_ptr, CONST_MIX_PTRPTR_T, size_t, size_t*, void_ptr, size_t);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

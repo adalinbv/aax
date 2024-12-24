@@ -466,6 +466,29 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, bool copy, bool dde)
    return drb;
 }
 
+MIX_T**
+_aaxRingBufferGetDataPtr(_aaxRingBuffer *rb)
+{
+   _aaxRingBufferData *rbi;
+   _aaxRingBufferSample *rbd;
+   MIX_T** rv = NULL;
+
+   _AAX_LOG(LOG_DEBUG, __func__);
+   
+   assert(rb != NULL);
+   
+   rbi = rb->handle;
+   assert(rbi != 0);
+   assert(rbi->sample != 0);
+   assert(rbi->parent == rb);
+   assert(rbi->access == RB_RW_MAX); // track was previously released
+
+   rbd = rbi->sample;
+   if (rbd) rv = (MIX_T**)rbd->track;
+
+   return rv;
+}
+
 int32_t**
 _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
 {
@@ -497,7 +520,7 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
             _batch_cvt24_ps24(tracks[track], tracks[track], no_samples);
          }
       }
-      rv  = (int32_t**)rbd->track;
+      rv = (int32_t**)rbd->track;
    }
    return rv;
 }
@@ -1607,6 +1630,7 @@ _aaxRingBufferInitFunctions(_aaxRingBuffer *rb)
    rb->get_paramf = _aaxRingBufferGetParamf;
    rb->get_parami = _aaxRingBufferGetParami;
 
+   rb->get_data_ptr = _aaxRingBufferGetDataPtr;
    rb->get_tracks_ptr = _aaxRingBufferGetTracksPtr;
    rb->release_tracks_ptr = _aaxRingBufferReleaseTracksPtr;
 

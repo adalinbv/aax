@@ -82,7 +82,7 @@ DECL_FUNCTION(lame_set_num_channels);
 DECL_FUNCTION(lame_set_brate);
 DECL_FUNCTION(lame_set_VBR);
 DECL_FUNCTION(lame_set_quality);
-DECL_FUNCTION(lame_encode_buffer_interleaved);
+DECL_FUNCTION(lame_encode_buffer_ieee_float);
 DECL_FUNCTION(lame_encode_flush_nogap);
 DECL_FUNCTION(lame_set_mode);
 DECL_FUNCTION(lame_set_scale);
@@ -259,7 +259,7 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
             TIE_FUNCTION(lame_set_mode);
             TIE_FUNCTION(lame_set_scale);
             TIE_FUNCTION(lame_set_quality);
-            TIE_FUNCTION(lame_encode_buffer_interleaved);
+            TIE_FUNCTION(lame_encode_buffer_ieee_float);
             TIE_FUNCTION(lame_encode_flush_nogap);
             TIE_FUNCTION(lame_get_lametag_frame);
             TIE_FUNCTION(lame_set_write_id3tag_automatic);
@@ -821,8 +821,8 @@ _mp3_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
    return rv;
 }
 
-size_t
-_mp3_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
+size_t // This function is being called with normalized float values.
+_mp3_cvt_to_intl_float(_fmt_t *fmt, void_ptr dptr, CONST_MIX_PTRPTR_T sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = fmt->id;
    void *buf = _aaxDataGetData(handle->mp3Buffer, 0);
@@ -832,9 +832,8 @@ _mp3_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    assert(scratchlen >= *num*handle->no_tracks*sizeof(int32_t));
 
    handle->no_samples += *num;
-   _batch_cvt16_intl_24(scratch, sptr, offs, handle->no_tracks, *num);
-   res = plame_encode_buffer_interleaved(handle->id, scratch, *num,
-                                         buf, bufsize);
+   res = plame_encode_buffer_ieee_float(handle->id, sptr[0], sptr[1], *num,
+                                        buf, bufsize);
    _aax_memcpy(dptr, buf, res);
 
    return res;

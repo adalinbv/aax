@@ -482,6 +482,8 @@ _aaxRingBufferDuplicateFn(struct _aaxRingBuffer_t*, bool, bool);
  * returns an array of pointers that locate the non-interleaved tracks.
  */
 
+typedef MIX_T**
+_aaxRingBufferGetDataPtrFn(struct _aaxRingBuffer_t*);
 typedef int32_t**
 _aaxRingBufferGetTracksPtrFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferMode);
 
@@ -781,6 +783,7 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferGetParamfFn *get_paramf;
    _aaxRingBufferGetParamiFn *get_parami;
 
+   _aaxRingBufferGetDataPtrFn *get_data_ptr;
    _aaxRingBufferGetTracksPtrFn *get_tracks_ptr;
    _aaxRingBufferReleaseTracksPtrFn *release_tracks_ptr;
 

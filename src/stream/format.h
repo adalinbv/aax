@@ -51,6 +51,7 @@ typedef void* (_fmt_update_fn)(struct _fmt_st*, size_t*, ssize_t*, char);
 typedef void (_fmt_cvt_fn)(struct _fmt_st*, void_ptr, size_t);
 typedef size_t (_fmt_cvt_from_fn)(struct _fmt_st*, int32_ptrptr, size_t, size_t*);
 typedef size_t (_fmt_cvt_to_fn)(struct _fmt_st*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
+typedef size_t (_fmt_cvt_to_float_fn)(struct _fmt_st*, void_ptr, CONST_MIX_PTRPTR_T, size_t, size_t*, void_ptr, size_t);
 typedef size_t (_fmt_fill_fn)(struct _fmt_st*, void_ptr, ssize_t*);
 typedef size_t (_fmt_copy_fn)(struct _fmt_st*, int32_ptr, size_t, size_t*);
 typedef float (_fmt_set_fn)(struct _fmt_st*, int, float);
@@ -71,6 +72,7 @@ struct _fmt_st
    _fmt_cvt_fn *cvt_from_signed;
    _fmt_cvt_fn *cvt_endianness;
    _fmt_cvt_to_fn *cvt_to_intl;			// convert to file format
+   _fmt_cvt_to_float_fn *cvt_to_intl_float;	// convert float to file format
    _fmt_cvt_from_fn *cvt_from_intl;		// convert to mixer format
    _fmt_fill_fn *fill;
    _fmt_copy_fn *copy;				// copy raw sound data
@@ -106,7 +108,7 @@ int _mp3_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
 void* _mp3_open(_fmt_t*, int, void*, ssize_t*, size_t);
 void _mp3_close(_fmt_t*);
 void* _mp3_update(_fmt_t*, size_t*, ssize_t*, char);
-size_t _mp3_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
+size_t _mp3_cvt_to_intl_float(_fmt_t*, void_ptr, CONST_MIX_PTRPTR_T, size_t, size_t*, void_ptr, size_t);
 size_t _mp3_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, size_t*);
 size_t _mp3_fill(_fmt_t*, void_ptr, ssize_t*);
 size_t _mp3_copy(_fmt_t*, int32_ptr, size_t, size_t*);

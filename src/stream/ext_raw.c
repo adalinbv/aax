@@ -149,6 +149,13 @@ _raw_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    return handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num, scratch, scratchlen);
 }
 
+size_t
+_raw_cvt_to_intl_float(_ext_t *ext, void_ptr dptr, CONST_MIX_PTRPTR_T sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
+{
+   _driver_t *handle = ext->id;
+   return handle->fmt->cvt_to_intl_float(handle->fmt, dptr, sptr, offs, num, scratch, scratchlen);
+}
+
 int
 _raw_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
 {

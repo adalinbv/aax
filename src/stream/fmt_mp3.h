@@ -306,6 +306,7 @@ typedef int (*lame_set_VBR_quality_proc)(void*, float);
 typedef int (*lame_set_mode_proc)(void*, enum MPEG_mode_e);
 typedef int (*lame_set_scale_proc)(void*, float);
 
+typedef int (*lame_encode_buffer_ieee_float_proc)(void*, const float[], const float[], const int, unsigned char*, const int);
 typedef int (*lame_encode_buffer_interleaved_proc)(void*, short int[], int, unsigned char*, int);
 typedef int (*lame_encode_buffer_proc)(void*, short int[], short int[], int, unsigned char*, int);
 typedef int (*lame_encode_flush_proc)(void*, unsigned char*, int);

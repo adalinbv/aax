@@ -129,6 +129,7 @@ typedef struct
    uint8_t no_channels;
    uint32_t channel_mask;
    enum aaxFormat format;
+   int file_format;
    int mode;
    float latency;
    float frequency;
@@ -468,6 +469,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    assert(handle);
 
    handle->format = *fmt;
+   handle->file_format = _FMT_NONE;
    handle->bits_sample = aaxGetBitsPerSample(*fmt);
    handle->frequency = *speed;
 
@@ -602,18 +604,18 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    if (res)
    {
-      int file_format = _FMT_NONE;
       size_t period_frames;
 
-      file_format = handle->io->get_param(handle->io, __F_FMT);
-      if (file_format == _FMT_NONE) {
-         file_format = handle->ext->supported(extension);
+      handle->file_format = handle->io->get_param(handle->io, __F_FMT);
+      if (handle->file_format == _FMT_NONE) {
+         handle->file_format = handle->ext->supported(extension);
       }
 
       period_frames = (size_t)rintf(rate / period_rate);
 
       res = handle->ext->setup(handle->ext, handle->mode, &headerSize, rate,
-                               *tracks, file_format, period_frames, *bitrate);
+                               *tracks, handle->file_format, period_frames,
+                               *bitrate);
       handle->ext->set_param(handle->ext,__F_COPY_DATA, handle->copy_to_buffer);
       handle->ext->set_param(handle->ext, __F_NO_BYTES, handle->no_bytes);
       handle->ext->set_param(handle->ext, __F_MIP_LEVEL, level);
@@ -782,8 +784,8 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
    unsigned int rb_bps, file_bps, file_tracks;
    unsigned char *scratch, *databuf;
    _data_t *ioBuffer;
-   int32_t **tracks;
    ssize_t res = 0;
+   int fmt;
 
    assert(rb);
    assert(id != 0);
@@ -819,22 +821,25 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
 
    assert(outbuf_size <= _aaxDataGetSize(handle->rawBuffer));
 
-   // NOTE: Need RB_RW in case it is used as a mirroring file-backend
-   //       See _aaxSoftwareMixerPlay
-   tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
-   if (fabsf(gain - 1.0f) > LEVEL_32DB)
+   if (handle->ext->cvt_to_intl_float)
    {
-      unsigned int t;
-      for (t=0; t<file_tracks; t++)
-      {
-         int32_t *ptr = (int32_t*)tracks[t]+offs;
-         _batch_imul_value(ptr, ptr, sizeof(int32_t), no_samples, gain);
-      }
+      CONST_MIX_PTRPTR_T tracks = (CONST_MIX_PTRPTR_T)rb->get_data_ptr(rb);
+      rb->data_multiply(rb, offs, no_samples, gain, AAX_PEAK_MAX);
+      res = handle->ext->cvt_to_intl_float(handle->ext, databuf, tracks,
+                                     offs, &no_samples, scratch, scratchsize);
    }
-
-   res = handle->ext->cvt_to_intl(handle->ext, databuf, (const int32_t**)tracks,
-                                  offs, &no_samples, scratch, scratchsize);
-   rb->release_tracks_ptr(rb);
+   else
+   {
+      int32_t **tracks;
+      rb->data_multiply(rb, offs, no_samples, gain, 1.0f);
+      // NOTE: Need RB_RW in case it is used as a mirroring file-backend
+      //       See _aaxSoftwareMixerPlay
+      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
+      res = handle->ext->cvt_to_intl(handle->ext, databuf,
+                                    (const int32_t**)tracks,
+                                    offs, &no_samples, scratch, scratchsize);
+      rb->release_tracks_ptr(rb);
+   }
    _aaxDataIncreaseOffset(handle->rawBuffer, 0, res);
 
    // Move data from rawBuffer to ioBuffer
