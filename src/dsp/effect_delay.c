@@ -75,20 +75,24 @@ _aaxDelayEffectSetState(_effect_t* effect, int state, float delay_gain, float fe
 
    assert(effect->info);
 
+   // Set the source to constant when no source is defined but the number
+   // of stages is.
+   if ((state & AAX_ALL_SOURCE_MASK) == 0 && (state & AAX_ORDER_MASK)) {
+      state |= AAX_CONSTANT;
+   }  
+
+   // If neither AAX_EFFECT_1ST_ORDER nor AAX_EFFECT_2ND_ORDER is
+   // defined we have to assume both are requested.
+   if ((state & AAX_EFFECT_ORDER_MASK) == 0) {
+      state |= (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
+   }
+
    stereo = (state & AAX_LFO_STEREO) ? true : false;
    state &= ~AAX_LFO_STEREO;
 
    stages = (state & AAX_ORDER_MASK) >> 8;
    if (stages == 0) stages = 1;
    state &= ~AAX_ORDER_MASK;
-
-   if ((state & (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER)) == 0) {
-      state |= (AAX_EFFECT_1ST_ORDER|AAX_EFFECT_2ND_ORDER);
-   }
-
-   if ((state & AAX_ALL_SOURCE_MASK) == 0) {
-      state |= AAX_CONSTANT;
-   }
 
    effect->state = state;
    switch (state & (AAX_SOURCE_MASK & ~AAX_PURE_WAVEFORM))
