@@ -757,7 +757,7 @@ _delay_swap(void *d, void *s)
    {
       if (!dst->data)
       {
-          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+          _aaxAtomicPointerSwap(&src->data, &dst->data);
           dst->data_size = src->data_size;
       }
       else
@@ -776,11 +776,10 @@ _delay_swap(void *d, void *s)
 
          _lfo_swap(&ddef->lfo, &sdef->lfo);
          _bitcrusher_swap(&ddef->bitcrush, &sdef->bitcrush);
-         ddef->offset = _aaxAtomicPointerSwap(&sdef->offset, ddef->offset);
+         _aaxAtomicPointerSwap((void**)&sdef->offset, (void**)&ddef->offset);
 
          if (ddef->history_samples == sdef->history_samples) {
-            ddef->history = _aaxAtomicPointerSwap(&sdef->history,
-                                                  ddef->history);
+            _aaxAtomicPointerSwap((void**)&sdef->history, (void**)&ddef->history);
          }
          else
          {
@@ -805,8 +804,7 @@ _delay_swap(void *d, void *s)
          if (sdef->freq_filter)
          {
             if (!ddef->freq_filter) {
-               ddef->freq_filter = _aaxAtomicPointerSwap(&sdef->freq_filter,
-                                                         ddef->freq_filter);
+               _aaxAtomicPointerSwap((void**)&sdef->freq_filter, (void**)&ddef->freq_filter);
             } else {
                _freqfilter_data_swap(ddef->freq_filter, sdef->freq_filter);
             }

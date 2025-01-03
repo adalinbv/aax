@@ -47,7 +47,7 @@ void _aax_dsp_swap(void *d, void *s) {
    {
       if (!dst->data)
       {
-          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+          _aaxAtomicPointerSwap(&src->data, &dst->data);
           dst->data_size = src->data_size;
       }
       else

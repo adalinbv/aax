@@ -49,16 +49,18 @@ enum {
 };
 int _aaxProcessSetPriority(int);
 
+void atomic_pointer_swap(void**, void**);
 # define _aaxAtomicIntIncrement(a)	(_aaxAtomicIntAdd((a),1)+1)
 # define _aaxAtomicIntDecrement(a)	(_aaxAtomicIntAdd((a),-1)-1)
 # define _aaxAtomicIntSub(a,b)		(_aaxAtomicIntAdd((a),-(b)))
-# define _aaxAtomicIntSet(a,b)		_aaxAtomicPointerSwap((a),(b))
 #if defined(__FreeBSD__)
 #  define _aaxAtomicIntAdd(a,b)		__sync_fetch_and_add((a),(b))
+#  define _aaxAtomicIntSet(a,b)		__sync_lock_test_and_set((a),(b))
 #  define _aaxAtomicPointerSwap(a,b)	__sync_lock_test_and_set((a),(b))
 # else
 #  define _aaxAtomicIntAdd(a,b)		atomic_fetch_add((a),(b))
-#  define _aaxAtomicPointerSwap(a,b)	atomic_exchange((a),(b))
+# define _aaxAtomicIntSet(a,b)		atomic_exchange((a),(b))
+#  define _aaxAtomicPointerSwap(a,b)	atomic_pointer_swap((a),(b))
 # endif
 
 #if HAVE_PTHREAD_H

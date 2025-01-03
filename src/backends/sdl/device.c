@@ -191,7 +191,7 @@ const char *_const_sdl_default_driver = DEFAULT_DEVNAME;
 const char *_const_sdl_default_device = NULL;
 
 static void *audio = NULL;
-static int initialized = 0;
+static atomic_int initialized = 0;
 
 static int
 _aaxSDLDriverDetect(UNUSED(int mode))

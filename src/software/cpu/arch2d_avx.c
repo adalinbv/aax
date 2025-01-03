@@ -75,7 +75,7 @@ fast_atan8_avx(__m256 x)
 }
 
 static inline FN_PREALIGN __m256
-_mm256_fmadd_ps(__m256 a, __m256 b, __m256 c) {
+_avx_fmadd_ps(__m256 a, __m256 b, __m256 c) {
    return _mm256_add_ps(_mm256_mul_ps(a, b), c);
 }
 static inline FN_PREALIGN __m256
@@ -113,10 +113,10 @@ _mm256_atan_ps(__m256 a)
 
    // Polynomial approximation for arctangent
    __m256 poly, a2 = _mm256_mul_ps(adjusted_a, adjusted_a);
-   poly = _mm256_fmadd_ps(_mm256_set1_ps(ATAN_COEF1), a2, _mm256_set1_ps(ATAN_COEF2));
-   poly = _mm256_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF3));
-   poly = _mm256_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF4));
-   __m256 result = _mm256_fmadd_ps(poly, _mm256_mul_ps(a2, adjusted_a), adjusted_a);
+   poly = _avx_fmadd_ps(_mm256_set1_ps(ATAN_COEF1), a2, _mm256_set1_ps(ATAN_COEF2));
+   poly = _avx_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF3));
+   poly = _avx_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF4));
+   __m256 result = _avx_fmadd_ps(poly, _mm256_mul_ps(a2, adjusted_a), adjusted_a);
 
    return _mm256_or_ps(result, sign);
 }

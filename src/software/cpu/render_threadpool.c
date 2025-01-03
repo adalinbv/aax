@@ -88,9 +88,9 @@ typedef struct
 
    int worker_no;
    int no_workers;
-   int workers_busy;
-   int max_emitters;
-   int processed;
+   atomic_int workers_busy;
+   atomic_int max_emitters;
+   atomic_int processed;
    int stage;
 
    struct threat_t thread[_AAX_MAX_NO_WORKERS];

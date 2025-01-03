@@ -63,7 +63,7 @@ _wavefold_swap(void *d, void *s)
    if (src->data && src->data_size)
    {
       if (!dst->data) {
-          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+          _aaxAtomicPointerSwap(&src->data, &dst->data);
           dst->data_size = src->data_size;
       }
       else

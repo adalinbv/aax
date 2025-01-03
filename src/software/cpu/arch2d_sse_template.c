@@ -69,7 +69,7 @@ FN(fast_atan4,A)(__m128 x)
 }
 
 static inline FN_PREALIGN __m128
-_mm_fmadd_ps(__m128 a, __m128 b, __m128 c) {
+_sse_fmadd_ps(__m128 a, __m128 b, __m128 c) {
    return _mm_add_ps(_mm_mul_ps(a, b), c);
 }
 static inline FN_PREALIGN __m128
@@ -106,10 +106,10 @@ FN(_mm_atan_ps,A)(__m128 a)
 
    // Polynomial approximation for arctangent
    __m128 poly, a2 = _mm_mul_ps(adjusted_a, adjusted_a);
-   poly = _mm_fmadd_ps(_mm_set1_ps(ATAN_COEF1), a2, _mm_set1_ps(ATAN_COEF2));
-   poly = _mm_fmadd_ps(poly, a2, _mm_set1_ps(ATAN_COEF3));
-   poly = _mm_fmadd_ps(poly, a2, _mm_set1_ps(ATAN_COEF4));
-   __m128 result = _mm_fmadd_ps(poly, _mm_mul_ps(a2, adjusted_a), adjusted_a);
+   poly = _sse_fmadd_ps(_mm_set1_ps(ATAN_COEF1), a2, _mm_set1_ps(ATAN_COEF2));
+   poly = _sse_fmadd_ps(poly, a2, _mm_set1_ps(ATAN_COEF3));
+   poly = _sse_fmadd_ps(poly, a2, _mm_set1_ps(ATAN_COEF4));
+   __m128 result = _sse_fmadd_ps(poly, _mm_mul_ps(a2, adjusted_a), adjusted_a);
 
    return _mm_or_ps(result, sign);}
 

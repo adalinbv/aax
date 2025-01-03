@@ -42,6 +42,21 @@
 #define DEBUG_TIMEOUT		3
 #define _TH_SYSLOG(a)		__aax_log(LOG_SYSLOG, 0, (a), 0, LOG_SYSLOG);
 
+#if defined(__FreeBSD__)
+void
+atomic_pointer_swap(void **ptr1, void **ptr2) {
+   *ptr2 = __sync_lock_test_and_set(ptr1, *ptr2);
+}
+#else
+void
+atomic_pointer_swap(void **ptr1, void **ptr2)
+{
+   _Atomic(void *) *atomic_ptr1 = (_Atomic(void *) *)ptr1;
+   _Atomic(void *) *atomic_ptr2 = (_Atomic(void *) *)ptr2;
+   atomic_store(atomic_ptr2, atomic_exchange(atomic_ptr1, *ptr2));
+}
+#endif
+
 // Note: Requires Visual Studio version 17.8 Preview 2 or later.
 //    It’s shipped as a new satellite DLL of vcruntime:
 //    vcruntime140_threads.dll and vcruntime140_threadsd.dll.
