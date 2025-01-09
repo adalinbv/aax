@@ -2069,11 +2069,15 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
       if (xnid)
       {
          if (xmlAttributeExists(xnid, "min")) {
-            low_frequency = note2freq(xmlAttributeGetDouble(xnid, "min"));
+            low_frequency = note2freq(xmlAttributeGetInt(xnid, "min"));
          }
+         high_frequency = note2freq(128); // MIDI max nore number
+#if 0
+         // Max note number is purely informative for us.
          if (xmlAttributeExists(xnid, "max")) {
-            high_frequency = note2freq(_MIN(xmlAttributeGetDouble(xnid, "max"), 128));
+            high_frequency = note2freq(_MIN(xmlAttributeGetInt(xnid, "max"), 128));
          }
+#endif
 
          if (xmlAttributeExists(xnid, "pitch-fraction")) {
             handle->info.pitch_fraction = xmlAttributeGetDouble(xnid, "pitch-fraction");
