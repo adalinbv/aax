@@ -23,6 +23,7 @@
 #include <xml.h>
 
 #include <base/random.h>
+#include <support/aax_support.h>
 
 #include <backends/software/device.h>
 #include <dsp/filters.h>
@@ -610,7 +611,9 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, float min,
             slen = xmlAttributeCopyString(xid, "src", src, 64);
             if (slen)
             {
-               int s = aaxGetByName(src, AAX_SOURCE_NAME);
+               bool timed = (ftype == AAX_TIMED_GAIN_FILTER ||
+                             ftype == AAX_TIMED_LAYER_FILTER);
+               int s = _aaxGetSourceTypeByName(src, timed);
                if (s == AAX_INVERSE_ENVELOPE_FOLLOW) {
                   state |= AAX_INVERSE_ENVELOPE_FOLLOW;
                } else if (s == AAX_ENVELOPE_FOLLOW) {

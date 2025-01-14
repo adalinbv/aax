@@ -702,8 +702,8 @@ aaxGetMIDIModulationNameByType(enum aaxMIDIModulationMode mode)
    return strdup(rv);
 }
 
-static enum aaxSourceType
-_aaxGetSourceTypeByName(const char *wave, enum aaxTypeName type)
+enum aaxSourceType
+_aaxGetSourceTypeByName(const char *wave, bool timed)
 {
    enum aaxSourceType rv = AAX_WAVE_NONE;
 
@@ -796,7 +796,8 @@ _aaxGetSourceTypeByName(const char *wave, enum aaxTypeName type)
             } else if (!strncasecmp(name, "timed", len)) {
                rv |= AAX_TIMED_TRANSITION;
             } else if (!strncasecmp(name, "envelope", len)) {
-               rv |= AAX_ENVELOPE_FOLLOW;
+               if (timed) rv |= AAX_LFO_EXPONENTIAL;
+               else rv |= AAX_ENVELOPE_FOLLOW;
             } else if (!strncasecmp(name, "logarithmic", len) ||
                        !strncasecmp(name, "log", len)) {
                rv |= AAX_LOGARITHMIC_CURVE|AAX_LFO_EXPONENTIAL;
@@ -805,7 +806,8 @@ _aaxGetSourceTypeByName(const char *wave, enum aaxTypeName type)
                rv |= AAX_SQUARE_ROOT_CURVE;
             } else if (!strncasecmp(name, "exponential", len) ||
                        !strncasecmp(name, "exp", len)) {
-               rv |= AAX_EXPONENTIAL_CURVE|AAX_LFO_EXPONENTIAL;
+               if (timed) rv |= AAX_LFO_EXPONENTIAL;
+               else rv |= AAX_EXPONENTIAL_CURVE|AAX_LFO_EXPONENTIAL;
             } else if (!strncasecmp(name, "linear", len) ||
                        !strncasecmp(name, "lin", len)) {
                rv |= AAX_LINEAR_CURVE;
@@ -921,7 +923,7 @@ _aaxGetSourceTypeByName(const char *wave, enum aaxTypeName type)
    }
 
    /* if only exponential is defined, assume exponential envelope following */
-   if ((rv & AAX_LFO_EXPONENTIAL) && (rv & AAX_SOURCE_MASK) == 0) {
+   if (!timed && (rv & AAX_LFO_EXPONENTIAL) && (rv & AAX_SOURCE_MASK) == 0) {
       rv |= AAX_ENVELOPE_FOLLOW;
    }
 
@@ -984,6 +986,9 @@ _aaxGetSourceNameByType(enum aaxSourceType type, enum aaxTypeName name)
       break;
    case AAX_WAVE_NONE:
    default:
+      if ((type && AAX_LFO_EXPONENTIAL) == AAX_LFO_EXPONENTIAL) {
+         SRC_ADD(p, l, m, "envelope");
+      }
       break;
    }
 
@@ -1387,7 +1392,7 @@ aaxGetByName(const char* name, enum aaxTypeName type)
    switch (type)
    {
    case AAX_ALL:
-      rv = _aaxGetSourceTypeByName(name, type);
+      rv = _aaxGetSourceTypeByName(name, false);
       if (!rv) rv = _aaxGetProcessingType(name);
       if (!rv) rv = _aaxFilterGetByName(name);
       if (!rv) rv = _aaxEffectGetByName(name);
@@ -1414,7 +1419,7 @@ aaxGetByName(const char* name, enum aaxTypeName type)
       rv = _aaxGetMIDIModulationTypeByName(name);
       break;
    default:
-      rv = _aaxGetSourceTypeByName(name, type);
+      rv = _aaxGetSourceTypeByName(name, false);
       break;
    }
 

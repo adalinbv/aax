@@ -52,6 +52,21 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
    aaxFilter rv = NULL;
    bool reverse;
 
+   // This has to be done due to an oversight of AeonWave version 4.0:
+   // AAX_ENVELOPE_FOLLOW and AAX_REPEAT clashed for the number 13, rendering
+   // it impossible to assign the number of repeats and envelope-following at
+   // the same time. To circumvent this the _aaxGetSourceTypeByName function
+   // translates "envelope" now to AAX_LFO_EXPONENTIAL instead of
+   // AAX_ENVELOPE_FOLLOW but software that uses the timed-gain filter directly
+   // (without AAXS) may still use AAX_ENVELOPE_FOLLOW to indicate exponential
+   // gain following. As a result timed-gain filters can never repeat exactly
+   // 13 times when used directly but can when called using AAXS files.
+   if (state == AAX_ENVELOPE_FOLLOW)
+   {
+      state &= ~AAX_ENVELOPE_FOLLOW;
+      state |= AAX_LFO_EXPONENTIAL;
+   }
+
    reverse = (state & AAX_REVERSE) ? true : false;
    state &= ~AAX_REVERSE;
 

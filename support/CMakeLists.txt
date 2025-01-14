@@ -1,5 +1,6 @@
 set(SRC_HEADERS
   copyright.h
+  aax_support.h
 )
 
 set(SRC_SOURCES

@@ -763,7 +763,7 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, bool stopped, float *velocity, _aaxEnvelo
       {
          float step = env->step[stage];
          if (env->reverse) step = -step;
-         if ((env->state == AAX_ENVELOPE_FOLLOW)  && (rv > LEVEL_60DB))
+         if ((env->state == AAX_LFO_EXPONENTIAL) && (rv > LEVEL_60DB))
          {
             float fact;
             if (penv || env->gain) // gain: exponential
