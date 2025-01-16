@@ -71,8 +71,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    MIX_T **scratch;
    size_t offs, dno_samples;
    float gain, pnvel, gnvel;
-   float gain_power_factor;
-   float gain_emitter;
+   float volume_power_factor;
+   float volume;
    FLOAT pitch, min, max;
    int gain_state;
    int ret = 0;
@@ -186,13 +186,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
    gain *= ep2d->note.soft * ep2d->note.pressure;
 
-   /* Apply the parent mixer/audio-frame volume and tremolo-gain */
-   max = 1.0f;
-   if (fp2d) {
-      gain *= _FILTER_GET(fp2d, VOLUME_FILTER, AAX_GAIN);
-   }
-
    /* Tremolo and envelope following gain filter */
+   max = 1.0f;
    lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
    if (lfo)
    {
@@ -214,17 +209,23 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    /* Tremolo was defined */
    gain *= max;
 
+   /* Apply the parent mixer/audio-frame volume and tremolo-gain */
+   volume = (fp2d) ? _FILTER_GET(fp2d, VOLUME_FILTER, AAX_GAIN) : 1.0f;
+
    /* Final emitter volume */
    gain_state = _FILTER_GET_STATE(ep2d, VOLUME_FILTER);
-   gain_power_factor = _volume_curve[DSP_STATE_TO_INDEX(gain_state)];
+   volume_power_factor = _volume_curve[DSP_STATE_TO_INDEX(gain_state)];
 
-   gain_emitter = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
-   if (genv) genv->value_total = gain*gain_emitter;
+   volume *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
+   volume = powf(volume, volume_power_factor);
+   if (volume > 1.0f) volume = 1.0f;
+   if (genv) genv->value_total = gain*volume;
 
    /* 3d: distance, audio-cone and occlusion related gain */
+   if (gain > 1.0f) gain = 1.0f;
    gain *= buffer_gain; // bring gain to a normalized level
-   gain = powf(gain, gain_power_factor)*ep2d->final.gain;
-   gain *= gain_emitter;
+   gain = _square(gain)*ep2d->final.gain;
+   gain *= volume;
    ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? false : true;
 
    lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_LAYER_FILTER);
