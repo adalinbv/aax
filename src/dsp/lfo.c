@@ -662,7 +662,7 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
          if (env)
          {
             _aaxEnvelopeData *genv = (_aaxEnvelopeData*)env;
-            lvl = genv->value_total/genv->value_max;
+            lvl = genv->value_total*genv->gain;
          }
          else if (ptr && no_samples)
          {

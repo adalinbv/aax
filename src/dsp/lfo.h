@@ -84,6 +84,7 @@ int _compressor_set_timing(_aaxLFOData*);
 
 typedef struct
 {
+   float gain; /* > 0.0f = timed-gain filter */
    float step_finish;
    float value0, value, value_max, value_total;
    float step[_MAX_ENVELOPE_STAGES];
@@ -94,7 +95,6 @@ typedef struct
    unsigned char sustain_stage;
    bool sustain;
    bool reverse;
-   bool gain;
 } _aaxEnvelopeData;
 
 void _env_reset(_aaxEnvelopeData*);
