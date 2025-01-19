@@ -222,8 +222,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    if (genv) genv->value_total = gain*volume;
 
    /* 3d: distance, audio-cone and occlusion related gain */
+   gain *= _ln(buffer_gain); // bring gain to a normalized level
    if (gain > 1.0f) gain = 1.0f;
-   gain *= buffer_gain; // bring gain to a normalized level
    gain = _square(gain)*ep2d->final.gain;
    gain *= volume;
    ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? false : true;
