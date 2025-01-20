@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2025 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2025 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -13,14 +13,14 @@
 
  <info name="Bell Tree" bank="0" program="84">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.89" frequency="4698.64" duration="0.0333">
+ <sound gain="1.59" frequency="4698.64" duration="0.0333">
   <layer n="0">
    <waveform src="triangle" ratio="0.818"/>
    <waveform src="square" processing="mix" ratio="0.095" pitch="4.987"/>
@@ -44,12 +44,12 @@
     <param n="3">2.8</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="cycloid">
+  <filter type="dynamic-gain" src="pure-sawtooth|1st-order|exponential">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">15.0</param>
+    <param n="1">14.3</param>
     <param n="2">0.5</param>
-    <param n="3">0.5</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="chorus" src="3-stage">

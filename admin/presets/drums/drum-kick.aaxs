@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2025 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2025 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -11,39 +11,25 @@
 
 <aeonwave>
 
- <info name="Bass Drum 1" bank="0" program="36">
+ <info name="Kick Bass Drum" bank="41" program="36">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.92" frequency="69.2957" duration="0.3">
+ <sound mode="2" gain="2.86" frequency="69.2957" duration="0.1">
   <layer n="0">
-   <waveform src="pink-noise" ratio="0.1" pitch="0.175"/>
-   <waveform src="triangle" processing="add" ratio="0.491"/>
+   <waveform src="triangle" ratio="0.327"/>
+   <waveform src="sine" processing="add" ratio="0.6" pitch="1.1"/>
    <filter type="bitcrusher">
     <slot n="0">
      <param n="0">0.0</param>
      <param n="1">0.0</param>
      <param n="2">0.0</param>
      <param n="3">0.25</param>
-    </slot>
-   </filter>
-   <filter type="equalizer">
-    <slot n="0">
-     <param n="0">67.0</param>
-     <param n="1">1.0</param>
-     <param n="2">1.0</param>
-     <param n="3">2.0</param>
-    </slot>
-    <slot n="1">
-     <param n="0">2950.0</param>
-     <param n="1">1.0</param>
-     <param n="2">1.0</param>
-     <param n="3">5.0</param>
     </slot>
    </filter>
   </layer>
@@ -58,12 +44,18 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <filter type="timed-gain" src="envelope" release-time="0.08">
+  <filter type="timed-gain" release-time="0.08">
    <slot n="0">
     <param n="0">1.0</param>
     <param n="1">0.05</param>
-    <param n="2">0.872</param>
-    <param n="3">0.3</param>
+    <param n="2">0.868</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.0624</param>
+    <param n="1">0.1</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

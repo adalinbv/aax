@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
- * SPDX-FileCopyrightText: Copyright © 2017-2024 by Erik Hofman.
- * SPDX-FileCopyrightText: Copyright © 2017-2024 by Adalin B.V.
+ * SPDX-FileCopyrightText: Copyright © 2017-2025 by Erik Hofman.
+ * SPDX-FileCopyrightText: Copyright © 2017-2025 by Adalin B.V.
  *
  * Package Name: AeonWave Audio eXtentions library.
  *
@@ -11,69 +11,58 @@
 
 <aeonwave>
 
- <info name="Acoustic Snare" bank="0" program="38">
+ <info name="Acoustic Snare" bank="49" program="38">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" hold="string" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.25" frequency="293.665" duration="0.5">
-  <layer n="0">
-   <waveform src="sine" ratio="0.75"/>
-   <waveform src="white-noise" processing="add" ratio="0.12" pitch="0.25"/>
+ <sound gain="3.80" frequency="277.183" duration="0.5">
+  <layer n="0" pitch="0.98">
+   <waveform src="sine" ratio="0.55" phase="0.107"/>
+   <waveform src="white-noise" processing="add" ratio="0.05" pitch="0.3"/>
   </layer>
   <layer n="1">
-   <waveform src="sine" ratio="2.0" pitch="0.63" phase="0.107"/>
-   <waveform src="white-noise" processing="add" ratio="0.04" pitch="0.1"/>
+   <waveform src="sine" ratio="0.55" phase="0.107"/>
+   <waveform src="sine" processing="add" ratio="0.6" pitch="0.66" phase="0.107"/>
+   <waveform src="white-noise" processing="add" ratio="0.03" pitch="0.1"/>
   </layer>
  </sound>
 
- <emitter looping="true">
-  <effect type="timed-pitch">
+ <emitter looping="true" pan="-0.31">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">0.9</param>
+    <param n="0">1.15</param>
     <param n="1">0.01</param>
-    <param n="2">1.05</param>
-    <param n="3">0.03</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.98</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
+    <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <filter type="timed-gain" src="envelope" release-time="0.16">
+  <filter type="timed-gain" src="envelope" release-time="0.03">
    <slot n="0">
-    <param n="0">0.7</param>
-    <param n="1">0.01</param>
-    <param n="2">1.0</param>
-    <param n="3">0.05</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.805</param>
-    <param n="1">0.37</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="0">1.0</param>
+    <param n="1">0.2</param>
+    <param n="2">0.601</param>
+    <param n="3">0.2</param>
    </slot>
   </filter>
   <filter type="dynamic-layer" src="envelope">
    <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">50.0</param>
+    <param n="0">0.02</param>
+    <param n="1">3.0</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <filter type="bitcrusher" src="inverse-envelope">
+  <filter type="bitcrusher" src="inverse-|reverse-envelope">
    <slot n="0">
-    <param n="0">0.15</param>
-    <param n="1">0.1</param>
-    <param n="2">0.3</param>
-    <param n="3">0.0</param>
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.15</param>
    </slot>
   </filter>
  </emitter>
