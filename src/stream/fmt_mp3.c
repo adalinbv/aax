@@ -605,7 +605,7 @@ _mp3_setup(_fmt_t *fmt, UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_f
       }
 //    plame_set_mode(handle->id, STEREO);
 //    plame_set_quality(handle->id, 2); // 2=high  5 = medium  7=low
-      plame_set_scale(handle->id, 0.33f); // Adjust the volume using scale factor
+//    plame_set_scale(handle->id, 0.33f); // Adjust the volume
 
       ret = plame_init_params(handle->id);
       if (ret < 0) {

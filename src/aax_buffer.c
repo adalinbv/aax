@@ -1743,6 +1743,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
    } else if (xmlAttributeExists(xsid, "fixed-gain")) {
       handle->gain = xmlAttributeGetDouble(xsid, "fixed-gain");
    }
+   handle->gain = _ln(handle->gain);
 
    if (!freq && xmlAttributeExists(xsid, "frequency"))
    {
@@ -1927,6 +1928,7 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
                   break;
                }
                handle->gain = _bufNormalize(rb, gain);
+               handle->gain = _ln(handle->gain);
             }
          }
          else if (limiter) {

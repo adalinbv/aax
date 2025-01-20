@@ -201,18 +201,20 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
    volume = (fp2d) ? _FILTER_GET(fp2d, VOLUME_FILTER, AAX_GAIN) : 1.0f;
 
    /* Final emitter volume */
-   gain_state = _FILTER_GET_STATE(ep2d, VOLUME_FILTER);
-   volume_power_factor = _volume_curve[DSP_STATE_TO_INDEX(gain_state)];
-
    volume *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
-   volume = powf(volume, volume_power_factor);
    if (volume > 1.0f) volume = 1.0f;
    if (genv) genv->value_total = gain*volume;
 
-   if (gain > 1.0f) gain = 1.0f;
+   /* Buffer gain */
    gain *= buffer_gain; // bring gain to a normalized level
-   gain = _square(gain)*ep2d->final.gain;
-   gain *= volume;
+
+   /* Volume curve */
+   gain_state = _FILTER_GET_STATE(ep2d, VOLUME_FILTER);
+   volume_power_factor = _volume_curve[DSP_STATE_TO_INDEX(gain_state)];
+   gain = powf(gain, volume_power_factor);
+   if (gain > 1.0f) gain = 1.0f;
+
+   gain = volume*gain*ep2d->final.gain;
    ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? false : true;
 
 #if 0

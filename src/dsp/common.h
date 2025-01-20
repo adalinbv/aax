@@ -182,6 +182,7 @@ float _pow(float v);
 float _lin2db(float v);
 float _db2lin(float v);
 float _square(float v);
+float _sqroot(float v);
 float _lin2log(float v);
 float _log2lin(float v);
 float _rad2deg(float v);
