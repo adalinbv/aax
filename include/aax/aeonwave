@@ -76,72 +76,99 @@ inline enum aaxType type(const char *s, enum aaxTypeName type) {
     return aaxType(aaxGetByName(s, type));
 }
 
-inline char* type(int type, enum aaxTypeName name) {
-    return aaxGetStringByType(type, name);
+inline std::string type(int type, enum aaxTypeName name) {
+    char *s = aaxGetStringByType(type, name);
+    std::string rv = s;
+    aaxFree(s);
+    return rv;
 }
 
 inline enum aaxType type(const char *s) {
     return aaxType(aaxGetByName(s, AAX_TYPE_NAME));
 }
 
-inline char* type(int type) {
-    return aaxGetStringByType(type, AAX_TYPE_NAME);
+inline std::string type(int type) {
+    char *s = aaxGetStringByType(type, AAX_TYPE_NAME);
+    std::string rv = s;
+    aaxFree(s);
+    return rv;
 }
 
 inline enum aaxSourceType source_type(const char *s) {
     return aaxSourceType(aaxGetByName(s, AAX_SOURCE_NAME));
 }
 
-inline char* source_type(int type) {
-    return aaxGetStringByType(type, AAX_SOURCE_NAME);
+inline std::string source_type(int type) {
+    char *s = aaxGetStringByType(type, AAX_SOURCE_NAME);
+    std::string rv = s;
+    aaxFree(s);
+    return rv;
 }
 
 inline enum aaxSourceType filter_type(const char *s) {
     return aaxSourceType(aaxGetByName(s, AAX_FILTER_NAME));
 }
 
-inline char* filter_type(int type) {
-    return aaxGetStringByType(type, AAX_FILTER_NAME);
+inline std::string filter_type(int type) {
+    char *s = aaxGetStringByType(type, AAX_FILTER_NAME);
+    std::string rv = s;
+    aaxFree(s);
+    return rv;
 }
 
 inline enum aaxSourceType effect_type(const char *s) {
     return aaxSourceType(aaxGetByName(s, AAX_EFFECT_NAME));
 }
 
-inline char* effect_type(int type) {
-    return aaxGetStringByType(type, AAX_EFFECT_NAME);
+inline std::string effect_type(int type) {
+    char *s = aaxGetStringByType(type, AAX_EFFECT_NAME);
+    std::string rv = s;
+    aaxFree(s);
+    return rv;
 }
 
 inline enum aaxProcessingType processing_type(const char *s) {
     return aaxProcessingType(aaxGetByName(s, AAX_PROCESSING_NAME));
 }
 
-inline char* processing_type(enum aaxProcessingType type) {
-    return aaxGetStringByType(type, AAX_PROCESSING_NAME);
+inline std::string processing_type(enum aaxProcessingType type) {
+    char *s = aaxGetStringByType(type, AAX_PROCESSING_NAME);
+    std::string rv = s;
+    aaxFree(s);
+    return rv;
 }
 
 inline enum aaxMIDIModulationMode modulation_type(const char *s) {
     return aaxMIDIModulationMode(aaxGetByName(s, AAX_MODULATION_NAME));
 }
 
-inline char* modulation_type(int type) {
-    return aaxGetStringByType(type, AAX_MODULATION_NAME);
+inline std::string modulation_type(int type) {
+    char *s = aaxGetStringByType(type, AAX_MODULATION_NAME);
+    std::string rv = s;
+    aaxFree(s);
+    return rv;
 }
 
 inline enum aaxSourceType frequency_filter_type(const char *s) {
     return aaxSourceType(aaxGetByName(s, AAX_FREQUENCY_FILTER_NAME));
 }
 
-inline char* frequency_filter_type(int type) {
-    return aaxGetStringByType(type, AAX_FREQUENCY_FILTER_NAME);
+inline std::string frequency_filter_type(int type) {
+    char *s = aaxGetStringByType(type, AAX_FREQUENCY_FILTER_NAME);
+    std::string rv = s;
+    aaxFree(s);
+    return rv;
 }
 
 inline enum aaxDistanceModel distance_model(const char *s) {
     return aaxDistanceModel(aaxGetByName(s, AAX_DISTANCE_MODEL_NAME));
 }
 
-inline char* distance_model(int type) {
-    return aaxGetStringByType(type, AAX_DISTANCE_MODEL_NAME);
+inline std::string distance_model(int type) {
+    char *s = aaxGetStringByType(type, AAX_DISTANCE_MODEL_NAME);
+    std::string rv = s;
+    aaxFree(s);
+    return rv;
 }
 
 
