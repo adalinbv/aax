@@ -116,6 +116,10 @@ inline enum aaxProcessingType processing_type(const char *s) {
     return aaxProcessingType(aaxGetByName(s, AAX_PROCESSING_NAME));
 }
 
+inline char* processing_type(enum aaxProcessingType type) {
+    return aaxGetStringByType(type, AAX_PROCESSING_NAME);
+}
+
 inline enum aaxMIDIModulationMode modulation_type(const char *s) {
     return aaxMIDIModulationMode(aaxGetByName(s, AAX_MODULATION_NAME));
 }
