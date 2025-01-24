@@ -669,10 +669,34 @@ _aaxGetMIDIModulationTypeByName(const char *mod)
 }
 
 static char*
+_aaxGetProcessingNameByType(enum aaxProcessingType type)
+{
+   char rv[32];
+   int l = 32;
+   char *p = rv;
+   char m = 0;
+
+   if (type == AAX_OVERWRITE) {
+      SRC_ADD(p, l, m, "overwrite");
+   } else if (type == AAX_ADD) {
+      SRC_ADD(p, l, m, "add");
+   } else if (type == AAX_MIX) {
+      SRC_ADD(p, l, m, "mix");
+   } else if (type == AAX_RINGMODULATE) {
+      SRC_ADD(p, l, m, "modulate");
+   } else if (type == AAX_APPEND) {
+      SRC_ADD(p, l, m, "append");
+   }
+
+   if (!strcmp(rv, "none")) return NULL;
+   return strdup(rv);
+}
+
+static char*
 aaxGetMIDIModulationNameByType(enum aaxMIDIModulationMode mode)
 {
-   char rv[1024] = "none";
-   int l = 1024;
+   char rv[32] = "none";
+   int l = 32;
    char *p = rv;
    char m = 0;
 
@@ -935,8 +959,8 @@ _aaxGetSourceNameByType(enum aaxSourceType type, enum aaxTypeName name)
 {
    enum aaxSourceType ntype = type & AAX_NOISE_MASK;
    enum aaxSourceType stype = type & AAX_WAVEFORM_MASK;
-   char rv[1024] = "none";
-   int l = 1024;
+   char rv[64] = "none";
+   int l = 64;
    char *p = rv;
    char m = 0;
    int order;
@@ -1647,6 +1671,9 @@ aaxGetStringByType(int type, enum aaxTypeName name)
          break;
       }
       break;
+   case AAX_PROCESSING_NAME:
+      rv = _aaxGetProcessingNameByType(type);
+      break;
    case AAX_MODULATION_NAME:
       rv = aaxGetMIDIModulationNameByType(type);
       break;
@@ -1654,7 +1681,7 @@ aaxGetStringByType(int type, enum aaxTypeName name)
       break;
    }
 
-   return rv ? strdup(rv) : rv;
+   return rv;
 }
 
 /* -------------------------------------------------------------------------- */
