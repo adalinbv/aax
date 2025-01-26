@@ -19,7 +19,7 @@
 #include <utility>
 #include <memory>
 #include <vector>
-#include <cstring>	// strstr
+#include <string_view>
 
 #include <aax/matrix>
 #include <aax/aax.h>
@@ -72,72 +72,72 @@ inline const char* strerror(enum aaxErrorType e=error_no()) {
     return aaxGetErrorString(e);
 }
 
-inline enum aaxType type(const char *s, enum aaxTypeName type) {
-    return aaxType(aaxGetByName(s, type));
+inline enum aaxType type(std::string_view s, enum aaxTypeName type) {
+    return aaxType(aaxGetByName(s.data(), type));
 }
 
 inline char* type(int type, enum aaxTypeName name) {
     return aaxGetStringByType(type, name);
 }
 
-inline enum aaxType type(const char *s) {
-    return aaxType(aaxGetByName(s, AAX_TYPE_NAME));
+inline enum aaxType type(std::string_view s) {
+    return aaxType(aaxGetByName(s.data(), AAX_TYPE_NAME));
 }
 
 inline char* type(int type) {
     return aaxGetStringByType(type, AAX_TYPE_NAME);
 }
 
-inline enum aaxSourceType source_type(const char *s) {
-    return aaxSourceType(aaxGetByName(s, AAX_SOURCE_NAME));
+inline enum aaxSourceType source_type(std::string_view s) {
+    return aaxSourceType(aaxGetByName(s.data(), AAX_SOURCE_NAME));
 }
 
 inline char* source_type(int type) {
     return aaxGetStringByType(type, AAX_SOURCE_NAME);
 }
 
-inline enum aaxSourceType filter_type(const char *s) {
-    return aaxSourceType(aaxGetByName(s, AAX_FILTER_NAME));
+inline enum aaxSourceType filter_type(std::string_view s) {
+    return aaxSourceType(aaxGetByName(s.data(), AAX_FILTER_NAME));
 }
 
 inline char* filter_type(int type) {
     return aaxGetStringByType(type, AAX_FILTER_NAME);
 }
 
-inline enum aaxSourceType effect_type(const char *s) {
-    return aaxSourceType(aaxGetByName(s, AAX_EFFECT_NAME));
+inline enum aaxSourceType effect_type(std::string_view s) {
+    return aaxSourceType(aaxGetByName(s.data(), AAX_EFFECT_NAME));
 }
 
 inline char* effect_type(int type) {
     return aaxGetStringByType(type, AAX_EFFECT_NAME);
 }
 
-inline enum aaxProcessingType processing_type(const char *s) {
-    return aaxProcessingType(aaxGetByName(s, AAX_PROCESSING_NAME));
+inline enum aaxProcessingType processing_type(std::string_view s) {
+    return aaxProcessingType(aaxGetByName(s.data(), AAX_PROCESSING_NAME));
 }
 
 inline char* processing_type(enum aaxProcessingType type) {
     return aaxGetStringByType(type, AAX_PROCESSING_NAME);
 }
 
-inline enum aaxMIDIModulationMode modulation_type(const char *s) {
-    return aaxMIDIModulationMode(aaxGetByName(s, AAX_MODULATION_NAME));
+inline enum aaxMIDIModulationMode modulation_type(std::string_view s) {
+    return aaxMIDIModulationMode(aaxGetByName(s.data(), AAX_MODULATION_NAME));
 }
 
 inline char* modulation_type(int type) {
     return aaxGetStringByType(type, AAX_MODULATION_NAME);
 }
 
-inline enum aaxSourceType frequency_filter_type(const char *s) {
-    return aaxSourceType(aaxGetByName(s, AAX_FREQUENCY_FILTER_NAME));
+inline enum aaxSourceType frequency_filter_type(std::string_view s) {
+    return aaxSourceType(aaxGetByName(s.data(), AAX_FREQUENCY_FILTER_NAME));
 }
 
 inline char* frequency_filter_type(int type) {
     return aaxGetStringByType(type, AAX_FREQUENCY_FILTER_NAME);
 }
 
-inline enum aaxDistanceModel distance_model(const char *s) {
-    return aaxDistanceModel(aaxGetByName(s, AAX_DISTANCE_MODEL_NAME));
+inline enum aaxDistanceModel distance_model(std::string_view s) {
+    return aaxDistanceModel(aaxGetByName(s.data(), AAX_DISTANCE_MODEL_NAME));
 }
 
 inline char* distance_model(int type) {
@@ -447,15 +447,15 @@ public:
           frequency(get(AAX_BASE_FREQUENCY)), fraction(getf(AAX_PITCH_FRACTION))
     {}
 
-    Buffer(aaxConfig c, const std::string& n, bool o=true, bool s=false)
+    Buffer(aaxConfig c, const std::string_view n, bool o=true, bool s=false)
     {
         name = n;
-        ptr = aaxBufferReadFromStream(c, n.c_str());
+        ptr = aaxBufferReadFromStream(c, n.data());
         if (!ptr) { aaxGetErrorNo();
-            ptr = aaxBufferReadFromStream(c, aaxs_file(c, n.c_str()).c_str());
+            ptr = aaxBufferReadFromStream(c, aaxs_file(c, n.data()).data());
         }
         if (!ptr) { aaxGetErrorNo();
-            ptr = aaxBufferReadFromStream(c, preset_file(c, n.c_str()).c_str());
+            ptr = aaxBufferReadFromStream(c, preset_file(c, n.data()).data());
         }
         if (!ptr && !s) { aaxGetErrorNo();
             ptr = aaxBufferCreate(c , 1, 1, AAX_PCM16S);
@@ -464,9 +464,6 @@ public:
             closefn = aaxBufferDestroy;
         }
     }
-
-    Buffer(aaxConfig c, const char *name, bool o=true, bool s=false)
-        : Buffer(c, std::string(name), o, s) {}
 
     Buffer(const Buffer&) = default;
     Buffer(Buffer&&) = default;
@@ -510,13 +507,13 @@ public:
     bool is_valid() { return !!closefn; }
 
 private:
-    std::string preset_file(aaxConfig c, const char* name) {
+    std::string preset_file(aaxConfig c, std::string_view same) {
         std::string rv = aaxDriverGetSetup(c, AAX_SHARED_DATA_DIR);
         rv.append("/"); rv.append(name);
         return rv;
     }
 
-    std::string aaxs_file(aaxConfig c, const char* name) {
+    std::string aaxs_file(aaxConfig c, std::string_view name) {
         std::string rv = aaxDriverGetSetup(c, AAX_SHARED_DATA_DIR);
         rv.append("/"); rv.append(name); rv.append(".aaxs");
         return rv;
@@ -750,8 +747,8 @@ public:
     explicit Sensor(const char* n, enum aaxRenderMode m=AAX_MODE_READ)
         : Sensor(aaxDriverOpenByName(n, m)) {}
 
-    explicit Sensor(const std::string& s, enum aaxRenderMode m=AAX_MODE_READ)
-        : Sensor(s.empty() ? nullptr : s.c_str(), m) {}
+    explicit Sensor(const std::string_view s, enum aaxRenderMode m=AAX_MODE_READ)
+        : Sensor(s.empty() ? nullptr : s.data(), m) {}
 
     Sensor(const Sensor&) = delete;
     Sensor(Sensor&&) = default;
@@ -787,8 +784,8 @@ public:
     bool get(enum aaxRenderMode m) {
         return aaxDriverGetSupport(ptr, m);
     }
-    bool set(enum aaxSetupType t, const char* s) {
-        return aaxDriverSetSetup(ptr, t, s);
+    bool set(enum aaxSetupType t, std::string_view s) {
+        return aaxDriverSetSetup(ptr, t, s.data());
     }
     const char* info(enum aaxSetupType t) {
         return aaxDriverGetSetup(ptr, t);
@@ -809,8 +806,8 @@ public:
         return aaxIsFilterSupported(ptr, fe) ? true
                                             : aaxIsEffectSupported(ptr, fe);
     }
-    bool supports(const std::string& s) {
-        return supports(s.c_str());
+    bool supports(const std::string_view s) {
+        return supports(s.data());
     }
 
     // ** filters and effects ******
@@ -884,8 +881,8 @@ public:
     const char* interface_name(const char* d, unsigned i) {
         return aaxDriverGetInterfaceNameByPos(ptr, d, i, mode);
     }
-    const char* interface_name(const std::string& d, unsigned i) {
-        return aaxDriverGetInterfaceNameByPos(ptr, d.c_str(), i, mode);
+    const char* interface_name(const std::string_view d, unsigned i) {
+        return aaxDriverGetInterfaceNameByPos(ptr, d.data(), i, mode);
     }
 
     // ** support ******
@@ -1152,8 +1149,8 @@ public:
    explicit AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
         : Sensor(n, m) {}
 
-    explicit AeonWave(const std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
-        : AeonWave(s.empty() ? nullptr : s.c_str(), m) {}
+    explicit AeonWave(const std::string_view s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
+        : AeonWave(s.empty() ? nullptr : s.data(), m) {}
 
     explicit AeonWave(enum aaxRenderMode m)
         : Sensor(nullptr, m) {}
@@ -1256,7 +1253,8 @@ public:
     // The name can be an URL or a path to a file or just a reference-id.
     // In the case of an URL or a path the data is read automatically,
     // otherwise the application should add the audio-data itself.
-    virtual Buffer& buffer(const std::string name, bool strict=false) {
+    virtual Buffer& buffer(const std::string_view n, bool strict=false) {
+        std::string name(n);
         auto it = buffers.find(name);
         if (it == buffers.end()) {
             SharedBufferPtr buf(new Buffer(ptr, name, false, strict));
@@ -1276,9 +1274,9 @@ public:
             }
         }
     }
-    virtual bool buffer_avail(const std::string &name) {
+    virtual bool buffer_avail(const std::string_view name) {
         bool rv = false;
-        auto it = buffers.find(name);
+        auto it = buffers.find(std::string(name));
         if (it != buffers.end()) rv = true;
         return rv;
     }
@@ -1289,8 +1287,8 @@ public:
 
     // ** handles for a single background music stream ******
     // The name can be an URL or a path to a file.
-    bool playback(const std::string name) {
-        const std::string devname = std::string("AeonWave on Audio Files: ")+name;
+    bool playback(const std::string_view name) {
+        const std::string devname = std::string("AeonWave on Audio Files: ")+std::string(name);
         play = Sensor(devname, AAX_MODE_READ);
         return add(play) ? (play.set(AAX_INITIALIZED) ? play.sensor(AAX_CAPTURING) : false) : false;
     }
