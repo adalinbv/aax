@@ -8,7 +8,7 @@ if(HAVE_LIBM)
 endif(HAVE_LIBM)
 
 FUNCTION(CREATE_CPP_TEST TEST_NAME)
-  set_property(SOURCE ${TEST_NAME} APPEND PROPERTY COMPILE_FLAGS "-std=c++11")
+  set_property(SOURCE ${TEST_NAME} APPEND PROPERTY COMPILE_FLAGS "-std=c++17")
   add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
   target_link_libraries(${TEST_NAME} ${LIBAEONWAVE}-static ${EXTRA_LIBS})
   add_test(${TEST_NAME} ${EXECUTABLE_OUTPUT_PATH}/${TEST_NAME})
