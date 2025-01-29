@@ -71,7 +71,7 @@ protected:
 class SoundSource : public SimpleParams
 {
 public:
-    SoundSource(AeonWave& m, std::string& file) : aax(m) {
+    SoundSource(AeonWave& m, std::string_view file) : aax(m) {
         emitter.tie(pitch, AAX_PITCH_EFFECT, AAX_PITCH);
         emitter.tie(volume, AAX_VOLUME_FILTER, AAX_GAIN);
         if (!file.empty()) {
@@ -120,7 +120,7 @@ private:
 class SimpleMixer : public SimpleParams
 {
 public:
-    SimpleMixer(const std::string d="",
+    SimpleMixer(const std::string_view d="",
                 enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) : aax(d, m)
     {
         aax.tie(pitch, AAX_PITCH_EFFECT, AAX_PITCH);
