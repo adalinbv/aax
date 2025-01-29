@@ -6,4 +6,6 @@ if(pybind11_FOUND)
   target_link_libraries(aeonwave PRIVATE pybind11::module aax)
   install(TARGETS aeonwave
           LIBRARY DESTINATION ${Python3_SITELIB} COMPONENT Libraries)
+else()
+  message(AUTHOR_WARNING "pybind11 not found: the python bindings will not be build.")
 endif()
