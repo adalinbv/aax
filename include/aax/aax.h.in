@@ -618,7 +618,7 @@ enum aaxParameter {	/* Filter & Effect parameter number definitions */
 
 enum aaxSourceType
 {
-   AAX_INVERSE               = 0x80000000,	AAX_REVERSE = AAX_INVERSE,
+   AAX_INVERSE               = 0x80000000,
    AAX_LFO_STEREO            = 0x40000000,
    AAX_LFO_EXPONENTIAL       = 0x20000000, /* logarithmic or exponential      */
 
@@ -628,6 +628,8 @@ enum aaxSourceType
    AAX_EFFECT_2ND_ORDER      = 0x00200000,
    AAX_EFFECT_1ST_ORDER      = 0x00100000,
    AAX_EFFECT_ORDER_MASK     = (AAX_EFFECT_1ST_ORDER | AAX_EFFECT_2ND_ORDER),
+   /* timed gain and timed layer filter or timed pitch effect  */
+   AAX_REVERSE               = 0x00800000,
    /* timed gain filter */
    AAX_RELEASE_FACTOR        = 0x00200000, /* same as AAX_MIDI_RELEASE_FACTOR */
    AAX_REPEAT                = 0x00100000,

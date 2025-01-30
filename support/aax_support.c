@@ -772,14 +772,12 @@ _aaxGetSourceTypeByName(const char *wave, bool timed)
                len -= invlen;
                rv |= AAX_INVERSE;
             }
-
-            invlen = strlen("reverse");
-            if (!strncasecmp(name, "reverse", invlen) &&
+            else if (!strncasecmp(name, "reverse", invlen) &&
                 (len > ++invlen))
             {
                name += invlen;
                len -= invlen;
-               rv |= AAX_REVERSE;
+               rv |= AAX_INVERSE|AAX_REVERSE;
             }
 
             invlen = strlen("pure");
@@ -824,7 +822,8 @@ _aaxGetSourceTypeByName(const char *wave, bool timed)
                else rv |= AAX_ENVELOPE_FOLLOW;
             } else if (!strncasecmp(name, "logarithmic", len) ||
                        !strncasecmp(name, "log", len)) {
-               rv |= AAX_LOGARITHMIC_CURVE|AAX_LFO_EXPONENTIAL;
+               rv |= AAX_LFO_EXPONENTIAL;
+               if (timed) rv |= AAX_LOGARITHMIC_CURVE;
             } else if (!strncasecmp(name, "square-root", len) ||
                        !strncasecmp(name, "sqrt", len)) {
                rv |= AAX_SQUARE_ROOT_CURVE;
@@ -845,7 +844,7 @@ _aaxGetSourceTypeByName(const char *wave, bool timed)
             } else if (!strncasecmp(name, "inverse", len)) {
                rv |= AAX_CONSTANT|AAX_INVERSE;
             } else if (!strncasecmp(name, "reverse", len)) {
-               rv |= AAX_CONSTANT|AAX_REVERSE;
+               rv |= AAX_CONSTANT|AAX_INVERSE|AAX_REVERSE;
             /* reverb */
             } else if (!strncasecmp(name, "empty", len)) {
                rv |= AAX_EMPTY_ROOM;
@@ -965,11 +964,10 @@ _aaxGetSourceNameByType(enum aaxSourceType type, enum aaxTypeName name)
    char m = 0;
    int order;
 
-   if (type & AAX_INVERSE) {
-      SRC_ADD(p, l, m, "inverse-");
-   }
-   if (type & AAX_REVERSE) {
+   if ((type & (AAX_INVERSE|AAX_REVERSE)) == (AAX_INVERSE|AAX_REVERSE)) {
       SRC_ADD(p, l, m, "reverse-");
+   } else if (type & AAX_INVERSE) {
+      SRC_ADD(p, l, m, "inverse-");
    }
 
    if (type & AAX_PURE_WAVEFORM) {
