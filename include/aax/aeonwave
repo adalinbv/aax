@@ -128,6 +128,14 @@ inline char* modulation_type(int type) {
     return aaxGetStringByType(type, AAX_MODULATION_NAME);
 }
 
+inline enum aaxSourceType delay_type(std::string_view s) {
+    return aaxSourceType(aaxGetByName(s.data(), AAX_DELAY_EFFECT_NAME));
+}
+
+inline char* delay_type(int type) {
+    return aaxGetStringByType(type, AAX_DELAY_EFFECT_NAME);
+}
+
 inline enum aaxSourceType frequency_filter_type(std::string_view s) {
     return aaxSourceType(aaxGetByName(s.data(), AAX_FREQUENCY_FILTER_NAME));
 }
@@ -156,9 +164,12 @@ inline void free(void *ptr) {
 namespace str
 {
 inline std::string to_string(char *s) {
-    std::string rv = s;
-    aaxFree(s);
-    return rv;
+    if (s) {
+        std::string rv = s;
+        aaxFree(s);
+        return rv;
+    }
+    else return "";
 }
 
 inline std::string type(int type, enum aaxTypeName name) {
@@ -187,6 +198,10 @@ inline std::string processing_type(enum aaxProcessingType type) {
 
 inline std::string modulation_type(int type) {
     return to_string(aaxGetStringByType(type, AAX_MODULATION_NAME));
+}
+
+inline std::string delay_type(int type) {
+    return to_string(aaxGetStringByType(type, AAX_DELAY_EFFECT_NAME));
 }
 
 inline std::string frequency_filter_type(int type) {
