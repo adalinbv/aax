@@ -161,7 +161,7 @@ inline void free(void *ptr) {
     aaxFree(ptr);
 }
 
-namespace str
+namespace string
 {
 inline std::string to_string(char *s) {
     if (s) {
