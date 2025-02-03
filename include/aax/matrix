@@ -77,28 +77,28 @@ public:
         std::fill(_v, _v+4, f); _v4 = true;
     }
 
-    T magnitude2() {
+    T magnitude2() const {
         return dot_product(*this);
     }
-    T magnitude() {
+    T magnitude() const {
         return std::sqrt(dot_product(*this));
     }
-    T normalize() {
+    T normalize() const {
         float m = magnitude();
         if (m) *this /= m;
         else *this = 0;
         return m;
     }
-    VecBase normalized() {
+    VecBase normalized() const {
         VecBase r(_v); r.normalize();
         return r;
     }
-    T dot_product(const VecBase& v) {
+    T dot_product(const VecBase& v) const {
         T d = _v[0]*v[0] + _v[1]*v[1] + _v[2]*v[2];
         if (_v4) d += _v[3]*v[3];
         return d;
     }
-    VecBase cross_product(const VecBase& v2) {
+    VecBase cross_product(const VecBase& v2) const {
         VecBase r;
         if (_v4 == false) {
             r[0] = _v[1]*v2[2] - _v[2]*v2[1];
@@ -256,16 +256,16 @@ public:
     virtual ~MtxBase() = default;
 
     // ** support ******
-    bool operator==(MtxBase<T>& m) {
+    bool operator==(MtxBase<T>& m) const {
         return mtxcmp(m);
     }
-    bool operator==(const MT& m) {
+    bool operator==(const MT& m) const {
         return mtxcmp(m);
     }
-    bool operator!=(MtxBase<T>& m) {
+    bool operator!=(MtxBase<T>& m) const {
         return ~mtxcmp(m);
     }
-    bool operator!=(const MT& m) {
+    bool operator!=(const MT& m) const {
         return ~mtxcmp(m);
     }
     operator const MT&() const {
@@ -291,7 +291,7 @@ protected:
     MT _m;
 
 private:
-    bool mtxcmp(MtxBase<T>& mtx) {
+    bool mtxcmp(MtxBase<T>& mtx) const {
         const MT& m = mtx;
         T eps = std::numeric_limits<T>::epsilon();
         for(unsigned i=0; i<4; ++i) {
@@ -444,7 +444,7 @@ private:
         if (v.is_v4()) std::copy(v+0, v+4, _m[p]);
         else std::copy(v+0, v+3, _m[p]);
     }
-    void get(unsigned p, aaxVec3d& v) {
+    void get(unsigned p, aaxVec3d& v) const {
         std::copy(_m[p], _m[p]+4, v+0);
     }
 };
