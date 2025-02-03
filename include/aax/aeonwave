@@ -324,8 +324,8 @@ public:
     }
     void untie() { tied = false; }
 
-    int type() { return dsptype.eftype; }
-    bool is_filter() { return filter; }
+    int type() const { return dsptype.eftype; }
+    bool is_filter() const { return filter; }
 
 protected:
     void fire() {
@@ -472,7 +472,7 @@ public:
         return ptr;
     }
 
-    explicit operator bool() {
+    explicit operator bool() const {
         return !!ptr;
     }
 
@@ -541,16 +541,16 @@ public:
 //  bool set(enum aaxSetupType t, float s) {
 //      return aaxBufferSetSetup(ptr, t, AAX_TO_INT(s));
 //  }
-    int64_t get(enum aaxSetupType t) {
+    int64_t get(enum aaxSetupType t) const {
         return aaxBufferGetSetup(ptr, t);
     }
-    float getf(enum aaxSetupType t) {
+    float getf(enum aaxSetupType t) const {
         return AAX_TO_FLOAT(aaxBufferGetSetup(ptr, t));
     }
     bool fill(const void* d) {
         return aaxBufferSetData(ptr, d);
     }
-    void** data() {
+    void** data() const {
         return aaxBufferGetData(ptr);
     }
 
@@ -562,9 +562,9 @@ public:
         return freq/frequency;
     }
 
-    const std::string& get_name() { return name; }
+    const std::string& get_name() const { return name; }
 
-    bool is_valid() { return !!closefn; }
+    bool is_valid() const { return !!closefn; }
 
 private:
     std::string preset_file(aaxConfig c, std::string_view same) {
@@ -627,7 +627,7 @@ public:
         return (filter) ? aaxFilterSetState(ptr, s) : aaxEffectSetState(ptr, s);
     }
 
-    int64_t state() {
+    int64_t state() const {
         return (filter) ? aaxFilterGetState(ptr) : aaxEffectGetState(ptr);
     }
 
@@ -635,7 +635,7 @@ public:
         return (filter) ? aaxFilterSetSlot(ptr, s, t, p1, p2, p3, p4)
                         : aaxEffectSetSlot(ptr, s, t, p1, p2, p3, p4);
     }
-    bool get(unsigned s, float* p1, float* p2, float* p3, float* p4, enum aaxType t=AAX_LINEAR) {
+    bool get(unsigned s, float* p1, float* p2, float* p3, float* p4, enum aaxType t=AAX_LINEAR) const {
         return (filter) ? aaxFilterGetSlot(ptr, s, t, p1, p2, p3, p4)
                         : aaxEffectGetSlot(ptr, s, t, p1, p2, p3, p4);
     }
@@ -643,11 +643,11 @@ public:
         return (filter) ? aaxFilterSetSlotParams(ptr, s, t, v)
                         : aaxEffectSetSlotParams(ptr, s, t, v);
     }
-    bool set(unsigned s, aaxVec4f v, enum aaxType t=AAX_LINEAR) {
+    bool set(unsigned s, aaxVec4f v, enum aaxType t=AAX_LINEAR) const {
         return (filter) ? aaxFilterSetSlotParams(ptr, s, t, v)
                         : aaxEffectSetSlotParams(ptr, s, t, v);
     }
-    bool get(unsigned s, aaxVec4f v, enum aaxType t=AAX_LINEAR) {
+    bool get(unsigned s, aaxVec4f v, enum aaxType t=AAX_LINEAR) const {
         return (filter) ? aaxFilterGetSlotParams(ptr, s, t, v)
                         : aaxEffectGetSlotParams(ptr, s, t, v);
     }
@@ -655,14 +655,14 @@ public:
         return (filter) ? aaxFilterSetParam(ptr, p, t, v)
                         : aaxEffectSetParam(ptr, p, t, v);
     }
-    float get(enum aaxParameter p, enum aaxType t=AAX_LINEAR) {
+    float get(enum aaxParameter p, enum aaxType t=AAX_LINEAR) const {
         return (filter) ? aaxFilterGetParam(ptr, p, t)
                         : aaxEffectGetParam(ptr, p, t);
     }
 
     // ** support ******
-    int type() { return dsptype.eftype; }
-    bool is_filter() { return filter; }
+    int type() const { return dsptype.eftype; }
+    bool is_filter() const { return filter; }
 
 private:
     bool filter = true;
@@ -692,7 +692,7 @@ public:
     bool set(enum aaxModeType t, int m) {
         return aaxEmitterSetMode(ptr, t, m);
     }
-    int get(enum aaxModeType t) {
+    int get(enum aaxModeType t) const {
         return aaxEmitterGetMode(ptr, t);
     }
     bool set(enum aaxSetupType t, int64_t s) {
@@ -701,16 +701,16 @@ public:
 //  bool set(enum aaxSetupType t, float s) {
 //      return aaxEmitterSetSetup(ptr, t, AAX_TO_INT(s));
 //  }
-    int64_t get(enum aaxSetupType t) {
+    int64_t get(enum aaxSetupType t) const {
         return aaxEmitterGetSetup(ptr, t);
     }
-    float getf(enum aaxSetupType t) {
+    float getf(enum aaxSetupType t) const {
         return AAX_TO_FLOAT(aaxEmitterGetSetup(ptr, t));
     }
     bool set(enum aaxState s) {
         return aaxEmitterSetState(ptr, s);
     }
-    enum aaxState state() {
+    enum aaxState state() const {
         return aaxState(aaxEmitterGetState(ptr));
     }
 
@@ -719,10 +719,10 @@ public:
         return dsp.is_filter() ? aaxEmitterSetFilter(ptr, dsp)
                                : aaxEmitterSetEffect(ptr, dsp);
     }
-    dsp get(enum aaxFilterType f) {
+    dsp get(enum aaxFilterType f) const {
         return dsp(aaxEmitterGetFilter(ptr, f), f);
     }
-    dsp get(enum aaxEffectType e) {
+    dsp get(enum aaxEffectType e) const {
         return dsp(aaxEmitterGetEffect(ptr, e), e);
     }
 
@@ -741,13 +741,13 @@ public:
     bool matrix(Matrix64& m) {
         return aaxEmitterSetMatrix64(ptr, m);
     }
-    bool get(Matrix64& m) {
+    bool get(Matrix64& m) const {
         return aaxEmitterGetMatrix64(ptr, m);
     }
     bool velocity(Vector& v) {
         return aaxEmitterSetVelocity(ptr, v);
     }
-    bool get(Vector& v) {
+    bool get(Vector& v) const {
         return aaxEmitterGetVelocity(ptr, v);
     }
 
@@ -758,10 +758,10 @@ public:
     bool remove_buffer() {
         return aaxEmitterRemoveBuffer(ptr);
     }
-    Buffer get(unsigned int p, bool c=false) {
+    Buffer get(unsigned int p, bool c=false) const {
         return Buffer(aaxEmitterGetBufferByPos(ptr, p, c), !c);
     }
-    unsigned int get(enum aaxState s) {
+    unsigned int get(enum aaxState s) const {
         return aaxEmitterGetNoBuffers(ptr, s);
     }
     bool offset(unsigned long o, enum aaxType t) {
@@ -770,10 +770,10 @@ public:
     bool offset(float o) {
         return aaxEmitterSetOffsetSec(ptr, o);
     }
-    size_t offset(enum aaxType t) {
+    size_t offset(enum aaxType t) const {
         return aaxEmitterGetOffset(ptr, t);
     }
-    float offset() {
+    float offset() const {
         return aaxEmitterGetOffsetSec(ptr);
     }
 private:
@@ -816,7 +816,7 @@ public:
     Sensor& operator=(const Sensor&) = delete;
     Sensor& operator=(Sensor&&) = default;
 
-    int render_mode() {
+    int render_mode() const {
         return aaxMixerGetMode(ptr, aaxModeType(0));
     }
 
@@ -826,7 +826,7 @@ public:
 //  bool set(enum aaxSetupType t, float s) {
 //      return aaxMixerSetSetup(ptr, t, AAX_TO_INT(s));
 //  }
-    int64_t get(enum aaxSetupType t) {
+    int64_t get(enum aaxSetupType t) const {
         return aaxMixerGetSetup(ptr, t);
     }
     float getf(enum aaxSetupType t) {
@@ -836,37 +836,37 @@ public:
     bool set(enum aaxState s) {
         return aaxMixerSetState(ptr, s);
     }
-    enum aaxState state() {
+    enum aaxState state() const {
         return aaxState(aaxMixerGetState(ptr));
     }
 
     // ** driver ******
-    bool get(enum aaxRenderMode m) {
+    bool get(enum aaxRenderMode m) const {
         return aaxDriverGetSupport(ptr, m);
     }
     bool set(enum aaxSetupType t, std::string_view s) {
         return aaxDriverSetSetup(ptr, t, s.data());
     }
-    const char* info(enum aaxSetupType t) {
+    const char* info(enum aaxSetupType t) const {
         return aaxDriverGetSetup(ptr, t);
     }
-    const char* info(enum aaxFilterType f) {
+    const char* info(enum aaxFilterType f) const {
         return aaxFilterGetNameByType(ptr, f);
     }
-    const char* info(enum aaxEffectType e) {
+    const char* info(enum aaxEffectType e) const {
         return aaxEffectGetNameByType(ptr, e);
     }
-    bool supports(enum aaxFilterType f) {
+    bool supports(enum aaxFilterType f) const {
         return aaxIsFilterSupported(ptr, aaxFilterGetNameByType(ptr, f));
     }
-    bool supports(enum aaxEffectType e) {
+    bool supports(enum aaxEffectType e) const {
         return aaxIsEffectSupported(ptr, aaxEffectGetNameByType(ptr, e));
     }
-    bool supports(const char* fe) {
+    bool supports(const char* fe) const {
         return aaxIsFilterSupported(ptr, fe) ? true
                                             : aaxIsEffectSupported(ptr, fe);
     }
-    bool supports(const std::string_view s) {
+    bool supports(const std::string_view s) const {
         return supports(s.data());
     }
 
@@ -875,11 +875,11 @@ public:
         return dsp.is_filter() ? aaxMixerSetFilter(ptr, dsp)
                                : aaxMixerSetEffect(ptr, dsp);
     }
-    dsp get(enum aaxFilterType t) {
+    dsp get(enum aaxFilterType t) const {
         aaxFilter f = aaxMixerGetFilter(ptr, t);
         return dsp(f, t);
     }
-    dsp get(enum aaxEffectType t) {
+    dsp get(enum aaxEffectType t) const {
         aaxEffect e = aaxMixerGetEffect(ptr, t);
         return dsp(e, t);
     }
@@ -899,13 +899,13 @@ public:
     bool matrix(Matrix64& m) {
         return aaxSensorSetMatrix64(ptr, m);
     }
-    bool get(Matrix64& m) {
+    bool get(Matrix64& m) const {
         return aaxSensorGetMatrix64(ptr, m);
     }
     bool velocity(Vector& v) {
         return aaxSensorSetVelocity(ptr, v);
     }
-    bool get(Vector& v) {
+    bool get(Vector& v) const {
         return aaxSensorGetVelocity(ptr, v);
     }
     bool sensor(enum aaxState s) {
@@ -920,44 +920,44 @@ public:
     }
 
     // ** buffer handling ******
-    bool wait(float t) {
+    bool wait(float t) const {
         return aaxSensorWaitForBuffer(ptr, t);
     }
-    Buffer buffer() {
+    Buffer buffer() const {
         return Buffer(aaxSensorGetBuffer(ptr));
     }
-    Buffer get_buffer() {
+    Buffer get_buffer() const {
         return Buffer(aaxSensorGetBuffer(ptr));
     }
 
     // ** enumeration ******
-    const char* device(unsigned d) {
+    const char* device(unsigned d) const {
         return aaxDriverGetDeviceNameByPos(ptr, d, mode);
     }
-    const char* interface_name(int d, unsigned i) {
+    const char* interface_name(int d, unsigned i) const {
         const char* ed = device(d);
         return aaxDriverGetInterfaceNameByPos(ptr, ed, i, mode);
     }
-    const char* interface_name(const char* d, unsigned i) {
+    const char* interface_name(const char* d, unsigned i) const {
         return aaxDriverGetInterfaceNameByPos(ptr, d, i, mode);
     }
-    const char* interface_name(const std::string_view d, unsigned i) {
+    const char* interface_name(const std::string_view d, unsigned i) const {
         return aaxDriverGetInterfaceNameByPos(ptr, d.data(), i, mode);
     }
 
     // ** support ******
-    const char* version() {
+    const char* version() const {
         return aaxGetString(AAX_VERSION_STRING);
     }
 
-    enum aaxErrorType error_no() {
+    enum aaxErrorType error_no() const {
         return aaxDriverGetErrorNo(ptr);
     }
-     const char* strerror() {
+     const char* strerror() const {
         return aaxGetErrorString(error_no());
     }
 
-    size_t offset(enum aaxType t) {
+    size_t offset(enum aaxType t) const {
         return aaxSensorGetOffset(ptr, t);
     }
 
@@ -978,7 +978,7 @@ private:
     static bool set_filter(void* c, aaxFilter f) {
         return aaxMixerSetFilter((aaxConfig)c, f);
     }
-    static aaxFilter get_filter(void* c, enum aaxFilterType f)  {
+    static aaxFilter get_filter(void* c, enum aaxFilterType f) {
         return aaxMixerGetFilter((aaxConfig)c, f);
     }
     static bool set_effect(void* c, aaxEffect e) {
@@ -1023,23 +1023,23 @@ public:
 //  bool set(enum aaxSetupType t, float s) {
 //      return aaxAudioFrameSetSetup(ptr, t, AAX_TO_INT(s));
 //  }
-    int64_t get(enum aaxSetupType t) {
+    int64_t get(enum aaxSetupType t) const {
         return aaxAudioFrameGetSetup(ptr, t);
     }
-    float getf(enum aaxSetupType t) {
+    float getf(enum aaxSetupType t) const {
         return AAX_TO_FLOAT(aaxAudioFrameGetSetup(ptr, t));
     }
 
     bool set(enum aaxState s) {
         return aaxAudioFrameSetState(ptr, s);
     }
-    enum aaxState state() {
+    enum aaxState state() const {
         return aaxState(aaxAudioFrameGetState(ptr));
     }
     bool set(enum aaxModeType t, int m) {
         return aaxAudioFrameSetMode(ptr, t, m);
     }
-    int get(enum aaxModeType t) {
+    int get(enum aaxModeType t) const {
         return aaxAudioFrameGetMode(ptr, t);
     }
 
@@ -1055,10 +1055,10 @@ public:
         return dsp.is_filter() ? aaxAudioFrameSetFilter(ptr, dsp)
                                : aaxAudioFrameSetEffect(ptr, dsp);
     }
-    dsp get(enum aaxFilterType t) {
+    dsp get(enum aaxFilterType t) const {
         return dsp(aaxAudioFrameGetFilter(ptr, t), t);
     }
-    dsp get(enum aaxEffectType t) {
+    dsp get(enum aaxEffectType t) const {
         return dsp(aaxAudioFrameGetEffect(ptr, t), t);
     }
 
@@ -1118,24 +1118,24 @@ public:
     }
 
     // ** position and orientation ******
-    bool matrix(Matrix64& m) {
+    bool matrix(Matrix64& m) const {
         return aaxAudioFrameSetMatrix64(ptr, m);
     }
-    bool get(Matrix64& m) {
+    bool get(Matrix64& m) const {
         return aaxAudioFrameGetMatrix64(ptr, m);
     }
-    bool velocity(Vector& v) {
+    bool velocity(Vector& v) const {
         return aaxAudioFrameSetVelocity(ptr, v);
     }
-    bool get(Vector& v) {
+    bool get(Vector& v) const {
         return aaxAudioFrameGetVelocity(ptr, v);
     }
 
     // ** buffer handling ******
-    bool wait(float t) {
+    bool wait(float t) const {
         return aaxAudioFrameWaitForBuffer(ptr, t);
     }
-    Buffer buffer() {
+    Buffer buffer() const {
         return Buffer(aaxAudioFrameGetBuffer(ptr));
     }
 
@@ -1254,7 +1254,7 @@ public:
     }
 
     // ** support ******
-    size_t offset(enum aaxType t) {
+    size_t offset(enum aaxType t) const {
         return aaxSensorGetOffset(ptr, t);
     }
 
@@ -1334,7 +1334,7 @@ public:
             }
         }
     }
-    virtual bool buffer_avail(const std::string_view name) {
+    virtual bool buffer_avail(const std::string_view name) const {
         bool rv = false;
         auto it = buffers.find(std::string(name));
         if (it != buffers.end()) rv = true;
@@ -1357,11 +1357,11 @@ public:
         return play.set(AAX_STOPPED);
     }
 
-    bool playing() {
+    bool playing() const {
         return (play.state() == AAX_PLAYING);
     }
 
-    float offset() {
+    float offset() const {
         return (float)play.offset(AAX_SAMPLES)/(float)play.get(AAX_FREQUENCY);
     }
 
