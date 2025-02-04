@@ -96,6 +96,10 @@ inline char* source_type(int type) {
     return aaxGetStringByType(type, AAX_SOURCE_NAME);
 }
 
+inline char* timed_source_type(int type) {
+    return aaxGetStringByType(type, AAX_TIMED_FILTER_EFFECT_NAME);
+}
+
 inline enum aaxSourceType filter_type(std::string_view s) {
     return aaxSourceType(aaxGetByName(s.data(), AAX_FILTER_NAME));
 }
@@ -182,6 +186,10 @@ inline std::string type(int type) {
 
 inline std::string source_type(int type) {
     return to_string(aaxGetStringByType(type, AAX_SOURCE_NAME));
+}
+
+inline std::string timed_source_type(int type) {
+    return to_string(aaxGetStringByType(type, AAX_TIMED_FILTER_EFFECT_NAME));
 }
 
 inline std::string filter_type(int type) {

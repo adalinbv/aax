@@ -964,7 +964,9 @@ _aaxGetSourceNameByType(enum aaxSourceType type, enum aaxTypeName name)
    char m = 0;
    int order;
 
-   if ((type & (AAX_INVERSE|AAX_REVERSE)) == (AAX_INVERSE|AAX_REVERSE)) {
+   if ((name == AAX_TIMED_FILTER_EFFECT_NAME) &&
+       ((type & (AAX_INVERSE|AAX_REVERSE)) == (AAX_INVERSE|AAX_REVERSE)))
+   {
       SRC_ADD(p, l, m, "reverse-");
    } else if (type & AAX_INVERSE) {
       SRC_ADD(p, l, m, "inverse-");
@@ -1042,7 +1044,7 @@ _aaxGetSourceNameByType(enum aaxSourceType type, enum aaxTypeName name)
          SRC_ADD(p, l, m, "8-stage");
       }
       break;
-   case AAX_TIMED_GAIN_FILTER_NAME:
+   case AAX_TIMED_FILTER_EFFECT_NAME:
    {
        int num = type & AAX_REPEAT_MASK; // max: 4095 (0x0FFF)
        char snum[9];
@@ -1458,15 +1460,10 @@ aaxGetStringByType(int type, enum aaxTypeName name)
    switch(name)
    {
    case AAX_SOURCE_NAME:
-      rv = _aaxGetSourceNameByType(type, name);
-      break;
    case AAX_FREQUENCY_FILTER_NAME:
-      rv = _aaxGetSourceNameByType(type, name);
-      break;
    case AAX_DELAY_EFFECT_NAME:
-      rv = _aaxGetSourceNameByType(type, name);
-      break;
    case AAX_REVERB_NAME:
+   case AAX_TIMED_FILTER_EFFECT_NAME:
       rv = _aaxGetSourceNameByType(type, name);
       break;
    case AAX_FILTER_NAME:
