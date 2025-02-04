@@ -1134,11 +1134,14 @@ _aaxGetSourceNameByType(enum aaxSourceType type, enum aaxTypeName name)
       break;
    default:
       order = type & AAX_ORDER_MASK;
+#if 0
+      // 1st-order and 2nd-order are only supported by delays and reverb
       if (type & AAX_EFFECT_1ST_ORDER) {
          SRC_ADD(p, l, m, "1st-order");
       } else if (type & AAX_EFFECT_2ND_ORDER) {
          SRC_ADD(p, l, m, "2nd-order");
       }
+#endif
 
       if (order == AAX_1ST_ORDER) {
          SRC_ADD(p, l, m, "1st-order");
