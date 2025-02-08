@@ -772,18 +772,25 @@ public:
     unsigned int get(enum aaxState s) const {
         return aaxEmitterGetNoBuffers(ptr, s);
     }
-    bool offset(unsigned long o, enum aaxType t) {
+    bool set_offset(unsigned long o, enum aaxType t) {
         return aaxEmitterSetOffset(ptr, o, t);
     }
-    bool offset(float o) {
+    bool set_offset(float o) {
         return aaxEmitterSetOffsetSec(ptr, o);
     }
-    size_t offset(enum aaxType t) const {
+    size_t get_offset(enum aaxType t) const {
         return aaxEmitterGetOffset(ptr, t);
     }
-    float offset() const {
+    float get_offset() const {
         return aaxEmitterGetOffsetSec(ptr);
     }
+
+    // deprecated, just for backwards compatibility
+    bool offset(unsigned long o, enum aaxType t) {  return set_offset(o, t); }
+    bool offset(float o) { return set_offset(o); }
+    size_t offset(enum aaxType t) const { return get_offset(t); }
+    float offset() const { return get_offset(); }
+
 private:
     static bool set_filter(void* c, aaxFilter f) {
         return aaxEmitterSetFilter((aaxEmitter)c, f);
@@ -965,9 +972,12 @@ public:
         return aaxGetErrorString(error_no());
     }
 
-    size_t offset(enum aaxType t) const {
+    size_t get_offset(enum aaxType t) const {
         return aaxSensorGetOffset(ptr, t);
     }
+
+    // deprecated, just for backwards compatibility
+    size_t offset(enum aaxType t) const { return get_offset(t); }
 
 protected:
     enum aaxRenderMode mode = AAX_MODE_READ;
@@ -1262,9 +1272,12 @@ public:
     }
 
     // ** support ******
-    size_t offset(enum aaxType t) const {
+    size_t get_offset(enum aaxType t) const {
         return aaxSensorGetOffset(ptr, t);
     }
+
+    // deprecated, just for backwards compatibility
+    size_t offset(enum aaxType t) const { return get_offset(t); }
 
     // ** mixing ******
     bool add(Frame& m) {
@@ -1369,9 +1382,12 @@ public:
         return (play.state() == AAX_PLAYING);
     }
 
-    float offset() const {
+    float get_offset() const {
         return (float)play.offset(AAX_SAMPLES)/(float)play.get(AAX_FREQUENCY);
     }
+
+    // deprecated, just for backwards compatibility
+    size_t offset() const { return get_offset(); }
 
 private:
     std::vector<aaxFrame> frames;
