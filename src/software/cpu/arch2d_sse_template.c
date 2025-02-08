@@ -68,6 +68,10 @@ FN(fast_atan4,A)(__m128 x)
   return _mm_mul_ps(x, _mm_add_ps(offs, _mm_mul_ps(mul, FN(mm_abs_ps,A)(x))));
 }
 
+// http://ijeais.org/wp-content/uploads/2018/07/IJAER180702.pdf
+// International Journal of Academic Engineering Research (IJAER)
+// ISSN: 2000-001X
+// Vol. 2 Issue 7, July – 2018, Pages: 6-13
 static inline FN_PREALIGN __m128
 _sse_fmadd_ps(__m128 a, __m128 b, __m128 c) {
    return _mm_add_ps(_mm_mul_ps(a, b), c);
@@ -77,15 +81,15 @@ FN(_mm_atan_ps,A)(__m128 a)
 {
    const __m128 sign_mask = _mm_set1_ps(-0.0f);
    __m128 sign = _mm_and_ps(a, sign_mask); // Preserve sign
-   a = _mm_andnot_ps(sign_mask, a); // Absolute value
+   __m128 abs_a = _mm_andnot_ps(sign_mask, a); // Absolute value
 
    // w = a > tan(PI / 8)
    const __m128 tan_pi_8 = _mm_set1_ps(GMATH_TAN_PI_8);
-   __m128 w = _mm_cmpgt_ps(a, tan_pi_8);
+   __m128 w = _mm_cmpgt_ps(abs_a, tan_pi_8);
 
    // x = a > tan(3 * PI / 8)
    const __m128 tan_3pi_8 = _mm_set1_ps(GMATH_TAN_3PI_8);
-   __m128 x = _mm_cmpgt_ps(a, tan_3pi_8);
+   __m128 x = _mm_cmpgt_ps(abs_a, tan_3pi_8);
 
    // z = ~w & x
    __m128 z = _mm_andnot_ps(w, x);
@@ -96,20 +100,21 @@ FN(_mm_atan_ps,A)(__m128 a)
 
    // w = (w & -1/a) | (z & (a - 1) * 1/(a + 1))
    const __m128 one = _mm_set1_ps(1.0f);
-   __m128 inv_a = _mm_rcp_ps(a); // -1 / a
+   __m128 inv_a = _mm_rcp_ps(abs_a); // -1 / a
    __m128 w_part1 = _mm_and_ps(w, inv_a);
-   __m128 w_part2 = _mm_and_ps(z, _mm_mul_ps(_mm_sub_ps(a, one), _mm_rcp_ps(_mm_add_ps(a, one))));
+   __m128 w_part2 = _mm_and_ps(z, _mm_mul_ps(_mm_sub_ps(abs_a, one), _mm_rcp_ps(_mm_add_ps(abs_a, one))));
    __m128 w_final = _mm_or_ps(w_part1, w_part2);
 
    // a = (~x & a) | w
-   __m128 adjusted_a = _mm_or_ps(_mm_andnot_ps(x, a), w_final);
+   __m128 adjusted_a = _mm_or_ps(_mm_andnot_ps(x, abs_a), w_final);
 
    // Polynomial approximation for arctangent
    __m128 poly, a2 = _mm_mul_ps(adjusted_a, adjusted_a);
    poly = _sse_fmadd_ps(_mm_set1_ps(ATAN_COEF1), a2, _mm_set1_ps(ATAN_COEF2));
    poly = _sse_fmadd_ps(poly, a2, _mm_set1_ps(ATAN_COEF3));
    poly = _sse_fmadd_ps(poly, a2, _mm_set1_ps(ATAN_COEF4));
-   __m128 result = _sse_fmadd_ps(poly, _mm_mul_ps(a2, adjusted_a), adjusted_a);
+   __m128 result = _sse_fmadd_ps(poly, adjusted_a, adjusted_a);
+   result = _mm_add_ps(y, result);
 
    return _mm_or_ps(result, sign);}
 

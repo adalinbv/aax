@@ -103,20 +103,21 @@ _mm256_atan_ps(__m256 a)
 
    // w = (w & -1/a) | (z & (a - 1) * 1/(a + 1))
    const __m256 one = _mm256_set1_ps(1.0f);
-   __m256 inv_a = _mm256_rcp_ps(a); // -1 / a
+   __m256 inv_a = _mm256_rcp_ps(abs_a); // -1 / a
    __m256 w_part1 = _mm256_and_ps(w, inv_a);
-   __m256 w_part2 = _mm256_and_ps(z, _mm256_mul_ps(_mm256_sub_ps(a, one), _mm256_rcp_ps(_mm256_add_ps(a, one))));
+   __m256 w_part2 = _mm256_and_ps(z, _mm256_mul_ps(_mm256_sub_ps(abs_a, one), _mm256_rcp_ps(_mm256_add_ps(abs_a, one))));
    __m256 w_final = _mm256_or_ps(w_part1, w_part2);
 
    // a = (~x & a) | w
    __m256 adjusted_a = _mm256_or_ps(_mm256_andnot_ps(x, abs_a), w_final);
 
    // Polynomial approximation for arctangent
-   __m256 poly, a2 = _mm256_mul_ps(adjusted_a, adjusted_a);
-   poly = _avx_fmadd_ps(_mm256_set1_ps(ATAN_COEF1), a2, _mm256_set1_ps(ATAN_COEF2));
-   poly = _avx_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF3));
-   poly = _avx_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF4));
-   __m256 result = _avx_fmadd_ps(poly, _mm256_mul_ps(a2, adjusted_a), adjusted_a);
+    __m256 poly, a2 = _mm256_mul_ps(adjusted_a, adjusted_a);
+    poly = _avx_fmadd_ps(_mm256_set1_ps(ATAN_COEF1), a2, _mm256_set1_ps(ATAN_COEF2));
+    poly = _avx_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF3));
+    poly = _avx_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF4));
+   __m256 result = _avx_fmadd_ps(poly, adjusted_a, adjusted_a);
+   result = _mm256_add_ps(y, result);
 
    return _mm256_or_ps(result, sign);
 }

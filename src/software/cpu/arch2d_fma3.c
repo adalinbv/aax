@@ -79,15 +79,15 @@ _mm256_atan_ps(__m256 a)
    // Preserve sign and take absolute value of input
    const __m256 sign_mask = _mm256_set1_ps(-0.0f);
    __m256 sign = _mm256_and_ps(a, sign_mask); // Preserve sign
-   a = _mm256_andnot_ps(sign_mask, a); // Absolute value
+   __m256 abs_a = _mm256_andnot_ps(sign_mask, a); // Absolute value
 
    // w = a > tan(PI / 8)
    const __m256 tan_pi_8 = _mm256_set1_ps(GMATH_TAN_PI_8);
-   __m256 w = _mm256_cmp_ps(a, tan_pi_8, _CMP_GT_OQ);
+   __m256 w = _mm256_cmp_ps(abs_a, tan_pi_8, _CMP_GT_OQ);
 
    // x = a > tan(3 * PI / 8)
    const __m256 tan_3pi_8 = _mm256_set1_ps(GMATH_TAN_3PI_8);
-   __m256 x = _mm256_cmp_ps(a, tan_3pi_8, _CMP_GT_OQ);
+   __m256 x = _mm256_cmp_ps(abs_a, tan_3pi_8, _CMP_GT_OQ);
 
    // z = ~w & x
    __m256 z = _mm256_andnot_ps(w, x);
@@ -98,20 +98,21 @@ _mm256_atan_ps(__m256 a)
 
    // w = (w & -1/a) | (z & (a - 1) * 1/(a + 1))
    const __m256 one = _mm256_set1_ps(1.0f);
-   __m256 inv_a = _mm256_rcp_ps(a); // -1 / a
+   __m256 inv_a = _mm256_rcp_ps(abs_a); // -1 / a
    __m256 w_part1 = _mm256_and_ps(w, inv_a);
-   __m256 w_part2 = _mm256_and_ps(z, _mm256_mul_ps(_mm256_sub_ps(a, one), _mm256_rcp_ps(_mm256_add_ps(a, one))));
+   __m256 w_part2 = _mm256_and_ps(z, _mm256_mul_ps(_mm256_sub_ps(abs_a, one), _mm256_rcp_ps(_mm256_add_ps(abs_a, one))));
    __m256 w_final = _mm256_or_ps(w_part1, w_part2);
 
    // a = (~x & a) | w
-   __m256 adjusted_a = _mm256_or_ps(_mm256_andnot_ps(x, a), w_final);
+   __m256 adjusted_a = _mm256_or_ps(_mm256_andnot_ps(x, abs_a), w_final);
 
    // Polynomial approximation for arctangent
-   __m256 poly, a2 = _mm256_mul_ps(adjusted_a, adjusted_a);
-   poly = _mm256_fmadd_ps(_mm256_set1_ps(ATAN_COEF1), a2, _mm256_set1_ps(ATAN_COEF2));
-   poly = _mm256_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF3));
-   poly = _mm256_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF4));
-   __m256 result = _mm256_fmadd_ps(poly, _mm256_mul_ps(a2, adjusted_a), adjusted_a);
+    __m256 poly, a2 = _mm256_mul_ps(adjusted_a, adjusted_a);
+    poly = _mm256_fmadd_ps(_mm256_set1_ps(ATAN_COEF1), a2, _mm256_set1_ps(ATAN_COEF2));
+    poly = _mm256_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF3));
+    poly = _mm256_fmadd_ps(poly, a2, _mm256_set1_ps(ATAN_COEF4));
+   __m256 result = _mm256_fmadd_ps(poly, adjusted_a, adjusted_a);
+   result = _mm256_add_ps(y, result);
 
    return _mm256_or_ps(result, sign);
 }
