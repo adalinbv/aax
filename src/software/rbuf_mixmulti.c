@@ -55,7 +55,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd, *srbd;
    _aaxEnvelopeData *penv, *pslide;
-   _aaxEnvelopeData *genv, *lenv;
+   _aaxEnvelopeData *genv; // *lenv;
    _aaxLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
    MIX_T **scratch;

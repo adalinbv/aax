@@ -169,12 +169,12 @@ _aaxCPUProcess(struct _aaxRenderer_t *render, _aaxRendererData *data)
       _aaxRingBufferConvolutionData *convolution = data->be_handle;
       _aaxRingBuffer *rb = data->drb;
       int t, no_tracks;
-      _render_t handle;
+//    _render_t handle;
 
       no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
 
-      handle.no_tracks = no_tracks;
-      handle.data = data;
+//    handle.no_tracks = no_tracks;
+//    handle.data = data;
 
       for (t=0; t<no_tracks; ++t)
       {

@@ -128,6 +128,8 @@ static inline std::string to_string(enum aaxModeType mode)
     case AAX_LOOPING: return "looping";
     case AAX_BUFFER_TRACK: return "buffer track";
     case AAX_RENDER_MODE: return "render mode";
+    case AAX_SYNTHESIZER: return "synthesize mode";
+    case AAX_ARCADE: return "arcade mode";
     case AAX_MODE_TYPE_NONE:
     case AAX_MODE_TYPE_MAX:
         break;

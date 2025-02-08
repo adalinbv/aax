@@ -785,7 +785,6 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
    unsigned char *scratch, *databuf;
    _data_t *ioBuffer;
    ssize_t res = 0;
-   int fmt;
 
    assert(rb);
    assert(id != 0);

@@ -273,6 +273,9 @@ _aaxGetSSELevel()
       int capabilities = _aaxGetCapabilities(NULL);
       int res;
 
+      // silence the compiler; we need to call _aaxGetCapabilities
+      (void)capabilities;
+
       _aax_calloc = _aax_calloc_aligned;
       _aax_malloc = _aax_malloc_aligned;
 

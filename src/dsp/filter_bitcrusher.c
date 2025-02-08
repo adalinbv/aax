@@ -127,7 +127,6 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
 
       if (bitcrush)
       {
-         float offset = filter->slot[0]->param[AAX_LFO_OFFSET];
          float depth = filter->slot[0]->param[AAX_LFO_DEPTH];
          float fs = 48000.0f;
          int constant;

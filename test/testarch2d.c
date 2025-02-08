@@ -143,7 +143,7 @@ int main()		// x86		X86_64		ARM
    {
       _aaxRingBufferFreqFilterHistoryData history;
       _aaxRingBufferFreqFilterData flt;
-      float *src, *dst1, *dst2, *dst3;
+      float *src, *dst1, *dst2; // *dst3;
       float rms1, rms2, peak1, peak2;
       float alpha, h[4];
       double cpu, cpu2, eps;
@@ -152,7 +152,7 @@ int main()		// x86		X86_64		ARM
       src = (float*)_aaxDataGetData(buf, 0);
       dst1 = (float*)_aaxDataGetData(buf, 1);
       dst2 = (float*)_aaxDataGetData(buf, 2);
-      dst3 = (float*)_aaxDataGetData(buf, 3);
+//    dst3 = (float*)_aaxDataGetData(buf, 3);
 
       for (i=0; i<MAXNUM; ++i) {
          src[i] = (double)(1<<23) * (double)rand()/(double)(RAND_MAX);

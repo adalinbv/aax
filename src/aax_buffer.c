@@ -3386,8 +3386,6 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect, int layer)
    {
       if (mix > 0.01f)
       {
-         float mix_factor;
-
          _batch_cvtps24_24(dptr, dptr, no_samples);
          memcpy(sptr, dptr, no_samples*bps);
 

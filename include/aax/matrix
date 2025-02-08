@@ -83,13 +83,13 @@ public:
     T magnitude() const {
         return std::sqrt(dot_product(*this));
     }
-    T normalize() const {
+    T normalize() {
         float m = magnitude();
         if (m) *this /= m;
         else *this = 0;
         return m;
     }
-    VecBase normalized() const {
+    VecBase normalized() {
         VecBase r(_v); r.normalize();
         return r;
     }

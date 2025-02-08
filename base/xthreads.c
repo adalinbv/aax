@@ -297,8 +297,6 @@ _aaxThreadStart(_aaxThread *t,  int(*handler)(void*), void *arg, UNUSED(unsigned
 int
 _aaxThreadJoin(_aaxThread *t)
 {
-   int ret;
-
    assert(t);
 
    return thrd_join(*t, 0);

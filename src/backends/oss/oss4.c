@@ -1292,7 +1292,7 @@ _oss4_set_volume(UNUSED(_driver_t *handle), _aaxRingBuffer *rb, ssize_t offset, 
 static int
 _oss4_detect_devnode(_driver_t *handle, UNUSED(char mode))
 {
-   int fd, rv = true;
+   int rv = true;
    snprintf(handle->pcm, MAX_DEVNODE, "/dev/dsp%i", handle->nodenum);
 
    return rv;

@@ -1010,7 +1010,7 @@ _aaxGetSourceNameByType(enum aaxSourceType type, enum aaxTypeName name)
       break;
    case AAX_WAVE_NONE:
    default:
-      if ((type && AAX_LFO_EXPONENTIAL) == AAX_LFO_EXPONENTIAL) {
+      if ((type & AAX_LFO_EXPONENTIAL) == AAX_LFO_EXPONENTIAL) {
          SRC_ADD(p, l, m, "envelope");
       }
       break;

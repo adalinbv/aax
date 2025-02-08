@@ -188,7 +188,6 @@ _lfo_set_timing(_aaxLFOData *lfo)
    float range = lfo->max_sec - lfo->min_sec;
    float fs = lfo->fs;
    bool constant = true;
-   bool wstate;
 
    lfo->min = fs*(lfo->min_sec + lfo->offset*range);
    lfo->max = lfo->min + fs*(lfo->depth*range);

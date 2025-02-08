@@ -1515,7 +1515,7 @@ FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, si
       while(stage--)
       {
          float32_ptr d = dptr;
-         int j, i = num;
+         int i = num;
 
          h0 = hist[0];
          h1 = hist[1];
