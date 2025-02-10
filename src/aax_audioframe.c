@@ -1772,6 +1772,12 @@ _frameCreateBodyFromAAXS(aaxFrame frame, _frame_t* handle, _buffer_t *buffer, xm
       }
    }
 
+   if (xmlAttributeExists(xmid, "gain"))
+   {
+      _aax2dProps *p2d = handle->submix->props2d;
+      p2d->final.gain = xmlAttributeGetDouble(xmid, "gain");
+   }
+
    if (xmlAttributeExists(xmid, "max-emitters"))
    {
       handle->max_emitters = xmlAttributeGetInt(xmid, "max-emitters");

@@ -214,7 +214,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
    gain = powf(gain, volume_power_factor);
    if (gain > 1.0f) gain = 1.0f;
 
-   gain = volume*gain*ep2d->final.gain;
+   gain = volume*gain*fp2d->final.gain*ep2d->final.gain;
    ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? false : true;
 
 #if 0
