@@ -1,4 +1,4 @@
-/*
+/*ER
  * SPDX-FileCopyrightText: Copyright © 2007-2023 by Erik Hofman.
  * SPDX-FileCopyrightText: Copyright © 2009-2023 by Adalin B.V.
  *
@@ -30,6 +30,7 @@
 #include <dsp/filters.h>
 #include <dsp/effects.h>
 
+#include <support/aax_support.h>
 #include <base/random.h>
 #include <base/memory.h>
 
@@ -1480,58 +1481,43 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const xmlId *xwid, int track, floa
       random = xmlAttributeGetDouble(xwid, "random");
    }
 
-   if (!xmlAttributeCompareString(xwid, "src", "sawtooth")) {
-      wtype = _aaxWaveformCvt[0][AAX_SAWTOOTH][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "pure-sawtooth")) {
-      wtype = _aaxWaveformCvt[1][AAX_SAWTOOTH][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "square")) {
-      wtype = _aaxWaveformCvt[0][AAX_SQUARE][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "pure-square")) {
-      wtype = _aaxWaveformCvt[1][AAX_SQUARE][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "triangle")) {
-      wtype = _aaxWaveformCvt[0][AAX_TRIANGLE][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "pure-triangle")) {
-      wtype = _aaxWaveformCvt[1][AAX_TRIANGLE][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "sine")) {
-      wtype = _aaxWaveformCvt[0][AAX_SINE][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "pure-sine")) {
-      wtype = _aaxWaveformCvt[1][AAX_SINE][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "cycloid")) {
-      wtype = _aaxWaveformCvt[0][AAX_CYCLOID][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "pure-cycloid")) {
-      wtype = _aaxWaveformCvt[1][AAX_CYCLOID][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "impulse")) {
-      wtype = _aaxWaveformCvt[0][AAX_IMPULSE][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "pure-impulse")) {
-      wtype = _aaxWaveformCvt[1][AAX_IMPULSE][pos];
-   } else if (!xmlAttributeCompareString(xwid, "src", "true") ||
-              !xmlAttributeCompareString(xwid, "src", "constant")) {
-      wtype = _aaxWaveformCvt[0][AAX_CONSTANT][pos];
+   char src[32] = "";
+   xmlAttributeCopyString(xwid, "src", src, 32);
+   enum aaxSourceType type = _aaxGetSourceTypeByName(src, false);
+   bool pure = type & AAX_PURE_WAVEFORM;
+
+   int stype = type & AAX_WAVEFORM_MASK;
+   if (stype && stype <= AAX_LAST_WAVE) {
+       wtype = _aaxWaveformCvt[pure][stype][pos];
    }
-   else if (!xmlAttributeCompareString(xwid, "src","white-noise"))
+   else
    {
-     wtype = AAX_WHITE_NOISE;
-      if (!RENDER_NORMAL(midi_mode)) pitch = 8.0f;
-   }
-   else if (!xmlAttributeCompareString(xwid, "src","pink-noise"))
-   {
-      if (RENDER_NORMAL(midi_mode)) {
-         wtype = AAX_PINK_NOISE;
-      } else {
+      switch(type & AAX_NOISE_MASK)
+      {
+      case AAX_WHITE_NOISE:
          wtype = AAX_WHITE_NOISE;
-         pitch = 6.0f;
+         if (!RENDER_NORMAL(midi_mode)) pitch = 8.0f;
+         break;
+      case AAX_PINK_NOISE:
+         if (RENDER_NORMAL(midi_mode)) {
+            wtype = AAX_PINK_NOISE;
+         } else {
+            wtype = AAX_WHITE_NOISE;
+            pitch = 6.0f;
+         }
+         break;
+      case AAX_BROWNIAN_NOISE:
+         if (RENDER_NORMAL(midi_mode)) {
+            wtype = AAX_BROWNIAN_NOISE;
+         } else {
+            wtype = AAX_WHITE_NOISE;
+            pitch = 1.0f;
+         }
+         break;
+      default:
+         rv = false;
+         break;
       }
-   }
-   else if (!xmlAttributeCompareString(xwid, "src", "brownian-noise"))
-   {
-      if (RENDER_NORMAL(midi_mode)) {
-         wtype = AAX_BROWNIAN_NOISE;
-      } else {
-         wtype = AAX_WHITE_NOISE;
-         pitch = 1.0f;
-      }
-   } else {
-      rv = false;
    }
 
    if (rv)
