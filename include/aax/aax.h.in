@@ -159,7 +159,7 @@ enum aaxFormat
 
    /* AeonWave Auto-generated XML Sound */
    AAX_AAXS = AAX_SPECIAL,
-   AAX_AAXS16S = (AAX_AAXS | AAX_PCM16S),
+   AAX_AAXS16S = (AAX_AAXS | AAX_PCM16S), // AAX_AAXS16S is deprecated
    AAX_AAXS24S = (AAX_AAXS | AAX_PCM24S)
 };
 

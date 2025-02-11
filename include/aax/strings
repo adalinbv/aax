@@ -77,7 +77,6 @@ static inline std::string to_string(enum aaxFormat fmt)
     case AAX_PCM24U_BE: return "unsigned, 24-bits per sample, 32-bit encoded big-endian";
     case AAX_PCM32U_BE: return "unsigned, 32-bits per sample big-endian";
 
-    case AAX_AAXS16S: return "16-bits per sample XML defined waveform";
     case AAX_AAXS24S: return "24-bit per sample, 32-bit encoded XML defined waveform";
 
     case AAX_FORMAT_MAX:

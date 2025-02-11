@@ -89,6 +89,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
       int blocksize;
       char *env;
 
+
       switch(native_fmt)
       {
       case AAX_IMA4_ADPCM:
@@ -96,6 +97,10 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
          break;
       default:
          blocksize = 1;
+      }
+
+      if (format == AAX_AAXS16S) { // AAX_AAXS16S is deprecated
+          format = AAX_AAXS24S;
       }
 
       buf->id = BUFFER_ID;
@@ -520,118 +525,120 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       }
    }
 
-   if (rv && (handle->info.fmt & AAX_SPECIAL))
-   {				/* the data in *d isn't actual raw sound data */
-      unsigned int format = handle->info.fmt;
-      switch(format)
-      {
-      case AAX_AAXS16S:
-      case AAX_AAXS24S:
-         rv = _bufCreateFromAAXS(handle, d, 0);
-         break;
-      default:					/* should never happen */
-         break;
-      }
-   }
-   else if (rv)
+   if (rv)
    {
-      _aaxRingBuffer *rb = _bufGetRingBuffer(handle, NULL, 0);
-      unsigned int tracks, no_samples, buf_samples;
-      unsigned blocksize =  handle->info.blocksize;
-      unsigned int format = handle->info.fmt;
-      void *data = (void*)d, *ptr = NULL;
-      unsigned int native_fmt;
-      char fmt_bps;
+      if (handle->info.fmt & AAX_SPECIAL)
+      {				/* the data in *d isn't actual raw sound data */
+         unsigned int format = handle->info.fmt;
+         switch(format)
+         {
+         case AAX_AAXS24S:
+            rv = _bufCreateFromAAXS(handle, d, 0);
+            break;
+         default: /* should never happen */
+            break;
+         }
+      }
+      else
+      {
+         _aaxRingBuffer *rb = _bufGetRingBuffer(handle, NULL, 0);
+         unsigned int tracks, no_samples, buf_samples;
+         unsigned blocksize =  handle->info.blocksize;
+         unsigned int format = handle->info.fmt;
+         void *data = (void*)d, *ptr = NULL;
+         unsigned int native_fmt;
+         char fmt_bps;
 
-      rb->init(rb, false);
-      tracks = rb->get_parami(rb, RB_NO_TRACKS);
-      no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+         rb->init(rb, false);
+         tracks = rb->get_parami(rb, RB_NO_TRACKS);
+         no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
 
-      buf_samples = tracks*no_samples;
+         buf_samples = tracks*no_samples;
 
 				/* do we need to convert to native format? */
-      native_fmt = format & AAX_FORMAT_NATIVE;
-      if (format & ~AAX_FORMAT_NATIVE)
-      {
-         fmt_bps = _aaxFormatsBPS[native_fmt];
+         native_fmt = format & AAX_FORMAT_NATIVE;
+         if (format & ~AAX_FORMAT_NATIVE)
+         {
+            fmt_bps = _aaxFormatsBPS[native_fmt];
 					/* first convert to native endianness */
-         if ( ((format & AAX_FORMAT_LE) && is_bigendian()) ||
-              ((format & AAX_FORMAT_BE) && !is_bigendian()) )
-         {
-            if (!ptr)
+            if ( ((format & AAX_FORMAT_LE) && is_bigendian()) ||
+                 ((format & AAX_FORMAT_BE) && !is_bigendian()) )
             {
-               ptr = (void**)_aax_aligned_alloc(buf_samples*fmt_bps);
                if (!ptr)
                {
-                  _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-                  return rv;
+                  ptr = (void**)_aax_aligned_alloc(buf_samples*fmt_bps);
+                  if (!ptr)
+                  {
+                     _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+                     return rv;
+                  }
+
+                  memcpy(ptr, data, buf_samples*fmt_bps);
+                  data = ptr;
                }
 
-               memcpy(ptr, data, buf_samples*fmt_bps);
-               data = ptr;
+               switch (native_fmt)
+               {
+               case AAX_PCM16S:
+                  _batch_endianswap16(data, buf_samples);
+                  break;
+               case AAX_PCM24S_PACKED:
+                  _batch_endianswap24(data, buf_samples);
+                  break;
+               case AAX_PCM24S:
+               case AAX_PCM32S:
+               case AAX_FLOAT:
+                  _batch_endianswap32(data, buf_samples);
+                  break;
+               case AAX_DOUBLE:
+                  _batch_endianswap64(data, buf_samples);
+                  break;
+               default:
+                  break;
+               }
             }
-
-            switch (native_fmt)
-            {
-            case AAX_PCM16S:
-               _batch_endianswap16(data, buf_samples);
-               break;
-            case AAX_PCM24S_PACKED:
-               _batch_endianswap24(data, buf_samples);
-               break;
-            case AAX_PCM24S:
-            case AAX_PCM32S:
-            case AAX_FLOAT:
-               _batch_endianswap32(data, buf_samples);
-               break;
-            case AAX_DOUBLE:
-               _batch_endianswap64(data, buf_samples);
-               break;
-            default:
-               break;
-            }
-         }
 					/* then convert to proper signedness */
-         if (format & AAX_FORMAT_UNSIGNED)
-         {
-            if (!ptr)
+            if (format & AAX_FORMAT_UNSIGNED)
             {
-               ptr = (void**)_aax_aligned_alloc(buf_samples*fmt_bps);
                if (!ptr)
                {
-                  _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-                  return rv;
+                  ptr = (void**)_aax_aligned_alloc(buf_samples*fmt_bps);
+                  if (!ptr)
+                  {
+                     _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+                     return rv;
+                  }
+
+                  memcpy(ptr, data, buf_samples*fmt_bps);
+                  data = ptr;
                }
 
-               memcpy(ptr, data, buf_samples*fmt_bps);
-               data = ptr;
-            }
-
-            switch (native_fmt)
-            {
-            case AAX_PCM8S:
-               _batch_cvt8u_8s(data, buf_samples);
-               break;
-            case AAX_PCM16S:
-               _batch_cvt16u_16s(data, buf_samples);
-               break;
-            case AAX_PCM24S:
-               _batch_cvt24u_24s(data, buf_samples);
-               break;
-            case AAX_PCM32S:
-               _batch_cvt32u_32s(data, buf_samples);
-               break;
-            default:
-               break;
+               switch (native_fmt)
+               {
+               case AAX_PCM8S:
+                  _batch_cvt8u_8s(data, buf_samples);
+                  break;
+               case AAX_PCM16S:
+                  _batch_cvt16u_16s(data, buf_samples);
+                  break;
+               case AAX_PCM24S:
+                  _batch_cvt24u_24s(data, buf_samples);
+                  break;
+               case AAX_PCM32S:
+                  _batch_cvt32u_32s(data, buf_samples);
+                  break;
+               default:
+                  break;
+               }
             }
          }
+
+         rb = _bufSetDataInterleaved(handle, rb, data, blocksize);
+         handle->ringbuffer[0] = rb;
+
+         rv = true;
+         if (ptr) _aax_aligned_free(ptr);
       }
-
-      rb = _bufSetDataInterleaved(handle, rb, data, blocksize);
-      handle->ringbuffer[0] = rb;
-
-      rv = true;
-      if (ptr) _aax_aligned_free(ptr);
    }
    return rv;
 }
@@ -647,7 +654,7 @@ aaxBufferGetData(const aaxBuffer buffer)
    if (!rv && handle)
    {
       user_format = handle->info.fmt;
-      if (user_format != AAX_AAXS16S && user_format != AAX_AAXS24S)
+      if (user_format != AAX_AAXS24S)
       {
          if (!handle->info.rate) {
             _aaxErrorSet(AAX_INVALID_STATE);
@@ -668,7 +675,7 @@ aaxBufferGetData(const aaxBuffer buffer)
    }
 
    user_format = handle->info.fmt;
-   if (rv && (user_format == AAX_AAXS16S || user_format == AAX_AAXS24S))
+   if (rv && user_format == AAX_AAXS24S)
    {
       if (handle->aaxs)
       {
@@ -813,7 +820,7 @@ aaxBufferGetData(const aaxBuffer buffer)
       }
 
 #if 0
-      if (handle->info.fmt == AAX_AAXS16S || handle->info.fmt == AAX_AAXS24S) {
+      if (handle->info.fmt == AAX_AAXS24S) {
          data = (void**)_bufCreateAAXS(handle, data, buf_samples);
       }
 #endif
