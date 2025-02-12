@@ -41,14 +41,15 @@ int main()
       aaxBuffer buffer = aaxBufferCreate(config, freq, 1, AAX_AAXS16S);
       testForError(buffer, "Unable to generate buffer\n");
 
-      int res = aaxBufferSetSetup(buffer, freq, SAMPLE_FREQUENCY);
+      int res = aaxBufferSetSetup(buffer, AAX_FREQUENCY, freq);
       testForState(res, "aaxBufferSetFrequency");
 
       res = aaxBufferSetData(buffer, aaxs_data_sax);
       testForState(res, "aaxBufferSetData");
 
       float rms = aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
-      printf("rms: %f\n", rms);
+      float peak = aaxBufferGetSetup(buffer, AAX_PEAK_VALUE);
+      printf("peak: %f, rms: %f\n", peak, rms);
    }
    return 0;
 }
