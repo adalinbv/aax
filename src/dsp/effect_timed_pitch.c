@@ -84,7 +84,7 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
 
             max_pos = (uint32_t)-1;
             dt = effect->slot[i]->param[AAX_TIME0];
-            if (dt != FLT_MAX)
+            if (dt != INFINITY)
             {
                if (dt < timestep && dt > EPS) dt = timestep;
                max_pos = rintf(dt * period);
@@ -103,7 +103,7 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
 
             max_pos = (uint32_t)-1;
             dt = effect->slot[i]->param[AAX_TIME1];
-            if (dt != FLT_MAX)
+            if (dt != INFINITY)
             {
                if (dt < timestep && dt > EPS) dt = timestep;
                max_pos = rintf(dt * period);
@@ -206,10 +206,10 @@ _aaxTimedPitchEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxTimedPitchRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { {  0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, FLT_MAX, 4.0f, FLT_MAX } },
-    { {  0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, FLT_MAX, 4.0f, FLT_MAX } },
-    { {  0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, FLT_MAX, 4.0f, FLT_MAX } },
-    { {  0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, FLT_MAX, 4.0f, FLT_MAX } }
+    { {  0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, INFINITY, 4.0f, INFINITY } },
+    { {  0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, INFINITY, 4.0f, INFINITY } },
+    { {  0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, INFINITY, 4.0f, INFINITY } },
+    { {  0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, INFINITY, 4.0f, INFINITY } }
    };
 
    assert(slot < _MAX_FE_SLOTS);

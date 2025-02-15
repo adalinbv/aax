@@ -104,7 +104,7 @@ _aaxTimedLayerFilterSetState(_filter_t* filter, int state)
 
             max_pos = (uint32_t)-1;
             dt = filter->slot[i]->param[AAX_TIME0];
-            if (dt != FLT_MAX)
+            if (dt != INFINITY)
             {
                if (dt < timestep && dt > EPS) dt = timestep;
                max_pos = rintf(dt * period);
@@ -136,7 +136,7 @@ _aaxTimedLayerFilterSetState(_filter_t* filter, int state)
 
             max_pos = (uint32_t)-1;
             dt = filter->slot[i]->param[AAX_TIME1];
-            if (dt != FLT_MAX)
+            if (dt != INFINITY)
             {
                if (dt < timestep && dt > EPS) dt = timestep;
                max_pos = rintf(dt * period);
@@ -293,10 +293,10 @@ _aaxTimedLayerFilterMinMax(float val, int slot, unsigned char param)
 {
   static const _flt_minmax_tbl_t _aaxTimedLayerRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, FLT_MAX, 1.0f, FLT_MAX } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, FLT_MAX, 1.0f, FLT_MAX } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, FLT_MAX, 1.0f, FLT_MAX } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, FLT_MAX, 1.0f, FLT_MAX } }
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, INFINITY, 1.0f, INFINITY } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, INFINITY, 1.0f, INFINITY } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, INFINITY, 1.0f, INFINITY } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, INFINITY, 1.0f, INFINITY } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
