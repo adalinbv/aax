@@ -1658,6 +1658,10 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
       clear = xmlAttributeCompareString(xmid, "mode", "append");
    }
 
+   if (xmlAttributeExists(xmid, "gain")) {
+      ep2d->final.gain = xmlAttributeGetDouble(xmid, "gain");
+   }
+
    if (xmlAttributeExists(xmid, "looping"))
    {
       int mode = xmlAttributeGetBool(xmid, "looping");
@@ -1759,7 +1763,7 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
 
 static bool
 _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf)
-{ 
+{
    _buffer_t* buffer = embuf->buffer;
    const char *aaxs = buffer->aaxs;
    bool rv = false;

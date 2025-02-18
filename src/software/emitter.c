@@ -363,7 +363,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src, const void *data)
 
       ep2d->final.gain_min = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_MIN_GAIN);
       ep2d->final.gain_max = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_MAX_GAIN);
-      ep2d->final.gain = gain;
+      ep2d->final.gain_3d = gain;
       ep2d->final.pitch = pitch;
    }
 }

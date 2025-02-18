@@ -382,7 +382,8 @@ typedef ALIGN16 struct _aax2dProps_s
       FLOAT pitch;
       float pitch_lfo;
       float gain_lfo;
-      float gain, gain_min, gain_max;
+      float gain, gain_3d;
+      float gain_min, gain_max;
       float occlusion;		/* occlusion factor 0.0..1.0 (being hidden) */
 
       float k;			/* attenuation frequency filter */
