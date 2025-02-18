@@ -1908,43 +1908,23 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
          {
             if (mip == 0 && rb->get_state(rb, RB_IS_VALID))
             {
-               float gain = handle->gain;
+               float gain = _exp(handle->gain);
                switch (handle->midi_mode)
                {
                case AAX_RENDER_ARCADE:
                case AAX_RENDER_SYNTHESIZER:
-                  gain *= 0.7f;
+                  handle->gain = _ln(0.7f*gain);
                   break;
                case AAX_RENDER_NORMAL:
                case AAX_RENDER_DEFAULT:
                default:
                   break;
                }
-               handle->gain = _bufNormalize(rb, gain);
                handle->gain = _ln(handle->gain);
             }
          }
          else if (limiter) {
             _bufLimit(rb);
-         }
-
-         if (0 && handle->to_mixer) {
-            _bufConvertDataToMixerFormat(handle, rb);
-         }
-         else if (bits == 16)
-         {
-            _aaxRingBufferData *rbi = rb->handle;
-            _aaxRingBufferSample *rbd = rbi->sample;
-            unsigned int no_samples;
-
-            no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-            for (layer=0; layer<no_layers; ++layer)
-            {
-               void *dptr = rbd->track[layer];
-               _batch_cvt16_24(dptr, dptr, no_samples);
-            }
-            rb->set_parami(rb, RB_FORMAT, AAX_PCM16S);
-            handle->info.fmt = AAX_PCM16S;
          }
       } // mip-level
    }
