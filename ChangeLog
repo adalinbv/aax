@@ -1,4 +1,4 @@
-* Fri Dec 06 2024 - tech@adalin.org
+* Thu Feb 20 2025 - tech@adalin.org
 - AeonWave (4.1.0) stable; urgency=medium
 
  * Add a timed layer filter.
@@ -25,14 +25,30 @@
    for several functions across the various rendering paths.
  * Do not filter high-frequencies as much as before.
  * Fix the LFO always being defined for the distortion effect.
+ * Due to an oversight of AeonWave version 4.0 AAX_ENVELOPE_FOLLOW and
+   AAX_REPEAT clashed for the number 13, rendering it impossible to assign the
+   number of repeats and envelope-following at the same time. To circumvent
+   this the _aaxGetSourceTypeByName function translates envelope now to
+   AAX_LFO_EXPONENTIAL instead of AAX_ENVELOPE_FOLLOW but software that
+   uses the timed-gain filter directly (without AAXS) may still use
+   AAX_ENVELOPE_FOLLOW to indicate exponential gain following. As a result
+   timed-gain filters can never repeat exactly 13 times when used directly
+   but can when called using AAXS files.
  * Implement a SimpleMixer C++ API. The idea is that AAXS files already allow
    dynamic playback of sounds, or sound files, without the need to change the
    code. Therefore only simple bindings like start, stop and pause and pitch,
    volume and panning may be sufficient in some cases.
+ * Add functions which return a C++ string instead of const char* to a 'string'
+   namespace in aeonwave relieving the caller from freeing the return value.
+ * Add delay_type to the aeonwave header which handle AAX_DELAY_EFFECT_NAME
+ * Add a processing_type function which returns the name of a aaxProcessingType
+   enumerator.
+ * Add a timed_source_typefunctions to the aeonwave header. It return source
+   types for timed-gain and timed-layer filters and the timed-pitch effect.
  * Add python3 bindings for the SimpleMixer API which will be generated when
    pybind11 is found.
 
--- Erik Hofman <tech@adalin.org>  Fri 06 Dec 2024 12:39:34 + 0100
+-- Erik Hofman <tech@adalin.org>  Thu 20 Feb 2025 08:53:14 + 0100
 
 
 * Thu Jul 04 2024 - tech@adalin.org
