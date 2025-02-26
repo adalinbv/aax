@@ -218,7 +218,7 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
          occlusion->occlusion.v4[2] = 0.5f*slot->param[2];
          occlusion->occlusion.v4[3] = slot->param[3];
          occlusion->magnitude = vec3fMagnitude(&occlusion->occlusion.v3);
-         occlusion->fc = 22000.0f;
+         occlusion->fc = MAXIMUM_CUTOFF;
 
          occlusion->gain_reverb = 1.0f;
          occlusion->gain = 1.0f;
@@ -248,7 +248,7 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
             lfo->period_rate = 1.0f/fs;
 
             lfo->min = 100.0f;
-            lfo->max = MAX_CUTOFF;
+            lfo->max = MAXIMUM_CUTOFF;
 
             lfo->min_sec = lfo->min/lfo->fs;
             lfo->max_sec = lfo->max/lfo->fs;

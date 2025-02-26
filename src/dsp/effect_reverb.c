@@ -493,6 +493,8 @@ _aaxReverbEffectGet(float val, int ptype, unsigned char param)
    return rv;
 }
 
+#define MINF	MINIMUM_CUTOFF
+#define MAXF	MAXIMUM_CUTOFF
 #define MAX1	DELAY_EFFECTS_TIME
 #define MAX2	REVERB_EFFECTS_TIME
 static float
@@ -500,10 +502,10 @@ _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxReverbRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 50.0f, 0.001f, 0.0f, 0.001f }, { 22000.0f,    MAX1,    2.0f, MAX2 } },
-    { {  0.1f,   0.1f, 0.1f,   0.0f }, {  FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
-    { { 50.0f,   0.0f, 0.0f,   0.0f }, { 22000.0f,    MAX1,    1.0f, MAX2 } },
-    { {  0.0f,   0.0f, 0.0f,   0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } }
+    { { MINF, 0.001f, 0.0f, 0.001f }, {    MAXF,    MAX1,    2.0f, MAX2 } },
+    { { 0.1f,   0.1f, 0.1f,   0.0f }, { FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
+    { { MINF,   0.0f, 0.0f,   0.0f }, {    MAXF,    MAX1,    1.0f, MAX2 } },
+    { { 0.0f,   0.0f, 0.0f,   0.0f }, {    0.0f,    0.0f,    0.0f, 0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
@@ -601,7 +603,7 @@ _reverb_prepare(_aaxEmitter *src, const _aax3dProps *fp3d, void *data)
       _occlusion_prepare(src, fp3d, occlusion);
 
       l = 1.0f - occlusion->level;
-      reverb->fc_lp = _MINMAX(l*22000.0f, 100.0f, reverb->fc_lp);
+      reverb->fc_lp = _MINMAX(l*MAXIMUM_CUTOFF, 100.0f, reverb->fc_lp);
       if (reverb->fc_lp > 100.0f) {
           _aax_butterworth_compute(reverb->fc_lp, filter);
       }
@@ -1124,7 +1126,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    if (occlusion)
    {
       float l = 1.0f - occlusion->level;
-      float fc = _MINMAX(l*22000.0f, 100.0f, reverb->fc_lp);
+      float fc = _MINMAX(l*MAXIMUM_CUTOFF, 100.0f, reverb->fc_lp);
       if (fc > 100.0f) {
          _aax_butterworth_compute(fc, filter);
       }
@@ -1143,7 +1145,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          float fc;
 
          fc = filter->lfo->get(filter->lfo, env, sptr, track, no_samples);
-         _aax_butterworth_compute(_MAX(fc, 20.0f), filter);
+         _aax_butterworth_compute(_MAX(fc, MINIMUM_CUTOFF), filter);
       }
 
       _reflections_run(reverb, rb, dptr, sptr, scratch, no_samples, ds,

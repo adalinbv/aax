@@ -287,7 +287,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
 // http://www.cns.nyu.edu/~david/courses/perception/lecturenotes/localization/localization-slides/Slide18.jpg
          // dir_fact = 0.0f: 20kHz, dir_fact = -1.0f: 250Hz
          // log10(MAX_CUTOFF - 1000) = 4.2787541
-         float fc = MAX_CUTOFF - _log2lin(-4.278754f*dir_fact);
+         float fc = MAXIMUM_CUTOFF - _log2lin(-4.278754f*dir_fact);
          ep2d->k = _aax_movingaverage_compute(fc, fs);
 
          if (ep2d->k <= 0.8f)

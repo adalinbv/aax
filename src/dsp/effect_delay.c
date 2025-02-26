@@ -447,17 +447,18 @@ _aaxDelayEffectSet(float val, int ptype, unsigned char param)
    return rv;
 }
 
-
+#define MINF	MINIMUM_CUTOFF
+#define MAXF	MAXIMUM_CUTOFF
 #define MAXL	(DELAY_MAX/DELAY_MAX_ORG)
 static float
 _aaxDelayEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxDelayRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { -2.0f,  0.01f,  0.0f, 0.0f  }, {     2.0f,    10.0f,  MAXL,  MAXL } },
-    { { 20.0f, 20.0f, -0.98f, 0.01f }, { 22050.0f, 22050.0f, 0.98f, 80.0f } },
-    { {  0.0f,  0.0f,   0.0f, 0.0f  }, { 22050.0f,     1.0f,  1.0f,  1.0f } },
-    { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f,  0.0f,  0.0f } }
+    { { -2.0f, 0.01f,   0.0f, 0.0f  }, { 2.0f, 10.0f,  MAXL,  MAXL } },
+    { {  MINF,  MINF, -0.98f, 0.01f }, { MAXF,  MAXF, 0.98f, 80.0f } },
+    { {  0.0f,  0.0f,   0.0f, 0.0f  }, { MAXF,  1.0f,  1.0f,  1.0f } },
+    { {  0.0f,  0.0f,   0.0f, 0.0f  }, { 0.0f,  0.0f,  0.0f,  0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
@@ -560,10 +561,10 @@ _aaxChorusEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxChorusRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { -2.0f,  0.01f,  0.0f, MIN   }, {     2.0f,    10.0f,  MAX2,  MAX1 } },
-    { { 20.0f, 20.0f, -0.98f, 0.01f }, { 22050.0f, 22050.0f, 0.98f, 80.0f } },
-    { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f,  0.0f,  0.0f } },
-    { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f,  0.0f,  0.0f } }
+    { { -2.0f, 0.01f,   0.0f, MIN   }, { 2.0f, 10.0f,  MAX2,  MAX1 } },
+    { {  MINF,  MINF, -0.98f, 0.01f }, { MAXF,  MAXF, 0.98f, 80.0f } },
+    { {  0.0f,  0.0f,   0.0f, 0.0f  }, { 0.0f,  0.0f,  0.0f,  0.0f } },
+    { {  0.0f,  0.0f,   0.0f, 0.0f  }, { 0.0f,  0.0f,  0.0f,  0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);

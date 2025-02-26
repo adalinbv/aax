@@ -148,7 +148,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
 
       if (eq)	/* fill in the fixed frequencies */
       {
-         float fband = _lin2log(22000.0f);
+         float fband = _lin2log(MAXIMUM_CUTOFF);
          float fs = filter->info->frequency;
          int bands, stages = 2;
          int s, b, pos, offs;

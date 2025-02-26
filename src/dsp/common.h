@@ -26,9 +26,6 @@ extern "C" {
 #define EPS		1e-5
 #define _MAX_FE_SLOTS	4
 
-#define MIN_CUTOFF	20.0f
-#define MAX_CUTOFF	20000.0f
-
 #define LOG_60DB	-3.0f   // logf(LEVEL_60DB)
 
 #define LEVEL_32DB	0.02511886321008205413818f

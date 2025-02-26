@@ -213,17 +213,17 @@ _aaxFrequencyShiftGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
    return rv;
 }
 
-
-#define MAX	MAX_CUTOFF
+#define MINF	MINIMUM_CUTOFF
+#define MAXF	MAXIMUM_CUTOFF
 static float
 _aaxFrequencyShiftMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxFrequencyShiftRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.01f, -MAX, -MAX }, { 1.0f, 50.0f,  MAX,  MAX } },
-    { { 0.0f,  0.0f, 0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } },
-    { { 0.0f,  0.0f, 0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } },
-    { { 0.0f,  0.0f, 0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } }
+    { { 0.0f, 0.01f, -MINF, -MINF }, { 1.0f, 50.0f,  MAXF,  MAXF } },
+    { { 0.0f,  0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,  0.0f,  0.0f } },
+    { { 0.0f,  0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,  0.0f,  0.0f } },
+    { { 0.0f,  0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,  0.0f,  0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);

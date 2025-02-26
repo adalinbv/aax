@@ -290,15 +290,17 @@ _aaxEqualizerGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
    return rv;
 }
 
+#define MINF	MINIMUM_CUTOFF
+#define MAXF	MAXIMUM_CUTOFF
 static float
 _aaxEqualizerMinMax(float val, int slot, unsigned char param)
 {
   static const _flt_minmax_tbl_t _aaxEqualizerRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 20.0f, 0.0f, 0.0f, 1.0f }, { 22050.0f, 10.0f, 10.0f, 100.0f } },
-    { { 20.0f, 0.0f, 0.0f, 1.0f }, { 22050.0f, 10.0f, 10.0f, 100.0f } },
-    { { 20.0f, 0.0f, 0.0f, 1.0f }, { 22050.0f, 10.0f, 10.0f, 100.0f } },
-    { { 20.0f, 0.0f, 0.0f, 1.0f }, { 22050.0f,  0.0f, 10.0f,  10.0f } }
+    { { MINF, 0.0f, 0.0f, 1.0f }, { MAXF, 10.0f, 10.0f, 100.0f } },
+    { { MINF, 0.0f, 0.0f, 1.0f }, { MAXF, 10.0f, 10.0f, 100.0f } },
+    { { MINF, 0.0f, 0.0f, 1.0f }, { MAXF, 10.0f, 10.0f, 100.0f } },
+    { { MINF, 0.0f, 0.0f, 1.0f }, { MAXF,  0.0f, 10.0f,  10.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);

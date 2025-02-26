@@ -291,7 +291,7 @@ _aaxNewFrequencyFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
       else
       {
          rv->slot[1]->param[AAX_SWEEP_RATE & 0xF] = 1.0f;
-         rv->slot[1]->param[AAX_CUTOFF_FREQUENCY_HF & 0xF] = MAX_CUTOFF;
+         rv->slot[1]->param[AAX_CUTOFF_FREQUENCY_HF & 0xF] = MAXIMUM_CUTOFF;
       }
 
       rv->state = p2d->filter[rv->pos].state;
@@ -319,15 +319,17 @@ _aaxFrequencyFilterGet(float val, int ptype, unsigned char param)
    return rv;
 }
 
+#define MINF	MINIMUM_CUTOFF
+#define MAXF	MAXIMUM_CUTOFF
 static float
 _aaxFrequencyFilterMinMax(float val, int slot, unsigned char param)
 {
   static const _flt_minmax_tbl_t _aaxFrequencyRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { MIN_CUTOFF, 0.0f, 0.0f, 1.0f  }, { MAX_CUTOFF, 10.0f, 10.0f, 100.0f } },
-    { { MIN_CUTOFF, 0.0f, 0.0f, 0.01f }, { MAX_CUTOFF,  1.0f,  1.0f,  50.0f } },
-    { {       0.0f, 0.0f, 0.0f, 0.0f  }, {       0.0f,  0.0f,  0.0f,   0.0f } },
-    { {       0.0f, 0.0f, 0.0f, 0.0f  }, {       0.0f,  0.0f,  0.0f,   0.0f } }
+    { { MINF, 0.0f, 0.0f, 1.0f  }, { MAXF, 10.0f, 10.0f, 100.0f } },
+    { { MINF, 0.0f, 0.0f, 0.01f }, { MAXF,  1.0f,  1.0f,  50.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f  }, { 0.0f,  0.0f,  0.0f,   0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f  }, { 0.0f,  0.0f,  0.0f,   0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);

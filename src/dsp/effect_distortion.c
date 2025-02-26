@@ -254,15 +254,17 @@ _aaxDistortionEffectGet(float val, UNUSED(int ptype), UNUSED(unsigned char param
    return rv;
 }
 
+#define MINF	MINIMUM_CUTOFF
+#define MAXF	MAXIMUM_CUTOFF
 static float
 _aaxDistortionEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxDistortionRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     4.0f,     1.0f,  1.0f,  1.0f } },
-    { { 20.0f, 20.0f, -0.98f, 0.01f }, { 22050.0f, 22050.0f, 0.98f, 80.0f } },
-    { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f,  0.0f,  0.0f } },
-    { {  0.0f,  0.0f,   0.0f, 0.0f  }, {     0.0f,     0.0f,  0.0f,  0.0f } }
+    { { 0.0f, 0.0f,   0.0f, 0.0f  }, { 4.0f, 1.0f,  1.0f,  1.0f } },
+    { { MINF, MINF, -0.98f, 0.01f }, { MAXF, MAXF, 0.98f, 80.0f } },
+    { { 0.0f, 0.0f,   0.0f, 0.0f  }, { 0.0f, 0.0f,  0.0f,  0.0f } },
+    { { 0.0f, 0.0f,   0.0f, 0.0f  }, { 0.0f, 0.0f,  0.0f,  0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);

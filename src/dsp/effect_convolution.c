@@ -286,15 +286,18 @@ _aaxConvolutionEffectGet(float val, int ptype, UNUSED(unsigned char param))
    return rv;
 }
 
+
+#define MINF	MINIMUM_CUTOFF
+#define MAXF	MAXIMUM_CUTOFF
 static float
 _aaxConvolutionEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxConvolutionRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 22050.0f,    1.0f,    1.0f, 1.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {  FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } }
+    { { MINF, 0.0f, 0.0f, 0.0f }, {    MAXF,    1.0f,    1.0f, 1.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,    0.0f,    0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,    0.0f,    0.0f, 0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
@@ -426,7 +429,7 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *data, UNUSED(_intBuffe
    {
       _aaxRingBufferFreqFilterData *flt = convolution->freq_filter;
 
-      if (convolution->fc > 15000.0f) {
+      if (convolution->fc > MAXIMUM_CUTOFF) {
          rbd->add(dptr, hptr+hpos, dnum, flt->low_gain, 0.0f);
       }
       else
