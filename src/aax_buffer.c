@@ -390,17 +390,29 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
                   void *data = _aax_aligned_alloc(num*sizeof(int32_t));
                   if (data)
                   {
-                     _bufConvertDataToPCM24S(data, track[0], num, rb_format);
-                     _batch_cvtps24_24(data, data, num);
-                     _batch_get_average_rms(data, num, &handle->rms, &handle->peak);
+                     for (int t=0; t<handle->info.no_tracks; ++t)
+                     {
+                        float rms = 0.0f;
+                        _bufConvertDataToPCM24S(data, track[t], num, rb_format);
+                        _batch_cvtps24_24(data, data, num);
+                        _batch_get_average_rms(data, num, &handle->rms, &handle->peak);
+                        handle->rms += rms;
+                     }
                      _aax_aligned_free(data);
+                     handle->rms /= handle->info.no_tracks;
                   }
                }
                else
                {
-                  _batch_cvtps24_24(track[0], track[0], num);
-                  _batch_get_average_rms(track[0], num, &handle->rms, &handle->peak);
-                  _batch_cvt24_ps24(track[0], track[0], num);
+                  for (int t=0; t<handle->info.no_tracks; ++t)
+                  {
+                      float rms = 0.0f;
+                      _batch_cvtps24_24(track[t], track[t], num);
+                      _batch_get_average_rms(track[t], num, &rms, &handle->peak);
+                      handle->rms += rms;
+                      _batch_cvt24_ps24(track[t], track[t], num);
+                  }
+                  handle->rms /= handle->info.no_tracks;
                }
                rb->release_tracks_ptr(rb);
             }
