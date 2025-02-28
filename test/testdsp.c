@@ -35,7 +35,8 @@ static float filterSlotParams[AAX_FILTER_MAX][4] = {
  {  0.1f, 40.0f,  0.5f,  0.4f }, // AAX_BITCRUSHER_FILTER,
  {  0.9f,  0.8f,  0.7f,  0.6f }, // AAX_GRAPHIC_EQUALIZER,
  {  0.1f,  1.1f,  0.6f,  0.3f }, // AAX_COMPRESSOR,
- {  0.3f,  5.1f,  0.9f,  0.1f }  // AAX_DYNAMIC_LAYER_FILTER,
+ {  0.3f,  5.1f,  0.9f,  0.1f }, // AAX_DYNAMIC_LAYER_FILTER,
+ {  0.1f,  1.3f,  0.9f,  0.1f }  // AAX_TIMED_LAYER_FILTER,
 };
 
 static float effectSlotParams[AAX_EFFECT_MAX][4] = {
@@ -51,7 +52,9 @@ static float effectSlotParams[AAX_EFFECT_MAX][4] = {
  {  2e4f, 0.03f,  0.3f,  0.9f }, // AAX_REVERB_EFFECT,
  {  3e3f,  0.3f,  0.9f,  0.1f }, // AAX_CONVOLUTION_EFFECT,
  {  0.8f, 12.0f,  1e3f,  1e2f }, // AAX_RINGMODULATOR_EFFECT,
- {  0.7f,  9.2f,  0.8f,  0.2f }  // AAX_DELAY_EFFECT,
+ {  0.7f,  9.2f,  0.8f,  0.2f }, // AAX_DELAY_EFFECT,
+ { -1.0f,  7.1f,  0.9f,  0.3f }, // AAX_WAVEFOLD_EFFECT,
+ {  0.0f,  0.2f,-20.0f, 99e1f }  // AAX_FREQUENCY_SHIFT_EFFECT,
 };
 
 int main()
@@ -184,6 +187,7 @@ int main()
          if (i == AAX_GRAPHIC_EQUALIZER) continue;
          if (i == AAX_TIMED_GAIN_FILTER) continue;
          if (i == AAX_DYNAMIC_LAYER_FILTER) continue;
+         if (i == AAX_TIMED_LAYER_FILTER) continue;
 
          printf("frame filter: %-32s: ", aaxFilterGetNameByType(config, i));
          TRY( filter = aaxFilterCreate(config, i) );
@@ -302,6 +306,7 @@ int main()
 //       if (i == AAX_DISTANCE_FILTER) continue;
 //       if (i == AAX_FREQUENCY_FILTER) continue;
          if (i == AAX_DYNAMIC_LAYER_FILTER) continue;
+         if (i == AAX_TIMED_LAYER_FILTER) continue;
 
          printf("mixer filter: %-32s: ", aaxFilterGetNameByType(config, i));
          TRY( filter = aaxFilterCreate(config, i) );
