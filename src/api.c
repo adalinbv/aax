@@ -211,6 +211,7 @@ size_t getFileSize(const char *fname)
 
 #if defined(WIN32)
 #include <sddl.h>
+#include <WS2tcpip.h>
 
 int
 createDACL(SECURITY_ATTRIBUTES * pSA)
