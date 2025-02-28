@@ -376,51 +376,6 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_COMPRESSION_VALUE:
          rv = AAX_TO_INT(handle->gain);
          break;
-      case AAX_PEAK_VALUE:
-      case AAX_AVERAGE_VALUE:
-         if (rb->get_state(rb, RB_IS_VALID))
-         {
-            if (handle->rms == 0.0)
-            {
-               MIX_T **track = (MIX_T**)rb->get_tracks_ptr(rb, RB_READ);
-               size_t num = rb->get_parami(rb, RB_NO_SAMPLES);
-               unsigned int rb_format = rb->get_parami(rb, RB_FORMAT);
-               if (rb_format != AAX_PCM24S)
-               {
-                  void *data = _aax_aligned_alloc(num*sizeof(int32_t));
-                  if (data)
-                  {
-                     for (int t=0; t<handle->info.no_tracks; ++t)
-                     {
-                        float rms = 0.0f;
-                        _bufConvertDataToPCM24S(data, track[t], num, rb_format);
-                        _batch_cvtps24_24(data, data, num);
-                        _batch_get_average_rms(data, num, &handle->rms, &handle->peak);
-                        handle->rms += rms;
-                     }
-                     _aax_aligned_free(data);
-                     handle->rms /= handle->info.no_tracks;
-                  }
-               }
-               else
-               {
-                  for (int t=0; t<handle->info.no_tracks; ++t)
-                  {
-                      float rms = 0.0f;
-                      _batch_cvtps24_24(track[t], track[t], num);
-                      _batch_get_average_rms(track[t], num, &rms, &handle->peak);
-                      handle->rms += rms;
-                      _batch_cvt24_ps24(track[t], track[t], num);
-                  }
-                  handle->rms /= handle->info.no_tracks;
-               }
-               rb->release_tracks_ptr(rb);
-            }
-            rv = (type == AAX_AVERAGE_VALUE) ? handle->rms : handle->peak;
-         } else {
-            _aaxErrorSet(AAX_INVALID_STATE);
-         }
-         break;
       case AAX_LOOP_COUNT:
          rv = (int64_t)handle->info.loop_count;
          break;
@@ -507,7 +462,72 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
           rv = 100.0f*handle->info.modulation.rate;
           break;
       default:
-         _aaxErrorSet(AAX_INVALID_ENUM);
+      {
+         int track_no = type & AAX_TRACK_MASK;
+         bool all_tracks = (track_no == AAX_TRACK_ALL);
+         int max = all_tracks ? handle->info.no_tracks : track_no;
+         int min = all_tracks ? 0 : track_no;
+
+         type &= ~(AAX_BAND_MASK|AAX_TRACK_MASK);
+         switch(type)
+         {
+         case AAX_PEAK_VALUE:
+         case AAX_AVERAGE_VALUE:
+            if (rb->get_state(rb, RB_IS_VALID))
+            {
+               MIX_T **track = (MIX_T**)rb->get_tracks_ptr(rb, RB_READ);
+               size_t num = rb->get_parami(rb, RB_NO_SAMPLES);
+               unsigned int rb_format = rb->get_parami(rb, RB_FORMAT);
+               if (rb_format != AAX_PCM24S)
+               {
+                  void *data = _aax_aligned_alloc(num*sizeof(int32_t));
+                  if (data)
+                  {
+                     rv = 0.0f;
+                     for (int t=min; t<=max; ++t)
+                     {
+                        float peak = handle->peak[t];
+                        float rms = handle->rms[t];
+                        if (handle->rms[t] == 0.0f)
+                        {
+                           _bufConvertDataToPCM24S(data, track[t], num, rb_format);
+                           _batch_cvtps24_24(data, data, num);
+                           _batch_get_average_rms(data, num, &rms, &peak);
+                            handle->peak[t] = peak;
+                            handle->rms[t] = rms;
+                        }
+                        rv += (type == AAX_AVERAGE_VALUE) ? rms : peak;
+                     }
+                     _aax_aligned_free(data);
+                  }
+               }
+               else
+               {
+                  rv = 0.0f;
+                  for (int t=min; t<=max; ++t)
+                  {
+                     float peak = handle->peak[t];
+                     float rms = handle->rms[t];
+                     if (handle->rms[t] == 0.0f)
+                     {
+                         _batch_cvtps24_24(track[t], track[t], num);
+                         _batch_get_average_rms(track[t], num, &rms, &peak);
+                         _batch_cvt24_ps24(track[t], track[t], num);
+                         handle->peak[t] = peak;
+                         handle->rms[t] = rms;
+                     }
+                     rv += (type == AAX_AVERAGE_VALUE) ? rms : peak;
+                  }
+               }
+               rb->release_tracks_ptr(rb);
+            } else {
+               _aaxErrorSet(AAX_INVALID_STATE);
+            }
+            break;
+         default:
+            _aaxErrorSet(AAX_INVALID_ENUM);
+         }
+      } // default
       }
    }
    return rv;

@@ -206,6 +206,8 @@ enum aaxModeType
 /* Can be used in combination with AAX_TRACK0 - AAX_TRACK7 */
 enum aaxFrequencyBandType
 {
+   AAX_BAND_MASK = 0x1F00,
+
    AAX_BAND_ALL = 0x00,
    AAX_BAND1  = 0x0100,
    AAX_BAND2  = 0x0200,
@@ -229,6 +231,7 @@ enum aaxFrequencyBandType
 
 enum aaxTrackType
 {
+   AAX_TRACK_MASK = 0xFF,
    AAX_TRACK_MIX = 0x40,
    AAX_TRACK_ALL = 0x80,
 

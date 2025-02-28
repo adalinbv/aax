@@ -283,7 +283,9 @@ typedef struct aax_buffer_t
    unsigned int sample_num;
 
    unsigned int pos;
-   float rms, peak, gain;
+   float rms[RB_MAX_TRACKS];
+   float peak[RB_MAX_TRACKS];
+   float gain;
 
    enum aaxCapabilities midi_mode;
    bool to_mixer;
