@@ -1,4 +1,4 @@
-* Thu Feb 20 2025 - tech@adalin.org
+* Fri Feb 28 2025 - tech@adalin.org
 - AeonWave (4.1.0) stable; urgency=medium
 
  * Add a timed layer filter.
@@ -48,7 +48,7 @@
  * Add python3 bindings for the SimpleMixer API which will be generated when
    pybind11 is found.
 
--- Erik Hofman <tech@adalin.org>  Thu 20 Feb 2025 08:53:14 + 0100
+-- Erik Hofman <tech@adalin.org>  Fri 28 Feb 2025 08:25:41 + 0100
 
 
 * Thu Jul 04 2024 - tech@adalin.org
