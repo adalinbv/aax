@@ -300,7 +300,7 @@ _aaxEqualizerMinMax(float val, int slot, unsigned char param)
     { { MINF, 0.0f, 0.0f, 1.0f }, { MAXF, 10.0f, 10.0f, 100.0f } },
     { { MINF, 0.0f, 0.0f, 1.0f }, { MAXF, 10.0f, 10.0f, 100.0f } },
     { { MINF, 0.0f, 0.0f, 1.0f }, { MAXF, 10.0f, 10.0f, 100.0f } },
-    { { MINF, 0.0f, 0.0f, 1.0f }, { MAXF,  0.0f, 10.0f,  10.0f } }
+    { { MINF, 0.0f, 0.0f, 1.0f }, { MAXF, 10.0f, 10.0f,  10.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
