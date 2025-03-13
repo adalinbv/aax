@@ -1724,8 +1724,11 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
       {
          if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
          {
+             _buffer_t * buf = embuf->buffer;
             aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq,
-                                            0.0f, 0.0f, &handle->midi);
+                                                  buf->info.low_frequency,
+                                                  buf->info.high_frequency,
+                                                  &handle->midi);
             if (flt)
             {
                _filter_t* filter = get_filter(flt);

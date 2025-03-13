@@ -493,14 +493,27 @@ _aaxSetSlotFromAAXS(const xmlId *xid, bool (*setStateFn)(void*, int, int), bool 
                            value += random*2.0f*(_aax_random()-0.5f);
                         }
 
-                        adjust = xmlAttributeGetDouble(xpid, "auto");
-                        if (adjust != 0.0f)
+                        if (xmlAttributeExists(xpid, "auto"))
                         {
-                           float min = xmlAttributeGetDouble(xpid, "min");
-                           float max = xmlAttributeGetDouble(xpid, "max");
-                           if (min <= 0.01f) min = 0.01f;
-                           if (max <= min) max = FLT_MAX;
-                           value=_MINMAX(value-adjust*_lin2log(freq), min, max);
+                           float adjust = xmlAttributeGetDouble(xpid, "auto");
+                           float min_val = xmlAttributeGetDouble(xpid, "min");
+                           float max_val = xmlAttributeGetDouble(xpid, "max");
+                           if (min_val <= 0.01f) min_val = 0.01f;
+                           if (max_val <= min_val) max_val = FLT_MAX;
+                           value = value - adjust*_lin2log(freq);
+                           value = _MINMAX(value, min_val, max_val);
+                        }
+                        else if (xmlAttributeExists(xpid, "min"))
+                        {
+                           float lin1 = xmlAttributeGetDouble(xpid, "min");
+                           float adjust = (value - lin1)/_lin2log(min);
+                           value = value - adjust*_lin2log(freq);
+                        }
+                        else if (xmlAttributeExists(xpid, "max"))
+                        {
+                           float lin2 = xmlAttributeGetDouble(xpid, "max");
+                           float adjust = (value - lin2)/_lin2log(max);
+                           value = value - adjust*_lin2log(freq);
                         }
                      }
 
