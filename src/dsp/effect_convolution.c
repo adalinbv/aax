@@ -294,7 +294,7 @@ _aaxConvolutionEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxConvolutionRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { MINF, 0.0f, 0.0f, 0.0f }, {    MAXF,    1.0f,    1.0f, 1.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {    MAXF,    1.0f,    1.0f, 1.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, { FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,    0.0f,    0.0f, 0.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,    0.0f,    0.0f, 0.0f } }
