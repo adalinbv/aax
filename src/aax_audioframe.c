@@ -1799,7 +1799,7 @@ _frameCreateBodyFromAAXS(aaxFrame frame, _frame_t* handle, _buffer_t *buffer, xm
          if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
          {
             aaxFilter f;
-            f = _aaxGetFilterFromAAXS(config, xfid, freq, 0.0f, 0.0f, NULL);
+            f = _aaxGetFilterFromAAXS(config, xfid, freq, NULL, NULL);
             if (f)
             {
                aaxAudioFrameSetFilter(frame, f);
@@ -1815,7 +1815,7 @@ _frameCreateBodyFromAAXS(aaxFrame frame, _frame_t* handle, _buffer_t *buffer, xm
       {
          if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
          {
-            aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq, 0.0f, 0.0f, NULL);
+            aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq, NULL, NULL);
             if (eff)
             {
                aaxAudioFrameSetEffect(frame, eff);

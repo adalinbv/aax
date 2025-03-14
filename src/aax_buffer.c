@@ -1612,7 +1612,7 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const xmlId *xfid, int layer, float 
    _midi_t midi;
 
    midi.mode = handle->midi_mode;
-   flt = _aaxGetFilterFromAAXS(handle->root, xfid, frequency, handle->info.low_frequency, handle->info.high_frequency, &midi);
+   flt = _aaxGetFilterFromAAXS(handle->root, xfid, frequency, &handle->info, &midi);
    if (flt)
    {
       _filter_t* filter = get_filter(flt);
@@ -1650,13 +1650,11 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const xmlId *xfid, int layer, float 
 static int
 _bufCreateEffectFromAAXS(_buffer_t* handle, const xmlId *xeid, int layer, float frequency)
 {
-   float min = handle->info.low_frequency;
-   float max = handle->info.high_frequency;
    aaxEffect eff;
    _midi_t midi;
 
    midi.mode = handle->midi_mode;
-   eff = _aaxGetEffectFromAAXS(handle->root, xeid, frequency, min, max, &midi);
+   eff = _aaxGetEffectFromAAXS(handle->root, xeid, frequency, &handle->info, &midi);
    if (eff)
    {
       _effect_t* effect = get_effect(eff);

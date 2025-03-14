@@ -227,7 +227,7 @@ typedef enum
    WAVEFORM_LIMIT_STRONG  = 0x02
 } limitType;
 
-typedef struct
+typedef struct aax_buffer_info_t
 {
    enum aaxFormat fmt; 
    unsigned int no_tracks;

@@ -447,6 +447,7 @@ typedef struct
 
 struct aax_emitter_t;
 struct aax_embuffer_t;
+struct aax_buffer_info_t;
 
 extern float _aaxDefaultHead[2][4];
 extern float _aaxDefaultHRTFVolume[_AAX_MAX_SPEAKERS][4];
@@ -477,8 +478,8 @@ unsigned int _aaxSetNoEmitters(const _aaxDriverBackend*, unsigned int);
 unsigned int _aaxIncreaseEmitterCounter(const _aaxDriverBackend*);
 unsigned int _aaxDecreaseEmitterCounter(const _aaxDriverBackend*);
 
-aaxFilter _aaxGetFilterFromAAXS(aaxConfig, const xmlId*, float, float, float, _midi_t*);
-aaxEffect _aaxGetEffectFromAAXS(aaxConfig, const xmlId*, float, float, float, _midi_t*);
+aaxFilter _aaxGetFilterFromAAXS(aaxConfig, const xmlId*, float, struct aax_buffer_info_t*, _midi_t*);
+aaxEffect _aaxGetEffectFromAAXS(aaxConfig, const xmlId*, float, struct aax_buffer_info_t*, _midi_t*);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
