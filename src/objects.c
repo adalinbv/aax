@@ -423,16 +423,18 @@ static int
 _aaxSetSlotFromAAXS(const xmlId *xid, bool (*setStateFn)(void*, int, int), bool (*setParamFn)(void*, int, int, float), void *id, float freq, struct aax_buffer_info_t *info, _midi_t *midi)
 {
    unsigned int s, snum = xmlNodeGetNum(xid, "slot");
-   int min = info ? info->low_frequency : 0.0f;
-   int max = info ? info->high_frequency : 0.0f;
+   int min_freq, max_freq, base_freq;
    int rv = false;
    xmlId *xsid;
 
    xsid = xmlMarkId(xid);
    if (!xsid) return rv;
 
-   if (min != 0.0f && freq < min) freq = min;
-   if (max != 0.0f && freq > max) freq = max;
+   min_freq = info ? info->low_frequency : MINIMUM_CUTOFF;
+   max_freq = info ? info->high_frequency : MAXIMUM_CUTOFF;
+   base_freq = info ? info->base_frequency : 220.0f;
+   if (min_freq != 0.0f && freq < min_freq) freq = min_freq;
+   if (max_freq != 0.0f && freq > max_freq) freq = max_freq;
 
    for (s=0; s<snum; s++)
    {
@@ -497,23 +499,19 @@ _aaxSetSlotFromAAXS(const xmlId *xid, bool (*setStateFn)(void*, int, int), bool 
 
                         float min_val = xmlAttributeGetDouble(xpid, "min");
                         float max_val = xmlAttributeGetDouble(xpid, "max");
-                        if (min_val <= 0.01f) min_val = 0.01f;
-                        if (max_val <= 0.01f) max_val = 0.01f;
                         if (xmlAttributeExists(xpid, "auto"))
                         {
                            float adjust = xmlAttributeGetDouble(xpid, "auto");
                            value = value - adjust*_lin2log(freq);
                            value = _MINMAX(value, min_val, max_val);
                         }
-                        else if (xmlAttributeExists(xpid, "min"))
+                        else if (min_val || max_val)
                         {
-                           float adjust = (value - min_val)/_lin2log(min);
-                           value = value - adjust*_lin2log(freq);
-                        }
-                        else if (xmlAttributeExists(xpid, "max"))
-                        {
-                           float adjust = (value - max_val)/_lin2log(max);
-                           value = value - adjust*_lin2log(freq);
+                           float freq_min = _lin2log(min_freq);
+                           float freq_max = _lin2log(max_freq);
+                           float fact = (max_val-min_val)/(freq_max-freq_min);
+
+                           value = min_val + fact*(_lin2log(freq) - freq_min);
                         }
                      }
 
