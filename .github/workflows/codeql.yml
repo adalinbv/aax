@@ -36,6 +36,7 @@ jobs:
         run: |
           git clone https://github.com/adalinbv/zeroxml.git
           cd zeroxml
+          cmake .
           make
           sudo make install
 
