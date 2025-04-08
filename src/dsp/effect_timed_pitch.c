@@ -191,6 +191,21 @@ static float
 _aaxTimedPitchEffectSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
+   if ((param % 2) != 0)
+   {
+      switch(ptype)
+      {
+      case AAX_MILLISECONDS:
+         rv = 1e3f*val;
+         break;
+      case AAX_MICROSECONDS:
+         rv = 1e6f*val;
+         break;
+      case AAX_SECONDS:
+      default:
+         break;
+      }
+   }
    return rv;
 }
 
@@ -198,6 +213,21 @@ static float
 _aaxTimedPitchEffectGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
+   if ((param % 2) != 0)
+   {
+      switch(ptype)
+      {
+      case AAX_MILLISECONDS:
+         rv = 1e-3f*val;
+         break; 
+      case AAX_MICROSECONDS:
+         rv = 1e-6f*val;
+         break;
+      case AAX_SECONDS:
+      default:
+         break;
+      }
+   }
    return rv;
 }
 

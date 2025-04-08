@@ -235,14 +235,7 @@ static float
 _aaxTimedLayerFilterSet(float val, int ptype, unsigned char param)
 {
    float rv = val;
-
-   if ((param % 2) == 0)
-   {
-      if (ptype == AAX_DECIBEL) {
-         rv = _lin2db(val);
-      }
-   }
-   else
+   if ((param % 2) != 0)
    {
       switch(ptype)
       {
@@ -264,13 +257,7 @@ static float
 _aaxTimedLayerFilterGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
-   if ((param % 2) == 0)
-   {
-      if (ptype == AAX_DECIBEL) {
-         rv = _db2lin(val);
-      }
-   }
-   else
+   if ((param % 2) != 0)
    {
       switch(ptype)
       {
