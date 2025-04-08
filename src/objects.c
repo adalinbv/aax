@@ -420,7 +420,7 @@ _aaxSetEffectSlotState(const aaxEffect e, int slot, int state)
 }
 
 static int
-_aaxSetSlotFromAAXS(const xmlId *xid, bool (*setStateFn)(void*, int, int), bool (*setParamFn)(void*, int, int, float), void *id, float freq, struct aax_buffer_info_t *info, _midi_t *midi)
+_aaxSetSlotFromAAXS(const xmlId *xid, bool (*setStateFn)(void*, int, int), bool (*setParamFn)(void*, int, int, float), float (*cvtParamFn)(void*, int, int, float), void *id, float freq, struct aax_buffer_info_t *info, _midi_t *midi)
 {
    unsigned int s, snum = xmlNodeGetNum(xid, "slot");
    int min_freq, max_freq, base_freq;
@@ -483,9 +483,20 @@ _aaxSetSlotFromAAXS(const xmlId *xid, bool (*setStateFn)(void*, int, int), bool 
                         pn = xmlAttributeGetInt(xpid, "n");
                      }
 
+                     slen = xmlAttributeCopyString(xpid, "type", src, 64);
+                     if (slen == 0) {
+                        type = AAX_LINEAR;
+                     }
+                     else
+                     {
+                        src[slen] = 0;
+                        type = aaxGetByName(src, AAX_TYPE_NAME);
+                     }
+
                      if (freq != 0.0f)
                      {
                         float pitch, adjust, random;
+                        float min_val, max_val;
 
                         pitch = xmlAttributeGetDouble(xpid, "pitch");
                         if (pitch != 0.0f) {
@@ -497,8 +508,12 @@ _aaxSetSlotFromAAXS(const xmlId *xid, bool (*setStateFn)(void*, int, int), bool 
                            value += random*2.0f*(_aax_random()-0.5f);
                         }
 
-                        float min_val = xmlAttributeGetDouble(xpid, "min");
-                        float max_val = xmlAttributeGetDouble(xpid, "max");
+                        min_val = xmlAttributeGetDouble(xpid, "min");
+                        min_val = cvtParamFn(id, pn, type, min_val);
+
+                        max_val = xmlAttributeGetDouble(xpid, "max");
+                        max_val = cvtParamFn(id, pn, type, max_val);
+
                         if (xmlAttributeExists(xpid, "auto"))
                         {
                            float adjust = xmlAttributeGetDouble(xpid, "auto");
@@ -512,17 +527,8 @@ _aaxSetSlotFromAAXS(const xmlId *xid, bool (*setStateFn)(void*, int, int), bool 
                            float fact = (max_val-min_val)/(freq_max-freq_min);
 
                            value = min_val + fact*(_lin2log(freq) - freq_min);
+                           value = _MAX(value, 0.01f);
                         }
-                     }
-
-                     slen = xmlAttributeCopyString(xpid, "type", src, 64);
-                     if (slen == 0) {
-                        type = AAX_LINEAR;
-                     }
-                     else
-                     {
-                        src[slen] = 0;
-                        type = aaxGetByName(src, AAX_TYPE_NAME);
                      }
 
                      pn |= slotnum[sn];
@@ -576,7 +582,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const xmlId *xid, float freq, struct aax
       flt = aaxFilterCreate(config, ftype);
       if (flt)
       {
-         _aaxSetSlotFromAAXS(xid, _aaxSetFilterSlotState, aaxFilterSetParam, flt, freq, info, midi);
+         _aaxSetSlotFromAAXS(xid, _aaxSetFilterSlotState, aaxFilterSetParam, _aaxFilterConvertParam, flt, freq, info, midi);
 
          if (ftype == AAX_TIMED_GAIN_FILTER)
          {
@@ -702,7 +708,7 @@ _aaxGetEffectFromAAXS(aaxConfig config, const xmlId *xid, float freq, struct aax
       eff = aaxEffectCreate(config, etype);
       if (eff)
       {
-         _aaxSetSlotFromAAXS(xid, _aaxSetEffectSlotState, aaxEffectSetParam, eff, freq, info, midi);
+         _aaxSetSlotFromAAXS(xid, _aaxSetEffectSlotState, aaxEffectSetParam, _aaxEffectConvertParam, eff, freq, info, midi);
 
          slen = xmlAttributeCopyString(xid, "src", src, 64);
          if (slen)

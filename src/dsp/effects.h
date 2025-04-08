@@ -32,6 +32,7 @@ extern "C" {
 
 aaxEffect _aaxEffectCreateHandle(_aaxMixerInfo*, enum aaxEffectType, unsigned, size_t);
 bool _aaxEffectDestroy(aaxEffect*);
+float _aaxEffectConvertParam(const aaxEffect, int, int, float);
 
 void _aaxSetDefaultEffect2d(_aaxEffectInfo*, unsigned int, unsigned slot);
 void _aaxSetDefaultEffect3d(_aaxEffectInfo*, unsigned int, unsigned slot);

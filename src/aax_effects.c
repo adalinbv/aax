@@ -331,3 +331,19 @@ aaxEffectGetNameByType(aaxConfig handle, enum aaxEffectType type)
    }
    return rv;
 }
+
+/* -------------------------------------------------------------------------- */
+float    
+_aaxEffectConvertParam(const aaxEffect f, int p, int ptype, float value)
+{  
+   if (value)
+   {
+      _effect_t* effect = get_effect(f);
+      _eff_function_tbl *eff = _aaxEffects[effect->type-1];
+      unsigned slot = p >> 4;
+      int param = p & 0xF;
+      return eff->limit_param(eff->get_param(value, ptype, p), slot, param);
+   }
+   return value;
+}
+

@@ -27,6 +27,7 @@ extern "C" {
 
 aaxFilter _aaxFilterCreateHandle(_aaxMixerInfo*, enum aaxFilterType, unsigned, size_t);
 bool _aaxFilterDestroy(aaxFilter*);
+float _aaxFilterConvertParam(const aaxFilter, int, int, float);
 
 void _aaxSetDefaultFilter2d(_aaxFilterInfo*, unsigned int, unsigned slot);
 void _aaxSetDefaultFilter3d(_aaxFilterInfo*, unsigned int, unsigned slot);

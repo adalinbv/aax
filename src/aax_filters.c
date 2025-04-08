@@ -291,3 +291,18 @@ aaxFilterGetNameByType(aaxConfig handle, enum aaxFilterType type)
    return rv;
 }
 
+/* -------------------------------------------------------------------------- */
+
+float
+_aaxFilterConvertParam(const aaxFilter f, int p, int ptype, float value)
+{
+   if (value)
+   {
+      _filter_t* filter = get_filter(f);
+      _flt_function_tbl *flt = _aaxFilters[filter->type-1];
+      unsigned slot = p >> 4;
+      int param = p & 0xF;
+      return flt->limit_param(flt->get_param(value, ptype, p), slot, param);
+   }
+   return value;
+}
