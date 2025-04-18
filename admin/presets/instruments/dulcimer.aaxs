@@ -13,29 +13,35 @@
 
  <info name="Dulcimer" bank="0" program="15">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="10" min="36" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.25" frequency="220" duration="0.1">
+ <sound frequency="220" duration="0.1">
   <layer n="0">
-   <waveform src="square" ratio="1.9"/>
-   <waveform src="sawtooth" processing="add" ratio="0.98" pitch="8.0"/>
-   <waveform src="impulse" processing="add" ratio="0.44" pitch="2.987"/>
-   <waveform src="square" processing="modulate" ratio="1.9" pitch="5.0"/>
+   <waveform src="square"/>
+   <waveform src="sawtooth" processing="add" ratio="0.516" pitch="8.0"/>
+   <waveform src="impulse" processing="add" ratio="0.232" pitch="2.987"/>
+   <waveform src="square" processing="modulate" pitch="5.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.5" looping="true">
   <filter type="timed-gain" src="envelope" release-time="1.0">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.015</param>
-    <param n="2">0.92</param>
-    <param n="3">1.33</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="40.0" max="8.0" tune="-2.72e-05">0.0417</param>
+    <param n="2">1.0</param>
+    <param n="3">0.015</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.92</param>
+    <param n="1">1.33</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -55,7 +61,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">180.0</param>
     <param n="1">0.5</param>

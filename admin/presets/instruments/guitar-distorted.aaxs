@@ -13,33 +13,39 @@
 
  <info name="Electric Guitar (Distorted)" bank="0" program="30">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="40" max="86" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.00" frequency="110" duration="0.1">
+ <sound gain="0.726" frequency="110" duration="0.1">
   <layer n="0">
-   <waveform src="sawtooth" ratio="1.26"/>
-   <waveform src="square" processing="add" ratio="1.14" pitch="2.0"/>
-   <waveform src="triangle" processing="modulate" ratio="0.818" pitch="5.0"/>
+   <waveform src="sawtooth"/>
+   <waveform src="square" processing="add" ratio="0.905" pitch="2.0"/>
+   <waveform src="triangle" processing="modulate" ratio="0.649" pitch="5.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.26" looping="true">
   <filter type="timed-gain" release-time="0.2">
    <slot n="0">
-    <param n="0">0.226</param>
-    <param n="1">0.005</param>
-    <param n="2">1.0</param>
-    <param n="3">0.015</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="-4.05e-06">0.0103</param>
+    <param n="2">0.226</param>
+    <param n="3">0.005</param>
    </slot>
    <slot n="1">
-    <param n="0">0.551</param>
-    <param n="1">15.5</param>
+    <param n="0">1.0</param>
+    <param n="1">0.015</param>
+    <param n="2">0.551</param>
+    <param n="3">15.5</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -72,12 +78,12 @@
   <effect type="chorus">
    <slot n="0">
     <param n="0">0.9</param>
-    <param n="1">0.0</param>
+    <param n="1">0.01</param>
     <param n="2">0.0</param>
     <param n="3">0.02</param>
    </slot>
   </effect>
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">100.0</param>
     <param n="1">0.0</param>

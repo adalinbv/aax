@@ -16,11 +16,11 @@
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
+  <note polyphony="1" min="65" max="69" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.34" frequency="391.995" duration="0.3">
+ <sound frequency="391.995" duration="0.3">
   <layer n="0">
    <waveform src="white-noise" pitch="0.45"/>
    <waveform src="cycloid" processing="add" ratio="0.263"/>
@@ -47,7 +47,7 @@
   </layer>
  </sound>
 
- <emitter looping="true" pan="-0.23">
+ <emitter gain="4.79" pan="-0.23" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.4</param>
@@ -58,13 +58,19 @@
   </effect>
   <filter type="timed-gain" src="envelope" release-time="0.18">
    <slot n="0">
-    <param n="0">0.9</param>
-    <param n="1">0.35</param>
+    <param n="0">0.0</param>
+    <param n="1">0.9</param>
+    <param n="2">0.35</param>
+    <param n="3">0.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <filter type="bitcrusher" src="inverse-|reverse-envelope">
+  <filter type="bitcrusher" src="inverse-envelope">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.5</param>
@@ -72,10 +78,10 @@
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="phasing" src="envelope|1st-order">
+  <effect type="phasing" src="envelope">
    <slot n="0">
     <param n="0">0.4</param>
-    <param n="1">10.4</param>
+    <param n="1">10.0</param>
     <param n="2">0.01</param>
     <param n="3">0.0</param>
    </slot>

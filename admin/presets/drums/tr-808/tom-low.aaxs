@@ -20,13 +20,13 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.86" frequency="174.614" duration="0.1">
+ <sound frequency="6.875" duration="0.1">
   <layer n="0">
    <waveform src="sine"/>
   </layer>
  </sound>
 
- <emitter looping="true" pan="-0.1">
+ <emitter gain="2635.3" pan="-0.1" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.7</param>
@@ -37,8 +37,14 @@
   </effect>
   <filter type="timed-gain" src="envelope" release-time="0.08">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.35</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="50.0" max="10.0" tune="-1.97e-05">0.0513</param>
+    <param n="2">1.0</param>
+    <param n="3">0.35</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

@@ -13,15 +13,15 @@
 
  <info name="Choir Aahs (Vintage)" bank="0" program="52">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="48" max="79" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.55" frequency="130.813">
+ <sound gain="0.986" frequency="220">
   <layer n="0">
    <waveform src="white-noise"/>
    <waveform src="pink-noise" processing="mix"/>
@@ -34,16 +34,22 @@
  <emitter looping="true">
   <filter type="timed-gain" release-time="1.6">
    <slot n="0">
-    <param n="0">0.469</param>
-    <param n="1">0.1</param>
-    <param n="2" auto="-0.231" min="0.658" max="0.838">0.169</param>
-    <param n="3">0.05</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="50.0" max="30.0" tune="-1.02e-05">0.0513</param>
+    <param n="2">0.469</param>
+    <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0" auto="0.287" min="1.06" max="0.839">1.67</param>
-    <param n="1">inf</param>
-    <param n="2">0.497</param>
-    <param n="3">0.4</param>
+    <param n="0" min="0.658" max="0.838" tune="-0.231">0.169</param>
+    <param n="1">0.05</param>
+    <param n="2" min="1.06" max="0.839" tune="0.287">1.67</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.497</param>
+    <param n="1">0.4</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -57,15 +63,15 @@
  </emitter>
 
  <audioframe pan="-0.4">
-  <effect type="chorus" optional="true">
+  <effect type="chorus">
    <slot n="0">
     <param n="0">0.8</param>
-    <param n="1">0.0</param>
+    <param n="1">0.01</param>
     <param n="2">0.0</param>
-    <param n="3" auto="0.34">1.5</param>
+    <param n="3" min="0.78" max="0.516" tune="0.34">1.5</param>
    </slot>
   </effect>
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">4000.0</param>
     <param n="1">1.0</param>

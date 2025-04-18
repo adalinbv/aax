@@ -16,26 +16,26 @@
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
+  <note polyphony="1" min="71" max="75" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.51" frequency="554.365" duration="0.3">
-  <layer n="0">
-   <waveform src="triangle" ratio="0.818" pitch="0.985"/>
-   <waveform src="sawtooth" processing="add" ratio="1.12" pitch="1.9"/>
-   <waveform src="pink-noise" processing="add"/>
-   <waveform src="sine" processing="modulate" pitch="17.7"/>
+ <sound frequency="554.365" duration="0.3">
+  <layer n="0" ratio="0.448">
+   <waveform src="triangle" ratio="0.73" pitch="0.985"/>
+   <waveform src="sawtooth" processing="add" pitch="1.9"/>
+   <waveform src="pink-noise" processing="add" ratio="0.893"/>
+   <waveform src="sine" processing="modulate" ratio="0.893" pitch="17.7"/>
   </layer>
   <layer n="1">
-   <waveform src="pure-square" ratio="2.5" pitch="0.9"/>
-   <waveform src="white-noise" processing="add" pitch="0.12"/>
-   <waveform src="sawtooth" processing="add" ratio="0.7" pitch="0.707"/>
-   <waveform src="sine" processing="modulate" pitch="11.9"/>
+   <waveform src="pure-square" pitch="0.9"/>
+   <waveform src="white-noise" processing="add" ratio="0.4" pitch="0.12"/>
+   <waveform src="sawtooth" processing="add" ratio="0.28" pitch="0.707"/>
+   <waveform src="sine" processing="modulate" ratio="0.4" pitch="11.9"/>
   </layer>
  </sound>
 
- <emitter looping="true" pan="0.31">
+ <emitter gain="35.5" pan="0.31" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">2.85</param>
@@ -44,12 +44,18 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <filter type="timed-gain" src="envelope" release-time="0.15">
+  <filter type="timed-gain" src="envelope" release-time="0.04">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.03</param>
-    <param n="2">0.806</param>
-    <param n="3">1.3</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec">0.6</param>
+    <param n="2">1.0</param>
+    <param n="3">0.03</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.806</param>
+    <param n="1">1.3</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="dynamic-layer" src="envelope">

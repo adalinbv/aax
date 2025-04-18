@@ -16,16 +16,16 @@
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
+  <note polyphony="1" min="44" max="48" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="4.50" frequency="116.541" duration="0.3">
+ <sound mode="1" frequency="116.541" duration="0.3">
   <layer n="0">
-   <waveform src="sine"/>
-   <waveform src="sine" processing="modulate" ratio="0.6" pitch="9.5"/>
-   <waveform src="pink-noise" processing="add" ratio="1.1" pitch="0.8"/>
-   <waveform src="square" processing="modulate" ratio="1.9" pitch="0.75"/>
+   <waveform src="sine" ratio="0.526"/>
+   <waveform src="sine" processing="modulate" ratio="0.316" pitch="9.5"/>
+   <waveform src="pink-noise" processing="add" ratio="0.579" pitch="0.8"/>
+   <waveform src="square" processing="modulate" pitch="0.75"/>
    <filter type="frequency">
     <slot n="0">
      <param n="0">880.0</param>
@@ -36,10 +36,10 @@
    </filter>
   </layer>
   <layer n="1">
-   <waveform src="sine"/>
-   <waveform src="sine" processing="modulate" ratio="0.6" pitch="11.5"/>
-   <waveform src="pink-noise" processing="add" ratio="1.8" pitch="0.8"/>
-   <waveform src="square" processing="modulate" ratio="1.9"/>
+   <waveform src="sine" ratio="0.526"/>
+   <waveform src="sine" processing="modulate" ratio="0.316" pitch="11.5"/>
+   <waveform src="pink-noise" processing="add" ratio="0.947" pitch="0.8"/>
+   <waveform src="square" processing="modulate"/>
    <filter type="frequency">
     <slot n="0">
      <param n="0">1100.0</param>
@@ -51,7 +51,7 @@
   </layer>
  </sound>
 
- <emitter looping="true" pan="-0.47">
+ <emitter gain="48.7" pan="-0.47" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">1.15</param>
@@ -60,16 +60,22 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <filter type="timed-gain" release-time="0.6">
+  <filter type="timed-gain" release-time="0.15">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.03</param>
-    <param n="2">0.772</param>
-    <param n="3">0.2</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec">1.0</param>
+    <param n="2">1.0</param>
+    <param n="3">0.03</param>
    </slot>
    <slot n="1">
-    <param n="0">0.681</param>
-    <param n="1">1.5</param>
+    <param n="0">0.772</param>
+    <param n="1">0.2</param>
+    <param n="2">0.681</param>
+    <param n="3">1.5</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

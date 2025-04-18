@@ -13,14 +13,14 @@
 
  <info name="Fm Piano" bank="0" program="2">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="88" min="21" max="108" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.75" frequency="1760" duration="0.5">
+ <sound gain="0.396" frequency="1760" duration="0.5">
   <layer n="0">
    <waveform src="sine"/>
    <waveform src="sine" processing="modulate" pitch="3.0"/>
@@ -45,7 +45,7 @@
  </emitter>
 
  <audioframe pan="0.6">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">3700.0</param>
     <param n="1">1.0</param>

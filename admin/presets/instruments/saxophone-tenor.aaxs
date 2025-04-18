@@ -13,22 +13,22 @@
 
  <info name="Tenor Saxophone" bank="0" program="65">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="42" max="75" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.00" frequency="92.4986" duration="0.5">
+ <sound mode="1" gain="0.361" frequency="110" duration="0.5">
   <layer n="0">
-   <waveform src="cycloid" ratio="1.05"/>
-   <waveform src="cycloid" processing="modulate" ratio="1.05" pitch="4.0"/>
-   <waveform src="sawtooth" processing="add" ratio="0.462"/>
+   <waveform src="cycloid"/>
+   <waveform src="cycloid" processing="modulate" pitch="4.0"/>
+   <waveform src="sawtooth" processing="add" ratio="0.44"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.05" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.02">
    <slot n="0">
     <param n="0">0.0</param>
@@ -60,7 +60,7 @@
  </emitter>
 
  <audioframe pan="-0.3">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">4400.0</param>
     <param n="1">2.0</param>

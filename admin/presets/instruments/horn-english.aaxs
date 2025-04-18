@@ -13,22 +13,22 @@
 
  <info name="English Horn" bank="0" program="69">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="52" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="2.39" frequency="880" duration="0.3">
+ <sound mode="1" gain="0.178" frequency="880" duration="0.3">
   <layer n="0">
-   <waveform src="sawtooth" ratio="0.42" pitch="0.993"/>
-   <waveform src="sawtooth" processing="modulate" ratio="1.4" pitch="3.0"/>
-   <waveform src="sawtooth" processing="add" ratio="1.4"/>
+   <waveform src="sawtooth" ratio="0.3" pitch="0.993"/>
+   <waveform src="sawtooth" processing="modulate" pitch="3.0"/>
+   <waveform src="sawtooth" processing="add"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.4" looping="true">
   <filter type="timed-gain" release-time="0.2">
    <slot n="0">
     <param n="0">0.0</param>
@@ -60,7 +60,7 @@
  </emitter>
 
  <audioframe pan="0.3">
-  <filter type="frequency" optional="true">
+  <filter type="frequency">
    <slot n="0">
     <param n="0">2200.0</param>
     <param n="1">0.7</param>

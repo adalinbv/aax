@@ -13,14 +13,14 @@
 
  <info name="Honky-tonk Piano" bank="0" program="3">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="88" min="21" max="127" step="6"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.62" frequency="220" duration="0.1">
+ <sound gain="0.556" frequency="220" duration="0.1">
   <layer n="0">
    <waveform src="sawtooth"/>
    <waveform src="triangle" processing="add" ratio="0.4" pitch="2.0"/>
@@ -32,14 +32,20 @@
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.4">
    <slot n="0">
-    <param n="0">0.0828</param>
-    <param n="1">0.005</param>
-    <param n="2">0.856</param>
-    <param n="3">0.06</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="-1.2e-06">0.01</param>
+    <param n="2">0.0828</param>
+    <param n="3">0.005</param>
    </slot>
    <slot n="1">
-    <param n="0">0.998</param>
-    <param n="1" auto="0.74">3.25</param>
+    <param n="0">0.856</param>
+    <param n="1">0.06</param>
+    <param n="2">0.998</param>
+    <param n="3" min="2.18" max="0.217" tune="0.74">3.25</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

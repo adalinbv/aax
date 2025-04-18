@@ -13,17 +13,17 @@
 
  <info name="Lead 6 (Voice)" bank="0" program="85">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="48" max="84" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.52" frequency="220" duration="0.1" voices="3" spread="0.71">
+ <sound gain="0.0422" frequency="220" duration="0.1" voices="3" spread="0.71">
   <layer n="0">
-   <waveform src="sine" ratio="0.1" pitch="2.0"/>
-   <waveform src="triangle" processing="mix" ratio="0.409"/>
+   <waveform src="sine" pitch="2.0"/>
+   <waveform src="triangle" processing="mix" ratio="0.941"/>
   </layer>
  </sound>
 
@@ -31,23 +31,29 @@
   <filter type="bitcrusher" src="envelope|exponential">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.0</param>
+    <param n="1">0.01</param>
     <param n="2">0.275</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.127</param>
-    <param n="1">0.04</param>
-    <param n="2">1.0</param>
-    <param n="3">0.025</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="-1.21e-06">0.0101</param>
+    <param n="2">0.127</param>
+    <param n="3">0.04</param>
    </slot>
    <slot n="1">
-    <param n="0">0.766</param>
-    <param n="1">inf</param>
+    <param n="0">1.0</param>
+    <param n="1">0.025</param>
     <param n="2">0.766</param>
-    <param n="3">0.05</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.766</param>
+    <param n="1">0.05</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

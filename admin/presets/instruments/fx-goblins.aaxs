@@ -13,31 +13,37 @@
 
  <info name="Effects (Goblin)" bank="0" program="101">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="36" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.30" frequency="220">
+ <sound mode="1" gain="0.146" frequency="220">
   <layer n="0">
-   <waveform src="triangle" ratio="0.818"/>
-   <waveform src="sine" processing="add" ratio="0.1" pitch="5.0"/>
+   <waveform src="triangle"/>
+   <waveform src="sine" processing="add" ratio="0.122" pitch="5.0"/>
   </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.7">
    <slot n="0">
-    <param n="0">0.309</param>
-    <param n="1">0.025</param>
-    <param n="2">0.69</param>
-    <param n="3">0.25</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="15.0" max="10.0" tune="-1.2e-06">0.015</param>
+    <param n="2">0.309</param>
+    <param n="3">0.025</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">4.0</param>
+    <param n="0">0.69</param>
+    <param n="1">0.25</param>
+    <param n="2">1.0</param>
+    <param n="3">4.0</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -67,7 +73,7 @@
  </emitter>
 
  <audioframe>
-  <effect type="chorus" src="cycloid" optional="true">
+  <effect type="chorus" src="cycloid">
    <slot n="0">
     <param n="0">0.8</param>
     <param n="1">2.0</param>

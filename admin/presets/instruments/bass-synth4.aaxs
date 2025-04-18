@@ -13,22 +13,22 @@
 
  <info name="Synth Bass 1" bank="0" program="38">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="28" max="88" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.92" frequency="55">
+ <sound frequency="55">
   <layer n="0">
-   <waveform src="sawtooth" ratio="1.4" pitch="2.0"/>
-   <waveform src="pure-sawtooth" processing="modulate" ratio="2.5"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.7"/>
+   <waveform src="sawtooth" ratio="0.56" pitch="2.0"/>
+   <waveform src="pure-sawtooth" processing="modulate"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.25"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="6.21" looping="true">
   <filter type="frequency" src="inverse-timed">
    <slot n="0">
     <param n="0" pitch="4.0">220.0</param>
@@ -45,16 +45,22 @@
   </filter>
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.2</param>
-    <param n="1">0.005</param>
-    <param n="2">1.1</param>
-    <param n="3">0.075</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="50.0" max="5.0" tune="-1.08e-05">0.0502</param>
+    <param n="2">0.2</param>
+    <param n="3">0.005</param>
    </slot>
    <slot n="1">
-    <param n="0">0.601</param>
-    <param n="1">inf</param>
+    <param n="0">1.1</param>
+    <param n="1">0.075</param>
     <param n="2">0.601</param>
-    <param n="3">0.1</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.601</param>
+    <param n="1">0.1</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

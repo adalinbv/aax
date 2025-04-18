@@ -13,14 +13,14 @@
 
  <info name="Timpani" bank="0" program="47">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="4" min="36" max="88" step="1"/>
+  <note polyphony="4" min="36" max="88"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="2.54" frequency="65.4064" duration="2.0">
+ <sound mode="1" gain="0.284" frequency="110" duration="2.0">
   <layer n="0">
    <waveform src="sawtooth" ratio="0.7"/>
    <waveform src="sawtooth" processing="add" ratio="0.63" pitch="0.7"/>
@@ -35,22 +35,28 @@
   <filter type="dynamic-layer">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.0</param>
+    <param n="1">0.01</param>
     <param n="2">0.0</param>
-    <param n="3" auto="-1.5">-2.7</param>
+    <param n="3" min="0.0234" max="1.98" tune="-1.5">-2.7</param>
    </slot>
   </filter>
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.7</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="30.0" max="15.0" tune="-7.4e-06">0.0305</param>
+    <param n="2">1.0</param>
+    <param n="3">0.7</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" auto="1.5">4.8</param>
+    <param n="0" min="2.08" max="0.12" tune="1.5">4.8</param>
     <param n="1">0.06</param>
     <param n="2">1.0</param>
     <param n="3">2.0</param>

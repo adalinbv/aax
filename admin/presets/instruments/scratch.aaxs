@@ -13,20 +13,20 @@
 
  <info name="Scratch" bank="4" program="124">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" min="39" max="45" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.39" frequency="77.7817" duration="0.3">
+ <sound frequency="110" duration="0.3">
   <layer n="0">
-   <waveform src="white-noise" ratio="2.0" pitch="0.2" staticity="0.03"/>
+   <waveform src="white-noise" pitch="0.2" staticity="0.03"/>
    <filter type="bitcrusher">
     <slot n="0">
      <param n="0">0.0</param>
-     <param n="1">0.0</param>
+     <param n="1">0.01</param>
      <param n="2">0.0</param>
      <param n="3">0.095</param>
     </slot>
@@ -42,19 +42,25 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="6.34" looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.102</param>
-    <param n="1">0.04</param>
-    <param n="2">1.0</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" tune="-nan.0">-nan.0</param>
+    <param n="2">0.102</param>
     <param n="3">0.04</param>
    </slot>
    <slot n="1">
-    <param n="0">0.0102</param>
-    <param n="1">0.025</param>
-    <param n="2">0.884</param>
-    <param n="3">0.1</param>
+    <param n="0">1.0</param>
+    <param n="1">0.04</param>
+    <param n="2">0.0102</param>
+    <param n="3">0.025</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.884</param>
+    <param n="1">0.1</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

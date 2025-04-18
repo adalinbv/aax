@@ -13,18 +13,18 @@
 
  <info name="French Accordion" bank="0" program="21">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="53" max="89" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.62" frequency="174.614" duration="0.75">
+ <sound gain="0.207" frequency="220" duration="0.75">
   <layer n="0">
-   <waveform src="sawtooth" ratio="0.7"/>
-   <waveform src="triangle" processing="add" ratio="0.123" pitch="2.987"/>
-   <waveform src="triangle" processing="mix" ratio="0.143" pitch="3.993"/>
+   <waveform src="sawtooth"/>
+   <waveform src="triangle" processing="add" ratio="0.176" pitch="2.987"/>
+   <waveform src="triangle" processing="mix" ratio="0.4" pitch="3.993"/>
   </layer>
  </sound>
 

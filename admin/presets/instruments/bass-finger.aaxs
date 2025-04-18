@@ -13,30 +13,36 @@
 
  <info name="Electric Bass (Finger)" bank="0" program="33">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="28" max="95" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.41" frequency="55" duration="0.1">
+ <sound frequency="55" duration="0.1">
   <layer n="0">
-   <waveform src="square" ratio="1.9"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.7"/>
-   <waveform src="sine" processing="add" ratio="0.2" pitch="4.0"/>
-   <waveform src="sine" processing="modulate" pitch="2.0"/>
+   <waveform src="square"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.43"/>
+   <waveform src="sine" processing="add" ratio="0.105" pitch="4.0"/>
+   <waveform src="sine" processing="modulate" ratio="0.526" pitch="2.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="9.35" looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.997</param>
-    <param n="1">0.015</param>
-    <param n="2">0.817</param>
-    <param n="3">1.22</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="50.0" max="5.0" tune="-0.000146">0.0558</param>
+    <param n="2">0.997</param>
+    <param n="3">0.015</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.817</param>
+    <param n="1">1.22</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">
@@ -56,7 +62,7 @@
  </emitter>
 
  <audioframe pan="0.1">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">1200.0</param>
     <param n="1">1.0</param>

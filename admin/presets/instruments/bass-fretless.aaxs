@@ -13,23 +13,23 @@
 
  <info name="Fretless Bass" bank="0" program="35">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="28" max="95" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.05" frequency="110" duration="0.1">
+ <sound frequency="110" duration="0.1">
   <layer n="0">
-   <waveform src="square" ratio="1.9"/>
-   <waveform src="triangle" processing="add" ratio="0.164" pitch="4.0"/>
-   <waveform src="pure-sine" processing="modulate" ratio="0.909" pitch="2.0"/>
+   <waveform src="square"/>
+   <waveform src="triangle" processing="add" ratio="0.0863" pitch="4.0"/>
+   <waveform src="pure-sine" processing="modulate" ratio="0.478" pitch="2.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="7.86" looping="true">
   <filter type="timed-gain" release-time="0.2">
    <slot n="0">
     <param n="0">0.0</param>
@@ -47,7 +47,7 @@
  </emitter>
 
  <audioframe pan="0.1">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">1000.0</param>
     <param n="1">1.0</param>

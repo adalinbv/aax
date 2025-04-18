@@ -13,27 +13,33 @@
 
  <info name="Electric Guitar (Muted)" bank="0" program="28">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="40" max="86" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.69" frequency="110" duration="0.1">
+ <sound mode="1" gain="0.362" frequency="110" duration="0.1">
   <layer n="0">
-   <waveform src="cycloid" ratio="1.05"/>
-   <waveform src="square" processing="add" ratio="0.57" pitch="2.0"/>
-   <waveform src="triangle" processing="modulate" ratio="0.818" pitch="5.0"/>
+   <waveform src="cycloid"/>
+   <waveform src="square" processing="add" ratio="0.543" pitch="2.0"/>
+   <waveform src="triangle" processing="modulate" ratio="0.779" pitch="5.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.05" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.01">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.4</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="15.0" max="5.0" tune="-8.09e-06">0.0157</param>
+    <param n="2">1.0</param>
+    <param n="3">0.4</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -55,7 +61,7 @@
  </emitter>
 
  <audioframe pan="-0.1">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">200.0</param>
     <param n="1">0.2</param>

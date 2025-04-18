@@ -13,14 +13,14 @@
 
  <info name="Recorder" bank="0" program="74">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="60" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.59" frequency="261.626" duration="0.1">
+ <sound mode="1" gain="0.0987" frequency="440" duration="0.1">
   <layer n="0">
    <waveform src="sine"/>
    <waveform src="sine" processing="add" ratio="0.125" pitch="3.0"/>
@@ -38,16 +38,22 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.209</param>
-    <param n="1">0.075</param>
-    <param n="2">1.0</param>
-    <param n="3">0.025</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="12.0" max="12.0">0.012</param>
+    <param n="2">0.209</param>
+    <param n="3">0.075</param>
    </slot>
    <slot n="1">
-    <param n="0">0.787</param>
-    <param n="1">inf</param>
+    <param n="0">1.0</param>
+    <param n="1">0.025</param>
     <param n="2">0.787</param>
-    <param n="3">0.1</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.787</param>
+    <param n="1">0.1</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

@@ -13,14 +13,14 @@
 
  <info name="Electric Piano 2" bank="0" program="4">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="28" max="103" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.40" frequency="110" duration="0.3">
+ <sound gain="0.42" frequency="110" duration="0.3">
   <layer n="0">
    <waveform src="cycloid"/>
    <waveform src="triangle" processing="add" ratio="0.245" pitch="2.0"/>
@@ -31,14 +31,20 @@
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.3">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.01</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="15.0" max="5.0" tune="-2.4e-06">0.0151</param>
     <param n="2">1.0</param>
-    <param n="3">0.06</param>
+    <param n="3">0.01</param>
    </slot>
    <slot n="1">
-    <param n="0">0.958</param>
-    <param n="1" auto="0.74">3.25</param>
+    <param n="0">1.0</param>
+    <param n="1">0.06</param>
+    <param n="2">0.958</param>
+    <param n="3" min="2.05" max="0.663" tune="0.74">3.25</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -60,7 +66,7 @@
  </emitter>
 
  <audioframe pan="0.6">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">2500.0</param>
     <param n="1">1.0</param>

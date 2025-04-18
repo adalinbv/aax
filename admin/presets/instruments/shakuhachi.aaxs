@@ -13,22 +13,22 @@
 
  <info name="Shakuhachi" bank="0" program="77">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="55" max="84" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.51" frequency="880" duration="0.5">
+ <sound mode="1" gain="0.102" frequency="880" duration="0.5">
   <layer n="0">
-   <waveform src="triangle" ratio="0.655"/>
-   <waveform src="pink-noise" processing="add" ratio="0.1" pitch="0.33"/>
-   <waveform src="sine" processing="add" ratio="0.1" pitch="3.0"/>
+   <waveform src="triangle"/>
+   <waveform src="pink-noise" processing="add" ratio="0.153" pitch="0.33"/>
+   <waveform src="sine" processing="add" ratio="0.153" pitch="3.0"/>
    <filter type="bitcrusher">
     <slot n="0">
      <param n="0">0.0</param>
-     <param n="1">0.0</param>
+     <param n="1">0.01</param>
      <param n="2">0.0</param>
      <param n="3">0.35</param>
     </slot>
@@ -47,16 +47,22 @@
   </filter>
   <filter type="timed-gain" release-time="0.35">
    <slot n="0">
-    <param n="0">0.595</param>
-    <param n="1">0.141</param>
-    <param n="2">0.889</param>
-    <param n="3">0.075</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="20.0" max="20.0">0.02</param>
+    <param n="2">0.595</param>
+    <param n="3">0.141</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">3.75</param>
-    <param n="2">0.673</param>
-    <param n="3">1.6</param>
+    <param n="0">0.889</param>
+    <param n="1">0.075</param>
+    <param n="2">1.0</param>
+    <param n="3">3.75</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.673</param>
+    <param n="1">1.6</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

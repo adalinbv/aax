@@ -13,30 +13,36 @@
 
  <info name="Slapped Electric Bass 1" bank="0" program="33">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="28" max="95" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.51" frequency="55" duration="0.1">
+ <sound mode="1" frequency="55" duration="0.1">
   <layer n="0">
-   <waveform src="pure-square" ratio="2.85"/>
-   <waveform src="triangle" processing="add" ratio="0.409" pitch="5.997"/>
-   <waveform src="triangle" processing="modulate" pitch="1.998"/>
-   <waveform src="triangle" processing="add" ratio="0.773" pitch="5.887"/>
+   <waveform src="pure-square"/>
+   <waveform src="triangle" processing="add" ratio="0.144" pitch="5.997"/>
+   <waveform src="triangle" processing="modulate" ratio="0.351" pitch="1.998"/>
+   <waveform src="triangle" processing="add" ratio="0.271" pitch="5.887"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="4.68" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.005</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="50.0" max="5.0" tune="-0.000146">0.0558</param>
     <param n="2">1.0</param>
-    <param n="3">0.6</param>
+    <param n="3">0.005</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">0.6</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">

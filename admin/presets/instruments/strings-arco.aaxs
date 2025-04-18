@@ -13,33 +13,39 @@
 
  <info name="Arco Strings" bank="0" program="110">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="55" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.53" frequency="440">
+ <sound gain="0.194" frequency="440">
   <layer n="0">
-   <waveform src="sawtooth" ratio="1.4"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.14" pitch="0.9899"/>
+   <waveform src="sawtooth"/>
+   <waveform src="sawtooth" processing="mix" ratio="-0.204" pitch="0.9899"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.4" looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.401</param>
-    <param n="1">0.05</param>
-    <param n="2">1.2</param>
-    <param n="3">0.075</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="20.0" max="8.0" tune="-3.86e-06">0.0201</param>
+    <param n="2">0.401</param>
+    <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.914</param>
-    <param n="1">inf</param>
-    <param n="2">0.9</param>
-    <param n="3">0.1</param>
+    <param n="0">1.2</param>
+    <param n="1">0.075</param>
+    <param n="2">0.914</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.9</param>
+    <param n="1">0.1</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -53,7 +59,7 @@
  </emitter>
 
  <audioframe pan="-0.6">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">3000.0</param>
     <param n="1">1.0</param>

@@ -13,14 +13,14 @@
 
  <info name="Pad 8 (Sweep)" bank="0" program="95">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="36" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.0" frequency="220" duration="0.25">
+ <sound gain="0.548" frequency="220" duration="0.25">
   <layer n="0">
    <waveform src="sine"/>
    <waveform src="impulse" processing="mix" ratio="0.55" pitch="1.5"/>
@@ -31,22 +31,28 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.179</param>
-    <param n="1">0.02</param>
-    <param n="2">1.0</param>
-    <param n="3">0.025</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="80.0" max="35.0" tune="-1.08e-05">0.0802</param>
+    <param n="2">0.179</param>
+    <param n="3">0.02</param>
    </slot>
    <slot n="1">
-    <param n="0">0.82</param>
-    <param n="1">inf</param>
+    <param n="0">1.0</param>
+    <param n="1">0.025</param>
     <param n="2">0.82</param>
-    <param n="3">0.4</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.82</param>
+    <param n="1">0.4</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>
 
  <audioframe>
-  <filter type="frequency" src="sine" optional="true">
+  <filter type="frequency" src="sine">
    <slot n="0">
     <param n="0">440.0</param>
     <param n="1">3.0</param>

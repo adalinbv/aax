@@ -13,19 +13,19 @@
 
  <info name="Reverse Cymbal" bank="0" program="119">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" min="21" max="108" step="6"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.67" frequency="466.164" duration="0.3">
+ <sound frequency="440" duration="0.3">
   <layer n="0">
-   <waveform src="square" ratio="1.9" pitch="0.985"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.7" pitch="2.9"/>
-   <waveform src="pink-noise" processing="add" ratio="1.2"/>
-   <waveform src="sine" processing="modulate" pitch="6.3"/>
+   <waveform src="square" pitch="0.985"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.43" pitch="2.9"/>
+   <waveform src="pink-noise" processing="add" ratio="0.632"/>
+   <waveform src="sine" processing="modulate" ratio="0.526" pitch="6.3"/>
    <filter type="frequency">
     <slot n="0">
      <param n="0">1800.0</param>
@@ -37,11 +37,11 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="4.38" looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" auto="1.5">5.1</param>
+    <param n="1" min="2.94" max="-0.333" tune="1.5">5.1</param>
     <param n="2">1.0</param>
     <param n="3">0.005</param>
    </slot>
@@ -49,7 +49,7 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1" auto="1.5">5.1</param>
+    <param n="1" min="2.94" max="-0.333" tune="1.5">5.1</param>
     <param n="2">1.0</param>
     <param n="3">0.02</param>
    </slot>

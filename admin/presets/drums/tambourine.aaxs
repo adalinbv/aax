@@ -16,24 +16,24 @@
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
+  <note polyphony="1" min="81" max="85" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.51" frequency="987.767" duration="0.3">
-  <layer n="0">
-   <waveform src="square" ratio="1.9" pitch="3.4"/>
-   <waveform src="white-noise" processing="mix" ratio="0.4" pitch="0.15"/>
-   <waveform src="square" processing="modulate" ratio="1.9" pitch="6.275"/>
+ <sound frequency="987.767" duration="0.3">
+  <layer n="0" ratio="0.76">
+   <waveform src="square" pitch="3.4"/>
+   <waveform src="white-noise" processing="mix" ratio="-0.14" pitch="0.15"/>
+   <waveform src="square" processing="modulate" pitch="6.275"/>
   </layer>
   <layer n="1">
-   <waveform src="square" ratio="1.9" pitch="3.4"/>
-   <waveform src="white-noise" processing="mix" ratio="0.2" pitch="0.15"/>
-   <waveform src="pure-square" processing="modulate" ratio="2.5" pitch="6.575"/>
+   <waveform src="square" ratio="0.76" pitch="3.4"/>
+   <waveform src="white-noise" processing="mix" ratio="-1.0" pitch="0.15"/>
+   <waveform src="pure-square" processing="modulate" pitch="6.575"/>
   </layer>
  </sound>
 
- <emitter looping="true" pan="0.16">
+ <emitter gain="5.82" pan="0.16" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.8</param>
@@ -48,12 +48,18 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <filter type="timed-gain" src="envelope">
+  <filter type="timed-gain" src="envelope" release-time="0.04">
    <slot n="0">
-    <param n="0">0.542</param>
-    <param n="1">0.015</param>
-    <param n="2">1.0</param>
-    <param n="3">0.25</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec">2.5</param>
+    <param n="2">0.542</param>
+    <param n="3">0.015</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">0.25</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="dynamic-layer" src="envelope">

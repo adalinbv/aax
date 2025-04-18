@@ -13,34 +13,40 @@
 
  <info name="Oboe" bank="0" program="68">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="58" max="91" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.31" frequency="233.082" duration="0.3">
+ <sound gain="0.678" frequency="440" duration="0.3">
   <layer n="0">
-   <waveform src="square" ratio="1.9"/>
-   <waveform src="white-noise" processing="add" ratio="0.06" pitch="0.3"/>
-   <waveform src="square" processing="modulate" ratio="1.9" pitch="5.0"/>
+   <waveform src="square"/>
+   <waveform src="white-noise" processing="add" ratio="0.0316" pitch="0.3"/>
+   <waveform src="square" processing="modulate" pitch="5.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.9" looping="true">
   <filter type="timed-gain" release-time="0.05">
    <slot n="0">
-    <param n="0">0.491</param>
-    <param n="1">0.025</param>
-    <param n="2">1.0</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="20.0" max="25.0" tune="3.27e-06">0.0192</param>
+    <param n="2">0.491</param>
     <param n="3">0.025</param>
    </slot>
    <slot n="1">
-    <param n="0">0.734</param>
-    <param n="1">2.9</param>
-    <param n="2">0.453</param>
-    <param n="3">1.9</param>
+    <param n="0">1.0</param>
+    <param n="1">0.025</param>
+    <param n="2">0.734</param>
+    <param n="3">2.9</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.453</param>
+    <param n="1">1.9</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -60,7 +66,7 @@
  </emitter>
 
  <audioframe pan="0.2">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">2000.0</param>
     <param n="1">1.0</param>

@@ -13,23 +13,23 @@
 
  <info name="Acoustic Grand Piano" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="88" min="21" max="127" step="6"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.55" frequency="55" duration="0.2">
+ <sound frequency="55" duration="0.2">
   <layer n="0">
-   <waveform src="sawtooth" ratio="1.4"/>
-   <waveform src="triangle" processing="add" ratio="0.511" pitch="2.0"/>
-   <waveform src="triangle" processing="add" ratio="0.205" pitch="4.0"/>
-   <waveform src="triangle" processing="modulate" ratio="0.818" pitch="5.0"/>
+   <waveform src="sawtooth"/>
+   <waveform src="triangle" processing="add" ratio="0.365" pitch="2.0"/>
+   <waveform src="triangle" processing="add" ratio="0.146" pitch="4.0"/>
+   <waveform src="triangle" processing="modulate" ratio="0.584" pitch="5.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.77" looping="true">
   <filter type="frequency" src="envelope">
    <slot n="0">
     <param n="0" pitch="5.0">275.0</param>
@@ -46,14 +46,20 @@
   </filter>
   <filter type="timed-gain" src="envelope" release-time="0.4">
    <slot n="0">
-    <param n="0">0.2</param>
-    <param n="1">0.005</param>
-    <param n="2">1.1</param>
-    <param n="3">0.015</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="-1.2e-06">0.01</param>
+    <param n="2">0.2</param>
+    <param n="3">0.005</param>
    </slot>
    <slot n="1">
-    <param n="0" auto="0.136" min="1.05" max="0.693">1.25</param>
-    <param n="1" auto="3.5">12.2</param>
+    <param n="0">1.1</param>
+    <param n="1">0.015</param>
+    <param n="2" min="1.05" max="0.693" tune="0.136">1.25</param>
+    <param n="3" min="7.16" max="-2.14" tune="3.5">12.2</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

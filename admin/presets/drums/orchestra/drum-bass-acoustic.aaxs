@@ -20,13 +20,13 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="3.00" frequency="92.4986" duration="2.0">
+ <sound mode="1" frequency="110" duration="2.0">
   <layer n="0">
-   <waveform src="brownian-noise" ratio="5.0"/>
+   <waveform src="brownian-noise"/>
   </layer>
  </sound>
 
- <emitter looping="true" pan="-0.63">
+ <emitter gain="33.0" pan="-0.63" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">2.3</param>
@@ -43,14 +43,20 @@
   </effect>
   <filter type="timed-gain" src="envelope" release-time="0.6">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.01</param>
-    <param n="2">0.729</param>
-    <param n="3">0.1</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="55.0" max="8.0" tune="-0.000153">0.061</param>
+    <param n="2">1.0</param>
+    <param n="3">0.01</param>
    </slot>
    <slot n="1">
-    <param n="0">0.581</param>
-    <param n="1">1.6</param>
+    <param n="0">0.729</param>
+    <param n="1">0.1</param>
+    <param n="2">0.581</param>
+    <param n="3">1.6</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

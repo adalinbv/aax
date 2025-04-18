@@ -13,31 +13,37 @@
 
  <info name="Bag Pipe" bank="0" program="109">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="36" max="77" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.09" frequency="65.4064" duration="0.75">
+ <sound mode="1" gain="0.758" frequency="110" duration="0.75">
   <layer n="0">
-   <waveform src="impulse" ratio="1.1"/>
-   <waveform src="cycloid" processing="add" ratio="0.316" pitch="3.987"/>
+   <waveform src="impulse"/>
+   <waveform src="cycloid" processing="add" ratio="0.287" pitch="3.987"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.1" looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.762</param>
-    <param n="1">0.05</param>
-    <param n="2">0.997</param>
-    <param n="3">inf</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="80.0" max="40.0" tune="-1.29e-05">0.0804</param>
+    <param n="2">0.762</param>
+    <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.955</param>
-    <param n="1">0.1</param>
+    <param n="0">0.997</param>
+    <param n="1">inf</param>
+    <param n="2">0.955</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

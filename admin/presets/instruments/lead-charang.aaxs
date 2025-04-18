@@ -13,17 +13,19 @@
 
  <info name="Lead 5 (Charang)" bank="0" program="84">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="48" max="96" hold="string"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.06" frequency="110" duration="0.1">
-  <waveform src="sawtooth"/>
-  <waveform src="square" processing="add" pitch="2.0"/>
-  <waveform src="triangle" processing="modulate" pitch="5.0"/>
+ <sound gain="0.247" frequency="220" duration="0.1">
+  <layer n="0">
+   <waveform src="sawtooth"/>
+   <waveform src="square" processing="add" pitch="2.0"/>
+   <waveform src="triangle" processing="modulate" pitch="5.0"/>
+  </layer>
  </sound>
 
  <emitter looping="true">

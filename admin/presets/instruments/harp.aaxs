@@ -13,19 +13,19 @@
 
  <info name="Harp" bank="0" program="46">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="88" min="23" max="103" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.63" frequency="220" duration="0.1">
+ <sound gain="0.604" frequency="220" duration="0.1">
   <layer n="0">
-   <waveform src="triangle" ratio="0.818"/>
-   <waveform src="sawtooth" processing="add" ratio="0.14" pitch="3.0"/>
-   <waveform src="triangle" processing="modulate" ratio="0.818" pitch="2.0"/>
+   <waveform src="triangle"/>
+   <waveform src="sawtooth" processing="add" ratio="0.171" pitch="3.0"/>
+   <waveform src="triangle" processing="modulate" pitch="2.0"/>
   </layer>
  </sound>
 
@@ -41,21 +41,27 @@
     <param n="0" pitch="33.0">7260.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3" auto="-1.0">8.0</param>
+    <param n="3" min="9.49" max="11.5" tune="-1.0">8.0</param>
    </slot>
   </filter>
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
-    <param n="0">0.833</param>
-    <param n="1">0.015</param>
-    <param n="2">1.3</param>
-    <param n="3" auto="1.0">3.35</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="70.0" max="20.0" tune="-1.2e-05">0.0704</param>
+    <param n="2">0.833</param>
+    <param n="3">0.015</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.3</param>
+    <param n="1" min="1.86" max="-0.146" tune="1.0">3.35</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0" auto="-0.05">0.9</param>
-    <param n="1" auto="0.05">0.1</param>
+    <param n="0" min="0.974" max="1.07" tune="-0.05">0.9</param>
+    <param n="1" min="0.0255" max="-0.0748" tune="0.05">0.1</param>
     <param n="2">1.0</param>
     <param n="3">0.9</param>
    </slot>

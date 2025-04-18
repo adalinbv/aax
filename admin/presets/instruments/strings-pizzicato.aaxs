@@ -13,33 +13,39 @@
 
  <info name="Pizzicato Solo" bank="0" program="45">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="16" min="28" max="96" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.48" frequency="220">
+ <sound mode="1" gain="0.203" frequency="220">
   <layer n="0">
-   <waveform src="pure-impulse" ratio="0.0012"/>
-   <waveform src="cycloid" processing="add" ratio="1.05"/>
+   <waveform src="pure-impulse" ratio="0.00114"/>
+   <waveform src="cycloid" processing="add"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.05" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
-    <param n="0">0.79</param>
-    <param n="1">0.025</param>
-    <param n="2">1.0</param>
-    <param n="3">0.232</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="50.0" max="10.0" tune="-1.97e-05">0.0512</param>
+    <param n="2">0.79</param>
+    <param n="3">0.025</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">0.232</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">21.7</param>
+    <param n="0">4.0</param>
     <param n="1">0.01</param>
     <param n="2">1.0</param>
     <param n="3">1.5</param>
@@ -54,7 +60,7 @@
  </emitter>
 
  <audioframe pan="-0.7">
-  <filter type="frequency" optional="true">
+  <filter type="frequency">
    <slot n="0">
     <param n="0">440.0</param>
     <param n="1">1.0</param>

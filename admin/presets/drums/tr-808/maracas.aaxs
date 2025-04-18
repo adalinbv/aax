@@ -16,11 +16,11 @@
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" pitch-fraction="0.1"/>
+  <note polyphony="1" min="79" max="83" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.10" frequency="880" duration="0.3">
+ <sound gain="0.492" frequency="880" duration="0.3">
   <layer n="0">
    <waveform src="white-noise"/>
    <filter type="frequency" src="48db">
@@ -34,7 +34,7 @@
   </layer>
  </sound>
 
- <emitter looping="true" pan="-0.63">
+ <emitter pan="-0.63" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">2.5</param>

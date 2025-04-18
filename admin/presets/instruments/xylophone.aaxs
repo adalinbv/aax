@@ -13,27 +13,33 @@
 
  <info name="Xylophone" bank="0" program="13">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="65" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="2.88" frequency="349.228" duration="0.1">
+ <sound mode="1" gain="0.0877" frequency="440" duration="0.1">
   <layer n="0">
-   <waveform src="pure-sine" processing="add" ratio="0.909"/>
-   <waveform src="pure-sine" processing="add" ratio="0.182" pitch="0.5"/>
+   <waveform src="pure-sine"/>
+   <waveform src="pure-sine" processing="add" ratio="0.2" pitch="0.5"/>
   </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.4">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.015</param>
-    <param n="2">0.4</param>
-    <param n="3">0.25</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="20.0" max="5.0" tune="-3.82e-06">0.021</param>
+    <param n="2">1.0</param>
+    <param n="3">0.015</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.4</param>
+    <param n="1">0.25</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

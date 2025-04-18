@@ -13,33 +13,39 @@
 
  <info name="Fiddle" bank="0" program="110">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="55" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.31" frequency="220" duration="0.5">
+ <sound gain="0.182" frequency="220" duration="0.5">
   <layer n="0">
-   <waveform src="cycloid" ratio="1.05" pitch="2.0"/>
-   <waveform src="sawtooth" processing="add" ratio="1.4"/>
+   <waveform src="cycloid" ratio="0.75" pitch="2.0"/>
+   <waveform src="sawtooth" processing="add"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.4" looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.571</param>
-    <param n="1">0.0415</param>
-    <param n="2">0.759</param>
-    <param n="3">0.2</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="20.0" max="8.0" tune="-3.86e-06">0.0201</param>
+    <param n="2">0.571</param>
+    <param n="3">0.0415</param>
    </slot>
    <slot n="1">
-    <param n="0">0.679</param>
-    <param n="1">inf</param>
-    <param n="2">1.0</param>
-    <param n="3">0.015</param>
+    <param n="0">0.759</param>
+    <param n="1">0.2</param>
+    <param n="2">0.679</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="2">
+    <param n="0">1.0</param>
+    <param n="1">0.015</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -53,7 +59,7 @@
  </emitter>
 
  <audioframe pan="-0.3">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">440.0</param>
     <param n="1">1.0</param>

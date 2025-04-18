@@ -13,32 +13,38 @@
 
  <info name="Cheese Organ" bank="24" program="16">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="10" min="24" max="104" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.07" frequency="32.7032">
+ <sound mode="1" gain="0.209" frequency="55">
   <layer n="0">
-   <waveform src="pink-noise" ratio="0.33"/>
-   <waveform src="sine" processing="add" ratio="1.18"/>
-   <waveform src="sine" processing="add" ratio="0.297" pitch="3.997"/>
+   <waveform src="pink-noise" ratio="0.28"/>
+   <waveform src="sine" processing="add"/>
+   <waveform src="sine" processing="add" ratio="0.252" pitch="3.997"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.18" looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.25</param>
-    <param n="1">0.08</param>
-    <param n="2">1.2</param>
-    <param n="3">inf</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="50.0" max="10.0" tune="-9.62e-06">0.0502</param>
+    <param n="2">0.25</param>
+    <param n="3">0.08</param>
    </slot>
    <slot n="1">
     <param n="0">1.2</param>
-    <param n="1">0.2</param>
+    <param n="1">inf</param>
+    <param n="2">1.2</param>
+    <param n="3">0.2</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

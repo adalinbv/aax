@@ -13,18 +13,18 @@
 
  <info name="Lead 3 (Calliope)" bank="0" program="82">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="43" min="20" max="96" step="6"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.90" frequency="110">
+ <sound mode="1" gain="0.0597" frequency="110">
   <layer n="0">
-   <waveform src="triangle" ratio="0.818"/>
-   <waveform src="sine" processing="add" ratio="0.1" pitch="3.0"/>
-   <filter type="frequency" optional="true">
+   <waveform src="triangle"/>
+   <waveform src="sine" processing="add" ratio="0.122" pitch="3.0"/>
+   <filter type="frequency">
     <slot n="0">
      <param n="0" pitch="1.0">110.0</param>
      <param n="1">1.0</param>
@@ -38,16 +38,22 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.162</param>
-    <param n="1">0.025</param>
-    <param n="2">1.0</param>
-    <param n="3">0.075</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="-1.21e-06">0.0101</param>
+    <param n="2">0.162</param>
+    <param n="3">0.025</param>
    </slot>
    <slot n="1">
-    <param n="0">0.944</param>
-    <param n="1">inf</param>
+    <param n="0">1.0</param>
+    <param n="1">0.075</param>
     <param n="2">0.944</param>
-    <param n="3">0.05</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.944</param>
+    <param n="1">0.05</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

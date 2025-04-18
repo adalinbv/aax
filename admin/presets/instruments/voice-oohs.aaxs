@@ -13,15 +13,15 @@
 
  <info name="Voice Oohs" bank="0" program="53">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="48" max="79" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.87" frequency="220" duration="0.33">
+ <sound gain="0.362" frequency="220" duration="0.33">
   <layer n="0">
    <waveform src="sine" pitch="3.0"/>
    <waveform src="white-noise" processing="add" ratio="0.1" pitch="0.33"/>
@@ -33,14 +33,20 @@
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.12">
    <slot n="0">
-    <param n="0">0.453</param>
-    <param n="1">0.05</param>
-    <param n="2">1.0</param>
-    <param n="3">3.4</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="50.0" max="30.0" tune="-1.02e-05">0.0513</param>
+    <param n="2">0.453</param>
+    <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.497</param>
-    <param n="1">1.27</param>
+    <param n="0">1.0</param>
+    <param n="1">3.4</param>
+    <param n="2">0.497</param>
+    <param n="3">1.27</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -62,7 +68,7 @@
  </emitter>
 
  <audioframe pan="0.4">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">360.0</param>
     <param n="1">2.5</param>

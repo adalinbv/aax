@@ -13,38 +13,44 @@
 
  <info name="Church Organ" bank="0" program="18">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="10" min="24" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="2.84" frequency="32.7032" voices="3" spread="0.1">
+ <sound mode="1" gain="0.19" frequency="55" voices="3" spread="0.1">
   <layer n="0">
-   <waveform src="white-noise" ratio="0.1" pitch="0.1"/>
-   <waveform src="sine" ratio="0.42" pitch="0.4987"/>
-   <waveform src="sine" processing="add" ratio="0.211"/>
-   <waveform src="sine" processing="add" ratio="0.149" pitch="1.993"/>
-   <waveform src="sine" processing="add" ratio="0.106" pitch="3.01"/>
-   <waveform src="sine" processing="add" ratio="0.149" pitch="3.997"/>
-   <waveform src="sine" processing="add" ratio="0.211" pitch="5.01"/>
-   <waveform src="sine" processing="add" ratio="0.297" pitch="5.989"/>
-   <waveform src="sine" processing="add" ratio="0.42" pitch="8.0"/>
+   <waveform src="white-noise" ratio="0.238" pitch="0.1"/>
+   <waveform src="sine" pitch="0.4987"/>
+   <waveform src="sine" processing="add" ratio="0.502"/>
+   <waveform src="sine" processing="add" ratio="0.355" pitch="1.993"/>
+   <waveform src="sine" processing="add" ratio="0.252" pitch="3.01"/>
+   <waveform src="sine" processing="add" ratio="0.355" pitch="3.997"/>
+   <waveform src="sine" processing="add" ratio="0.502" pitch="5.01"/>
+   <waveform src="sine" processing="add" ratio="0.707" pitch="5.989"/>
+   <waveform src="sine" processing="add" pitch="8.0"/>
   </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="2.8">
    <slot n="0">
-    <param n="0">0.25</param>
-    <param n="1">0.08</param>
-    <param n="2">1.2</param>
-    <param n="3">inf</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="-1.2e-06">0.01</param>
+    <param n="2">0.25</param>
+    <param n="3">0.08</param>
    </slot>
    <slot n="1">
     <param n="0">1.2</param>
-    <param n="1">0.7</param>
+    <param n="1">inf</param>
+    <param n="2">1.2</param>
+    <param n="3">0.7</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

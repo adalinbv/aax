@@ -13,21 +13,21 @@
 
  <info name="French Horn" bank="0" program="60">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="41" max="77" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.73" frequency="87.3071" duration="0.3">
+ <sound mode="1" gain="0.379" frequency="110" duration="0.3">
   <layer n="0">
-   <waveform src="impulse" ratio="1.1"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.7"/>
+   <waveform src="impulse"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.67"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.1" looping="true">
   <filter type="frequency">
    <slot n="0">
     <param n="0" pitch="3.0">261.9</param>
@@ -38,14 +38,20 @@
   </filter>
   <filter type="timed-gain" src="envelope" release-time="0.08">
    <slot n="0">
-    <param n="0">0.507</param>
-    <param n="1">0.066</param>
-    <param n="2">1.0</param>
-    <param n="3">inf</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="70.0" max="40.0" tune="-3.78e-05">0.0732</param>
+    <param n="2">0.507</param>
+    <param n="3">0.066</param>
    </slot>
    <slot n="1">
-    <param n="0">0.289</param>
-    <param n="1">0.25</param>
+    <param n="0">1.0</param>
+    <param n="1">inf</param>
+    <param n="2">0.289</param>
+    <param n="3">0.25</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

@@ -13,28 +13,34 @@
 
  <info name="Tinkle Bells" bank="0" program="112">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" min="72" max="84" step="1"/>
+  <note polyphony="1" min="72" max="84"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.24" frequency="523.251" duration="0.1">
+ <sound gain="0.155" frequency="880" duration="0.1">
   <layer n="0">
-   <waveform src="triangle" ratio="0.818"/>
-   <waveform src="square" processing="add" ratio="0.95" pitch="3.01"/>
-   <waveform src="triangle" processing="add" ratio="0.245" pitch="10.9"/>
+   <waveform src="triangle" ratio="0.861"/>
+   <waveform src="square" processing="add" pitch="3.01"/>
+   <waveform src="triangle" processing="add" ratio="0.258" pitch="10.9"/>
   </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="1.32">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.065</param>
-    <param n="2">0.75</param>
-    <param n="3">1.35</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="5.0" max="2.0" tune="-9.66e-07">0.00503</param>
+    <param n="2">1.0</param>
+    <param n="3">0.065</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.75</param>
+    <param n="1">1.35</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

@@ -13,26 +13,32 @@
 
  <info name="Koto" bank="0" program="107">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="55" max="84" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.49" frequency="220">
+ <sound frequency="220">
   <layer n="0">
-   <waveform src="square" ratio="1.9"/>
-   <waveform src="pure-sine" processing="modulate" ratio="0.909" pitch="3.0"/>
+   <waveform src="square"/>
+   <waveform src="pure-sine" processing="modulate" ratio="0.478" pitch="3.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.98" looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">1.08</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="30.0" max="15.0" tune="-4.83e-06">0.0301</param>
+    <param n="2">1.0</param>
+    <param n="3">1.08</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

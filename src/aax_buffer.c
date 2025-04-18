@@ -173,6 +173,10 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
          }
          else  _aaxErrorSet(AAX_INVALID_PARAMETER);
          break;
+      case AAX_BUFFER_GAIN:
+          handle->gain = 10.0f*(setup/AAX_PEAK_MAX);
+          rv = true;
+          break;
       case AAX_FREQUENCY:
          if ((setup >= 1000) && (setup <= 96000))
          {
@@ -385,6 +389,9 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_LOOP_END:
          rv = roundf(handle->info.loop_end);
          break;
+      case AAX_BUFFER_GAIN:
+          rv = 0.1f*handle->gain*AAX_PEAK_MAX;
+          break;
       case AAX_BASE_FREQUENCY:
          rv = (int64_t)roundf(handle->info.base_frequency);
          break;

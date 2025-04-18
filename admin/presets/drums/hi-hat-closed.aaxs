@@ -16,19 +16,19 @@
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
+  <note polyphony="1" min="89" max="93" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.54" frequency="1567.98" duration="0.3">
+ <sound frequency="1567.98" duration="0.3">
   <layer n="0">
-   <waveform src="square" ratio="1.9"/>
-   <waveform src="white-noise" processing="mix" ratio="0.8" pitch="0.25"/>
-   <waveform src="square" processing="modulate" ratio="1.71" pitch="4.1"/>
+   <waveform src="square"/>
+   <waveform src="white-noise" processing="mix" ratio="0.62" pitch="0.25"/>
+   <waveform src="square" processing="modulate" ratio="0.9" pitch="4.1"/>
   </layer>
  </sound>
 
- <emitter looping="true" pan="0.31">
+ <emitter gain="8.33" pan="0.31" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">2.85</param>
@@ -39,8 +39,14 @@
   </effect>
   <filter type="timed-gain" src="envelope" release-time="0.1">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.2</param>
+    <param n="0">0.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.2</param>
+    <param n="3">0.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

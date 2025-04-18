@@ -13,35 +13,41 @@
 
  <info name="Flute" bank="0" program="73">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="60" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.30" frequency="880" duration="0.3">
+ <sound gain="0.806" frequency="880" duration="0.3">
   <layer n="0">
-   <waveform src="square" ratio="1.9"/>
-   <waveform src="sine" processing="add" ratio="0.05" pitch="1.87"/>
-   <waveform src="pink-noise" processing="add" ratio="0.7" pitch="7.0"/>
-   <waveform src="sine" processing="mix" ratio="0.5" pitch="0.5"/>
+   <waveform src="square"/>
+   <waveform src="sine" processing="add" ratio="0.0263" pitch="1.87"/>
+   <waveform src="pink-noise" processing="add" ratio="0.368" pitch="7.0"/>
+   <waveform src="sine" processing="mix" ratio="0.05" pitch="0.5"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.9" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.12">
    <slot n="0">
-    <param n="0">0.453</param>
-    <param n="1">0.111</param>
-    <param n="2">0.885</param>
-    <param n="3">0.025</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="10.0" max="10.0">0.01</param>
+    <param n="2">0.453</param>
+    <param n="3">0.111</param>
    </slot>
    <slot n="1">
-    <param n="0">1.39</param>
-    <param n="1">4.75</param>
-    <param n="2">0.601</param>
-    <param n="3">1.6</param>
+    <param n="0">0.885</param>
+    <param n="1">0.025</param>
+    <param n="2">1.39</param>
+    <param n="3">4.75</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.601</param>
+    <param n="1">1.6</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">

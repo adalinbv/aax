@@ -13,18 +13,18 @@
 
  <info name="Pan Flute" bank="0" program="75">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="60" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="8.55" frequency="261.626" duration="0.5">
+ <sound gain="0.237" frequency="440" duration="0.5">
   <layer n="0">
-   <waveform src="triangle" processing="add" ratio="0.818"/>
-   <waveform src="brownian-noise" processing="add" ratio="0.8"/>
-   <waveform src="triangle" processing="add" ratio="0.123" pitch="3.0"/>
+   <waveform src="triangle"/>
+   <waveform src="brownian-noise" processing="add" ratio="0.978"/>
+   <waveform src="triangle" processing="add" ratio="0.15" pitch="3.0"/>
   </layer>
  </sound>
 
@@ -39,14 +39,20 @@
   </filter>
   <filter type="timed-gain" src="envelope" release-time="0.08">
    <slot n="0">
-    <param n="0">0.188</param>
-    <param n="1">0.03</param>
-    <param n="2">0.161</param>
-    <param n="3">9.5</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="20.0" max="10.0" tune="-5.46e-06">0.0214</param>
+    <param n="2">0.188</param>
+    <param n="3">0.03</param>
    </slot>
    <slot n="1">
-    <param n="0">0.139</param>
-    <param n="1">2.5</param>
+    <param n="0">0.161</param>
+    <param n="1">9.5</param>
+    <param n="2">0.139</param>
+    <param n="3">2.5</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -65,7 +71,7 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <effect type="chorus" src="envelope" optional="true">
+  <effect type="chorus" src="envelope">
    <slot n="0">
     <param n="0">0.9</param>
     <param n="1">0.5</param>

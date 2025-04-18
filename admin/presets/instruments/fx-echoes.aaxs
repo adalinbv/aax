@@ -13,33 +13,38 @@
 
  <info name="Effects (Echo Drops)" bank="0" program="102">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="36" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.7" frequency="220" duration="0.5" voices="5" spread="0.57" phasing="true">
+ <sound frequency="220" duration="0.5" voices="5" spread="0.57" phasing="true">
   <layer n="0">
-   <waveform src="sine"/>
-   <waveform src="pure-sine" processing="modulate" ratio="3.0"/>
-   <waveform src="sine" processing="modulate" pitch="2.0"/>
+   <waveform src="sine" ratio="0.333"/>
+   <waveform src="pure-sine" processing="modulate"/>
+   <waveform src="sine" processing="modulate" ratio="0.333" pitch="2.0"/>
   </layer>
  </sound>
 
-
- <emitter looping="true">
+ <emitter gain="42.1" looping="true">
   <filter type="timed-gain" release-time="0.5">
    <slot n="0">
-    <param n="0">0.641</param>
-    <param n="1">0.025</param>
-    <param n="2">1.2</param>
-    <param n="3">0.25</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="20.0" max="10.0" tune="-2.4e-06">0.02</param>
+    <param n="2">0.641</param>
+    <param n="3">0.025</param>
    </slot>
    <slot n="1">
-    <param n="0">0.912</param>
-    <param n="1">4.0</param>
+    <param n="0">1.2</param>
+    <param n="1">0.25</param>
+    <param n="2">0.912</param>
+    <param n="3">4.0</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

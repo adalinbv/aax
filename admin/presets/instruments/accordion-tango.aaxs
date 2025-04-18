@@ -13,23 +13,23 @@
 
  <info name="French Accordion" bank="0" program="21">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="53" max="89" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.56" frequency="174.614" duration="0.75">
+ <sound gain="0.428" frequency="220" duration="0.75">
   <layer n="0">
-   <waveform src="sawtooth" ratio="1.12"/>
-   <waveform src="sawtooth" processing="add" ratio="0.21" pitch="3.0"/>
-   <waveform src="triangle" processing="mix" ratio="0.123" pitch="3.9889"/>
-   <waveform src="triangle" processing="mix" ratio="0.0818" pitch="2.0"/>
+   <waveform src="sawtooth"/>
+   <waveform src="sawtooth" processing="add" ratio="0.188" pitch="3.0"/>
+   <waveform src="triangle" processing="mix" ratio="0.0178" pitch="3.9889"/>
+   <waveform src="triangle" processing="mix" ratio="-0.0284" pitch="2.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.12" looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>

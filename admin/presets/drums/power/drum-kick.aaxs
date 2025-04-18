@@ -16,19 +16,19 @@
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" pitch-fraction="0.1"/>
+  <note polyphony="1" min="35" max="39" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.21" frequency="69.2957" duration="0.3">
+ <sound mode="1" gain="0.235" frequency="69.2957" duration="0.3">
   <layer n="0">
-   <waveform src="pink-noise" ratio="0.1" pitch="0.175"/>
-   <waveform src="sine" processing="add" ratio="0.56"/>
-   <waveform src="sine" processing="add" ratio="0.6"/>
+   <waveform src="pink-noise" ratio="0.167" pitch="0.175"/>
+   <waveform src="sine" processing="add" ratio="0.933"/>
+   <waveform src="sine" processing="add"/>
    <filter type="bitcrusher">
     <slot n="0">
      <param n="0">0.0</param>
-     <param n="1">0.0</param>
+     <param n="1">0.01</param>
      <param n="2">0.0</param>
      <param n="3">0.25</param>
     </slot>
@@ -59,16 +59,22 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <filter type="timed-gain" src="envelope" release-time="0.08">
+  <filter type="timed-gain" src="envelope" release-time="0.04">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.05</param>
-    <param n="2">0.872</param>
-    <param n="3">0.15</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec">4.5</param>
+    <param n="2">1.0</param>
+    <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.5</param>
-    <param n="1">0.1</param>
+    <param n="0">0.872</param>
+    <param n="1">0.15</param>
+    <param n="2">0.5</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -76,15 +82,15 @@
   <effect type="chorus">
    <slot n="0">
     <param n="0">0.95</param>
-    <param n="1">0.0</param>
+    <param n="1">0.01</param>
     <param n="2">0.0</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
+    <param n="0">20.0</param>
+    <param n="1">20.0</param>
     <param n="2">0.15</param>
-    <param n="3">0.0</param>
+    <param n="3">0.01</param>
    </slot>
   </effect>
  </emitter>

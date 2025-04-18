@@ -13,19 +13,19 @@
 
  <info name="Synth Voice" bank="0" program="54">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="48" max="84" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.02" frequency="220" duration="0.5">
+ <sound gain="0.33" frequency="220" duration="0.5">
   <layer n="0">
-   <waveform src="pure-sine" ratio="0.909"/>
-   <waveform src="sine" processing="add" ratio="0.8" pitch="3.0"/>
-   <waveform src="triangle" processing="modulate" ratio="0.818"/>
+   <waveform src="pure-sine"/>
+   <waveform src="sine" processing="add" ratio="0.88" pitch="3.0"/>
+   <waveform src="triangle" processing="modulate" ratio="0.9"/>
   </layer>
  </sound>
 

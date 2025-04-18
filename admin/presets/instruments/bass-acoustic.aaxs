@@ -13,29 +13,35 @@
 
  <info name="Acoustic Bass" bank="0" program="32">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="28" max="95" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="2.50" frequency="55" duration="0.5">
+ <sound mode="1" frequency="55" duration="0.5">
   <layer n="0">
-   <waveform src="triangle" ratio="0.818" pitch="0.999"/>
-   <waveform src="pure-sawtooth" processing="modulate" ratio="2.5" pitch="1.979"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.07" pitch="0.999"/>
+   <waveform src="triangle" ratio="0.327" pitch="0.999"/>
+   <waveform src="pure-sawtooth" processing="modulate" pitch="1.979"/>
+   <waveform src="sawtooth" processing="mix" ratio="-1.33" pitch="0.999"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="6.05" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
-    <param n="0">0.981</param>
-    <param n="1">0.005</param>
-    <param n="2">1.0</param>
-    <param n="3">0.895</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="60.0" max="10.0" tune="-0.000162">0.0664</param>
+    <param n="2">0.981</param>
+    <param n="3">0.005</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">0.895</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">
@@ -55,7 +61,7 @@
  </emitter>
 
  <audioframe pan="0.1">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">36.0</param>
     <param n="1">0.0</param>

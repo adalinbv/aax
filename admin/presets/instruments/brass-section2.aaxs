@@ -13,22 +13,22 @@
 
  <info name="Brass Section 2" bank="8" program="61">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="16" min="36" max="96" step="6"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.93" frequency="880" duration="0.5">
+ <sound mode="1" gain="0.515" frequency="880" duration="0.5">
   <layer n="0">
-   <waveform src="impulse" ratio="0.55" pitch="1.987" voices="7" spread="0.91" phasing="true"/>
-   <waveform src="sawtooth" processing="add" ratio="1.4" voices="3" spread="0.7"/>
-   <waveform src="pure-sawtooth" processing="add" ratio="0.526" pitch="1.987"/>
+   <waveform src="impulse" ratio="0.393" pitch="1.987" voices="7" spread="0.91" phasing="true"/>
+   <waveform src="sawtooth" processing="add" voices="3" spread="0.7"/>
+   <waveform src="pure-sawtooth" processing="add" ratio="0.376" pitch="1.987"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.4" looping="true">
   <filter type="frequency" src="envelope|logarithmic">
    <slot n="0">
     <param n="0" pitch="8.0">7040.0</param>
@@ -37,7 +37,7 @@
     <param n="3">1.2</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="25.0">22000.0</param>
+    <param n="0" pitch="25.0">20000.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">2.0</param>
@@ -45,16 +45,22 @@
   </filter>
   <filter type="timed-gain" release-time="0.06">
    <slot n="0">
-    <param n="0">0.524</param>
-    <param n="1">0.015</param>
-    <param n="2">0.841</param>
-    <param n="3">0.025</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="50.0" max="20.0" tune="-1.48e-05">0.0509</param>
+    <param n="2">0.524</param>
+    <param n="3">0.015</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">4.59</param>
-    <param n="2">0.59</param>
-    <param n="3">2.44</param>
+    <param n="0">0.841</param>
+    <param n="1">0.025</param>
+    <param n="2">1.0</param>
+    <param n="3">4.59</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.59</param>
+    <param n="1">2.44</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

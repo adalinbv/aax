@@ -20,15 +20,15 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="2" gain="9.67" frequency="233.082" duration="0.5">
+ <sound mode="2" frequency="6.875" duration="0.5">
   <layer n="0">
-   <waveform src="triangle" ratio="0.205" pitch="1.3"/>
-   <waveform src="triangle" processing="add" ratio="0.327"/>
-   <waveform src="white-noise" processing="add" ratio="0.1" pitch="0.14"/>
+   <waveform src="triangle" ratio="0.627" pitch="1.3"/>
+   <waveform src="triangle" processing="add"/>
+   <waveform src="white-noise" processing="add" ratio="0.306" pitch="0.14"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="17284.1" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">1.2</param>
@@ -45,8 +45,14 @@
   </effect>
   <filter type="timed-gain" src="envelope" release-time="0.06">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.95</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="50.0" max="5.0" tune="-1.08e-05">0.0502</param>
+    <param n="2">1.0</param>
+    <param n="3">0.95</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

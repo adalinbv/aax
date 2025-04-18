@@ -13,33 +13,39 @@
 
  <info name="Cello" bank="0" program="42">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="36" max="72" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.20" frequency="65.4064" duration="0.5">
+ <sound mode="1" gain="0.657" frequency="110" duration="0.5">
   <layer n="0">
-   <waveform src="sawtooth" ratio="1.4" voices="3"/>
-   <waveform src="pure-cycloid" processing="add" ratio="1.11"/>
+   <waveform src="sawtooth" voices="3"/>
+   <waveform src="pure-cycloid" processing="add" ratio="0.793"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.4" looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.44</param>
-    <param n="1">0.0415</param>
-    <param n="2">0.949</param>
-    <param n="3">0.2</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="80.0" max="4.0" tune="-7.75e-05">0.0849</param>
+    <param n="2">0.44</param>
+    <param n="3">0.0415</param>
    </slot>
    <slot n="1">
-    <param n="0">0.849</param>
-    <param n="1">inf</param>
-    <param n="2">1.0</param>
-    <param n="3">0.045</param>
+    <param n="0">0.949</param>
+    <param n="1">0.2</param>
+    <param n="2">0.849</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="2">
+    <param n="0">1.0</param>
+    <param n="1">0.045</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -53,7 +59,7 @@
  </emitter>
 
  <audioframe pan="-0.3">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">64.0</param>
     <param n="1">0.0</param>

@@ -16,18 +16,18 @@
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
+  <note polyphony="1" min="108" max="112" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.59" frequency="4698.64" duration="0.0333">
+ <sound frequency="4698.64" duration="0.0333">
   <layer n="0">
-   <waveform src="triangle" ratio="0.818"/>
-   <waveform src="square" processing="mix" ratio="0.095" pitch="4.987"/>
+   <waveform src="triangle"/>
+   <waveform src="square" processing="mix" ratio="0.26" pitch="4.987"/>
   </layer>
  </sound>
 
- <emitter looping="true" pan="0.625">
+ <emitter gain="2.48" pan="0.625" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">0.7</param>
@@ -38,13 +38,19 @@
   </effect>
   <filter type="timed-gain" release-time="2.0">
    <slot n="0">
-    <param n="0">0.853</param>
-    <param n="1">0.3</param>
-    <param n="2">1.0</param>
-    <param n="3">2.8</param>
+    <param n="0">0.0</param>
+    <param n="1">0.853</param>
+    <param n="2">0.3</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">2.8</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="pure-sawtooth|1st-order|exponential">
+  <filter type="dynamic-gain" src="pure-sawtooth|exponential">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">14.3</param>
@@ -52,10 +58,10 @@
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="chorus" src="3-stage">
+  <effect type="chorus" src="3rd-order">
    <slot n="0">
     <param n="0">0.9</param>
-    <param n="1">0.0</param>
+    <param n="1">0.01</param>
     <param n="2">0.0</param>
     <param n="3">0.8</param>
    </slot>

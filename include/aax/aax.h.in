@@ -352,6 +352,7 @@ enum aaxSetupType
    AAX_FAST_RELEASE,
    AAX_POLYPHONY,
    AAX_MAX_PATCHES,
+   AAX_BUFFER_GAIN,
 
    /* File and track information */
    AAX_COVER_IMAGE_DATA         = 0x2000,

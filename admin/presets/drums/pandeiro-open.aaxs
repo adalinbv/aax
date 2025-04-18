@@ -16,22 +16,22 @@
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
+  <note polyphony="1" min="81" max="85" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.06" frequency="987.767" duration="0.3">
+ <sound frequency="987.767" duration="0.3">
   <layer n="0">
-   <waveform src="pure-square" ratio="2.5" pitch="3.0"/>
-   <waveform src="triangle" processing="mix" ratio="0.327" pitch="3.025"/>
-   <waveform src="white-noise" processing="mix" ratio="0.6" pitch="0.15"/>
-   <waveform src="square" processing="modulate" ratio="1.9" pitch="6.75"/>
-   <waveform src="triangle" processing="add" ratio="0.205" pitch="0.18"/>
-   <waveform src="triangle" processing="add" ratio="0.205" pitch="0.1"/>
+   <waveform src="pure-square" pitch="3.0"/>
+   <waveform src="triangle" processing="mix" ratio="-0.682" pitch="3.025"/>
+   <waveform src="white-noise" processing="mix" ratio="5.96e-08" pitch="0.15"/>
+   <waveform src="square" processing="modulate" ratio="0.76" pitch="6.75"/>
+   <waveform src="triangle" processing="add" ratio="0.082" pitch="0.18"/>
+   <waveform src="triangle" processing="add" ratio="0.082" pitch="0.1"/>
   </layer>
  </sound>
 
- <emitter looping="true" pan="-0.1">
+ <emitter gain="23.8" pan="-0.1" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.8</param>
@@ -48,10 +48,16 @@
   </effect>
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.547</param>
-    <param n="1">0.015</param>
-    <param n="2">1.0</param>
-    <param n="3">0.475</param>
+    <param n="0">0.0</param>
+    <param n="1">0.547</param>
+    <param n="2">0.015</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.475</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

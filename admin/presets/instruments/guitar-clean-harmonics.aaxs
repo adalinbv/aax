@@ -13,24 +13,24 @@
 
  <info name="Guitar Harmonics" bank="0" program="31">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="40" max="86" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.63" frequency="110" duration="0.2">
+ <sound frequency="110" duration="0.2">
   <layer n="0">
-   <waveform src="square" ratio="1.9"/>
-   <waveform src="sine" processing="add" ratio="0.4" pitch="7.0"/>
-   <waveform src="sine" processing="modulate" pitch="5.0"/>
-   <waveform src="sine" processing="add" ratio="0.4" pitch="7.0"/>
+   <waveform src="square"/>
+   <waveform src="sine" processing="add" ratio="0.211" pitch="7.0"/>
+   <waveform src="sine" processing="modulate" ratio="0.526" pitch="5.0"/>
+   <waveform src="sine" processing="add" ratio="0.211" pitch="7.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.78" looping="true">
   <filter type="timed-gain" release-time="0.2">
    <slot n="0">
     <param n="0">0.0</param>
@@ -62,7 +62,7 @@
  </emitter>
 
  <audioframe pan="0.3">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">200.0</param>
     <param n="1">0.0</param>

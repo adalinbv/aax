@@ -13,33 +13,39 @@
 
  <info name="Pad 2 (Warm)" bank="0" program="88">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="36" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.99" frequency="220" voices="3" spread="0.93">
+ <sound mode="1" gain="0.276" frequency="220" voices="3" spread="0.93">
   <layer n="0">
-   <waveform src="pure-sine" ratio="0.455"/>
-   <waveform src="triangle" processing="add" ratio="0.123" pitch="2.0"/>
+   <waveform src="pure-sine"/>
+   <waveform src="triangle" processing="add" ratio="0.27" pitch="2.0"/>
   </layer>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.0536</param>
-    <param n="1">0.27</param>
-    <param n="2">1.0</param>
-    <param n="3">0.975</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="50.0" max="20.0" tune="-7.19e-06">0.0501</param>
+    <param n="2">0.0536</param>
+    <param n="3">0.27</param>
    </slot>
    <slot n="1">
-    <param n="0">0.734</param>
-    <param n="1">inf</param>
+    <param n="0">1.0</param>
+    <param n="1">0.975</param>
     <param n="2">0.734</param>
-    <param n="3">0.4</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.734</param>
+    <param n="1">0.4</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -59,7 +65,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">220.0</param>
     <param n="1">1.5</param>

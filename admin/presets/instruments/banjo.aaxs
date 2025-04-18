@@ -13,19 +13,19 @@
 
  <info name="Banjo" bank="0" program="105">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="48" max="127" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.56" frequency="440" duration="0.1">
+ <sound frequency="440" duration="0.1">
   <layer n="0">
-   <waveform src="square" ratio="1.9"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.665" pitch="5.999"/>
-   <waveform src="sine" processing="modulate" ratio="0.8" pitch="1.999"/>
+   <waveform src="square"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.364" pitch="5.999"/>
+   <waveform src="sine" processing="modulate" ratio="0.421" pitch="1.999"/>
    <filter type="frequency">
     <slot n="0">
      <param n="0" pitch="8.0">3520.0</param>
@@ -37,13 +37,19 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.25" looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.996</param>
-    <param n="1">0.05</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="15.0" max="8.0" tune="-2.25e-06">0.0151</param>
     <param n="2">0.996</param>
-    <param n="3">0.5</param>
+    <param n="3">0.05</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.996</param>
+    <param n="1">0.5</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">

@@ -16,11 +16,11 @@
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" pitch-fraction="0.1"/>
+  <note polyphony="1" min="48" max="52" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.09" frequency="146.832" duration="0.3">
+ <sound frequency="146.832" duration="0.3">
   <layer n="0">
    <waveform src="sine" pitch="1.2"/>
    <waveform src="sine" processing="add" ratio="0.3"/>
@@ -32,7 +32,7 @@
   </layer>
  </sound>
 
- <emitter looping="true" pan="0.47">
+ <emitter gain="4.1" pan="0.47" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">2.7</param>
@@ -47,15 +47,21 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <filter type="timed-gain" src="envelope" release-time="0.08">
+  <filter type="timed-gain" src="envelope" release-time="0.02">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.45</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec">0.5</param>
+    <param n="2">1.0</param>
+    <param n="3">0.45</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <filter type="dynamic-layer" src="timed|1st-order|exponential">
+  <filter type="dynamic-layer" src="timed|exponential">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">25.0</param>

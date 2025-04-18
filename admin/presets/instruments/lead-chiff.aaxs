@@ -13,14 +13,14 @@
 
  <info name="Lead 4 (Chiff)" bank="0" program="83">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="8" min="48" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="4.49" frequency="220" duration="0.5">
+ <sound gain="0.667" frequency="220" duration="0.5">
   <layer n="0">
    <waveform src="sine"/>
    <waveform src="square" processing="add" ratio="-0.95" pitch="1.001"/>
@@ -32,20 +32,26 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.502</param>
-    <param n="1">0.005</param>
-    <param n="2">1.0</param>
-    <param n="3">0.25</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="15.0" max="5.0" tune="-2.43e-06">0.0152</param>
+    <param n="2">0.502</param>
+    <param n="3">0.005</param>
    </slot>
    <slot n="1">
-    <param n="0">0.698</param>
-    <param n="1">0.15</param>
-    <param n="2">0.6</param>
-    <param n="3">inf</param>
+    <param n="0">1.0</param>
+    <param n="1">0.25</param>
+    <param n="2">0.698</param>
+    <param n="3">0.15</param>
    </slot>
    <slot n="2">
     <param n="0">0.6</param>
-    <param n="1">0.25</param>
+    <param n="1">inf</param>
+    <param n="2">0.6</param>
+    <param n="3">0.25</param>
+   </slot>
+   <slot n="3">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

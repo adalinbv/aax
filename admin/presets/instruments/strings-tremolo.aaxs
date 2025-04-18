@@ -13,34 +13,40 @@
 
  <info name="Tremolo Strings" bank="0" program="44">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="16" min="28" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.27" frequency="220" duration="0.4" voices="3" spread="0.8">
+ <sound frequency="220" duration="0.4" voices="3" spread="0.8">
   <layer n="0">
-   <waveform src="sawtooth" ratio="1.4"/>
-   <waveform src="triangle" processing="modulate" ratio="0.818" pitch="4.0"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.14" pitch="0.991"/>
+   <waveform src="sawtooth"/>
+   <waveform src="triangle" processing="modulate" ratio="0.584" pitch="4.0"/>
+   <waveform src="sawtooth" processing="mix" ratio="-0.204" pitch="0.991"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="7.85" looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.192</param>
-    <param n="1">0.0314</param>
-    <param n="2">1.0</param>
-    <param n="3">0.05</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="60.0" max="15.0" tune="-1.09e-05">0.0607</param>
+    <param n="2">0.192</param>
+    <param n="3">0.0314</param>
    </slot>
    <slot n="1">
-    <param n="0">0.895</param>
-    <param n="1">inf</param>
-    <param n="2">0.314</param>
-    <param n="3">0.25</param>
+    <param n="0">1.0</param>
+    <param n="1">0.05</param>
+    <param n="2">0.895</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.314</param>
+    <param n="1">0.25</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="sine">
@@ -68,7 +74,7 @@
  </emitter>
 
  <audioframe pan="-0.7">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">7000.0</param>
     <param n="1">1.0</param>

@@ -13,31 +13,37 @@
 
  <info name="Synth Brass 1" bank="0" program="63">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="2" min="35" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="3.50" frequency="880" voices="3" spread="0.08" phasing="true">
+ <sound frequency="880" voices="3" spread="0.08" phasing="true">
   <layer n="0">
-   <waveform src="sawtooth" ratio="1.4" pitch="0.993"/>
-   <waveform src="cycloid" processing="add" ratio="0.263"/>
+   <waveform src="sawtooth" pitch="0.993"/>
+   <waveform src="cycloid" processing="add" ratio="0.188"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.42" looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.2</param>
-    <param n="1">0.025</param>
-    <param n="2">0.686</param>
-    <param n="3">inf</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="10.0" max="10.0">0.01</param>
+    <param n="2">1.2</param>
+    <param n="3">0.025</param>
    </slot>
    <slot n="1">
     <param n="0">0.686</param>
-    <param n="1">0.025</param>
+    <param n="1">inf</param>
+    <param n="2">0.686</param>
+    <param n="3">0.025</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

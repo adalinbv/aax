@@ -13,34 +13,40 @@
 
  <info name="Steel Drums" bank="0" program="114">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="52" max="76" step="6"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.50" frequency="164.814" duration="0.75">
+ <sound mode="1" gain="0.414" frequency="220" duration="0.75">
   <layer n="0">
-   <waveform src="sawtooth" ratio="1.4"/>
-   <waveform src="cycloid" processing="add" ratio="0.789" pitch="6.987"/>
-   <waveform src="cycloid" processing="modulate" ratio="1.26" pitch="5.0"/>
+   <waveform src="sawtooth"/>
+   <waveform src="cycloid" processing="add" ratio="0.564" pitch="6.987"/>
+   <waveform src="cycloid" processing="modulate" ratio="0.9" pitch="5.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.4" looping="true">
   <filter type="timed-gain" release-time="0.5">
    <slot n="0">
-    <param n="0">0.533</param>
-    <param n="1">0.005</param>
-    <param n="2">1.0</param>
-    <param n="3">0.01</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="5.0" max="2.0" tune="-9.66e-07">0.00503</param>
+    <param n="2">0.533</param>
+    <param n="3">0.005</param>
    </slot>
    <slot n="1">
-    <param n="0">0.963</param>
-    <param n="1">0.398</param>
-    <param n="2">0.586</param>
-    <param n="3">0.75</param>
+    <param n="0">1.0</param>
+    <param n="1">0.01</param>
+    <param n="2">0.963</param>
+    <param n="3">0.398</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.586</param>
+    <param n="1">0.75</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -60,7 +66,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">110.0</param>
     <param n="1">0.05</param>

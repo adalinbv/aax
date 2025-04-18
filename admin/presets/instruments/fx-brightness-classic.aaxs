@@ -13,14 +13,14 @@
 
  <info name="Effects (Brightness, Tradionional)" bank="0" program="100">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="4" min="36" max="96" step="12"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.77" frequency="440" duration="0.7">
+ <sound gain="0.423" frequency="440" duration="0.7">
   <layer n="0">
    <waveform src="square" voices="3" spread="0.93" phasing="true"/>
    <waveform src="pure-impulse" processing="add" ratio="0.15" pitch="3.0"/>
@@ -43,21 +43,27 @@
   <filter type="bitcrusher">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.0</param>
+    <param n="1">0.01</param>
     <param n="2">0.0</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
-    <param n="0">0.412</param>
-    <param n="1">0.025</param>
-    <param n="2">0.634</param>
-    <param n="3">0.0625</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="-1.2e-06">0.01</param>
+    <param n="2">0.412</param>
+    <param n="3">0.025</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">4.25</param>
+    <param n="0">0.634</param>
+    <param n="1">0.0625</param>
+    <param n="2">1.0</param>
+    <param n="3">4.25</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

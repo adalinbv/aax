@@ -20,18 +20,18 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="3.82" frequency="261.626" duration="0.5">
-  <layer n="0">
-   <waveform src="white-noise" ratio="0.3" pitch="0.25"/>
-   <waveform src="sine" processing="add" ratio="0.75" voices="5"/>
+ <sound mode="1" frequency="6.875" duration="0.5">
+  <layer n="0" ratio="0.882">
+   <waveform src="white-noise" ratio="0.4" pitch="0.25"/>
+   <waveform src="sine" processing="add" voices="5"/>
   </layer>
   <layer n="1" ratio="0.75" voices="3">
-   <waveform src="triangle" ratio="0.818"/>
-   <waveform src="sine" processing="add" ratio="0.85" pitch="0.7"/>
+   <waveform src="triangle" ratio="0.962"/>
+   <waveform src="sine" processing="add" pitch="0.7"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="8289.7" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.95</param>
@@ -48,19 +48,25 @@
   </effect>
   <filter type="timed-gain" src="envelope" release-time="0.33">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.1</param>
-    <param n="2">0.775</param>
-    <param n="3">0.53</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="50.0" max="20.0" tune="-1.02e-05">0.052</param>
+    <param n="2">1.0</param>
+    <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">0.5</param>
-    <param n="1">0.1</param>
+    <param n="0">0.775</param>
+    <param n="1">0.53</param>
+    <param n="2">0.5</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <filter type="dynamic-layer" src="inverse-|reverse-envelope|1st-order|exponential">
+  <filter type="dynamic-layer" src="inverse-envelope|exponential">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">16.0</param>
@@ -68,7 +74,7 @@
     <param n="3">0.3</param>
    </slot>
   </filter>
-  <filter type="bitcrusher" src="inverse-|reverse-envelope|pink-noise">
+  <filter type="bitcrusher" src="inverse-envelope|pink-noise">
    <slot n="0">
     <param n="0">0.1</param>
     <param n="1">0.5</param>
@@ -79,15 +85,15 @@
   <effect type="chorus">
    <slot n="0">
     <param n="0">0.95</param>
-    <param n="1">0.0</param>
+    <param n="1">0.01</param>
     <param n="2">0.0</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
+    <param n="0">20.0</param>
+    <param n="1">20.0</param>
     <param n="2">0.15</param>
-    <param n="3">0.0</param>
+    <param n="3">0.01</param>
    </slot>
   </effect>
  </emitter>

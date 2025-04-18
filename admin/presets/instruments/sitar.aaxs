@@ -13,20 +13,20 @@
 
  <info name="Sitar" bank="0" program="104">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="6" min="48" max="127" step="12"/>
-  <aftertouch mode="pitch|gain"/>
+  <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.00" frequency="440" duration="0.1">
+ <sound gain="0.724" frequency="440" duration="0.1">
   <layer n="0">
-   <waveform src="triangle" ratio="0.818"/>
-   <waveform src="sawtooth" processing="add" ratio="1.33" pitch="1.999"/>
-   <waveform src="sine" processing="modulate" ratio="0.6" pitch="4.999"/>
-   <waveform src="impulse" processing="add" ratio="0.33" pitch="0.987"/>
+   <waveform src="triangle" ratio="0.615"/>
+   <waveform src="sawtooth" processing="add" pitch="1.999"/>
+   <waveform src="sine" processing="modulate" ratio="0.451" pitch="4.999"/>
+   <waveform src="impulse" processing="add" ratio="0.248" pitch="0.987"/>
    <filter type="equalizer">
     <slot n="0" src="24db">
      <param n="0">700.0</param>
@@ -44,17 +44,23 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.33" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.8">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.0065</param>
-    <param n="2">0.954</param>
-    <param n="3">0.09</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="20.0" max="10.0" tune="-3.22e-06">0.0201</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0065</param>
    </slot>
    <slot n="1">
-    <param n="0">0.867</param>
-    <param n="1">1.43</param>
+    <param n="0">0.954</param>
+    <param n="1">0.09</param>
+    <param n="2">0.867</param>
+    <param n="3">1.43</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

@@ -13,28 +13,34 @@
 
  <info name="Orchestra Hit" bank="0" program="55">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2024" by="Adalin B.V."/>
-  <copyright from="2017" until="2024" by="Erik Hofman"/>
+  <copyright from="2017" until="2025" by="Adalin B.V."/>
+  <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="16" min="48" max="127" step="6"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.09" frequency="220">
+ <sound gain="0.21" frequency="220">
   <layer n="0">
-   <waveform src="impulse" ratio="1.1" pitch="0.6" voices="3"/>
-   <waveform src="cycloid" processing="add" ratio="0.947" pitch="0.5" voices="5"/>
-   <waveform src="sawtooth" processing="add" ratio="0.28" pitch="0.991"/>
+   <waveform src="impulse" pitch="0.6" voices="3"/>
+   <waveform src="cycloid" processing="add" ratio="0.861" pitch="0.5" voices="5"/>
+   <waveform src="sawtooth" processing="add" ratio="0.255" pitch="0.991"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.1" looping="true">
   <filter type="timed-gain" release-time="0.6">
    <slot n="0">
-    <param n="0">0.871</param>
-    <param n="1">0.125</param>
-    <param n="2">1.1</param>
-    <param n="3">0.505</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec" min="15.0" max="5.0" tune="-4.93e-06">0.0153</param>
+    <param n="2">0.871</param>
+    <param n="3">0.125</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.1</param>
+    <param n="1">0.505</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -54,7 +60,7 @@
  </emitter>
 
  <audioframe pan="0.4">
-  <filter type="equalizer" optional="true">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">500.0</param>
     <param n="1">0.9</param>

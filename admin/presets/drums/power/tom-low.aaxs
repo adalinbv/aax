@@ -16,23 +16,23 @@
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" hold="string" pitch-fraction="0.1"/>
+  <note polyphony="1" min="46" max="50" pitch-fraction="0.1"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="1.49" frequency="130.813" duration="0.3">
+ <sound mode="1" gain="0.624" frequency="130.813" duration="0.3">
   <layer n="0">
    <waveform src="sine"/>
    <waveform src="pink-noise" processing="add" ratio="0.1"/>
   </layer>
-  <layer n="1">
-   <waveform src="white-noise" ratio="0.5" pitch="0.1"/>
-   <waveform src="triangle" processing="add" ratio="0.818"/>
-   <waveform src="square" processing="add" ratio="0.95" pitch="0.7"/>
+  <layer n="1" ratio="0.95">
+   <waveform src="white-noise" ratio="0.526" pitch="0.1"/>
+   <waveform src="triangle" processing="add" ratio="0.861"/>
+   <waveform src="square" processing="add" pitch="0.7"/>
   </layer>
  </sound>
 
- <emitter looping="true" pan="-0.1">
+ <emitter pan="-0.1" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">1.5</param>
@@ -41,15 +41,21 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <filter type="timed-gain" src="envelope" release-time="0.26">
+  <filter type="timed-gain" src="envelope" release-time="0.03">
    <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">1.0</param>
+    <param n="0">0.0</param>
+    <param n="1" type="msec">0.7</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <filter type="dynamic-layer" src="envelope|1st-order|exponential">
+  <filter type="dynamic-layer" src="envelope|exponential">
    <slot n="0">
     <param n="0">0.1</param>
     <param n="1">8.0</param>
@@ -57,7 +63,7 @@
     <param n="3">0.5</param>
    </slot>
   </filter>
-  <filter type="bitcrusher" src="inverse-|reverse-envelope">
+  <filter type="bitcrusher" src="inverse-envelope">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.1</param>
@@ -68,15 +74,15 @@
   <effect type="chorus">
    <slot n="0">
     <param n="0">0.95</param>
-    <param n="1">0.0</param>
+    <param n="1">0.01</param>
     <param n="2">0.0</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
+    <param n="0">20.0</param>
+    <param n="1">20.0</param>
     <param n="2">0.15</param>
-    <param n="3">0.0</param>
+    <param n="3">0.01</param>
    </slot>
   </effect>
  </emitter>
