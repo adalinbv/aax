@@ -161,6 +161,9 @@ inline bool is_valid(void* c, enum aaxHandleType t=AAX_CONFIG) {
     return aaxIsValid(c, t);
 }
 
+#ifdef free
+#undef free
+#endif
 inline void free(void *ptr) {
     aaxFree(ptr);
 }
