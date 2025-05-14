@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Rain" bank="0" program="0">
+ <info name="Rain" bank="64" program="32">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" hold="string" pitch-fraction="0.2"/>
+  <note polyphony="1" pitch-fraction="0.2"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.81" frequency="220" duration="3.0" ratio="0.75">
+ <sound frequency="220" duration="3.0">
   <layer n="0" ratio="0.75">
    <waveform src="white-noise" pitch="0.2" staticity="0.04"/>
    <waveform src="pink-noise" processing="modulate" ratio="30.0"/>

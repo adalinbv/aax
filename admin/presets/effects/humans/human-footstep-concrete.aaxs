@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Footstep Concrete">
+ <info name="Footstep Concrete" bank="0,101" program="127">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" min="55" max="65" hold="string" pitch-fraction="0.3"/>
+  <note polyphony="1" min="55" max="65" pitch-fraction="0.3"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.56" frequency="220" duration="0.3">
+ <sound frequency="220" duration="0.3">
   <layer n="0">
    <waveform src="white-noise" pitch="0.05"/>
    <waveform src="sine" processing="modulate" pitch="11.7587"/>

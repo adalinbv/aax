@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Handclap">
+ <info name="Handclap" bank="0" program="0" key="39">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.02" frequency="220" duration="0.3">
+ <sound frequency="220" duration="0.3">
   <layer n="0">
    <waveform src="white-noise" pitch="0.25"/>
    <filter type="frequency" src="24db">

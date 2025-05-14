@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Electric Bass Drum" bank="25" program="36">
+ <info name="Electric Bass Drum" bank="0" program="24" key="36">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.675" frequency="77.7817" duration="0.1">
+ <sound mode="1" frequency="77.7817" duration="0.1">
   <layer n="0">
    <waveform src="sine"/>
    <waveform src="sine" processing="add" ratio="0.25" pitch="0.8"/>

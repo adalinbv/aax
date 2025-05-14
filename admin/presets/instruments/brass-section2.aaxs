@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Brass Section 2" bank="8" program="61">
+ <info name="Brass Section 2" bank="0,40" program="61">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.515" frequency="880" duration="0.5">
+ <sound mode="1" frequency="880" duration="0.5">
   <layer n="0">
    <waveform src="impulse" ratio="0.393" pitch="1.987" voices="7" spread="0.91" phasing="true"/>
    <waveform src="sawtooth" processing="add" voices="3" spread="0.7"/>
@@ -28,7 +28,7 @@
   </layer>
  </sound>
 
- <emitter gain="1.4" looping="true">
+ <emitter looping="true">
   <filter type="frequency" src="envelope|logarithmic">
    <slot n="0">
     <param n="0" pitch="8.0">7040.0</param>
@@ -46,7 +46,7 @@
   <filter type="timed-gain" release-time="0.06">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="50.0" max="20.0" tune="-1.48e-05">0.0509</param>
+    <param n="1" type="msec" min="50.0" max="20.0" tune="0.0199">0.0862</param>
     <param n="2">0.524</param>
     <param n="3">0.015</param>
    </slot>

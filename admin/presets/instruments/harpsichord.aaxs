@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Harpsichord" bank="0" program="8">
+ <info name="Harpsichord" bank="0" program="6">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="72" min="41" max="89" step="12"/>
+  <note polyphony="72" min="41" max="89"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.764" frequency="220" duration="0.1">
+ <sound frequency="220" duration="0.1">
   <layer n="0">
    <waveform src="square" ratio="0.95"/>
    <waveform src="sawtooth" processing="add" ratio="0.56" pitch="4.0"/>
@@ -33,21 +33,15 @@
   <filter type="timed-gain" src="envelope" release-time="0.4">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="8.0" max="3.0" tune="-1.27e-06">0.00833</param>
-    <param n="2">0.0828</param>
+    <param n="1" type="msec" min="8.0" max="3.0" tune="0.00415">0.018</param>
+    <param n="2">0.083</param>
     <param n="3">0.005</param>
    </slot>
    <slot n="1">
-    <param n="0">0.856</param>
+    <param n="0">0.858</param>
     <param n="1">0.06</param>
-    <param n="2">0.998</param>
+    <param n="2">1.0</param>
     <param n="3">1.51</param>
-   </slot>
-   <slot n="2">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">

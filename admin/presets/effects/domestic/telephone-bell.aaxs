@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Telephone Bell">
+ <info name="Telephone Bell" bank="0" program="124">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.29" frequency="1174.66">
+ <sound frequency="1174.66">
   <layer n="0">
    <waveform src="cycloid" ratio="1.05" pitch="1.21"/>
    <waveform src="triangle" processing="add" ratio="0.123" pitch="2.0"/>
@@ -40,7 +40,7 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <filter type="timed-gain" repeat="max">
+  <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.01</param>

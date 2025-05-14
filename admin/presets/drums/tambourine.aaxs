@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Tambourine" bank="0" program="54">
+ <info name="Tambourine" bank="16" program="113">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -33,7 +33,7 @@
   </layer>
  </sound>
 
- <emitter gain="5.82" pan="0.16" looping="true">
+ <emitter pan="0.16" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.8</param>

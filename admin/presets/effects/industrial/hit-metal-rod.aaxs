@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Metal Rod Hit" bank="0" program="0">
+ <info name="Metal Rod Hit" bank="127" program="100">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.46" frequency="220" duration="0.1">
+ <sound frequency="220" duration="0.1">
   <layer n="0">
    <waveform src="sine" pitch="0.996"/>
    <waveform src="sine" processing="modulate" ratio="1.2" pitch="5.7587"/>

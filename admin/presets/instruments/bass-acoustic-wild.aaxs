@@ -11,12 +11,12 @@
 
 <aeonwave>
 
- <info name="Wild Acoustic Bass" bank="8" program="32">
+ <info name="Wild Acoustic Bass" bank="127" program="65">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="4" min="28" max="95" step="12"/>
+  <note polyphony="4" min="28" max="95"/>
   <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
@@ -29,11 +29,11 @@
   </layer>
  </sound>
 
- <emitter gain="6.57" looping="true">
+ <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="60.0" max="10.0" tune="-0.000162">0.0664</param>
+    <param n="1" type="msec" min="60.0" max="10.0" tune="0.0539">0.147</param>
     <param n="2">0.981</param>
     <param n="3">0.025</param>
    </slot>
@@ -65,19 +65,19 @@
    <slot n="0">
     <param n="0">36.0</param>
     <param n="1">0.0</param>
-    <param n="2">1.5</param>
+    <param n="2">1.0</param>
     <param n="3">2.0</param>
    </slot>
    <slot n="1">
     <param n="0">55.0</param>
-    <param n="1">1.5</param>
-    <param n="2">1.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.667</param>
     <param n="3">1.5</param>
    </slot>
    <slot n="2">
     <param n="0">3000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.08</param>
+    <param n="1">0.667</param>
+    <param n="2">0.0533</param>
     <param n="3">1.0</param>
    </slot>
   </filter>

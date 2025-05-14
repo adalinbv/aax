@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.155" frequency="880" duration="0.1">
+ <sound frequency="880" duration="0.1">
   <layer n="0">
    <waveform src="triangle" ratio="0.861"/>
    <waveform src="square" processing="add" pitch="3.01"/>
@@ -32,7 +32,7 @@
   <filter type="timed-gain" src="envelope" release-time="1.32">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="5.0" max="2.0" tune="-9.66e-07">0.00503</param>
+    <param n="1" type="msec" min="5.0" max="2.0" tune="0.0015">0.00723</param>
     <param n="2">1.0</param>
     <param n="3">0.065</param>
    </slot>

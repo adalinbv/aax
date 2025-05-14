@@ -11,17 +11,17 @@
 
 <aeonwave>
 
- <info name="Whistle" bank="0" program="0">
+ <info name="Whistle" bank="0" program="78">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
   <note polyphony="1" min="60" max="96" hold="string"/>
-  <aftertouch mode="gain"/>
+  <aftertouch mode="pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound fixed-gain="1.00" frequency="261.626" duration="3.33">
+ <sound frequency="261.626" duration="3.33">
   <layer n="0">
    <waveform src="white-noise" ratio="0.01" pitch="0.1"/>
    <waveform src="sine" processing="add" ratio="0.05"/>

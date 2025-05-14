@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Square Click" bank="0" program="32">
+ <info name="Square Click" bank="0" program="0" key="32">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.393" frequency="440" duration="0.3">
+ <sound mode="1" frequency="440" duration="0.3">
   <layer n="0">
    <waveform src="white-noise" pitch="0.05"/>
    <waveform src="pure-sine" processing="modulate" ratio="0.909" pitch="11.7587"/>
@@ -48,13 +48,7 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.05</param>
-    <param n="3">0.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
+    <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>

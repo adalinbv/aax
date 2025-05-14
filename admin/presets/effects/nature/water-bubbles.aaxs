@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Water Bubles">
+ <info name="Water Bubles" bank="64" program="36">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" hold="string" pitch-fraction="0.2"/>
+  <note polyphony="1" pitch-fraction="0.2"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="4.26" frequency="220" duration="2.9">
+ <sound frequency="220" duration="2.9">
   <layer n="0">
    <waveform src="brownian-noise" ratio="20.0" pitch="0.05" staticity="0.9"/>
    <filter type="frequency">

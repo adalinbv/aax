@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Carillon" bank="8" program="14">
+ <info name="Carillon" bank="0,97" program="14">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.96" frequency="261.626" duration="0.1">
+ <sound frequency="261.626" duration="0.1">
   <layer n="0">
    <waveform src="sine" pitch="1.21"/>
    <waveform src="sine" processing="add" ratio="0.1" pitch="1.59987"/>

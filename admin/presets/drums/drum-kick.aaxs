@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Kick Bass Drum" bank="41" program="36">
+ <info name="Kick Bass Drum" bank="0" program="0" key="36">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -35,7 +35,7 @@
   </layer>
  </sound>
 
- <emitter gain="3.39" looping="true">
+ <emitter looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">3.0</param>
@@ -56,12 +56,6 @@
     <param n="1">0.1</param>
     <param n="2">0.0624</param>
     <param n="3">0.1</param>
-   </slot>
-   <slot n="2">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

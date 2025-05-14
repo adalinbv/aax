@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Mute Hi Conga" bank="0" program="62">
+ <info name="Mute Hi Conga" bank="0" program="0" key="62">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.681" frequency="1108.73" duration="0.3">
+ <sound mode="1" frequency="1108.73" duration="0.3">
   <layer n="0">
    <waveform src="pink-noise" pitch="0.22"/>
    <waveform src="sine" processing="add" pitch="0.65"/>
@@ -40,14 +40,8 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1" type="msec">1.4</param>
-    <param n="2">0.5</param>
+    <param n="2">1.0</param>
     <param n="3">0.3</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

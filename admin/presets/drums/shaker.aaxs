@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Shaker" bank="0" program="82">
+ <info name="Shaker" bank="0" program="0" key="82">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -34,7 +34,7 @@
   </layer>
  </sound>
 
- <emitter gain="9309.5" pan="0.47" looping="true">
+ <emitter pan="0.47" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.5</param>
@@ -47,11 +47,11 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.496</param>
-    <param n="2">0.03</param>
+    <param n="2">0.0909</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">0.33</param>
+    <param n="0">1.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

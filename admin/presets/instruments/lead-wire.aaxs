@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Lead 5 (Wire)" bank="1" program="86">
+ <info name="Lead 5 (Wire)" bank="0,65" program="84">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="8" min="21" max="108" step="12"/>
+  <note polyphony="8" min="21" max="108"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.448" frequency="220" duration="0.1">
+ <sound mode="1" frequency="220" duration="0.1">
   <layer n="0" ratio="0.737">
    <waveform src="sawtooth"/>
    <waveform src="impulse" processing="mix" ratio="0.37" voices="3"/>
@@ -34,7 +34,7 @@
   </layer>
  </sound>
 
- <emitter gain="1.9" looping="true">
+ <emitter looping="true">
   <filter type="dynamic-layer" src="inverse-timed|exponential">
    <slot n="0">
     <param n="0">0.0</param>
@@ -46,7 +46,7 @@
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="8.0" max="3.0" tune="-1.21e-06">0.00808</param>
+    <param n="1" type="msec" min="8.0" max="3.0" tune="0.00277">0.013</param>
     <param n="2">1.0</param>
     <param n="3">0.02</param>
    </slot>
@@ -55,12 +55,6 @@
     <param n="1">inf</param>
     <param n="2">0.402</param>
     <param n="3">0.05</param>
-   </slot>
-   <slot n="2">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

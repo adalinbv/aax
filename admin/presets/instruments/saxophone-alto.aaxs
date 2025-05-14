@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Alto Saxophone" bank="0" program="65">
+ <info name="Alto Saxophone" bank="0" program="64">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="2" min="49" max="80" step="12"/>
+  <note polyphony="2" min="49" max="80"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.319" frequency="220" duration="0.5">
+ <sound mode="1" frequency="220" duration="0.5">
   <layer n="0">
    <waveform src="cycloid"/>
    <waveform src="triangle" processing="modulate" ratio="0.779" pitch="4.0"/>
@@ -28,11 +28,11 @@
   </layer>
  </sound>
 
- <emitter gain="1.05" looping="true">
+ <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.02">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.04</param>
+    <param n="1" type="msec" min="30.0" max="20.0" tune="0.0129">0.0575</param>
     <param n="2">0.924</param>
     <param n="3">0.025</param>
    </slot>

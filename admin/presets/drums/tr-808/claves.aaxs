@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Claves" bank="26" program="75">
+ <info name="Claves" bank="0" program="25" key="75">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.689" frequency="2489.02" duration="0.1">
+ <sound frequency="2489.02" duration="0.1">
   <layer n="0">
    <waveform src="triangle"/>
   </layer>
@@ -33,12 +33,6 @@
     <param n="1" type="msec">2.0</param>
     <param n="2">1.0</param>
     <param n="3">0.05</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

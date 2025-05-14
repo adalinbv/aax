@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="High Q" bank="0" program="27">
+ <info name="High Q" bank="0" program="0" key="27">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -44,7 +44,7 @@
   </layer>
  </sound>
 
- <emitter gain="5.42" pan="-0.23" looping="true">
+ <emitter pan="-0.23" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.2</param>
@@ -63,11 +63,11 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.04</param>
+    <param n="2">0.0571</param>
     <param n="3">0.801</param>
    </slot>
    <slot n="1">
-    <param n="0">0.7</param>
+    <param n="0">1.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

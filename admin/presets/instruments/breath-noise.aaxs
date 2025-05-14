@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Breath Noise" bank="0" program="122">
+ <info name="Breath Noise" bank="0" program="121">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="2" min="75" max="82" step="12" pitch-fraction="0.2"/>
+  <note polyphony="2" min="77" max="84" pitch-fraction="0.2"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.987" frequency="880" duration="0.3">
+ <sound mode="1" frequency="880" duration="0.3">
   <layer n="0">
    <waveform src="pink-noise" staticity="0.02"/>
    <filter type="frequency" src="24db">

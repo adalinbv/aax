@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.414" frequency="220" duration="0.75">
+ <sound mode="1" frequency="220" duration="0.75">
   <layer n="0">
    <waveform src="sawtooth"/>
    <waveform src="cycloid" processing="add" ratio="0.564" pitch="6.987"/>
@@ -28,11 +28,11 @@
   </layer>
  </sound>
 
- <emitter gain="1.4" looping="true">
+ <emitter looping="true">
   <filter type="timed-gain" release-time="0.5">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="5.0" max="2.0" tune="-9.66e-07">0.00503</param>
+    <param n="1" type="msec" min="5.0" max="2.0" tune="0.0015">0.00723</param>
     <param n="2">0.533</param>
     <param n="3">0.005</param>
    </slot>

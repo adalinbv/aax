@@ -30,19 +30,13 @@
   </layer>
  </sound>
 
- <emitter gain="3.02" looping="true">
+ <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="1.0">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="10.0" max="5.0" tune="-1.61e-06">0.01</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="0.00249">0.0137</param>
     <param n="2">1.0</param>
     <param n="3">0.2</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -59,14 +53,14 @@
   <filter type="equalizer">
    <slot n="0">
     <param n="0">680.0</param>
-    <param n="1">0.4</param>
-    <param n="2">4.0</param>
+    <param n="1">0.1</param>
+    <param n="2">1.0</param>
     <param n="3">1.5</param>
    </slot>
    <slot n="1">
     <param n="0">1000.0</param>
-    <param n="1">4.0</param>
-    <param n="2">0.91</param>
+    <param n="1">1.0</param>
+    <param n="2">0.228</param>
     <param n="3">5.0</param>
    </slot>
   </filter>

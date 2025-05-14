@@ -11,17 +11,17 @@
 
 <aeonwave>
 
- <info name="Electric Guitar (Tc Single Coil)" bank="0" program="27">
+ <info name="Electric Guitar (Tc Single Coil)" bank="18" program="27">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="6" min="40" max="86" step="12"/>
+  <note polyphony="6" min="40" max="86"/>
   <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.223" frequency="110" duration="0.1">
+ <sound mode="1" frequency="110" duration="0.1">
   <layer n="0">
    <waveform src="triangle"/>
    <waveform src="square" processing="add" ratio="0.929" pitch="2.0"/>
@@ -33,18 +33,18 @@
   <filter type="timed-gain" release-time="0.2">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="10.0" max="5.0" tune="-4.05e-06">0.0103</param>
-    <param n="2">0.314</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="0.00415">0.018</param>
+    <param n="2">0.316</param>
     <param n="3">0.005</param>
    </slot>
    <slot n="1">
-    <param n="0">0.995</param>
+    <param n="0">1.0</param>
     <param n="1">0.025</param>
-    <param n="2">0.697</param>
+    <param n="2">0.701</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="2">
-    <param n="0">0.517</param>
+    <param n="0">0.52</param>
     <param n="1">1.91</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

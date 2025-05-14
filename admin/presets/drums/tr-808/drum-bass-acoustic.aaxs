@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.688" frequency="51.9131" duration="0.1">
+ <sound mode="1" gain="0.279" frequency="51.9131" duration="0.1">
   <layer n="0">
    <waveform src="sine"/>
   </layer>

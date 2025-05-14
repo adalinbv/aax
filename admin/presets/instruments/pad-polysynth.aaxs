@@ -11,23 +11,23 @@
 
 <aeonwave>
 
- <info name="Pad 3 (80's Polysynth)" bank="1" program="90">
+ <info name="Pad 3 (80's Polysynth)" bank="0" program="90">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="8" min="36" max="96" step="12"/>
+  <note polyphony="8" min="36" max="96"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.348" frequency="1760" voices="3" spread="0.11" phasing="true">
+ <sound frequency="1760" voices="3" spread="0.11" phasing="true">
   <layer n="0">
    <waveform src="impulse" pitch="0.995"/>
    <waveform src="sawtooth" processing="mix" ratio="0.67"/>
   </layer>
  </sound>
 
- <emitter gain="1.1" looping="true">
+ <emitter looping="true">
   <filter type="frequency" src="timed">
    <slot n="0">
     <param n="0" pitch="1.0">1760.0</param>
@@ -45,18 +45,18 @@
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="70.0" max="30.0" tune="-9.59e-06">0.0701</param>
-    <param n="2">1.51</param>
+    <param n="1" type="msec" min="70.0" max="30.0" tune="0.0166">0.0902</param>
+    <param n="2">1.0</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
+    <param n="0">0.662</param>
     <param n="1">0.1</param>
-    <param n="2">0.884</param>
+    <param n="2">0.585</param>
     <param n="3">inf</param>
    </slot>
    <slot n="2">
-    <param n="0">0.884</param>
+    <param n="0">0.585</param>
     <param n="1">0.015</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

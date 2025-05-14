@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Finger Snap">
+ <info name="Finger Snap" bank="24" program="115">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound fixed-gain="1.11" frequency="880" duration="0.3">
+ <sound frequency="880" duration="0.3">
   <layer n="0">
    <waveform src="white-noise" ratio="40.0" pitch="0.05"/>
    <waveform src="sine" processing="modulate" ratio="0.7" pitch="11.7587"/>

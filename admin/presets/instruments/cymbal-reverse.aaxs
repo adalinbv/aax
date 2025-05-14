@@ -37,11 +37,11 @@
   </layer>
  </sound>
 
- <emitter gain="4.38" looping="true">
+ <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" min="2.94" max="-0.333" tune="1.5">5.1</param>
+    <param n="1" type="msec" min="50.0" max="25.0" tune="0.0125">0.0686</param>
     <param n="2">1.0</param>
     <param n="3">0.005</param>
    </slot>

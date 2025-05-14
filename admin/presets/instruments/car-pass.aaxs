@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Car Pass" bank="0" program="127">
+ <info name="Car Pass" bank="0,83" program="127">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" min="39" max="65" step="12"/>
+  <note polyphony="1" min="39" max="65"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.413" frequency="110" duration="0.3">
+ <sound frequency="110" duration="0.3">
   <layer n="0">
    <waveform src="cycloid" ratio="0.48" pitch="0.25" phase="0.05"/>
    <waveform src="cycloid" processing="mix" ratio="0.502" pitch="0.25" phase="0.38"/>
@@ -28,7 +28,7 @@
   </layer>
  </sound>
 
- <emitter gain="1.05" looping="true">
+ <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
@@ -47,12 +47,6 @@
     <param n="1">3.0</param>
     <param n="2">0.297</param>
     <param n="3">0.3</param>
-   </slot>
-   <slot n="3">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="inverse-sawtooth">
@@ -93,20 +87,20 @@
   <filter type="equalizer">
    <slot n="0">
     <param n="0">110.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.8</param>
+    <param n="1">0.769</param>
+    <param n="2">0.615</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
     <param n="0">300.0</param>
-    <param n="1">0.8</param>
-    <param n="2">1.1</param>
+    <param n="1">0.615</param>
+    <param n="2">0.846</param>
     <param n="3">2.5</param>
    </slot>
    <slot n="2">
     <param n="0">1000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">1.3</param>
+    <param n="1">0.769</param>
+    <param n="2">1.0</param>
     <param n="3">2.0</param>
    </slot>
   </filter>

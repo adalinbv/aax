@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Electric Snare" bank="17" program="40">
+ <info name="Electric Snare" bank="0" program="16" key="40">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="6.875" duration="0.5">
+ <sound mode="1" frequency="13.75" duration="0.5">
   <layer n="0" ratio="0.882">
    <waveform src="white-noise" ratio="0.4" pitch="0.25"/>
    <waveform src="sine" processing="add" voices="5"/>
@@ -31,7 +31,7 @@
   </layer>
  </sound>
 
- <emitter gain="8289.7" looping="true">
+ <emitter looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.95</param>
@@ -49,7 +49,7 @@
   <filter type="timed-gain" src="envelope" release-time="0.33">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="50.0" max="20.0" tune="-1.02e-05">0.052</param>
+    <param n="1" type="msec" min="50.0" max="20.0" tune="0.0249">0.107</param>
     <param n="2">1.0</param>
     <param n="3">0.1</param>
    </slot>
@@ -58,12 +58,6 @@
     <param n="1">0.53</param>
     <param n="2">0.5</param>
     <param n="3">0.1</param>
-   </slot>
-   <slot n="2">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="dynamic-layer" src="inverse-envelope|exponential">

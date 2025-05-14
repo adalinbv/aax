@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Mid Tom 2" bank="26" program="45">
+ <info name="Mid Tom 2" bank="0,64" program="118">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,13 +20,13 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="6.875" duration="0.1">
+ <sound frequency="13.75" duration="0.1">
   <layer n="0">
    <waveform src="sine"/>
   </layer>
  </sound>
 
- <emitter gain="2635.3" pan="-0.1" looping="true">
+ <emitter pan="-0.1" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.7</param>
@@ -38,15 +38,9 @@
   <filter type="timed-gain" src="envelope" release-time="0.08">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="50.0" max="10.0" tune="-1.97e-05">0.0513</param>
+    <param n="1" type="msec" min="50.0" max="10.0" tune="0.0266">0.0982</param>
     <param n="2">1.0</param>
     <param n="3">0.35</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

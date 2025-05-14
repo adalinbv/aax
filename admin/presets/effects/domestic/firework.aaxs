@@ -11,17 +11,17 @@
 
 <aeonwave>
 
- <info name="Firework" bank="0" program="0">
+ <info name="Firework" bank="0,116" program="127">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" min="60" max="96" hold="string" pitch-fraction="0.2"/>
-  <aftertouch mode="gain"/>
+  <note polyphony="1" min="60" max="96" pitch-fraction="0.2"/>
+  <aftertouch mode="pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.97" frequency="1479.98" duration="3.33" ratio="0.25">
+ <sound frequency="1479.98" duration="3.33">
   <layer n="0" ratio="0.25">
    <waveform src="white-noise" pitch="0.27"/>
    <filter type="frequency" src="24db">
@@ -52,7 +52,7 @@
     <param n="3">0.6</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="inverse-pure-sawtooth">
+  <filter type="dynamic-gain" src="pure-sawtooth">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">1.0</param>

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Wood Creak" bank="0" program="0">
+ <info name="Wood Creak" bank="64" program="55">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="2.84" frequency="293.665" duration="3.3">
+ <sound frequency="293.665" duration="3.3">
   <layer n="0">
    <waveform src="white-noise" pitch="0.02" staticity="0.95"/>
    <filter type="frequency">

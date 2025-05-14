@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Concer Cymbal 1" bank="49" program="59">
+ <info name="Concer Cymbal 1" bank="127" program="119">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -51,7 +51,7 @@
   </layer>
  </sound>
 
- <emitter gain="48.7" pan="-0.47" looping="true">
+ <emitter pan="-0.47" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">1.15</param>
@@ -72,12 +72,6 @@
     <param n="1">0.2</param>
     <param n="2">0.681</param>
     <param n="3">1.5</param>
-   </slot>
-   <slot n="2">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="dynamic-layer" src="envelope">

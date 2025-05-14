@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Humming" bank="1" program="53">
+ <info name="Humming" bank="121,1" program="53">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="7.36" frequency="220" duration="0.33">
+ <sound frequency="220" duration="0.33">
   <layer n="0">
    <waveform src="sine" pitch="0.49"/>
    <waveform src="sawtooth" processing="add" ratio="0.35"/>

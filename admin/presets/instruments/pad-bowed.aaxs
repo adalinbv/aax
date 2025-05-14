@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Pad 4 (Choir)" bank="0" program="91">
+ <info name="Pad 4 (Choir)" bank="0" program="92">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="8" min="48" max="84" step="12"/>
+  <note polyphony="8" min="48" max="84"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.543" frequency="220">
+ <sound mode="1" frequency="220">
   <layer n="0">
    <waveform src="impulse" ratio="0.201"/>
    <waveform src="triangle" processing="add" pitch="0.4993"/>
@@ -28,11 +28,11 @@
   </layer>
  </sound>
 
- <emitter gain="1.64" looping="true">
+ <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="80.0" max="35.0" tune="-1.08e-05">0.0802</param>
+    <param n="1" type="msec" min="80.0" max="35.0" tune="0.0187">0.103</param>
     <param n="2">0.167</param>
     <param n="3">0.4</param>
    </slot>

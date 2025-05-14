@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Crash Cymbal" bank="26" program="49">
+ <info name="Crash Cymbal" bank="0" program="25" key="49">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -29,7 +29,7 @@
   </layer>
  </sound>
 
- <emitter gain="23.4" pan="0.31" looping="true">
+ <emitter pan="0.31" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.1">
    <slot n="0">
     <param n="0">0.0</param>
@@ -47,8 +47,8 @@
   <filter type="frequency" src="envelope|logarithmic">
    <slot n="0">
     <param n="0">2350.0</param>
-    <param n="1">0.1</param>
-    <param n="2">1.2</param>
+    <param n="1">0.0833</param>
+    <param n="2">1.0</param>
     <param n="3">5.0</param>
    </slot>
    <slot n="1">

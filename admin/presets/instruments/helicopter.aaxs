@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Helicopter" bank="0" program="0">
+ <info name="Helicopter" bank="0" program="125">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -28,24 +28,18 @@
   </layer>
  </sound>
 
- <emitter gain="420.5" looping="true">
+ <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="2.0">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.2</param>
-    <param n="2">0.75</param>
+    <param n="2">0.00075</param>
     <param n="3">1.5</param>
    </slot>
    <slot n="1">
-    <param n="0">1000.0</param>
+    <param n="0">1.0</param>
     <param n="1">1.0</param>
-    <param n="2">2.0</param>
-    <param n="3">0.0</param>
-   </slot>
-   <slot n="2">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
+    <param n="2">0.002</param>
     <param n="3">0.0</param>
    </slot>
   </filter>

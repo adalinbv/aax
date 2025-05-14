@@ -16,11 +16,11 @@
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="8" min="36" max="96" step="12"/>
+  <note polyphony="8" min="36" max="96"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.325" frequency="220" voices="3" spread="0.31" phasing="true">
+ <sound frequency="220" voices="3" spread="0.31" phasing="true">
   <layer n="0">
    <waveform src="triangle" ratio="0.779" pitch="17.0"/>
    <waveform src="square" processing="mix" ratio="0.947" pitch="4.9897"/>
@@ -29,18 +29,18 @@
   </layer>
  </sound>
 
- <emitter gain="1.05" looping="true">
+ <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.005</param>
-    <param n="2">1.0</param>
+    <param n="1" type="msec" min="25.0" max="15.0" tune="0.00415">0.03</param>
+    <param n="2">0.935</param>
     <param n="3">0.02</param>
    </slot>
    <slot n="1">
-    <param n="0">1.07</param>
+    <param n="0">1.0</param>
     <param n="1">0.1</param>
-    <param n="2">1.07</param>
+    <param n="2">1.0</param>
     <param n="3">4.25</param>
    </slot>
   </filter>
@@ -58,14 +58,14 @@
   <filter type="equalizer">
    <slot n="0">
     <param n="0">600.0</param>
-    <param n="1">2.2</param>
-    <param n="2">1.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.455</param>
     <param n="3">4.5</param>
    </slot>
    <slot n="1">
     <param n="0">2000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.3</param>
+    <param n="1">0.455</param>
+    <param n="2">0.136</param>
     <param n="3">4.5</param>
    </slot>
   </filter>

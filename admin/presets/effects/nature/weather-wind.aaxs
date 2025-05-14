@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Wind">
+ <info name="Wind" bank="121,3" program="122">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" hold="string" pitch-fraction="0.5"/>
+  <note polyphony="1" pitch-fraction="0.5"/>
   <sound version="1.1"/>
  </info>
 
- <sound fixed-gain="3.11" frequency="220" duration="3.33">
+ <sound frequency="220" duration="3.33">
   <layer n="0">
    <waveform src="white-noise"/>
   </layer>

@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Hammond Organ" bank="0" program="15">
+ <info name="Hammond Organ" bank="0" program="18">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="10" min="24" max="104" step="12"/>
+  <note polyphony="10" min="24" max="104"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.0516" frequency="55">
+ <sound mode="1" frequency="55">
   <layer n="0">
    <waveform src="pink-noise" ratio="0.713"/>
    <waveform src="sine" pitch="0.4987"/>
@@ -48,21 +48,15 @@
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="40.0" max="8.0" tune="-2.72e-05">0.0417</param>
-    <param n="2">1.5</param>
+    <param n="1" type="msec" min="40.0" max="8.0" tune="0.025">0.0854</param>
+    <param n="2">1.0</param>
     <param n="3">0.16</param>
    </slot>
    <slot n="1">
-    <param n="0">1.2</param>
+    <param n="0">0.8</param>
     <param n="1">inf</param>
-    <param n="2">1.2</param>
+    <param n="2">0.8</param>
     <param n="3">0.2</param>
-   </slot>
-   <slot n="2">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Mid Tom 2" bank="17" program="45">
+ <info name="Mid Tom 2" bank="0" program="16" key="45">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.624" frequency="130.813" duration="0.3">
+ <sound mode="1" frequency="130.813" duration="0.3">
   <layer n="0">
    <waveform src="sine"/>
    <waveform src="pink-noise" processing="add" ratio="0.1"/>
@@ -47,12 +47,6 @@
     <param n="1" type="msec">0.7</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="dynamic-layer" src="envelope|exponential">

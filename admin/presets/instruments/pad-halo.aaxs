@@ -11,12 +11,12 @@
 
 <aeonwave>
 
- <info name="Pad 7 (Halo)" bank="0" program="88">
+ <info name="Pad 7 (Halo)" bank="0" program="94">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="8" min="36" max="96" step="12"/>
+  <note polyphony="8" min="36" max="96"/>
   <sound version="1.1"/>
  </info>
 
@@ -28,11 +28,11 @@
   </layer>
  </sound>
 
- <emitter gain="1.35" looping="true">
+ <emitter looping="true">
   <filter type="timed-gain" release-time="0.3">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="50.0" max="20.0" tune="-7.19e-06">0.0501</param>
+    <param n="1" type="msec" min="50.0" max="20.0" tune="0.0125">0.0651</param>
     <param n="2">0.148</param>
     <param n="3">0.25</param>
    </slot>

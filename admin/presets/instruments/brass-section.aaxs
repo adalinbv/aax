@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.459" frequency="880" duration="0.5">
+ <sound mode="1" frequency="880" duration="0.5">
   <layer n="0">
    <waveform src="sawtooth" ratio="0.526" voices="3" spread="0.23"/>
    <waveform src="sawtooth" processing="add" voices="3" spread="0.31"/>
@@ -45,7 +45,7 @@
   <filter type="timed-gain" release-time="0.06">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="50.0" max="20.0" tune="-1.48e-05">0.0509</param>
+    <param n="1" type="msec" min="50.0" max="20.0" tune="0.0199">0.0862</param>
     <param n="2">0.524</param>
     <param n="3">0.015</param>
    </slot>

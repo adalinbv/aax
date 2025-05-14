@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Church Organ (Diapason)" bank="8" program="18">
+ <info name="Church Organ (Diapason)" bank="0,35" program="19">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="10" min="24" max="96" step="12"/>
+  <note polyphony="10" min="24" max="96"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.293" frequency="55" voices="3" spread="0.1">
+ <sound mode="1" frequency="55" voices="3" spread="0.1">
   <layer n="0">
    <waveform src="white-noise" ratio="0.185" pitch="0.1"/>
    <waveform src="sine" processing="add" ratio="0.708"/>
@@ -36,21 +36,15 @@
   <filter type="timed-gain" src="envelope" release-time="2.8">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="10.0" max="5.0" tune="-1.2e-06">0.01</param>
-    <param n="2">0.25</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="0.00229">0.0133</param>
+    <param n="2">0.208</param>
     <param n="3">0.08</param>
    </slot>
    <slot n="1">
-    <param n="0">1.2</param>
+    <param n="0">1.0</param>
     <param n="1">inf</param>
-    <param n="2">1.2</param>
+    <param n="2">1.0</param>
     <param n="3">0.7</param>
-   </slot>
-   <slot n="2">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

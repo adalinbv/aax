@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Machine Gun">
+ <info name="Machine Gun" bank="0,113" program="127">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" hold="string" pitch-fraction="0.2"/>
+  <note polyphony="1" pitch-fraction="0.2"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.94" frequency="220" duration="0.3">
+ <sound frequency="220" duration="0.3">
   <layer n="0">
    <waveform src="white-noise" ratio="10.0" pitch="0.25"/>
   </layer>
@@ -35,7 +35,7 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <filter type="timed-gain" repeat="max" release-time="0.1">
+  <filter type="timed-gain" release-time="0.1">
    <slot n="0">
     <param n="0">2.25</param>
     <param n="1">0.03</param>

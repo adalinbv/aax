@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Synth Brass 4" bank="8" program="63">
+ <info name="Synth Brass 4" bank="0,40" program="63">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="2" min="35" max="96" step="12"/>
+  <note polyphony="2" min="35" max="96"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.238" frequency="880" duration="0.25">
+ <sound frequency="880" duration="0.25">
   <layer n="0">
    <waveform src="sawtooth" ratio="0.955" pitch="0.993"/>
    <waveform src="impulse" processing="add" pitch="3.0"/>
@@ -47,7 +47,7 @@
   </layer>
  </sound>
 
- <emitter gain="1.1" looping="true">
+ <emitter looping="true">
   <filter type="dynamic-layer" src="timed|exponential">
    <slot n="0">
     <param n="0">0.0</param>
@@ -59,7 +59,7 @@
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.025</param>
+    <param n="1" type="msec" min="10.0" max="10.0" tune="0.0">0.01</param>
     <param n="2">1.0</param>
     <param n="3">0.075</param>
    </slot>

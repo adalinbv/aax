@@ -11,23 +11,23 @@
 
 <aeonwave>
 
- <info name="Clavinet (Wah)" bank="0" program="7">
+ <info name="Clavinet (Wah)" bank="0,27" program="7">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="60" min="36" max="96" step="12"/>
+  <note polyphony="60" min="36" max="96"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.618" frequency="880" duration="0.1">
+ <sound frequency="880" duration="0.1">
   <layer n="0">
    <waveform src="impulse" ratio="0.2"/>
    <waveform src="impulse" processing="add"/>
   </layer>
  </sound>
 
- <emitter gain="1.1" looping="true">
+ <emitter looping="true">
   <filter type="frequency" src="envelope">
    <slot n="0">
     <param n="0" pitch="6.0">5280.0</param>
@@ -45,18 +45,18 @@
   <filter type="timed-gain" src="envelope" release-time="0.14">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="10.0" max="2.0" tune="-1.92e-06">0.01</param>
-    <param n="2">0.392</param>
+    <param n="1" type="msec" min="10.0" max="2.0" tune="0.00367">0.0153</param>
+    <param n="2">0.274</param>
     <param n="3">0.01</param>
    </slot>
    <slot n="1">
-    <param n="0" min="1.43" max="0.974" tune="0.3">1.97</param>
+    <param n="0" min="0.995" max="0.679" tune="0.3">1.97</param>
     <param n="1">0.06</param>
-    <param n="2" min="1.21" max="1.43" tune="-0.15">0.935</param>
+    <param n="2" min="0.842" max="1.0" tune="-0.15">0.935</param>
     <param n="3">0.01</param>
    </slot>
    <slot n="2">
-    <param n="0" min="0.959" max="1.03" tune="-0.05">0.868</param>
+    <param n="0" min="0.669" max="0.722" tune="-0.05">0.868</param>
     <param n="1" min="1.31" max="0.953" tune="0.24">1.75</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

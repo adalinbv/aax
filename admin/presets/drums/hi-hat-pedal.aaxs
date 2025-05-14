@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Pedal Hi-hat" bank="49" program="28">
+ <info name="Pedal Hi-hat" bank="0" program="0" key="44">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -36,16 +36,16 @@
   </layer>
  </sound>
 
- <emitter gain="15.8" pan="0.31" looping="true">
+ <emitter pan="0.31" looping="true">
   <filter type="timed-gain" release-time="0.1">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.04</param>
+    <param n="2">0.133</param>
     <param n="3">0.702</param>
    </slot>
    <slot n="1">
-    <param n="0">0.3</param>
+    <param n="0">1.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

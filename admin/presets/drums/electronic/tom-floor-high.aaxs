@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Low Tom 1" bank="25" program="43">
+ <info name="Low Tom 1" bank="0" program="24" key="43">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -32,7 +32,7 @@
   </layer>
  </sound>
 
- <emitter gain="4.12" pan="-0.28" looping="true">
+ <emitter pan="-0.28" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">2.7</param>
@@ -53,12 +53,6 @@
     <param n="1" type="msec">0.9</param>
     <param n="2">1.0</param>
     <param n="3">0.45</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="dynamic-layer" src="timed|exponential">

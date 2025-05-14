@@ -16,7 +16,7 @@
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="6" min="28" max="95" step="12"/>
+  <note polyphony="6" min="28" max="95"/>
   <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
@@ -30,11 +30,11 @@
   </layer>
  </sound>
 
- <emitter gain="1.63" looping="true">
+ <emitter looping="true">
   <filter type="timed-gain" release-time="0.1">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="40.0" max="5.0" tune="-0.000114">0.0445</param>
+    <param n="1" type="msec" min="40.0" max="5.0" tune="0.0377">0.101</param>
     <param n="2">0.988</param>
     <param n="3">0.005</param>
    </slot>
@@ -43,12 +43,6 @@
     <param n="1">0.015</param>
     <param n="2">0.944</param>
     <param n="3">4.9</param>
-   </slot>
-   <slot n="2">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Chime Tree" bank="0" program="94">
+ <info name="Chime Tree" bank="0" program="0" key="94">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -27,7 +27,7 @@
   </layer>
  </sound>
 
- <emitter gain="2.59" looping="true">
+ <emitter looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">1.01</param>
@@ -46,11 +46,11 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.853</param>
-    <param n="2">0.3</param>
+    <param n="2">0.107</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">2.8</param>
+    <param n="0">1.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -64,7 +64,7 @@
     <param n="3">0.8</param>
    </slot>
   </filter>
-  <effect type="chorus" src="sine|3rd-order">
+  <effect type="chorus" src="sine|3-stage">
    <slot n="0">
     <param n="0">0.8</param>
     <param n="1">0.3</param>

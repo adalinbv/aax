@@ -21,7 +21,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.65" frequency="6.875" duration="0.1">
+ <sound frequency="13.75" duration="0.1">
   <layer n="0">
    <waveform src="sawtooth"/>
    <waveform src="square" processing="add" ratio="0.905" pitch="2.0"/>
@@ -30,7 +30,7 @@
   </layer>
  </sound>
 
- <emitter gain="2413.2" looping="true">
+ <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>
@@ -43,12 +43,6 @@
     <param n="1">0.05</param>
     <param n="2">1.0</param>
     <param n="3">0.216</param>
-   </slot>
-   <slot n="2">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">

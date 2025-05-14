@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Mute Triangle" bank="0" program="80">
+ <info name="Mute Triangle" bank="0" program="0" key="80">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -28,7 +28,7 @@
   </layer>
  </sound>
 
- <emitter gain="1.62" pan="-0.63" looping="true">
+ <emitter pan="-0.63" looping="true">
   <filter type="timed-gain" release-time="0.04">
    <slot n="0">
     <param n="0">0.0</param>

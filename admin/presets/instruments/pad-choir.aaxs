@@ -11,17 +11,17 @@
 
 <aeonwave>
 
- <info name="Pan Flute" bank="0" program="75">
+ <info name="Pan Flute" bank="0" program="91">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="2" min="60" max="96" step="12"/>
+  <note polyphony="2" min="60" max="96"/>
   <aftertouch mode="gain|pitch"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.308" frequency="440" duration="1.3">
+ <sound mode="1" frequency="440" duration="1.3">
   <layer n="0">
    <waveform src="sine" pitch="4.4978" voices="3" spread="0.31"/>
    <waveform src="sine" processing="add" ratio="0.311" pitch="2.4938"/>
@@ -35,18 +35,18 @@
   <filter type="timed-gain" src="envelope" release-time="0.08">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="20.0" max="10.0" tune="-5.46e-06">0.0214</param>
+    <param n="1" type="msec" min="20.0" max="10.0" tune="0.0111">0.0468</param>
     <param n="2">0.303</param>
     <param n="3">0.125</param>
    </slot>
    <slot n="1">
-    <param n="0">0.74</param>
+    <param n="0">0.741</param>
     <param n="1">0.025</param>
-    <param n="2">0.999</param>
+    <param n="2">1.0</param>
     <param n="3">inf</param>
    </slot>
    <slot n="2">
-    <param n="0">0.514</param>
+    <param n="0">0.515</param>
     <param n="1">0.165</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.247" frequency="220" duration="0.1">
+ <sound frequency="220" duration="0.1">
   <layer n="0">
    <waveform src="sawtooth"/>
    <waveform src="square" processing="add" pitch="2.0"/>
@@ -46,7 +46,7 @@
   <filter type="timed-gain" src="envelope" release-time="0.1">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.01</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="0.00277">0.015</param>
     <param n="2">1.0</param>
     <param n="3">0.04</param>
    </slot>

@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Thunder">
+ <info name="Thunder" bank="64" program="33">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" hold="string" pitch-fraction="0.5"/>
+  <note polyphony="1" pitch-fraction="0.5"/>
   <sound version="1.1"/>
  </info>
 
- <sound fixed-gain="1.34" frequency="77.7817" duration="3.33">
+ <sound frequency="77.7817" duration="3.33">
   <layer n="0">
    <waveform src="white-noise" ratio="15.0" pitch="0.01"/>
    <filter type="frequency" src="24db">

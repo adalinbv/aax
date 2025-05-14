@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Mute Cuica" bank="0" program="78">
+ <info name="Mute Cuica" bank="0" program="0" key="78">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -35,7 +35,7 @@
   </layer>
  </sound>
 
- <emitter gain="1.39" pan="-0.31" looping="true">
+ <emitter pan="-0.31" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.0</param>
@@ -56,12 +56,6 @@
     <param n="1">0.1</param>
     <param n="2">0.538</param>
     <param n="3">0.2</param>
-   </slot>
-   <slot n="2">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="phasing" src="inverse-envelope">

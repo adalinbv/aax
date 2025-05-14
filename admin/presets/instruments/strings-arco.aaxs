@@ -11,38 +11,38 @@
 
 <aeonwave>
 
- <info name="Arco Strings" bank="0" program="110">
+ <info name="Arco Strings" bank="0,24" program="48">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="4" min="55" max="96" step="12"/>
+  <note polyphony="4" min="55" max="96"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.194" frequency="440">
+ <sound frequency="440">
   <layer n="0">
    <waveform src="sawtooth"/>
    <waveform src="sawtooth" processing="mix" ratio="-0.204" pitch="0.9899"/>
   </layer>
  </sound>
 
- <emitter gain="1.4" looping="true">
+ <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="20.0" max="8.0" tune="-3.86e-06">0.0201</param>
-    <param n="2">0.401</param>
+    <param n="1" type="msec" min="20.0" max="8.0" tune="0.00598">0.0289</param>
+    <param n="2">0.334</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.2</param>
+    <param n="0">1.0</param>
     <param n="1">0.075</param>
-    <param n="2">0.914</param>
+    <param n="2">0.762</param>
     <param n="3">inf</param>
    </slot>
    <slot n="2">
-    <param n="0">0.9</param>
+    <param n="0">0.75</param>
     <param n="1">0.1</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Wind Chime" bank="0" program="14">
+ <info name="Wind Chime" bank="0,70" program="127">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="1.64" frequency="261.626" duration="0.1">
+ <sound frequency="261.626" duration="0.1">
   <layer n="0">
    <waveform src="sine" pitch="1.21"/>
    <waveform src="sine" processing="add" ratio="0.1" pitch="1.59987"/>
@@ -46,7 +46,7 @@
     <param n="3">0.75</param>
    </slot>
   </effect>
-  <filter type="timed-gain" repeat="max">
+  <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.37</param>
     <param n="1">0.432</param>

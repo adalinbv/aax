@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Electric Snare" bank="49" program="40">
+ <info name="Electric Snare" bank="0" program="48" key="40">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.422" frequency="293.665" duration="0.5">
+ <sound frequency="293.665" duration="0.5">
   <layer n="0">
    <waveform src="white-noise" pitch="0.3"/>
    <waveform src="triangle" processing="mix" ratio="0.613"/>

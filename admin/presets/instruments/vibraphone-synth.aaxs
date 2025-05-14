@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Synth Vibraphone" bank="0" program="2">
+ <info name="Synth Vibraphone" bank="127" program="98">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="88" min="21" max="108" step="12"/>
+  <note polyphony="88" min="21" max="108"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.319" frequency="1760" duration="0.1">
+ <sound mode="1" frequency="1760" duration="0.1">
   <layer n="0">
    <waveform src="triangle"/>
    <waveform src="triangle" processing="modulate" pitch="2.0"/>
@@ -31,7 +31,7 @@
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="10.0" max="5.0" tune="-1.2e-06">0.01</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="0.00229">0.0133</param>
     <param n="2">0.669</param>
     <param n="3">0.005</param>
    </slot>
@@ -40,12 +40,6 @@
     <param n="1">0.275</param>
     <param n="2">0.4</param>
     <param n="3">2.5</param>
-   </slot>
-   <slot n="2">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

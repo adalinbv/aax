@@ -11,27 +11,27 @@
 
 <aeonwave>
 
- <info name="Drawbar" bank="0" program="0">
+ <info name="Drawbar" bank="0" program="70">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="10" min="36" max="96" step="12"/>
+  <note polyphony="10" min="36" max="96"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" gain="0.736" frequency="880" duration="0.3">
+ <sound mode="1" frequency="880" duration="0.3">
   <layer n="0">
    <waveform src="square"/>
    <waveform src="sawtooth" processing="modulate" ratio="0.737" pitch="3.0"/>
   </layer>
  </sound>
 
- <emitter gain="1.9" looping="true">
+ <emitter looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.02</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="0.00229">0.0133</param>
     <param n="2">1.0</param>
     <param n="3">2.25</param>
    </slot>

@@ -16,11 +16,11 @@
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="4" min="60" max="108" step="12"/>
+  <note polyphony="4" min="60" max="108"/>
   <sound version="1.1"/>
  </info>
 
- <sound gain="0.293" frequency="440" duration="0.3">
+ <sound frequency="440" duration="0.3">
   <layer n="0">
    <waveform src="sine"/>
    <waveform src="sine" processing="add" ratio="0.25" pitch="9.01"/>
@@ -32,12 +32,12 @@
   <filter type="timed-gain" src="envelope" release-time="0.8">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="50.0" max="15.0" tune="-3.82e-05">0.0549</param>
-    <param n="2">1.6</param>
+    <param n="1" type="msec" min="50.0" max="15.0" tune="0.0388">0.132</param>
+    <param n="2">1.0</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">1.5</param>
+    <param n="0">0.938</param>
     <param n="1">4.3</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

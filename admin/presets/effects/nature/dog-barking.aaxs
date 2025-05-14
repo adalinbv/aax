@@ -11,16 +11,16 @@
 
 <aeonwave>
 
- <info name="Barking Dog" bank="53" program="53">
+ <info name="Barking Dog" bank="64" program="48">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="1" hold="string" pitch-fraction="0.2"/>
+  <note polyphony="1" pitch-fraction="0.2"/>
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" fixed-gain="0.95" frequency="220" duration="3.3">
+ <sound mode="1" frequency="220" duration="3.3">
   <layer n="0">
    <waveform src="white-noise" ratio="2.0" pitch="0.25"/>
    <filter type="frequency">

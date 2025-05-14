@@ -11,12 +11,12 @@
 
 <aeonwave>
 
- <info name="Acoustic Grand Piano" bank="0" program="0">
+ <info name="Acoustic Grand Piano" bank="0" program="1">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
   <contact author="Erik Hofman" website="aeonwave.xyz"/>
-  <note polyphony="88" min="21" max="127" step="6"/>
+  <note polyphony="88" min="21" step="6"/>
   <sound version="1.1"/>
  </info>
 
@@ -29,7 +29,7 @@
   </layer>
  </sound>
 
- <emitter gain="1.77" looping="true">
+ <emitter looping="true">
   <filter type="frequency" src="envelope">
    <slot n="0">
     <param n="0" pitch="5.0">275.0</param>
@@ -47,21 +47,15 @@
   <filter type="timed-gain" src="envelope" release-time="0.4">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="10.0" max="5.0" tune="-1.2e-06">0.01</param>
-    <param n="2">0.2</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="0.00229">0.0133</param>
+    <param n="2">0.182</param>
     <param n="3">0.005</param>
    </slot>
    <slot n="1">
-    <param n="0">1.1</param>
+    <param n="0">1.0</param>
     <param n="1">0.015</param>
-    <param n="2" min="1.05" max="0.693" tune="0.136">1.25</param>
+    <param n="2" min="0.958" max="0.63" tune="0.136">1.25</param>
     <param n="3" min="7.16" max="-2.14" tune="3.5">12.2</param>
-   </slot>
-   <slot n="2">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">

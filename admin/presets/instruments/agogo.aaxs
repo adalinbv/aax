@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Agogo" bank="0" program="114">
+ <info name="Agogo" bank="0" program="113">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,18 +20,18 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="6.875" duration="0.1">
+ <sound frequency="13.75" duration="0.1">
   <layer n="0">
    <waveform src="triangle" ratio="0.615" pitch="2.0"/>
    <waveform src="square" processing="modulate" pitch="3.5987"/>
   </layer>
  </sound>
 
- <emitter gain="4585.8" pan="-0.55" looping="true">
+ <emitter pan="-0.55" looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="5.0" max="2.0" tune="-9.66e-07">0.00503</param>
+    <param n="1" type="msec" min="5.0" max="2.0" tune="0.0015">0.00723</param>
     <param n="2">1.0</param>
     <param n="3">0.025</param>
    </slot>

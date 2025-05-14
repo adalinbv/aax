@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Ride Cymbal" bank="49" program="30">
+ <info name="Ride Cymbal" bank="0" program="0" key="51">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -51,7 +51,7 @@
   </layer>
  </sound>
 
- <emitter gain="30.2" pan="-0.31" looping="true">
+ <emitter pan="-0.31" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">1.15</param>
@@ -64,17 +64,17 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.03</param>
+    <param n="2">0.02</param>
     <param n="3">0.681</param>
    </slot>
    <slot n="1">
-    <param n="0">0.2</param>
+    <param n="0">0.133</param>
     <param n="1">0.539</param>
-    <param n="2">0.3</param>
+    <param n="2">0.2</param>
     <param n="3">0.385</param>
    </slot>
    <slot n="2">
-    <param n="0">1.5</param>
+    <param n="0">1.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

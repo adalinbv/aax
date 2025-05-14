@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Snare Brush Swirl" bank="41" program="40">
+ <info name="Snare Brush Swirl" bank="0" program="40" key="25">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -34,7 +34,7 @@
   </layer>
  </sound>
 
- <emitter gain="11.8" looping="true">
+ <emitter looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.1</param>
