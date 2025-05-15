@@ -1132,6 +1132,7 @@ _bufInitInfo(_buffer_info_t *info)
 {
    memset(info, 0, sizeof(_buffer_info_t));
    info->fmt = AAX_PCM16S;
+   info->rate = MAXIMUM_CUTOFF;
    info->no_tracks = 1;
    info->blocksize = 2;
    info->pitch_fraction = 1.0f;
@@ -1977,8 +1978,8 @@ static bool
 _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
 {
    _buffer_t* handle = aax_buf->parent;
-   float low_frequency = 0.0f;
-   float high_frequency = 0.0f;
+   float low_frequency = MINIMUM_CUTOFF;
+   float high_frequency = MAXIMUM_CUTOFF;
    float sound_version = 1.0f;
    int midi_mode;
    bool rv = false;
