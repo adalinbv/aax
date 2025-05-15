@@ -442,7 +442,7 @@ _freqfilter_normalize_gains(_aaxRingBufferFreqFilterData *flt)
       high_gain /= low_gain;
       low_gain = 1.0f;
    }
-   if (high_gain < 1.0f && low_gain < 1.0f)
+   if (high_gain < 1.0f && low_gain < 1.0f && (low_gain > 0.0f || high_gain > 0.0f))
    {
        float fact = 1.0f/_MAX(high_gain, low_gain);
        high_gain *= fact;
