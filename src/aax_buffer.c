@@ -239,11 +239,11 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
          {
             if (rb)
             {
-               int looping = (setup < handle->info.loop_end) ? true : false;
+               int looping = (setup < handle->info.loop.end) ? true : false;
                rb->set_parami(rb, RB_LOOPPOINT_START, setup);
                rb->set_parami(rb, RB_LOOPING, looping);
             }
-            handle->info.loop_start = setup;
+            handle->info.loop.start = setup;
             rv = true;
          }
          else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -253,11 +253,11 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
          {
             if (rb)
             {
-               int looping = (handle->info.loop_start < setup) ? true : false;
+               int looping = (handle->info.loop.start < setup) ? true : false;
                rb->set_parami(rb, RB_LOOPPOINT_END, setup);
                rb->set_parami(rb, RB_LOOPING, looping);
             }
-            handle->info.loop_end = setup;
+            handle->info.loop.end = setup;
             rv = true;
          }
          else _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -280,9 +280,9 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, int64_t setup)
          }
          break;
       case AAX_SAMPLED_RELEASE:
-         handle->info.sampled_release = setup ? true : false;
+         handle->info.envelope.sampled_release = setup ? true : false;
          if (rb) {
-            rb->set_parami(rb, RB_SAMPLED_RELEASE,handle->info.sampled_release);
+            rb->set_parami(rb, RB_SAMPLED_RELEASE,handle->info.envelope.sampled_release);
          }
          rv = true;
          break;
@@ -328,7 +328,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       switch(type)
       {
       case AAX_SAMPLE_RATE:
-         if (handle->aaxs) rv = handle->info.base_frequency;
+         if (handle->aaxs) rv = handle->info.frequency.base;
          else rv = (int64_t)roundf(handle->info.rate);
          break;
       case AAX_TRACKS:
@@ -381,25 +381,25 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          rv = AAX_TO_INT(handle->gain);
          break;
       case AAX_LOOP_COUNT:
-         rv = (int64_t)handle->info.loop_count;
+         rv = (int64_t)handle->info.loop.count;
          break;
       case AAX_LOOP_START:
-         rv = roundf(handle->info.loop_start);
+         rv = roundf(handle->info.loop.start);
          break;
       case AAX_LOOP_END:
-         rv = roundf(handle->info.loop_end);
+         rv = roundf(handle->info.loop.end);
          break;
       case AAX_BUFFER_GAIN:
           rv = 0.1f*handle->gain*AAX_PEAK_MAX;
           break;
       case AAX_BASE_FREQUENCY:
-         rv = (int64_t)roundf(handle->info.base_frequency);
+         rv = (int64_t)roundf(handle->info.frequency.base);
          break;
       case AAX_LOW_FREQUENCY:
-         rv = (int64_t)roundf(handle->info.low_frequency);
+         rv = (int64_t)roundf(handle->info.frequency.low);
          break;
       case AAX_HIGH_FREQUENCY:
-         rv = (int64_t)roundf(handle->info.high_frequency);
+         rv = (int64_t)roundf(handle->info.frequency.high);
          break;
       case AAX_PITCH_FRACTION:
          rv = AAX_TO_INT(handle->info.pitch_fraction);
@@ -436,16 +436,16 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_ENVELOPE_RATE5:
       case AAX_ENVELOPE_LEVEL6:
       case AAX_ENVELOPE_RATE6:
-         rv =AAX_TO_INT(handle->info.volume_envelope[type-AAX_ENVELOPE_LEVEL0]);
+         rv =AAX_TO_INT(handle->info.envelope.volume[type-AAX_ENVELOPE_LEVEL0]);
          break;
       case AAX_ENVELOPE_SUSTAIN:
-         rv = handle->info.envelope_sustain;
+         rv = handle->info.envelope.sustain;
          break;
       case AAX_SAMPLED_RELEASE:
-         rv = handle->info.sampled_release;
+         rv = handle->info.envelope.sampled_release;
          break;
       case AAX_FAST_RELEASE:
-         rv = handle->info.fast_release;
+         rv = handle->info.envelope.fast_release;
          break;
       case AAX_POLYPHONY:
          rv = handle->info.polyphony;
@@ -924,12 +924,12 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                 rb->set_parami(rb, RB_TRACKSIZE, info->no_bytes);
                 rb->set_parami(rb, RB_NO_SAMPLES, info->no_samples);
 
-                rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->rate);
-                rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->rate);
-                rb->set_parami(rb, RB_LOOPING, info->loop_count);
-                rb->set_parami(rb, RB_ENVELOPE_SUSTAIN, info->envelope_sustain);
-                rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
-                rb->set_parami(rb, RB_FAST_RELEASE, info->fast_release);
+                rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop.end/info->rate);
+                rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop.start/info->rate);
+                rb->set_parami(rb, RB_LOOPING, info->loop.count);
+                rb->set_parami(rb, RB_ENVELOPE_SUSTAIN, info->envelope.sustain);
+                rb->set_parami(rb, RB_SAMPLED_RELEASE, info->envelope.sampled_release);
+                rb->set_parami(rb, RB_FAST_RELEASE, info->envelope.fast_release);
              }
 
 #if 0
@@ -956,8 +956,8 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                 {
                    float level, rate;
 
-                   level = info->volume_envelope[2*i];
-                   rate = info->volume_envelope[2*i+1];
+                   level = info->envelope.volume[2*i];
+                   rate = info->envelope.volume[2*i+1];
 
                    rb->set_paramf(rb, RB_ENVELOPE_LEVEL+i, level);
                    rb->set_paramf(rb, RB_ENVELOPE_RATE+i, rate);
@@ -1180,12 +1180,12 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle, unsigned char pos)
 //       rb->set_parami(rb, RB_TRACKSIZE, info->no_bytes);
          rb->set_parami(rb, RB_NO_SAMPLES, info->no_samples);
 
-         rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->rate);
-         rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->rate);
-         rb->set_parami(rb, RB_LOOPING, info->loop_count);
-         rb->set_parami(rb, RB_ENVELOPE_SUSTAIN, info->envelope_sustain);
-         rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
-         rb->set_parami(rb, RB_FAST_RELEASE, info->fast_release);
+         rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop.end/info->rate);
+         rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop.start/info->rate);
+         rb->set_parami(rb, RB_LOOPING, info->loop.count);
+         rb->set_parami(rb, RB_ENVELOPE_SUSTAIN, info->envelope.sustain);
+         rb->set_parami(rb, RB_SAMPLED_RELEASE, info->envelope.sampled_release);
+         rb->set_parami(rb, RB_FAST_RELEASE, info->envelope.fast_release);
          /* Postpone until aaxBufferSetData gets called
           * rb->init(rb, false);
           */
@@ -1336,10 +1336,10 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
                // get the actual number of samples
                info->rate = stream->param(id, DRIVER_FREQUENCY);
                info->no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
-               info->loop_count = stream->param(id, DRIVER_LOOP_COUNT);
-               info->loop_start = stream->param(id, DRIVER_LOOP_START);
-               info->loop_end = stream->param(id, DRIVER_LOOP_END);
-               info->sampled_release = stream->param(id, DRIVER_SAMPLED_RELEASE);
+               info->loop.count = stream->param(id, DRIVER_LOOP_COUNT);
+               info->loop.start = stream->param(id, DRIVER_LOOP_START);
+               info->loop.end = stream->param(id, DRIVER_LOOP_END);
+               info->envelope.sampled_release = stream->param(id, DRIVER_SAMPLED_RELEASE);
                info->tremolo.rate = stream->param(id, DRIVER_TREMOLO_RATE);
                info->tremolo.depth = stream->param(id, DRIVER_TREMOLO_DEPTH);
                info->tremolo.sweep = stream->param(id, DRIVER_TREMOLO_SWEEP);
@@ -1351,14 +1351,14 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
                   info->pitch_fraction = 1.0f;
                }
                // These could have been set by an AAXS file
-               if (info->base_frequency < FLT_EPSILON) {
-                  info->base_frequency = stream->param(id, DRIVER_BASE_FREQUENCY);
+               if (info->frequency.base < FLT_EPSILON) {
+                  info->frequency.base = stream->param(id, DRIVER_BASE_FREQUENCY);
                }
-               if (info->low_frequency < FLT_EPSILON) {
-                  info->low_frequency = stream->param(id, DRIVER_LOW_FREQUENCY);
+               if (info->frequency.low < FLT_EPSILON) {
+                  info->frequency.low = stream->param(id, DRIVER_LOW_FREQUENCY);
                }
-               if (info->high_frequency < FLT_EPSILON) {
-                  info->high_frequency = stream->param(id, DRIVER_HIGH_FREQUENCY);
+               if (info->frequency.high < FLT_EPSILON) {
+                  info->frequency.high = stream->param(id, DRIVER_HIGH_FREQUENCY);
                }
 
                for (i=0; i<_MAX_ENVELOPE_STAGES; ++i)
@@ -1369,29 +1369,29 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
                   rate = stream->param(id, DRIVER_ENVELOPE_RATE+i);
 
                   if (rate == OFF_T_MAX) {
-                     info->volume_envelope[2*i+1] = AAX_FPINFINITE;
+                     info->envelope.volume[2*i+1] = AAX_FPINFINITE;
                   } else {
-                     info->volume_envelope[2*i+1] = rate;
+                     info->envelope.volume[2*i+1] = rate;
                   }
-                  info->volume_envelope[2*i] = level;
+                  info->envelope.volume[2*i] = level;
                }
-               info->envelope_sustain = stream->param(id, DRIVER_ENVELOPE_SUSTAIN);
-               info->sampled_release = stream->param(id, DRIVER_SAMPLED_RELEASE);
-               info->fast_release = stream->param(id, DRIVER_FAST_RELEASE);
+               info->envelope.sustain = stream->param(id, DRIVER_ENVELOPE_SUSTAIN);
+               info->envelope.sampled_release = stream->param(id, DRIVER_SAMPLED_RELEASE);
+               info->envelope.fast_release = stream->param(id, DRIVER_FAST_RELEASE);
                info->no_patches = stream->param(id, DRIVER_NO_PATCHES);
 
 #if 0
  printf("no. samples:\t\t%lu\n", info->no_samples);
- if (info->loop_count == OFF_T_MAX)
+ if (info->loop.count == OFF_T_MAX)
   printf("no. loops:\t\tinf\n");
  else
-  printf("no. loops:\t\t%lu\n", info->loop_count);
- printf("loop start:\t\t%g\n", info->loop_start);
- printf("loop end:\t\t%g\n", info->loop_end);
- printf("sampled release:\t%s\n", info->sampled_release ? "yes" : "no");
- printf("base frequency:\t\t%g Hz\n", info->base_frequency);
- printf("low frequency:\t\t%g Hz\n", info->low_frequency);
- printf("high frequency:\t\t%g Hz\n", info->high_frequency);
+  printf("no. loops:\t\t%lu\n", info->loop.count);
+ printf("loop start:\t\t%g\n", info->loop.start);
+ printf("loop end:\t\t%g\n", info->loop.end);
+ printf("sampled release:\t%s\n", info->envelope.sampled_release ? "yes" : "no");
+ printf("base frequency:\t\t%g Hz\n", info->frequency.base);
+ printf("low frequency:\t\t%g Hz\n", info->frequency.low);
+ printf("high frequency:\t\t%g Hz\n", info->frequency.high);
  printf("pitch fraction:\t\t%g\n", info->pitch_fraction);
  printf("tremolo rate:\t\t%g Hz\n", info->tremolo.rate);
  printf("tremolo depth:\t\t%g\n", info->tremolo.depth);
@@ -1409,7 +1409,7 @@ _bufGetDataFromStream(_handle_t *handle, const char *url, _buffer_info_t *info, 
  for (i=0; i<_MAX_ENVELOPE_STAGES; ++i)
    printf("%4.2f ", stream->param(id, DRIVER_ENVELOPE_LEVEL+i));
  printf("\n");
- printf("Envelope sustain: %s\n", info->envelope_sustain ? "yes" : "no");
+ printf("Envelope sustain: %s\n", info->envelope.sustain ? "yes" : "no");
  printf("Fast release: %s\n", info->fast_release ? "yes" : "no");
 #endif
             }
@@ -1467,10 +1467,10 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
          rv = aaxBufferSetData(buffer, data[0]);
          free(data);
 
-         rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->rate);
-         rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->rate);
-         rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
-         rb->set_parami(rb, RB_LOOPING, info->loop_count);
+         rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop.end/info->rate);
+         rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop.start/info->rate);
+         rb->set_parami(rb, RB_SAMPLED_RELEASE, info->envelope.sampled_release);
+         rb->set_parami(rb, RB_LOOPING, info->loop.count);
       }
    }
 
@@ -1750,8 +1750,8 @@ static inline float note2freq(uint8_t d) {
 static bool
 _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
 {
-   float high_frequency = handle->info.high_frequency;
-   float freq = handle->info.base_frequency;
+   float frequency_high = handle->info.frequency.high;
+   float freq = handle->info.frequency.base;
    int mip, layer, no_layers;
    double duration = 1.0f;
    limitType limiter;
@@ -1779,24 +1779,24 @@ _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
    if (!freq && xmlAttributeExists(xsid, "frequency"))
    {
       freq = xmlAttributeGetDouble(xsid, "frequency");
-      handle->info.base_frequency = freq;
+      handle->info.frequency.base = freq;
       if (handle->info.pitch_fraction < 1.0f)
       {
-         handle->info.low_frequency = freq*(1.0f-handle->info.pitch_fraction);
-         handle->info.high_frequency = freq*(1.0f+handle->info.pitch_fraction);
-         high_frequency = handle->info.high_frequency;
+         handle->info.frequency.low = freq*(1.0f-handle->info.pitch_fraction);
+         handle->info.frequency.high = freq*(1.0f+handle->info.pitch_fraction);
+         frequency_high = handle->info.frequency.high;
       }
-      if (high_frequency > FLT_EPSILON)
+      if (frequency_high > FLT_EPSILON)
       {
-         int pitch = ceilf(high_frequency/freq);
+         int pitch = ceilf(frequency_high/freq);
          handle->mip_levels = _getMaxMipLevels(pitch);
          if (handle->mip_levels > MAX_MIP_LEVELS) {
             handle->mip_levels = MAX_MIP_LEVELS;
          }
       }
    }
-   if (!handle->info.base_frequency) {
-      handle->info.base_frequency = freq;
+   if (!handle->info.frequency.base) {
+      handle->info.frequency.base = freq;
    }
 
    if (xmlAttributeExists(xsid, "duration"))
@@ -1978,8 +1978,8 @@ static bool
 _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
 {
    _buffer_t* handle = aax_buf->parent;
-   float low_frequency = MINIMUM_CUTOFF;
-   float high_frequency = MAXIMUM_CUTOFF;
+   float frequency_low = MINIMUM_CUTOFF;
+   float frequency_high = MAXIMUM_CUTOFF;
    float sound_version = 1.0f;
    int midi_mode;
    bool rv = false;
@@ -2081,14 +2081,19 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
       xnid = xmlNodeGet(xiid, "note");
       if (xnid)
       {
-         if (xmlAttributeExists(xnid, "min")) {
-            low_frequency = note2freq(xmlAttributeGetInt(xnid, "min"));
+         if (xmlAttributeExists(xnid, "min"))
+         {
+            aax_buf->note.min = xmlAttributeGetInt(xnid, "min");
+            frequency_low = note2freq(aax_buf->note.min);
          }
-         high_frequency = note2freq(128); // MIDI max nore number
+         if (xmlAttributeExists(xnid, "max"))  {
+            aax_buf->note.max = xmlAttributeGetInt(xnid, "max");
+         }
+         frequency_high = note2freq(128); // MIDI max nore number
 #if 0
          // Max note number is purely informative for us.
          if (xmlAttributeExists(xnid, "max")) {
-            high_frequency = note2freq(_MIN(xmlAttributeGetInt(xnid, "max"), 128));
+            frequency_high = note2freq(_MIN(xmlAttributeGetInt(xnid, "max"), 128));
          }
 #endif
 
@@ -2113,14 +2118,14 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
       xmlFree(xiid);
    }
 
-   if (handle->info.base_frequency < FLT_EPSILON) {
-      handle->info.base_frequency = aax_buf->frequency;
+   if (handle->info.frequency.base < FLT_EPSILON) {
+      handle->info.frequency.base = aax_buf->frequency;
    }
-   if (handle->info.low_frequency < FLT_EPSILON) {
-      handle->info.low_frequency = low_frequency;
+   if (handle->info.frequency.low < FLT_EPSILON) {
+      handle->info.frequency.low = frequency_low;
    }
-   if (handle->info.high_frequency < FLT_EPSILON) {
-      handle->info.high_frequency = high_frequency;
+   if (handle->info.frequency.high < FLT_EPSILON) {
+      handle->info.frequency.high = frequency_high;
    }
 
    if (xmlAttributeExists(xsid, "include"))
@@ -2168,7 +2173,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
       }
       xmlFree(file);
 
-      if (!handle->info.loop_end) // loop was not defined in the file
+      if (!handle->info.loop.end) // loop was not defined in the file
       {
          _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
          float loop_start, loop_end;
@@ -2180,15 +2185,15 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
             loop_end = handle->info.no_samples;
          }
          if (loop_end > loop_start) {
-            handle->info.loop_count = INT_MAX;
+            handle->info.loop.count = INT_MAX;
          }
-         handle->info.loop_start = loop_start;
-         handle->info.loop_end = loop_end;
+         handle->info.loop.start = loop_start;
+         handle->info.loop.end = loop_end;
 
          rb->set_paramf(rb, RB_LOOPPOINT_END, loop_end/handle->info.rate);
          rb->set_paramf(rb, RB_LOOPPOINT_START,loop_start/handle->info.rate);
-         rb->set_parami(rb, RB_SAMPLED_RELEASE,handle->info.sampled_release);
-         rb->set_parami(rb, RB_LOOPING, handle->info.loop_count);
+         rb->set_parami(rb, RB_SAMPLED_RELEASE,handle->info.envelope.sampled_release);
+         rb->set_parami(rb, RB_LOOPING, handle->info.loop.count);
       }
 
       handle->mip_levels = 0;
@@ -2713,11 +2718,11 @@ _bufConvertDataToMixerFormat(_buffer_t *buf, _aaxRingBuffer *rb)
          nrb->set_paramf(nrb, RB_FREQUENCY, buf->info.rate);
          nrb->init(nrb, false);
 
-         nrb->set_paramf(nrb, RB_LOOPPOINT_END, buf->info.loop_end/buf->info.rate);
-         nrb->set_paramf(nrb, RB_LOOPPOINT_START, buf->info.loop_start/buf->info.rate);
+         nrb->set_paramf(nrb, RB_LOOPPOINT_END, buf->info.loop.end/buf->info.rate);
+         nrb->set_paramf(nrb, RB_LOOPPOINT_START, buf->info.loop.start/buf->info.rate);
 
-         nrb->set_parami(nrb, RB_SAMPLED_RELEASE, buf->info.sampled_release);
-         nrb->set_parami(nrb, RB_LOOPING, buf->info.loop_count);
+         nrb->set_parami(nrb, RB_SAMPLED_RELEASE, buf->info.envelope.sampled_release);
+         nrb->set_parami(nrb, RB_LOOPING, buf->info.loop.count);
 
          fmt = rb->get_parami(rb, RB_FORMAT);
          src = (int32_t**)rb->get_tracks_ptr(rb, RB_READ);

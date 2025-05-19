@@ -235,14 +235,18 @@ typedef struct aax_buffer_info_t
    size_t no_blocks;
    size_t no_bytes;
    size_t no_samples;
-   off_t loop_count;
-   float loop_start;
-   float loop_end;
+   struct {
+      off_t count;
+      float start;
+      float end;
+   } loop;
 
    float rate;
-   float base_frequency;
-   float low_frequency;
-   float high_frequency;
+   struct {
+      float base;
+      float low;
+      float high;
+   } frequency;
    float pitch_fraction;
    float pan;
 
@@ -252,10 +256,12 @@ typedef struct aax_buffer_info_t
       float sweep;
    } tremolo, vibrato;
 
-   float volume_envelope[2*_MAX_ENVELOPE_STAGES];
-   bool envelope_sustain;
-   bool sampled_release;
-   bool fast_release;
+   struct {
+      float volume[2*_MAX_ENVELOPE_STAGES];
+      bool sustain;
+      bool sampled_release;
+      bool fast_release;
+   } envelope;
 
    char no_patches;
 
@@ -307,6 +313,10 @@ typedef struct
    const void *aaxs;
    float frequency;
    enum aaxErrorType error;
+   struct {
+      int min;
+      int max;
+   } note;
 
    struct _meta_t meta;
 

@@ -711,22 +711,22 @@ _aiff_get(_ext_t *ext, int type)
       rv = handle->io.read.channel_mask;
       break;
    case __F_LOOP_COUNT:
-      rv = handle->info.loop_count;
+      rv = handle->info.loop.count;
       break;
    case __F_LOOP_START:
-      rv = handle->info.loop_start;
+      rv = handle->info.loop.start;
       break;
    case __F_LOOP_END:
-      rv = handle->info.loop_end;
+      rv = handle->info.loop.end;
       break;
    case __F_BASE_FREQUENCY:
-      rv = handle->info.base_frequency;
+      rv = handle->info.frequency.base;
       break;
    case __F_LOW_FREQUENCY:
-      rv = handle->info.low_frequency;
+      rv = handle->info.frequency.low;
       break;
    case __F_HIGH_FREQUENCY:
-      rv = handle->info.high_frequency;
+      rv = handle->info.frequency.high;
       break;
    case __F_PITCH_FRACTION:
       rv = handle->info.pitch_fraction;
@@ -1015,16 +1015,16 @@ if (curr == 0x464f524d) // FORM
       handle->io.read.size -= rv;
 
       curr = read8(&ch, &bufsize);
-      handle->info.base_frequency = note2freq(curr);
+      handle->info.frequency.base = note2freq(curr);
 
       curr = read8(&ch, &bufsize);
       handle->info.pitch_fraction = cents2pitch(curr, 0.5f);
 
       curr = read8(&ch, &bufsize);
-      handle->info.low_frequency = note2freq(curr);
+      handle->info.frequency.low = note2freq(curr);
 
       curr = read8(&ch, &bufsize);
-      handle->info.high_frequency = note2freq(curr);
+      handle->info.frequency.high = note2freq(curr);
 
       curr = read8(&ch, &bufsize);
 //    handle->info.low_velocity = curr;
@@ -1045,9 +1045,9 @@ if (curr == 0x464f524d) // FORM
       curr = read32be(&ch, &bufsize); // MarkerId: beginLoop
       curr = read32be(&ch, &bufsize); // MarkerId: endLoop
 #if 0
-   printf("Base Frequency: %f\n", handle->info.base_frequency);
-   printf("Low Frequency:  %f\n", handle->info.low_frequency);
-   printf("High Frequency: %f\n", handle->info.high_frequency);
+   printf("Base Frequency: %f\n", handle->info.frequency.base);
+   printf("Low Frequency:  %f\n", handle->info.frequency.low);
+   printf("High Frequency: %f\n", handle->info.frequency.high);
    printf("Pitch Fraction: %f\n", handle->info.pitch_fraction);
 #endif
       break;

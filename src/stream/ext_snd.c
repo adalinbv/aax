@@ -392,22 +392,22 @@ _snd_get(_ext_t *ext, int type)
       rv = handle->io.read.channel_mask;
       break;
    case __F_LOOP_COUNT:
-      rv = handle->info.loop_count;
+      rv = handle->info.loop.count;
       break;
    case __F_LOOP_START:
-      rv = handle->info.loop_start;
+      rv = handle->info.loop.start;
       break;
    case __F_LOOP_END:
-      rv = handle->info.loop_end;
+      rv = handle->info.loop.end;
       break;
    case __F_BASE_FREQUENCY:
-      rv = handle->info.base_frequency;
+      rv = handle->info.frequency.base;
       break;
    case __F_LOW_FREQUENCY:
-      rv = handle->info.low_frequency;
+      rv = handle->info.frequency.low;
       break;
    case __F_HIGH_FREQUENCY:
-      rv = handle->info.high_frequency;
+      rv = handle->info.frequency.high;
       break;
    case __F_PITCH_FRACTION:
       rv = handle->info.pitch_fraction;

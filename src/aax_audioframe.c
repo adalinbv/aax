@@ -1726,7 +1726,7 @@ _aaxAudioFrameUpdate(UNUSED(_frame_t *frame))
 static bool
 _frameCreateBodyFromAAXS(aaxFrame frame, _frame_t* handle, _buffer_t *buffer, xmlId *xmid)
 {
-   float freq = buffer->info.base_frequency;
+   float freq = buffer->info.frequency.base;
    aaxConfig config = handle->root;
    int clear = false;
    _aaxAudioFrame* fmixer;

@@ -240,7 +240,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
             embuf->id = EMBUFFER_ID;
             embuf->buffer = buffer;
             buffer->ref_counter++;
-            handle->sampled_release = buffer->info.sampled_release;
+            handle->sampled_release = buffer->info.envelope.sampled_release;
 
             _intBufAddData(src->buffers, _AAX_EMITTER_BUFFER, embuf);
             _emitterCreateEFFromRingbuffer(handle, embuf);
@@ -1648,7 +1648,7 @@ _emitterCreateTriggerFromAAXS(_emitter_t *handle, _embuffer_t *embuf, xmlId *xmi
 {
    _aax2dProps *ep2d = handle->source->props2d;
    float pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
-   float freq = pitch*embuf->buffer->info.base_frequency;
+   float freq = pitch*embuf->buffer->info.frequency.base;
    unsigned int i, num = xmlNodeGetNum(xmid, "filter");
    aaxConfig config = handle->root;
    int clear = false;

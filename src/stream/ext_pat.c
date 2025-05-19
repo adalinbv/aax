@@ -357,7 +357,7 @@ _pat_get(_ext_t *ext, int type)
    {
       unsigned pos = type & 0xF;
       if (pos < ENVELOPES) {
-         rv = handle->info.volume_envelope[2*pos];
+         rv = handle->info.envelope.volume[2*pos];
       }
    }
    else if (type >= __F_ENVELOPE_RATE && type < __F_ENVELOPE_RATE_MAX)
@@ -365,7 +365,7 @@ _pat_get(_ext_t *ext, int type)
       unsigned pos = type & 0xF;
       if (pos < ENVELOPES)
       {
-         float val = handle->info.volume_envelope[2*pos+1];
+         float val = handle->info.envelope.volume[2*pos+1];
          if (val == AAX_FPINFINITE) rv = OFF_T_MAX;
          else rv = val;
       }
@@ -375,7 +375,7 @@ _pat_get(_ext_t *ext, int type)
       switch (type)
       {
       case __F_LOOP_COUNT:
-         rv = handle->info.loop_count;
+         rv = handle->info.loop.count;
          break;
       case __F_FREQUENCY:
           rv = handle->info.rate;
@@ -387,10 +387,10 @@ _pat_get(_ext_t *ext, int type)
           rv = handle->wave.size;
           break;
       case __F_LOOP_START:
-         rv = handle->info.loop_start;
+         rv = handle->info.loop.start;
          break;
       case __F_LOOP_END:
-         rv = handle->info.loop_end;
+         rv = handle->info.loop.end;
          break;
       case __F_NO_PATCHES:
          rv = handle->layer.waves;
@@ -402,13 +402,13 @@ _pat_get(_ext_t *ext, int type)
          rv = handle->sampled_release;
          break;
       case __F_BASE_FREQUENCY:
-         rv = handle->info.base_frequency;
+         rv = handle->info.frequency.base;
          break;
       case __F_LOW_FREQUENCY:
-         rv = handle->info.low_frequency;
+         rv = handle->info.frequency.low;
          break;
       case __F_HIGH_FREQUENCY:
-         rv = handle->info.high_frequency;
+         rv = handle->info.frequency.high;
          break;
       case __F_PITCH_FRACTION:
          rv = handle->info.pitch_fraction;
@@ -638,20 +638,20 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    handle->wave.sample_rate = *header++;
    handle->wave.sample_rate |= (uint16_t)(*header++) << 8;
 
-   handle->wave.low_frequency = *header++;
-   handle->wave.low_frequency |= (int32_t)(*header++) << 8;
-   handle->wave.low_frequency |= (int32_t)(*header++) << 16;
-   handle->wave.low_frequency |= (int32_t)(*header++) << 24;
+   handle->wave.frequency.low = *header++;
+   handle->wave.frequency.low |= (int32_t)(*header++) << 8;
+   handle->wave.frequency.low |= (int32_t)(*header++) << 16;
+   handle->wave.frequency.low |= (int32_t)(*header++) << 24;
 
-   handle->wave.high_frequency = *header++;
-   handle->wave.high_frequency |= (int32_t)(*header++) << 8;
-   handle->wave.high_frequency |= (int32_t)(*header++) << 16;
-   handle->wave.high_frequency |= (int32_t)(*header++) << 24;
+   handle->wave.frequency.high = *header++;
+   handle->wave.frequency.high |= (int32_t)(*header++) << 8;
+   handle->wave.frequency.high |= (int32_t)(*header++) << 16;
+   handle->wave.frequency.high |= (int32_t)(*header++) << 24;
 
-   handle->wave.root_frequency = *header++;
-   handle->wave.root_frequency |= (int32_t)(*header++) << 8;
-   handle->wave.root_frequency |= (int32_t)(*header++) << 16;
-   handle->wave.root_frequency |= (int32_t)(*header++) << 24;
+   handle->wave.frequency.root = *header++;
+   handle->wave.frequency.root |= (int32_t)(*header++) << 8;
+   handle->wave.frequency.root |= (int32_t)(*header++) << 16;
+   handle->wave.frequency.root |= (int32_t)(*header++) << 24;
 
    handle->wave.tune = *header++;
    handle->wave.tune |= (int16_t)(*header++) << 8;
@@ -711,28 +711,28 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    handle->info.blocksize = handle->info.no_tracks*handle->bits_sample/8;
    handle->info.no_samples = SIZE2SAMPLES(handle, handle->wave.size);
 
-   handle->info.loop_count = (handle->wave.modes & MODE_LOOPING)? OFF_T_MAX : 0;
-   if (handle->info.loop_count)
+   handle->info.loop.count = (handle->wave.modes & MODE_LOOPING)? OFF_T_MAX : 0;
+   if (handle->info.loop.count)
    {
       int loop_start, loop_end;
 
       loop_start = handle->wave.start_loop;
-      handle->info.loop_start = SIZE2SAMPLES(handle, loop_start);
-      handle->info.loop_start += (float)(handle->wave.fractions >> 4)/16.0f;
+      handle->info.loop.start = SIZE2SAMPLES(handle, loop_start);
+      handle->info.loop.start += (float)(handle->wave.fractions >> 4)/16.0f;
 
       loop_end = handle->wave.end_loop;
-      handle->info.loop_end = SIZE2SAMPLES(handle, loop_end);
-      handle->info.loop_end += (float)(handle->wave.fractions & 0xF)/16.0f;
+      handle->info.loop.end = SIZE2SAMPLES(handle, loop_end);
+      handle->info.loop.end += (float)(handle->wave.fractions & 0xF)/16.0f;
    }
    else
    {
-      handle->info.loop_start = 0;
-      handle->info.loop_end = handle->info.no_samples;
+      handle->info.loop.start = 0;
+      handle->info.loop.end = handle->info.no_samples;
    }
 
-   handle->info.base_frequency = 0.001f*handle->wave.root_frequency;
-   handle->info.low_frequency = 0.001f*handle->wave.low_frequency;
-   handle->info.high_frequency = 0.001f*handle->wave.high_frequency;
+   handle->info.frequency.base = 0.001f*handle->wave.frequency.root;
+   handle->info.frequency.low = 0.001f*handle->wave.frequency.low;
+   handle->info.frequency.high = 0.001f*handle->wave.frequency.high;
 
    cents = 100.0f*(handle->wave.scale_factor-1024.0f)/1024.0f;
    handle->info.pitch_fraction = cents2pitch(cents, 1.0f);
@@ -773,8 +773,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
 
       if (rate)
       {
-         handle->info.volume_envelope[2*pos] = level;
-         handle->info.volume_envelope[2*pos-1] = rate;
+         handle->info.envelope.volume[2*pos] = level;
+         handle->info.envelope.volume[2*pos-1] = rate;
          prev = level;
 
          pos++;
@@ -788,12 +788,12 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
  printf("     Wave number: %i of %i\n", handle->sample_num+1, handle->layer.waves);
  printf("Fractions:\t\tstart: %i, end: %i\n", handle->wave.fractions >> 4, handle->wave.fractions & 0xF);
  printf("Sample size:\t\t%i bytes, %i samples, %.3g sec\n",handle->wave.size, SIZE2SAMPLES(handle,handle->wave.size), SAMPLES2TIME(handle,handle->info.no_samples));
- printf("Loop start:\t\t%i bytes, %.20g samples, %.3g sec\n", handle->wave.start_loop, handle->info.loop_start, SAMPLES2TIME(handle,handle->info.loop_start));
- printf("Loop end:\t\t%i bytes, %.20g samples, %.3g sec\n", handle->wave.end_loop, handle->info.loop_end, SAMPLES2TIME(handle,handle->info.loop_end));
+ printf("Loop start:\t\t%i bytes, %.20g samples, %.3g sec\n", handle->wave.start_loop, handle->info.loop.start, SAMPLES2TIME(handle,handle->info.loop.start));
+ printf("Loop end:\t\t%i bytes, %.20g samples, %.3g sec\n", handle->wave.end_loop, handle->info.loop.end, SAMPLES2TIME(handle,handle->info.loop.end));
  printf("Sample rate:\t\t%i Hz\n", handle->wave.sample_rate);
- printf("Low Frequency:\t\t%g Hz, note %i (%s)\n", 0.001f*handle->wave.low_frequency, _freq2note(0.001f*handle->wave.low_frequency), _note2name(_freq2note(0.001f*handle->wave.low_frequency)));
- printf("High Frequency:\t\t%g Hz, note %i (%s)\n", 0.001f*handle->wave.high_frequency, _freq2note(0.001f*handle->wave.high_frequency), _note2name(_freq2note(0.001f*handle->wave.high_frequency)));
- printf("Root Frequency:\t\t%g Hz, note %i (%s)\n", 0.001f*handle->wave.root_frequency, _freq2note(0.001f*handle->wave.root_frequency), _note2name(_freq2note(0.001f*handle->wave.root_frequency)));
+ printf("Low Frequency:\t\t%g Hz, note %i (%s)\n", 0.001f*handle->wave.frequency.low, _freq2note(0.001f*handle->wave.frequency.low), _note2name(_freq2note(0.001f*handle->wave.frequency.low)));
+ printf("High Frequency:\t\t%g Hz, note %i (%s)\n", 0.001f*handle->wave.frequency.high, _freq2note(0.001f*handle->wave.frequency.high), _note2name(_freq2note(0.001f*handle->wave.frequency.high)));
+ printf("Root Frequency:\t\t%g Hz, note %i (%s)\n", 0.001f*handle->wave.frequency.root, _freq2note(0.001f*handle->wave.frequency.root), _note2name(_freq2note(0.001f*handle->wave.frequency.root)));
  printf("Tune:\t\t\t%i\n", handle->wave.tune);
  printf("Panning:\t\t%i (%s: %.1f)\n", handle->wave.balance, (handle->wave.balance < 5) ? "Left" : (handle->wave.balance > 9) ? "Right" : "Center", (float)(handle->wave.balance - 7)/16.0f);
 

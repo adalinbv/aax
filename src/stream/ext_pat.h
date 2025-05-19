@@ -101,9 +101,11 @@ typedef struct
    int32_t end_loop;
 
    uint16_t sample_rate;
-   int32_t low_frequency;
-   int32_t high_frequency;
-   int32_t root_frequency;
+   struct {
+      int32_t low;
+      int32_t high;
+      int32_t root;
+   } frequency;
    int16_t tune;
 
    uint8_t balance;

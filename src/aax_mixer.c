@@ -1920,7 +1920,7 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
-      float freq = buffer->info.base_frequency;
+      float freq = buffer->info.frequency.base;
       xmlId * xmid = xmlNodeGet(xid, "aeonwave/mixer");
       if (xmid)
       {

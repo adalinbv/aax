@@ -786,22 +786,22 @@ _wav_get(_ext_t *ext, int type)
       rv = handle->io.read.channel_mask;
       break;
    case __F_LOOP_COUNT:
-      rv = handle->info.loop_count;
+      rv = handle->info.loop.count;
       break;
    case __F_LOOP_START:
-      rv = handle->info.loop_start;
+      rv = handle->info.loop.start;
       break;
    case __F_LOOP_END:
-      rv = handle->info.loop_end;
+      rv = handle->info.loop.end;
       break;
    case __F_BASE_FREQUENCY:
-      rv = handle->info.base_frequency;
+      rv = handle->info.frequency.base;
       break;
    case __F_LOW_FREQUENCY:
-      rv = handle->info.low_frequency;
+      rv = handle->info.frequency.low;
       break;
    case __F_HIGH_FREQUENCY:
-      rv = handle->info.high_frequency;
+      rv = handle->info.frequency.high;
       break;
    case __F_PITCH_FRACTION:
       rv = handle->info.pitch_fraction;
@@ -1227,20 +1227,20 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       {
          float cents = 100.0f*header[6]/(float)0xFFFFFFFF;
 
-         handle->info.base_frequency = note2freq((uint8_t)header[5]);
+         handle->info.frequency.base = note2freq((uint8_t)header[5]);
          handle->info.pitch_fraction = cents2pitch(cents, 1.0f);
-         handle->info.loop_start = 8*header[13]/handle->bits_sample;
-         handle->info.loop_end = 8*header[14]/handle->bits_sample;
-         handle->info.loop_count = header[16];
+         handle->info.loop.start = 8*header[13]/handle->bits_sample;
+         handle->info.loop.end = 8*header[14]/handle->bits_sample;
+         handle->info.loop.count = header[16];
 #if 0
-   printf("Base Frequency: %f\n", handle->info.base_frequency);
+   printf("Base Frequency: %f\n", handle->info.frequency.base);
    printf("Pitch Fraction: %f\n", handle->info.pitch_fraction);
-   printf("Looping: %s\n", handle->info.loop_count ? "yes" : "no");
-   if (handle->info.loop_count)
+   printf("Looping: %s\n", handle->info.loop.count ? "yes" : "no");
+   if (handle->info.loop.count)
    {
-      printf(" - Loop Count: %li\n", handle->info.loop_count);
-      printf(" - Loop Start: %lu\n", handle->info.loop_start);
-      printf(" - Loop End:   %lu\n", handle->info.loop_end);
+      printf(" - Loop Count: %li\n", handle->info.loop.count);
+      printf(" - Loop Start: %lu\n", handle->info.loop.start);
+      printf(" - Loop End:   %lu\n", handle->info.loop.end);
    }
 #endif
       }
@@ -1252,7 +1252,7 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       handle->io.read.size -= rv;
 
       curr = read8(&ch, &bufsize);
-      handle->info.base_frequency = note2freq(curr);
+      handle->info.frequency.base = note2freq(curr);
 
       curr = read8(&ch, &bufsize);
       handle->info.pitch_fraction = cents2pitch(curr, 0.5f);
@@ -1261,10 +1261,10 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
 //    handle->info.gain = _db2lin((float)curr));
 
       curr = read8(&ch, &bufsize);
-      handle->info.low_frequency = note2freq(curr);
+      handle->info.frequency.low = note2freq(curr);
 
       curr = read8(&ch, &bufsize);
-      handle->info.high_frequency = note2freq(curr);
+      handle->info.frequency.high = note2freq(curr);
 
       curr = read8(&ch, &bufsize);
 //    handle->info.low_velocity = curr;
@@ -1272,9 +1272,9 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       curr = read8(&ch, &bufsize);
 //    handle->info.high_velocity = curr;
 #if 0
-   printf("Base Frequency: %f\n", handle->info.base_frequency);
-   printf("Low Frequency:  %f\n", handle->info.low_frequency);
-   printf("High Frequency: %f\n", handle->info.high_frequency);
+   printf("Base Frequency: %f\n", handle->info.frequency.base);
+   printf("Low Frequency:  %f\n", handle->info.frequency.low);
+   printf("High Frequency: %f\n", handle->info.frequency.high);
    printf("Pitch Fraction: %f\n", handle->info.pitch_fraction);
 #endif
       break;
