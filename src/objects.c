@@ -423,7 +423,7 @@ static int
 _aaxSetSlotFromAAXS(const xmlId *xid, bool (*setStateFn)(void*, int, int), bool (*setParamFn)(void*, int, int, float), float (*cvtParamFn)(void*, int, int, float), void *id, float freq, struct aax_buffer_info_t *info, _midi_t *midi)
 {
    unsigned int s, snum = xmlNodeGetNum(xid, "slot");
-   int min_freq, max_freq, base_freq;
+   float min_freq, max_freq, base_freq;
    int rv = false;
    xmlId *xsid;
 
