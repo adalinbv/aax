@@ -1546,18 +1546,6 @@ _aaxStreamDriverLog(const void *id, UNUSED(int prio), UNUSED(int type), const ch
 
 /*-------------------------------------------------------------------------- */
 
-float note2freq(uint8_t d) {
-   return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
-}
-
-float cents2pitch(float p, float r) {
-   return powf(2.0f, p*r/12.0f);
-}
-
-float cents2modulation(float p, float r) {
-   return powf(2.0f, p*r/12.0f);
-}
-
 static _ext_t*
 _aaxGetFormat(const char *url, enum aaxRenderMode mode)
 {

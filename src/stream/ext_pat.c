@@ -735,7 +735,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
    handle->info.frequency.high = 0.001f*handle->wave.frequency.high;
 
    cents = 100.0f*(handle->wave.scale_factor-1024.0f)/1024.0f;
-   handle->info.pitch_fraction = cents2pitch(cents, 1.0f);
+   handle->info.pitch_fraction = _cents2pitch(cents, 1.0f);
 
    handle->info.tremolo.rate = CVTRATE(handle->wave.tremolo.rate);
    handle->info.tremolo.depth = CVTDEPTH(handle->wave.tremolo.depth);

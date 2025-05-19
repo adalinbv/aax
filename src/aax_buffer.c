@@ -1743,10 +1743,6 @@ _bufNormalize(_aaxRingBuffer* rb, float gain)
    return rv;
 }
 
-static inline float note2freq(uint8_t d) {
-   return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
-}
-
 static bool
 _bufCreateResonatorFromAAXS(_buffer_t* handle, xmlId *xsid, float version)
 {
@@ -2083,19 +2079,13 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, xmlId *xid)
       {
          if (xmlAttributeExists(xnid, "min"))
          {
-            aax_buf->note.min = xmlAttributeGetInt(xnid, "min");
-            frequency_low = note2freq(aax_buf->note.min);
+            handle->info.note.min = xmlAttributeGetInt(xnid, "min");
+            frequency_low = _note2freq(handle->info.note.min);
          }
          if (xmlAttributeExists(xnid, "max"))  {
-            aax_buf->note.max = xmlAttributeGetInt(xnid, "max");
+            handle->info.note.max = xmlAttributeGetInt(xnid, "max");
          }
-         frequency_high = note2freq(128); // MIDI max nore number
-#if 0
-         // Max note number is purely informative for us.
-         if (xmlAttributeExists(xnid, "max")) {
-            frequency_high = note2freq(_MIN(xmlAttributeGetInt(xnid, "max"), 128));
-         }
-#endif
+         frequency_high = _note2freq(128); // MIDI max note number
 
          if (xmlAttributeExists(xnid, "pitch-fraction")) {
             handle->info.pitch_fraction = xmlAttributeGetDouble(xnid, "pitch-fraction");

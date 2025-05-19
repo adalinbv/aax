@@ -206,6 +206,9 @@ float _note2freq(int n);
 int _freq2note(float v);
 char *_note2name(int n);
 
+float _cents2pitch(float p, float r);
+float _cents2modulation(float p, float r);
+
 float reverb_time_to_decay_level(float reverb_time);
 float decay_level_to_reverb_time(float decay_level);
 

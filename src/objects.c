@@ -430,9 +430,26 @@ _aaxSetSlotFromAAXS(const xmlId *xid, bool (*setStateFn)(void*, int, int), bool 
    xsid = xmlMarkId(xid);
    if (!xsid) return rv;
 
-   min_freq = info ? info->frequency.low : MINIMUM_CUTOFF;
-   max_freq = info ? info->frequency.high : MAXIMUM_CUTOFF;
-   base_freq = info ? info->frequency.base : 220.0f;
+   if (info)
+   {
+      if (info->note.min) {
+         min_freq = _note2freq(info->note.min);
+      } else {
+         min_freq = info->frequency.low;
+      }
+      if (info->note.max) {
+         max_freq = _note2freq(info->note.max);
+      } else {
+         max_freq = info->frequency.high;
+      }
+      base_freq = info->frequency.base;
+   }
+   else
+   {
+      min_freq = MINIMUM_CUTOFF;
+      max_freq = MAXIMUM_CUTOFF;
+      base_freq = 220.0f;
+   }
    if (min_freq != 0.0f && freq < min_freq) freq = min_freq;
    if (max_freq != 0.0f && freq > max_freq) freq = max_freq;
 

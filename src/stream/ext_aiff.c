@@ -1015,16 +1015,16 @@ if (curr == 0x464f524d) // FORM
       handle->io.read.size -= rv;
 
       curr = read8(&ch, &bufsize);
-      handle->info.frequency.base = note2freq(curr);
+      handle->info.frequency.base = _note2freq(curr);
 
       curr = read8(&ch, &bufsize);
-      handle->info.pitch_fraction = cents2pitch(curr, 0.5f);
+      handle->info.pitch_fraction = _cents2pitch(curr, 0.5f);
 
       curr = read8(&ch, &bufsize);
-      handle->info.frequency.low = note2freq(curr);
+      handle->info.frequency.low = _note2freq(curr);
 
       curr = read8(&ch, &bufsize);
-      handle->info.frequency.high = note2freq(curr);
+      handle->info.frequency.high = _note2freq(curr);
 
       curr = read8(&ch, &bufsize);
 //    handle->info.low_velocity = curr;

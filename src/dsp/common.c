@@ -91,6 +91,9 @@ float _kpa2psi(float v) { return v*6.8947572932f; }
 int _freq2note(float v) { return rintf(12.0f*(logf(v/220.0f)/log(2)))+57; }
 float _note2freq(int n) { return 440.0f*powf(2.0f, ((float)n-69.0f)/12.0f); }
 
+float _cents2pitch(float p, float r) { return powf(2.0f, p*r/12.0f); }
+float _cents2modulation(float p, float r) { return powf(2.0f, p*r/12.0f); }
+
 float _wrap_max(float v, float max) {
    return fmod(max + fmod(v, max), max);
 }

@@ -106,12 +106,6 @@ enum _aaxStreamParam
 #include "format.h"
 #include "extension.h"
 
-/* MIDI support */
-float note2freq(uint8_t);
-
-float cents2pitch(float, float);
-float cents2modulation(float, float);
-
 /* ID3 support */
 int _aaxFormatDriverReadID3Header(pdmp3_handle*, struct _meta_t*);
 

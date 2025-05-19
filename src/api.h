@@ -251,6 +251,11 @@ typedef struct aax_buffer_info_t
    float pan;
 
    struct {
+      int min;
+      int max;
+   } note;
+
+   struct {
       float rate;
       float depth;
       float sweep;
@@ -313,10 +318,6 @@ typedef struct
    const void *aaxs;
    float frequency;
    enum aaxErrorType error;
-   struct {
-      int min;
-      int max;
-   } note;
 
    struct _meta_t meta;
 

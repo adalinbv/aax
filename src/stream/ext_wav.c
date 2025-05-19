@@ -1227,8 +1227,8 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       {
          float cents = 100.0f*header[6]/(float)0xFFFFFFFF;
 
-         handle->info.frequency.base = note2freq((uint8_t)header[5]);
-         handle->info.pitch_fraction = cents2pitch(cents, 1.0f);
+         handle->info.frequency.base = _note2freq((uint8_t)header[5]);
+         handle->info.pitch_fraction = _cents2pitch(cents, 1.0f);
          handle->info.loop.start = 8*header[13]/handle->bits_sample;
          handle->info.loop.end = 8*header[14]/handle->bits_sample;
          handle->info.loop.count = header[16];
@@ -1252,19 +1252,19 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       handle->io.read.size -= rv;
 
       curr = read8(&ch, &bufsize);
-      handle->info.frequency.base = note2freq(curr);
+      handle->info.frequency.base = _note2freq(curr);
 
       curr = read8(&ch, &bufsize);
-      handle->info.pitch_fraction = cents2pitch(curr, 0.5f);
+      handle->info.pitch_fraction = _cents2pitch(curr, 0.5f);
 
       curr = read8(&ch, &bufsize);
 //    handle->info.gain = _db2lin((float)curr));
 
       curr = read8(&ch, &bufsize);
-      handle->info.frequency.low = note2freq(curr);
+      handle->info.frequency.low = _note2freq(curr);
 
       curr = read8(&ch, &bufsize);
-      handle->info.frequency.high = note2freq(curr);
+      handle->info.frequency.high = _note2freq(curr);
 
       curr = read8(&ch, &bufsize);
 //    handle->info.low_velocity = curr;
