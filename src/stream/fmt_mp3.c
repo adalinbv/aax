@@ -307,6 +307,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
          handle->capturing = (mode == 0) ? 1 : 0;
          handle->blocksize = sizeof(int16_t);
          handle->internal = audio ? false : true;
+         handle->format = AAX_PCM32S;
       }
       else {
          _AAX_FILEDRVLOG("MP3: Insufficient memory");
