@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Acoustic Grand Piano" bank="0" program="1">
+ <info name="Acoustic Grand Piano" bank="0" program="2">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -25,11 +25,11 @@
    <waveform src="sawtooth"/>
    <waveform src="triangle" processing="add" ratio="0.365" pitch="2.0"/>
    <waveform src="triangle" processing="add" ratio="0.146" pitch="4.0"/>
-   <waveform src="triangle" processing="modulate" ratio="0.584" pitch="5.0"/>
+   <waveform src="triangle" processing="modulate" pitch="5.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="10.9" looping="true">
   <filter type="frequency" src="envelope">
    <slot n="0">
     <param n="0" pitch="5.0">275.0</param>

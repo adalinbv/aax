@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Recorder" bank="0" program="72">
+ <info name="Recorder" bank="0" program="73">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="440" duration="0.1">
+ <sound mode="1" gain="0.956" frequency="440" duration="0.1">
   <layer n="0">
    <waveform src="sine"/>
    <waveform src="sine" processing="add" ratio="0.125" pitch="3.0"/>
@@ -39,7 +39,7 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="12.0" max="12.0" tune="0.0">0.012</param>
+    <param n="1" type="msec" min="8.0" max="5.0" tune="0.00332">0.017</param>
     <param n="2">0.209</param>
     <param n="3">0.075</param>
    </slot>
@@ -51,7 +51,7 @@
    </slot>
    <slot n="2">
     <param n="0">0.787</param>
-    <param n="1">0.1</param>
+    <param n="1" type="msec" min="462.0" max="378.0" tune="0.093">0.687</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

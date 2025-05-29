@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Big Gong" bank="0" program="0" key="90">
+ <info name="Big Gong" bank="0" key="90">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -25,7 +25,7 @@
    <waveform src="square" pitch="0.9"/>
    <waveform src="pink-noise" processing="add" ratio="0.752" pitch="0.12"/>
    <waveform src="sawtooth" processing="add" ratio="0.347" pitch="0.707"/>
-   <waveform src="pure-sine" processing="modulate" ratio="0.683" pitch="6.9"/>
+   <waveform src="pure-sine" processing="modulate" pitch="6.9"/>
    <filter type="equalizer">
     <slot n="0">
      <param n="0">3136.0</param>
@@ -43,7 +43,7 @@
   </layer>
  </sound>
 
- <emitter pan="-0.16" looping="true">
+ <emitter gain="1.13" pan="-0.16" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">1.19</param>

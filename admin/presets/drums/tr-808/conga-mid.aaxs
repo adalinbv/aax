@@ -26,7 +26,7 @@
   </layer>
  </sound>
 
- <emitter pan="-0.31" looping="true">
+ <emitter gain="1.43" pan="-0.31" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.04">
    <slot n="0">
     <param n="0">0.0</param>

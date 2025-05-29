@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Timpani" bank="0" program="47">
+ <info name="Timpani" bank="0" program="48">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -31,7 +31,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="3.04" looping="true">
   <filter type="dynamic-layer">
    <slot n="0">
     <param n="0">0.0</param>

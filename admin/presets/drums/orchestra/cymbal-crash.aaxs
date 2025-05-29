@@ -20,31 +20,31 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="116.541" duration="0.3">
-  <layer n="0">
-   <waveform src="sine" ratio="0.526"/>
-   <waveform src="sine" processing="modulate" ratio="0.316" pitch="9.5"/>
-   <waveform src="pink-noise" processing="add" ratio="0.579" pitch="0.8"/>
+ <sound mode="1" gain="0.564" frequency="116.541" duration="0.3">
+  <layer n="0" ratio="0.611">
+   <waveform src="sine" ratio="0.908"/>
+   <waveform src="sine" processing="modulate" pitch="9.5"/>
+   <waveform src="pink-noise" processing="add" pitch="0.8"/>
    <waveform src="square" processing="modulate" pitch="0.75"/>
    <filter type="frequency">
     <slot n="0">
      <param n="0">880.0</param>
-     <param n="1">0.1</param>
-     <param n="2">1.2</param>
+     <param n="1">0.0833</param>
+     <param n="2">1.0</param>
      <param n="3">5.0</param>
     </slot>
    </filter>
   </layer>
   <layer n="1">
-   <waveform src="sine" ratio="0.526"/>
-   <waveform src="sine" processing="modulate" ratio="0.316" pitch="11.5"/>
-   <waveform src="pink-noise" processing="add" ratio="0.947" pitch="0.8"/>
+   <waveform src="sine" ratio="0.555"/>
+   <waveform src="sine" processing="modulate" pitch="11.5"/>
+   <waveform src="pink-noise" processing="add" pitch="0.8"/>
    <waveform src="square" processing="modulate"/>
    <filter type="frequency">
     <slot n="0">
      <param n="0">1100.0</param>
-     <param n="1">0.1</param>
-     <param n="2">1.2</param>
+     <param n="1">0.0833</param>
+     <param n="2">1.0</param>
      <param n="3">5.0</param>
     </slot>
    </filter>

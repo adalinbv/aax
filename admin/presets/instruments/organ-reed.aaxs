@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Reed Organ" bank="0" program="20">
+ <info name="Reed Organ" bank="0" program="21">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -33,11 +33,11 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.06" looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="80.0" max="30.0" tune="0.0208">0.105</param>
+    <param n="1" type="msec" min="40.0" max="10.0" tune="0.0217">0.086</param>
     <param n="2">0.208</param>
     <param n="3">0.08</param>
    </slot>
@@ -45,7 +45,7 @@
     <param n="0">1.0</param>
     <param n="1">inf</param>
     <param n="2">1.0</param>
-    <param n="3">0.2</param>
+    <param n="3" type="msec" min="550.0" max="450.0" tune="0.0498">0.625</param>
    </slot>
   </filter>
  </emitter>

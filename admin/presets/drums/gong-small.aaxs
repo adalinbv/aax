@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Small Gong" bank="0" program="0" key="89">
+ <info name="Small Gong" bank="0" key="89">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -25,11 +25,11 @@
    <waveform src="sine" pitch="1.393"/>
    <waveform src="white-noise" processing="add" ratio="0.1" pitch="0.2"/>
    <waveform src="triangle" processing="add" ratio="0.205" pitch="2.151"/>
-   <waveform src="pure-sine" processing="modulate" ratio="0.909" pitch="4.2587"/>
+   <waveform src="pure-sine" processing="modulate" pitch="4.2587"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="6.64" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">0.365</param>

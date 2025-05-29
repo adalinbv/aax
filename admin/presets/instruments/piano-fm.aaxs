@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Fm Piano" bank="0,34" program="5">
+ <info name="Fm Piano" bank="0,34" program="6">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -27,11 +27,11 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.12" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="10.0" max="5.0" tune="0.00229">0.0133</param>
+    <param n="1" type="msec" min="15.0" max="5.0" tune="0.00458">0.0216</param>
     <param n="2">1.0</param>
     <param n="3">0.015</param>
    </slot>

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Side Stick" bank="0" program="0" key="37">
+ <info name="Side Stick" bank="0" key="37">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="195.998" duration="0.3">
+ <sound mode="1" gain="0.282" frequency="195.998" duration="0.3">
   <layer n="0" ratio="0.5" pitch="1.03">
    <waveform src="white-noise"/>
    <waveform src="pure-cycloid" processing="add" ratio="0.0556" pitch="0.8"/>
@@ -45,14 +45,14 @@
    <filter type="equalizer">
     <slot n="0" src="24db">
      <param n="0">1184.0</param>
-     <param n="1">0.25</param>
-     <param n="2">0.6</param>
+     <param n="1">0.217</param>
+     <param n="2">0.522</param>
      <param n="3">15.0</param>
     </slot>
     <slot n="1" src="24db">
      <param n="0">1600.0</param>
-     <param n="1">0.6</param>
-     <param n="2">1.15</param>
+     <param n="1">0.522</param>
+     <param n="2">1.0</param>
      <param n="3">5.0</param>
     </slot>
    </filter>

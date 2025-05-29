@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Pad 8 (Sweep)" bank="0" program="95">
+ <info name="Pad 8 (Sweep)" bank="0" program="96">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -28,7 +28,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="5.17" looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
@@ -44,7 +44,7 @@
    </slot>
    <slot n="2">
     <param n="0">0.82</param>
-    <param n="1">0.4</param>
+    <param n="1" type="msec" min="704.0" max="576.0" tune="0.085">0.858</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

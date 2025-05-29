@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Kalimba" bank="0" program="108">
+ <info name="Kalimba" bank="0" program="109">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,13 +20,13 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="1760" duration="0.1">
+ <sound mode="1" gain="0.0976" frequency="1760" duration="0.1">
   <layer n="0">
-   <waveform src="triangle" ratio="0.818"/>
+   <waveform src="triangle"/>
    <waveform src="sine" processing="modulate" pitch="3.5"/>
    <waveform src="sine" processing="modulate" pitch="11.5"/>
-   <waveform src="triangle" processing="modulate" ratio="0.818" pitch="18.5"/>
-   <waveform src="sine" processing="mix" ratio="0.035" pitch="4.975"/>
+   <waveform src="triangle" processing="modulate" pitch="18.5"/>
+   <waveform src="sine" processing="mix" ratio="0.211" pitch="4.975"/>
   </layer>
  </sound>
 

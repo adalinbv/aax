@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Celesta" bank="127" program="22">
+ <info name="Celesta" bank="127" program="23">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -21,18 +21,18 @@
  </info>
 
  <sound frequency="440" duration="0.1">
-  <layer n="0" ratio="0.6">
+  <layer n="0">
    <waveform src="sine"/>
    <waveform src="sine" processing="add" ratio="0.065" pitch="2.0"/>
    <waveform src="triangle" processing="add" ratio="0.116" pitch="11.25"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.42" looping="true">
   <filter type="timed-gain" src="envelope" release-time="1.0">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="8.0" max="3.0" tune="0.00415">0.018</param>
+    <param n="1" type="msec" min="20.0" max="5.0" tune="0.0125">0.0464</param>
     <param n="2">0.277</param>
     <param n="3">0.005</param>
    </slot>

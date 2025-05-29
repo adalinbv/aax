@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Reverse Cymbal" bank="0" program="119">
+ <info name="Reverse Cymbal" bank="0" program="120">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,17 +20,17 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="440" duration="0.3">
+ <sound gain="0.266" frequency="440" duration="0.3">
   <layer n="0">
    <waveform src="square" pitch="0.985"/>
    <waveform src="sawtooth" processing="mix" ratio="0.43" pitch="2.9"/>
    <waveform src="pink-noise" processing="add" ratio="0.632"/>
-   <waveform src="sine" processing="modulate" ratio="0.526" pitch="6.3"/>
+   <waveform src="sine" processing="modulate" pitch="6.3"/>
    <filter type="frequency">
     <slot n="0">
      <param n="0">1800.0</param>
-     <param n="1">0.1</param>
-     <param n="2">1.2</param>
+     <param n="1">0.0833</param>
+     <param n="2">1.0</param>
      <param n="3">2.0</param>
     </slot>
    </filter>

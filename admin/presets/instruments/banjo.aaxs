@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Banjo" bank="0" program="105">
+ <info name="Banjo" bank="0" program="106">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -25,7 +25,7 @@
   <layer n="0">
    <waveform src="square"/>
    <waveform src="sawtooth" processing="mix" ratio="0.364" pitch="5.999"/>
-   <waveform src="sine" processing="modulate" ratio="0.421" pitch="1.999"/>
+   <waveform src="sine" processing="modulate" pitch="1.999"/>
    <filter type="frequency">
     <slot n="0">
      <param n="0" pitch="8.0">3520.0</param>
@@ -37,7 +37,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="6.52" looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>

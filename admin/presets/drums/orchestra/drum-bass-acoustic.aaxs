@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Concert Bass Drum 2" bank="121,1" program="116">
+ <info name="Concert Bass Drum 2" bank="121,1" program="117">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -26,7 +26,7 @@
   </layer>
  </sound>
 
- <emitter pan="-0.63" looping="true">
+ <emitter gain="25.9" pan="-0.63" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">2.3</param>
@@ -44,7 +44,7 @@
   <filter type="timed-gain" src="envelope" release-time="0.6">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="55.0" max="8.0" tune="0.0506">0.137</param>
+    <param n="1" type="msec" min="6.0" max="2.0" tune="0.00199">0.00897</param>
     <param n="2">1.0</param>
     <param n="3">0.01</param>
    </slot>

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Glockenspiel" bank="0" program="9">
+ <info name="Glockenspiel" bank="0" program="10">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -23,12 +23,12 @@
  <sound frequency="880" duration="0.1">
   <layer n="0">
    <waveform src="square" pitch="9.1"/>
-   <waveform src="pure-sine" processing="modulate" ratio="0.478" pitch="4.298"/>
+   <waveform src="pure-sine" processing="modulate" pitch="4.298"/>
    <waveform src="sine" processing="mix" ratio="-0.33"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.29" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
     <param n="0">0.0</param>

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Harpsichord" bank="0" program="6">
+ <info name="Harpsichord" bank="0" program="7">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -22,18 +22,18 @@
 
  <sound frequency="220" duration="0.1">
   <layer n="0">
-   <waveform src="square" ratio="0.95"/>
-   <waveform src="sawtooth" processing="add" ratio="0.56" pitch="4.0"/>
-   <waveform src="triangle" processing="add" ratio="-0.327" pitch="3.0"/>
+   <waveform src="square"/>
+   <waveform src="sawtooth" processing="add" ratio="0.589" pitch="4.0"/>
+   <waveform src="triangle" processing="add" ratio="-0.344" pitch="3.0"/>
    <waveform src="sine" processing="modulate" pitch="3.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.96" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.4">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="8.0" max="3.0" tune="0.00415">0.018</param>
+    <param n="1" type="msec" min="20.0" max="10.0" tune="0.00458">0.0266</param>
     <param n="2">0.083</param>
     <param n="3">0.005</param>
    </slot>
@@ -61,20 +61,18 @@
  </emitter>
 
  <audioframe>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0">6300.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.5</param>
-    <param n="3">1.5</param>
-   </slot>
-  </filter>
   <filter type="equalizer">
    <slot n="0">
     <param n="0">110.0</param>
     <param n="1">1.0</param>
     <param n="2">1.0</param>
     <param n="3">1.2</param>
+   </slot>
+   <slot n="1" src="24db">
+    <param n="0">6300.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.5</param>
+    <param n="3">1.5</param>
    </slot>
   </filter>
  </audioframe>

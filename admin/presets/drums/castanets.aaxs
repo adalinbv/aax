@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Castanets" bank="0,96" program="115">
+ <info name="Castanets" bank="0,96" program="116">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,10 +20,10 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="233.082" duration="0.3">
+ <sound gain="0.196" frequency="220" duration="0.3">
   <layer n="0">
    <waveform src="white-noise" pitch="0.05"/>
-   <waveform src="sine" processing="modulate" ratio="0.8" pitch="10.7587"/>
+   <waveform src="sine" processing="modulate" pitch="10.7587"/>
    <filter type="frequency" src="24db">
     <slot n="0">
      <param n="0">3650.0</param>
@@ -61,7 +61,7 @@
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">1.0</param>
+    <param n="1" type="msec" min="3.0" max="1.0" tune="0.000997">0.00449</param>
     <param n="2">0.267</param>
     <param n="3">0.56</param>
    </slot>

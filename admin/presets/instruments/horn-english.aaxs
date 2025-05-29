@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="English Horn" bank="0" program="69">
+ <info name="English Horn" bank="0" program="70">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="880" duration="0.3">
+ <sound mode="1" gain="0.613" frequency="880" duration="0.3">
   <layer n="0">
    <waveform src="sawtooth" ratio="0.3" pitch="0.993"/>
    <waveform src="sawtooth" processing="modulate" pitch="3.0"/>

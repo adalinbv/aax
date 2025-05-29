@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Short Guiro" bank="0" program="0" key="73">
+ <info name="Short Guiro" bank="0" key="73">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,21 +20,21 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="220" duration="0.3">
+ <sound gain="0.447" frequency="220" duration="0.3">
   <layer n="0">
    <waveform src="pink-noise" pitch="0.1"/>
    <filter type="frequency" src="48db">
     <slot n="0">
      <param n="0">1500.0</param>
      <param n="1">0.0</param>
-     <param n="2">0.6</param>
+     <param n="2">1.0</param>
      <param n="3">1.5</param>
     </slot>
    </filter>
    <filter type="frequency" src="48db">
     <slot n="0">
      <param n="0">4000.0</param>
-     <param n="1">0.4</param>
+     <param n="1">1.0</param>
      <param n="2">0.0</param>
      <param n="3">1.5</param>
     </slot>

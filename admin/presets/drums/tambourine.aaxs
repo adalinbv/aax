@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Tambourine" bank="16" program="113">
+ <info name="Tambourine" bank="16" program="114">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,20 +20,20 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="987.767" duration="0.3">
-  <layer n="0" ratio="0.76">
+ <sound frequency="880" duration="0.3">
+  <layer n="0">
    <waveform src="square" pitch="3.4"/>
    <waveform src="white-noise" processing="mix" ratio="-0.14" pitch="0.15"/>
    <waveform src="square" processing="modulate" pitch="6.275"/>
   </layer>
   <layer n="1">
-   <waveform src="square" ratio="0.76" pitch="3.4"/>
-   <waveform src="white-noise" processing="mix" ratio="-1.0" pitch="0.15"/>
+   <waveform src="square" pitch="3.4"/>
+   <waveform src="white-noise" processing="mix" ratio="-0.52" pitch="0.15"/>
    <waveform src="pure-square" processing="modulate" pitch="6.575"/>
   </layer>
  </sound>
 
- <emitter pan="0.16" looping="true">
+ <emitter gain="1.83" pan="0.16" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.8</param>
@@ -51,7 +51,7 @@
   <filter type="timed-gain" src="envelope" release-time="0.04">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec">2.5</param>
+    <param n="1" type="msec" min="8.0" max="3.0" tune="0.00249">0.0117</param>
     <param n="2">0.542</param>
     <param n="3">0.015</param>
    </slot>

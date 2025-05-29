@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Pad 4 (Choir)" bank="0" program="92">
+ <info name="Pad 4 (Choir)" bank="0" program="93">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -28,11 +28,11 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="3.12" looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="80.0" max="35.0" tune="0.0187">0.103</param>
+    <param n="1" type="msec" min="50.0" max="20.0" tune="0.0125">0.0651</param>
     <param n="2">0.167</param>
     <param n="3">0.4</param>
    </slot>
@@ -44,7 +44,7 @@
    </slot>
    <slot n="2">
     <param n="0">0.898</param>
-    <param n="1">0.75</param>
+    <param n="1" type="msec" min="638.0" max="522.0" tune="0.128">0.91</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Percussive Organ" bank="0" program="17">
+ <info name="Percussive Organ" bank="0" program="18">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -37,7 +37,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.69" looping="true">
   <filter type="frequency" src="timed|logarithmic">
    <slot n="0">
     <param n="0" pitch="3.6">117.7</param>
@@ -55,7 +55,7 @@
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="50.0" max="10.0" tune="0.0183">0.0764</param>
+    <param n="1" type="msec" min="40.0" max="10.0" tune="0.0137">0.0598</param>
     <param n="2">1.0</param>
     <param n="3">0.16</param>
    </slot>
@@ -63,7 +63,7 @@
     <param n="0">0.8</param>
     <param n="1">inf</param>
     <param n="2">0.8</param>
-    <param n="3">0.2</param>
+    <param n="3" type="msec" min="385.0" max="315.0" tune="0.0349">0.438</param>
    </slot>
   </filter>
  </emitter>

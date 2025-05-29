@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="195.998" duration="0.3">
+ <sound mode="1" gain="0.282" frequency="195.998" duration="0.3">
   <layer n="0" pitch="1.03">
    <waveform src="white-noise"/>
    <filter type="equalizer">

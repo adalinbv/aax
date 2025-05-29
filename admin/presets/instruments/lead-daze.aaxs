@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Lead 2 (School Daze)" bank="127" program="45">
+ <info name="Lead 2 (School Daze)" bank="127" program="46">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="220">
+ <sound mode="1" gain="0.816" frequency="220">
   <layer n="0">
    <waveform src="sawtooth"/>
    <waveform src="sawtooth" processing="add" pitch="0.993"/>
@@ -31,7 +31,7 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="5.0" max="2.0" tune="0.00166">0.00802</param>
+    <param n="1" type="msec" min="50.0" max="10.0" tune="0.0266">0.0982</param>
     <param n="2">0.947</param>
     <param n="3">0.02</param>
    </slot>
@@ -43,7 +43,7 @@
    </slot>
    <slot n="2">
     <param n="0">0.565</param>
-    <param n="1">0.25</param>
+    <param n="1" type="msec" min="550.0" max="450.0" tune="0.0458">0.616</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

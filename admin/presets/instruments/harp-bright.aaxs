@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Harp" bank="127" program="58">
+ <info name="Harp" bank="127" program="59">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -28,7 +28,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.6" looping="true">
   <filter type="frequency" src="inverse-timed|logarithmic">
    <slot n="0">
     <param n="0" pitch="1.5">330.0</param>
@@ -46,7 +46,7 @@
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="70.0" max="20.0" tune="0.0237">0.106</param>
+    <param n="1" type="msec" min="90.0" max="50.0" tune="0.0431">0.16</param>
     <param n="2">0.641</param>
     <param n="3">0.015</param>
    </slot>

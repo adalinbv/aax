@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Shamisen" bank="0" program="106">
+ <info name="Shamisen" bank="0" program="107">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -25,7 +25,7 @@
   <layer n="0">
    <waveform src="square"/>
    <waveform src="sawtooth" processing="mix" ratio="0.364" pitch="1.999"/>
-   <waveform src="triangle" processing="modulate" ratio="0.732" pitch="3.999"/>
+   <waveform src="triangle" processing="modulate" pitch="3.999"/>
    <filter type="frequency">
     <slot n="0">
      <param n="0" pitch="1.0">220.0</param>
@@ -37,7 +37,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="10.7" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
     <param n="0">0.0</param>

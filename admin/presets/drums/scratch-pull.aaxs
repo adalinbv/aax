@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Scratch Pull" bank="0" program="0" key="30">
+ <info name="Scratch Pull" bank="0" key="30">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="77.7817" duration="3.33">
+ <sound gain="0.452" frequency="77.7817" duration="3.33">
   <layer n="0">
    <waveform src="white-noise" pitch="0.25"/>
    <filter type="frequency">

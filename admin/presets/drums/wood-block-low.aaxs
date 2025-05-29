@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Low Wood Block" bank="0" program="0" key="77">
+ <info name="Low Wood Block" bank="0" key="77">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -23,7 +23,7 @@
  <sound mode="1" frequency="220" duration="0.3">
   <layer n="0">
    <waveform src="white-noise" pitch="0.05"/>
-   <waveform src="pure-sine" processing="modulate" ratio="0.909" pitch="11.7587"/>
+   <waveform src="pure-sine" processing="modulate" pitch="11.7587"/>
    <filter type="frequency" src="24db">
     <slot n="0">
      <param n="0" pitch="4.0">880.0</param>
@@ -35,7 +35,7 @@
   </layer>
  </sound>
 
- <emitter pan="0.55" looping="true">
+ <emitter gain="7.16" pan="0.55" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.0</param>

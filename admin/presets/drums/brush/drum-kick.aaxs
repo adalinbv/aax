@@ -35,7 +35,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.7" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">3.0</param>

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="High Timbale" bank="0" program="0" key="65">
+ <info name="High Timbale" bank="0" key="65">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="1108.73" duration="0.5" voices="3" spread="0.9" phasing="true">
+ <sound mode="1" gain="0.977" frequency="1108.73" duration="0.5" voices="3" spread="0.9" phasing="true">
   <layer n="0">
    <waveform src="cycloid" ratio="0.205" pitch="0.37"/>
    <waveform src="white-noise" processing="add" ratio="0.379" pitch="0.15"/>

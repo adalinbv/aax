@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Splash Cymbal" bank="0" program="0" key="55">
+ <info name="Splash Cymbal" bank="0" key="55">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -25,12 +25,12 @@
    <waveform src="square" pitch="0.985"/>
    <waveform src="sawtooth" processing="mix" ratio="0.43" pitch="2.9"/>
    <waveform src="white-noise" processing="add" ratio="0.316" pitch="0.4"/>
-   <waveform src="sine" processing="modulate" ratio="0.526" pitch="8.3"/>
+   <waveform src="sine" processing="modulate" pitch="8.3"/>
    <filter type="frequency">
     <slot n="0">
      <param n="0">2000.0</param>
-     <param n="1">0.1</param>
-     <param n="2">1.2</param>
+     <param n="1">0.0833</param>
+     <param n="2">1.0</param>
      <param n="3">2.0</param>
     </slot>
    </filter>
@@ -39,7 +39,7 @@
    <waveform src="square" pitch="0.9"/>
    <waveform src="white-noise" processing="add" ratio="0.376" pitch="0.12"/>
    <waveform src="sawtooth" processing="add" ratio="0.347" pitch="0.707"/>
-   <waveform src="sine" processing="modulate" ratio="0.752" pitch="6.9"/>
+   <waveform src="sine" processing="modulate" pitch="6.9"/>
    <filter type="equalizer">
     <slot n="0">
      <param n="0">3500.0</param>
@@ -51,7 +51,7 @@
   </layer>
  </sound>
 
- <emitter pan="-0.16" looping="true">
+ <emitter gain="2.97" pan="-0.16" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">1.19</param>

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Cheese Organ" bank="0,66" program="16">
+ <info name="Cheese Organ" bank="0,66" program="17">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -28,7 +28,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.12" looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>
@@ -40,7 +40,7 @@
     <param n="0">1.0</param>
     <param n="1">inf</param>
     <param n="2">1.0</param>
-    <param n="3">0.2</param>
+    <param n="3" type="msec" min="330.0" max="270.0" tune="0.0299">0.375</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="inverse-sine">
@@ -48,7 +48,7 @@
     <param n="0">0.0</param>
     <param n="1">1.54</param>
     <param n="2">0.1</param>
-    <param n="3">0.9</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="dynamic-pitch" src="sine">
@@ -56,7 +56,7 @@
     <param n="0">0.0</param>
     <param n="1">1.54</param>
     <param n="2">0.01</param>
-    <param n="3">0.98</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

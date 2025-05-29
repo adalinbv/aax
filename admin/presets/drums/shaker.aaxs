@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Shaker" bank="0" program="0" key="82">
+ <info name="Shaker" bank="0" key="82">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,14 +20,14 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="880" duration="0.3">
+ <sound gain="0.236" frequency="880" duration="0.3">
   <layer n="0">
    <waveform src="pink-noise" pitch="0.33" staticity="0.4"/>
    <filter type="frequency" src="48db">
     <slot n="0">
      <param n="0">5400.0</param>
      <param n="1">0.0</param>
-     <param n="2">0.2</param>
+     <param n="2">1.0</param>
      <param n="3">1.5</param>
     </slot>
    </filter>

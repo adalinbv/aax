@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Lead 5 (Wire)" bank="0,65" program="84">
+ <info name="Lead 5 (Wire)" bank="0,65" program="85">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -34,7 +34,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.01" looping="true">
   <filter type="dynamic-layer" src="inverse-timed|exponential">
    <slot n="0">
     <param n="0">0.0</param>
@@ -46,7 +46,7 @@
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="8.0" max="3.0" tune="0.00277">0.013</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="0.00277">0.015</param>
     <param n="2">1.0</param>
     <param n="3">0.02</param>
    </slot>
@@ -54,7 +54,7 @@
     <param n="0">0.806</param>
     <param n="1">inf</param>
     <param n="2">0.402</param>
-    <param n="3">0.05</param>
+    <param n="3" type="msec" min="418.0" max="342.0" tune="0.0348">0.468</param>
    </slot>
   </filter>
  </emitter>

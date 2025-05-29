@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Music Box" bank="0" program="10">
+ <info name="Music Box" bank="0" program="11">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,10 +20,10 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="880" duration="0.5">
+ <sound gain="0.862" frequency="880" duration="0.5">
   <layer n="0">
    <waveform src="square" pitch="9.0"/>
-   <waveform src="sine" processing="modulate" ratio="0.526" pitch="3.0"/>
+   <waveform src="sine" processing="modulate" pitch="3.0"/>
    <waveform src="triangle" processing="add" ratio="0.258"/>
   </layer>
  </sound>

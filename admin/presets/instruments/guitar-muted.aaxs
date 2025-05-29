@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Electric Guitar (Muted)" bank="0" program="28">
+ <info name="Electric Guitar (Muted)" bank="0" program="29">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -25,11 +25,11 @@
   <layer n="0">
    <waveform src="cycloid"/>
    <waveform src="square" processing="add" ratio="0.543" pitch="2.0"/>
-   <waveform src="triangle" processing="modulate" ratio="0.779" pitch="5.0"/>
+   <waveform src="triangle" processing="modulate" pitch="5.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.96" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.01">
    <slot n="0">
     <param n="0">0.0</param>

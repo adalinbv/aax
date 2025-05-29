@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Tuba" bank="0" program="58">
+ <info name="Tuba" bank="0" program="59">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -27,7 +27,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.97" looping="true">
   <filter type="frequency">
    <slot n="0">
     <param n="0" pitch="18.0">1980.0</param>
@@ -39,7 +39,7 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="70.0" max="40.0" tune="0.0299">0.128</param>
+    <param n="1" type="msec" min="90.0" max="50.0" tune="0.0431">0.16</param>
     <param n="2">0.484</param>
     <param n="3">0.0765</param>
    </slot>
@@ -47,7 +47,7 @@
     <param n="0">1.0</param>
     <param n="1">inf</param>
     <param n="2">1.0</param>
-    <param n="3">0.25</param>
+    <param n="3" type="msec" min="495.0" max="405.0" tune="0.0997">0.688</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

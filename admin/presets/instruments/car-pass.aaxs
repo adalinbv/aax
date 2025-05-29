@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Car Pass" bank="0,83" program="127">
+ <info name="Car Pass" bank="0,83" program="128">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -28,11 +28,11 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="55.2" looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" tune="-nan.0">-nan.0</param>
+    <param n="1" type="msec" min="3.0" max="1.0" tune="0.000997">0.00449</param>
     <param n="2">0.497</param>
     <param n="3">2.0</param>
    </slot>
@@ -54,7 +54,7 @@
     <param n="0">0.66</param>
     <param n="1">0.22</param>
     <param n="2">0.1</param>
-    <param n="3">0.9</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Slap" bank="0" program="0" key="28">
+ <info name="Slap" bank="0" key="28">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -27,27 +27,27 @@
    <filter type="equalizer">
     <slot n="0">
      <param n="0">174.0</param>
-     <param n="1">2.0</param>
-     <param n="2">0.6</param>
+     <param n="1">1.0</param>
+     <param n="2">0.3</param>
      <param n="3">1.0</param>
     </slot>
     <slot n="1">
      <param n="0">2700.0</param>
-     <param n="1">0.6</param>
-     <param n="2">2.0</param>
+     <param n="1">0.3</param>
+     <param n="2">1.0</param>
      <param n="3">2.0</param>
     </slot>
     <slot n="2">
      <param n="0">3300.0</param>
-     <param n="1">1.0</param>
-     <param n="2">1.2</param>
+     <param n="1">0.5</param>
+     <param n="2">0.6</param>
      <param n="3">1.9</param>
     </slot>
    </filter>
   </layer>
  </sound>
 
- <emitter pan="-0.23" looping="true">
+ <emitter gain="3094.2" pan="-0.23" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.4</param>
@@ -72,12 +72,12 @@
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="phasing" src="envelope">
+  <effect type="chorus" src="envelope">
    <slot n="0">
     <param n="0">0.4</param>
     <param n="1">10.0</param>
-    <param n="2">0.01</param>
-    <param n="3">0.0</param>
+    <param n="2" type="usec">99.5</param>
+    <param n="3" type="usec">50.0</param>
    </slot>
   </effect>
  </emitter>

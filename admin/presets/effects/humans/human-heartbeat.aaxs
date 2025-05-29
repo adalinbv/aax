@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Heart Beat" bank="0,100" program="127">
+ <info name="Heart Beat" bank="0,100" program="128">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2024" by="Adalin B.V."/>
   <copyright from="2017" until="2024" by="Erik Hofman"/>

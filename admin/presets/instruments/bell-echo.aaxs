@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Glass Echo" bank="127" program="40">
+ <info name="Glass Echo" bank="127" program="41">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -21,18 +21,18 @@
  </info>
 
  <sound frequency="13.75" duration="0.35">
-  <layer n="0" ratio="2.0">
-   <waveform src="pure-sine" ratio="0.478"/>
-   <waveform src="square" processing="add" ratio="0.3" pitch="4.79"/>
+  <layer n="0">
+   <waveform src="pure-sine"/>
+   <waveform src="square" processing="add" ratio="0.628" pitch="4.79"/>
    <waveform src="square" processing="modulate" pitch="0.01"/>
   </layer>
-  <layer n="1" ratio="0.737">
+  <layer n="1" ratio="0.771">
    <waveform src="cycloid" ratio="0.75"/>
    <waveform src="sawtooth" processing="add"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.45" looping="true">
   <filter type="dynamic-layer" src="timed">
    <slot n="0">
     <param n="0">0.33</param>
@@ -44,7 +44,7 @@
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="10.0" max="5.0" tune="0.00229">0.0133</param>
+    <param n="1" type="msec" min="50.0" max="20.0" tune="0.0249">0.107</param>
     <param n="2">1.0</param>
     <param n="3">0.1</param>
    </slot>
@@ -52,7 +52,7 @@
     <param n="0">0.8</param>
     <param n="1">inf</param>
     <param n="2">0.8</param>
-    <param n="3">0.1</param>
+    <param n="3" type="msec" min="440.0" max="360.0" tune="0.0251">0.463</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">

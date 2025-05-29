@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Ocarina" bank="0" program="79">
+ <info name="Ocarina" bank="0" program="80">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="440" duration="0.1">
+ <sound gain="0.652" frequency="440" duration="0.1">
   <layer n="0">
    <waveform src="sine"/>
    <waveform src="sine" processing="add" ratio="0.2" pitch="3.0"/>
@@ -51,7 +51,7 @@
    </slot>
    <slot n="2">
     <param n="0">0.794</param>
-    <param n="1">0.1</param>
+    <param n="1" type="msec" min="539.0" max="441.0" tune="0.109">0.801</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

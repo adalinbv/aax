@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Lead 3 (Calliope)" bank="0" program="82">
+ <info name="Lead 3 (Calliope)" bank="0" program="83">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="110">
+ <sound mode="1" gain="0.848" frequency="110">
   <layer n="0">
    <waveform src="triangle"/>
    <waveform src="sine" processing="add" ratio="0.122" pitch="3.0"/>
@@ -51,7 +51,7 @@
    </slot>
    <slot n="2">
     <param n="0">0.944</param>
-    <param n="1">0.05</param>
+    <param n="1" type="msec" min="374.0" max="306.0" tune="0.0357">0.424</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Church Organ" bank="0" program="19">
+ <info name="Church Organ" bank="0" program="20">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -34,11 +34,11 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="8.63" looping="true">
   <filter type="timed-gain" src="envelope" release-time="2.8">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="10.0" max="5.0" tune="0.00229">0.0133</param>
+    <param n="1" type="msec" min="80.0" max="30.0" tune="0.0208">0.105</param>
     <param n="2">0.208</param>
     <param n="3">0.08</param>
    </slot>
@@ -46,7 +46,7 @@
     <param n="0">1.0</param>
     <param n="1">inf</param>
     <param n="2">1.0</param>
-    <param n="3">0.7</param>
+    <param n="3" type="msec" min="495.0" max="405.0" tune="0.0498">0.57</param>
    </slot>
   </filter>
  </emitter>

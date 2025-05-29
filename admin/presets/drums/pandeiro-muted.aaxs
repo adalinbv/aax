@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Mute Pandeiro" bank="0" program="0" key="91">
+ <info name="Mute Pandeiro" bank="0" key="91">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -25,14 +25,14 @@
    <waveform src="pure-square" pitch="3.0"/>
    <waveform src="triangle" processing="add" ratio="0.196" pitch="3.025"/>
    <waveform src="white-noise" processing="add" ratio="0.24" pitch="0.15"/>
-   <waveform src="square" processing="modulate" ratio="0.76" pitch="6.75"/>
+   <waveform src="square" processing="modulate" pitch="6.75"/>
    <waveform src="pink-noise" processing="add" ratio="0.12" pitch="0.25"/>
    <waveform src="triangle" processing="add" ratio="0.0492" pitch="0.325"/>
    <waveform src="triangle" processing="add" ratio="0.0327" pitch="0.205"/>
   </layer>
  </sound>
 
- <emitter pan="-0.1" looping="true">
+ <emitter gain="17.7" pan="-0.1" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.4</param>

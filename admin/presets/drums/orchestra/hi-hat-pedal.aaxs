@@ -24,7 +24,7 @@
   <layer n="0">
    <waveform src="square"/>
    <waveform src="white-noise" processing="mix" ratio="0.62" pitch="0.25"/>
-   <waveform src="square" processing="modulate" ratio="0.9" pitch="4.1"/>
+   <waveform src="square" processing="modulate" pitch="4.1"/>
    <filter type="frequency">
     <slot n="0">
      <param n="0">3500.0</param>
@@ -36,7 +36,7 @@
   </layer>
  </sound>
 
- <emitter pan="0.31" looping="true">
+ <emitter gain="5.59" pan="0.31" looping="true">
   <filter type="timed-gain" release-time="0.1">
    <slot n="0">
     <param n="0">0.0</param>

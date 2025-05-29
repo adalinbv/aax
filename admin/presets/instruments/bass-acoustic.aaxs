@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Acoustic Bass" bank="0" program="32">
+ <info name="Acoustic Bass" bank="0" program="33">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -23,13 +23,13 @@
 
  <sound mode="1" frequency="55" duration="0.5">
   <layer n="0">
-   <waveform src="triangle" ratio="0.327" pitch="0.999"/>
+   <waveform src="triangle" pitch="0.999"/>
    <waveform src="pure-sawtooth" processing="modulate" pitch="1.979"/>
-   <waveform src="sawtooth" processing="mix" ratio="-1.33" pitch="0.999"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.238" pitch="0.999"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="3.29" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
     <param n="0">0.0</param>

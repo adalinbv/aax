@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Lead 2 (Sequenced Analog)" bank="41" program="81">
+ <info name="Lead 2 (Sequenced Analog)" bank="41" program="82">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -28,7 +28,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.34" looping="true">
   <filter type="frequency" src="inverse-timed|24db|logarithmic">
    <slot n="0">
     <param n="0" pitch="2.5">4400.0</param>
@@ -72,8 +72,8 @@
    <slot n="0">
     <param n="0">0.8</param>
     <param n="1">0.15</param>
-    <param n="2">0.1</param>
-    <param n="3">0.2</param>
+    <param n="2" type="msec">5.0</param>
+    <param n="3" type="msec">20.0</param>
    </slot>
   </effect>
  </audioframe>

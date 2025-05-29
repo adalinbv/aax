@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Effects (Goblin)" bank="0" program="101">
+ <info name="Effects (Goblin)" bank="0" program="102">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -27,7 +27,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.68" looping="true">
   <filter type="timed-gain" release-time="0.7">
    <slot n="0">
     <param n="0">0.0</param>
@@ -61,7 +61,7 @@
     <param n="0">1.8</param>
     <param n="1">2.0</param>
     <param n="2">0.4</param>
-    <param n="3">0.95</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
@@ -71,8 +71,8 @@
    <slot n="0">
     <param n="0">0.8</param>
     <param n="1">2.0</param>
-    <param n="2">0.2</param>
-    <param n="3">0.175</param>
+    <param n="2" type="msec">10.0</param>
+    <param n="3" type="msec">18.7</param>
    </slot>
   </effect>
  </audioframe>

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Cowbel" bank="0" program="0" key="56">
+ <info name="Cowbel" bank="0" key="56">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -22,12 +22,12 @@
 
  <sound mode="1" frequency="220" duration="0.1">
   <layer n="0">
-   <waveform src="triangle" ratio="0.538" pitch="1.616"/>
+   <waveform src="triangle" pitch="1.616"/>
    <waveform src="square" processing="modulate" pitch="3.2987"/>
   </layer>
  </sound>
 
- <emitter pan="0.31" looping="true">
+ <emitter gain="2.16" pan="0.31" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.15</param>

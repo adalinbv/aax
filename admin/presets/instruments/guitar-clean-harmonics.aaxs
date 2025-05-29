@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Guitar Harmonics" bank="0" program="31">
+ <info name="Guitar Harmonics" bank="0" program="32">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -25,12 +25,12 @@
   <layer n="0">
    <waveform src="square"/>
    <waveform src="sine" processing="add" ratio="0.211" pitch="7.0"/>
-   <waveform src="sine" processing="modulate" ratio="0.526" pitch="5.0"/>
+   <waveform src="sine" processing="modulate" pitch="5.0"/>
    <waveform src="sine" processing="add" ratio="0.211" pitch="7.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="7.25" looping="true">
   <filter type="timed-gain" release-time="0.2">
    <slot n="0">
     <param n="0">0.0</param>

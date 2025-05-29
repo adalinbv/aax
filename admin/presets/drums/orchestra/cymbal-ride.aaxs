@@ -20,17 +20,17 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="554.365" duration="0.3">
+ <sound gain="0.97" frequency="554.365" duration="0.3">
   <layer n="0">
    <waveform src="square" pitch="0.985"/>
    <waveform src="sawtooth" processing="mix" ratio="0.43" pitch="2.9"/>
    <waveform src="pink-noise" processing="add" ratio="0.632"/>
-   <waveform src="sine" processing="modulate" ratio="0.526" pitch="2.3"/>
+   <waveform src="sine" processing="modulate" pitch="2.3"/>
    <filter type="frequency">
     <slot n="0">
      <param n="0">500.0</param>
-     <param n="1">0.1</param>
-     <param n="2">1.2</param>
+     <param n="1">0.0833</param>
+     <param n="2">1.0</param>
      <param n="3">4.0</param>
     </slot>
    </filter>
@@ -39,7 +39,7 @@
    <waveform src="square" pitch="0.9"/>
    <waveform src="white-noise" processing="add" ratio="0.752" pitch="0.12"/>
    <waveform src="sawtooth" processing="add" ratio="0.347" pitch="0.707"/>
-   <waveform src="sine" processing="modulate" ratio="0.752" pitch="6.9"/>
+   <waveform src="sine" processing="modulate" pitch="6.9"/>
    <filter type="equalizer">
     <slot n="0">
      <param n="0">3500.0</param>

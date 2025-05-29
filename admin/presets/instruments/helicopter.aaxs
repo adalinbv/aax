@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Helicopter" bank="0" program="125">
+ <info name="Helicopter" bank="0" program="126">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -24,15 +24,15 @@
   <layer n="0">
    <waveform src="pink-noise"/>
    <waveform src="cycloid" processing="mix" ratio="0.4" pitch="0.75"/>
-   <waveform src="sawtooth" processing="modulate" ratio="0.133" pitch="0.25"/>
+   <waveform src="sawtooth" processing="modulate" pitch="0.25"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="86.3" looping="true">
   <filter type="timed-gain" src="envelope" release-time="2.0">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.2</param>
+    <param n="1" type="msec" min="40.0" max="20.0" tune="0.00997">0.0549</param>
     <param n="2">0.00075</param>
     <param n="3">1.5</param>
    </slot>

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Pizzicato Solo" bank="0" program="45">
+ <info name="Pizzicato Solo" bank="0" program="46">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -21,7 +21,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="220">
+ <sound mode="1" gain="0.924" frequency="220">
   <layer n="0">
    <waveform src="pure-impulse" ratio="0.00114"/>
    <waveform src="cycloid" processing="add"/>

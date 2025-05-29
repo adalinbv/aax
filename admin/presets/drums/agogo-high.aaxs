@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="High Agogo" bank="0" program="0" key="67">
+ <info name="High Agogo" bank="0" key="67">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -22,12 +22,12 @@
 
  <sound mode="1" frequency="587.33" duration="0.1">
   <layer n="0">
-   <waveform src="triangle" ratio="0.615" pitch="1.696"/>
+   <waveform src="triangle" pitch="1.696"/>
    <waveform src="square" processing="modulate" pitch="3.0987"/>
   </layer>
  </sound>
 
- <emitter pan="-0.55" looping="true">
+ <emitter gain="1.86" pan="-0.55" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.15</param>

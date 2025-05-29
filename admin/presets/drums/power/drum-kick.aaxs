@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="69.2957" duration="0.3">
+ <sound mode="1" gain="0.849" frequency="69.2957" duration="0.3">
   <layer n="0">
    <waveform src="pink-noise" ratio="0.167" pitch="0.175"/>
    <waveform src="sine" processing="add" ratio="0.933"/>
@@ -78,7 +78,7 @@
     <param n="0">0.95</param>
     <param n="1">0.01</param>
     <param n="2">0.0</param>
-    <param n="3">0.15</param>
+    <param n="3" type="msec">17.5</param>
    </slot>
    <slot n="1">
     <param n="0">20.0</param>

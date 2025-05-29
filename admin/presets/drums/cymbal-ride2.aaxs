@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Ride Cymbal 2" bank="0" program="0" key="59">
+ <info name="Ride Cymbal 2" bank="0" key="59">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,11 +20,11 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="554.365" duration="0.3">
+ <sound mode="1" gain="0.34" frequency="554.365" duration="0.3">
   <layer n="0" ratio="0.25">
-   <waveform src="square" ratio="0.57" pitch="2.985"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.7" pitch="2.9"/>
-   <waveform src="pink-noise" processing="add" ratio="0.3"/>
+   <waveform src="square" pitch="2.985"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.829" pitch="2.9"/>
+   <waveform src="pink-noise" processing="add" ratio="0.526"/>
    <waveform src="sine" processing="modulate" pitch="4.23"/>
    <filter type="frequency">
     <slot n="0">
@@ -36,9 +36,9 @@
    </filter>
   </layer>
   <layer n="1">
-   <waveform src="square" ratio="0.57" pitch="0.98"/>
-   <waveform src="white-noise" processing="add" ratio="0.3" pitch="0.12"/>
-   <waveform src="sawtooth" processing="add" ratio="0.462" pitch="0.707"/>
+   <waveform src="square" pitch="0.98"/>
+   <waveform src="white-noise" processing="add" ratio="0.526" pitch="0.12"/>
+   <waveform src="sawtooth" processing="add" ratio="0.811" pitch="0.707"/>
    <waveform src="sine" processing="modulate" pitch="6.9"/>
    <filter type="equalizer">
     <slot n="0">

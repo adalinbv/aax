@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Lead 1 (Square)" bank="0,6" program="80">
+ <info name="Lead 1 (Square)" bank="0,6" program="81">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -26,7 +26,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="1.14" looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
@@ -42,7 +42,7 @@
    </slot>
    <slot n="2">
     <param n="0">0.578</param>
-    <param n="1">0.005</param>
+    <param n="1" type="msec" min="330.0" max="270.0" tune="0.0275">0.37</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

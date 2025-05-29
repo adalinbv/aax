@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Celesta" bank="0" program="8">
+ <info name="Celesta" bank="0" program="9">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="440" duration="0.1">
+ <sound gain="0.81" frequency="440" duration="0.1">
   <layer n="0">
    <waveform src="sine"/>
    <waveform src="sine" processing="mix" ratio="0.05" pitch="6.0"/>

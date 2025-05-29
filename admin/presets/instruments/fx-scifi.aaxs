@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Effects (Star Theme)" bank="0" program="103">
+ <info name="Effects (Star Theme)" bank="0" program="104">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -22,14 +22,14 @@
 
  <sound frequency="220" voices="3" spread="0.31" phasing="true">
   <layer n="0">
-   <waveform src="triangle" ratio="0.779" pitch="17.0"/>
-   <waveform src="square" processing="mix" ratio="0.947" pitch="4.9897"/>
+   <waveform src="triangle" pitch="17.0"/>
+   <waveform src="square" processing="mix" ratio="0.959" pitch="4.9897"/>
    <waveform src="cycloid" processing="modulate" pitch="3.4991"/>
-   <waveform src="square" processing="add" ratio="0.543"/>
+   <waveform src="square" processing="add" ratio="0.697"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.43" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
     <param n="0">0.0</param>
@@ -49,7 +49,7 @@
     <param n="0">1.0</param>
     <param n="1">3.0</param>
     <param n="2">0.4</param>
-    <param n="3">0.8</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

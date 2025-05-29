@@ -24,11 +24,11 @@
   <layer n="0">
    <waveform src="square"/>
    <waveform src="white-noise" processing="mix" ratio="0.62" pitch="0.25"/>
-   <waveform src="square" processing="modulate" ratio="0.9" pitch="4.1"/>
+   <waveform src="square" processing="modulate" pitch="4.1"/>
   </layer>
  </sound>
 
- <emitter pan="0.31" looping="true">
+ <emitter gain="5.2" pan="0.31" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">2.85</param>

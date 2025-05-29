@@ -25,11 +25,11 @@
    <waveform src="square" pitch="0.9"/>
    <waveform src="white-noise" processing="add" ratio="0.752" pitch="0.12"/>
    <waveform src="sawtooth" processing="add" ratio="0.347" pitch="0.707"/>
-   <waveform src="pure-sine" processing="modulate" ratio="0.683" pitch="6.9"/>
+   <waveform src="pure-sine" processing="modulate" pitch="6.9"/>
   </layer>
  </sound>
 
- <emitter pan="0.31" looping="true">
+ <emitter gain="6.4" pan="0.31" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.1">
    <slot n="0">
     <param n="0">0.0</param>

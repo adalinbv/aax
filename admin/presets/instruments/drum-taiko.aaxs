@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Taiko Drum" bank="0" program="116">
+ <info name="Taiko Drum" bank="0" program="117">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -28,11 +28,11 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="7.43" looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="4.0" max="2.0" tune="0.000997">0.00549</param>
+    <param n="1" type="msec" min="6.0" max="2.0" tune="0.00199">0.00897</param>
     <param n="2">1.0</param>
     <param n="3">0.83</param>
    </slot>

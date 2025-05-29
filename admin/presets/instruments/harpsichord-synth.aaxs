@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Synth Harpsi" bank="127" program="18">
+ <info name="Synth Harpsi" bank="127" program="19">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -22,17 +22,17 @@
 
  <sound mode="1" frequency="220" duration="0.1">
   <layer n="0">
-   <waveform src="square" ratio="0.95" pitch="0.5"/>
-   <waveform src="sawtooth" processing="add" ratio="0.56" pitch="2.0"/>
+   <waveform src="square" pitch="0.5"/>
+   <waveform src="sawtooth" processing="add" ratio="0.589" pitch="2.0"/>
    <waveform src="sine" processing="modulate" pitch="5.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="4.36" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.4">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="8.0" max="3.0" tune="0.00415">0.018</param>
+    <param n="1" type="msec" min="10.0" max="5.0" tune="0.00229">0.0133</param>
     <param n="2">1.0</param>
     <param n="3">0.74</param>
    </slot>

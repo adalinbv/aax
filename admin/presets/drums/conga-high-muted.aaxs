@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Mute Hi Conga" bank="0" program="0" key="62">
+ <info name="Mute Hi Conga" bank="0" key="62">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -27,7 +27,7 @@
   </layer>
  </sound>
 
- <emitter pan="-0.39" looping="true">
+ <emitter gain="1.21" pan="-0.39" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.2</param>

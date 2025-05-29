@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Synth Strings 1" bank="0" program="50">
+ <info name="Synth Strings 1" bank="0" program="51">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -26,11 +26,11 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.54" looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="50.0" max="20.0" tune="0.0166">0.0802</param>
+    <param n="1" type="msec" min="60.0" max="15.0" tune="0.0249">0.105</param>
     <param n="2">0.285</param>
     <param n="3">0.075</param>
    </slot>
@@ -42,7 +42,7 @@
    </slot>
    <slot n="2">
     <param n="0">0.847</param>
-    <param n="1">0.25</param>
+    <param n="1" type="msec" min="539.0" max="441.0" tune="0.0574">0.632</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

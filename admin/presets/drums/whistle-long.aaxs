@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Long Whistle" bank="0" program="0" key="72">
+ <info name="Long Whistle" bank="0" key="72">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,13 +20,13 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="293.665" duration="0.3">
+ <sound mode="1" gain="0.531" frequency="293.665" duration="0.3">
   <layer n="0">
    <waveform src="white-noise"/>
    <filter type="frequency" src="24db">
     <slot n="0">
      <param n="0" pitch="10.0">2936.6</param>
-     <param n="1">0.5</param>
+     <param n="1">1.0</param>
      <param n="2">0.0</param>
      <param n="3">30.0</param>
     </slot>
@@ -69,7 +69,7 @@
     <param n="0">0.5</param>
     <param n="1">50.0</param>
     <param n="2">0.7</param>
-    <param n="3">0.3</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

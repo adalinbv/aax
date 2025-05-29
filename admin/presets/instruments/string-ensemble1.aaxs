@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="String Ensamble 1" bank="0" program="48">
+ <info name="String Ensamble 1" bank="0" program="49">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -23,12 +23,12 @@
  <sound frequency="220" duration="2.1" voices="3" spread="0.27" phasing="true">
   <layer n="0">
    <waveform src="sawtooth"/>
-   <waveform src="triangle" processing="modulate" ratio="0.818" pitch="3.987"/>
+   <waveform src="triangle" processing="modulate" pitch="3.987"/>
    <waveform src="sawtooth" processing="add" ratio="0.28" pitch="0.991" voices="3" spread="0.5" phasing="true"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="10.8" looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
@@ -44,7 +44,7 @@
    </slot>
    <slot n="2">
     <param n="0">0.399</param>
-    <param n="1">0.25</param>
+    <param n="1" type="msec" min="495.0" max="405.0" tune="0.0362">0.554</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

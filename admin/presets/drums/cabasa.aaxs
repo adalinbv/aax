@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Cabasa" bank="0" program="0" key="69">
+ <info name="Cabasa" bank="0" key="69">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,14 +20,14 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="440" duration="0.3">
+ <sound gain="0.316" frequency="440" duration="0.3">
   <layer n="0">
    <waveform src="pink-noise" pitch="0.23" staticity="0.45"/>
    <filter type="frequency" src="48db">
     <slot n="0">
      <param n="0">3300.0</param>
      <param n="1">0.0</param>
-     <param n="2">0.5</param>
+     <param n="2">1.0</param>
      <param n="3">1.5</param>
     </slot>
    </filter>

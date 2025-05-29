@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="French Accordion" bank="0" program="23">
+ <info name="French Accordion" bank="0" program="24">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -29,11 +29,11 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.88" looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="50.0" max="15.0" tune="0.0218">0.0896</param>
+    <param n="1" type="msec" min="30.0" max="10.0" tune="0.0133">0.0541</param>
     <param n="2">1.0</param>
     <param n="3">0.025</param>
    </slot>
@@ -41,7 +41,7 @@
     <param n="0">0.912</param>
     <param n="1">inf</param>
     <param n="2">0.912</param>
-    <param n="3">0.1</param>
+    <param n="3" type="msec" min="308.0" max="252.0" tune="0.062">0.447</param>
    </slot>
   </filter>
   <effect type="timed-pitch" src="envelope">

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Slapped Electric Bass 1" bank="0" program="36">
+ <info name="Slapped Electric Bass 1" bank="0" program="37">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -25,16 +25,16 @@
   <layer n="0">
    <waveform src="pure-square"/>
    <waveform src="triangle" processing="add" ratio="0.144" pitch="5.997"/>
-   <waveform src="triangle" processing="modulate" ratio="0.351" pitch="1.998"/>
+   <waveform src="triangle" processing="modulate" pitch="1.998"/>
    <waveform src="triangle" processing="add" ratio="0.271" pitch="5.887"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.81" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.2">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="50.0" max="5.0" tune="0.0485">0.128</param>
+    <param n="1" type="msec" min="20.0" max="3.0" tune="0.0183">0.0496</param>
     <param n="2">1.0</param>
     <param n="3">0.005</param>
    </slot>

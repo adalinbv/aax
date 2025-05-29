@@ -21,21 +21,21 @@
  </info>
 
  <sound mode="1" frequency="554.365" duration="0.3">
-  <layer n="0" ratio="0.94">
-   <waveform src="triangle" ratio="0.654" pitch="0.985"/>
-   <waveform src="sawtooth" processing="mix" ratio="0.45" pitch="1.9"/>
-   <waveform src="pink-noise" processing="add" ratio="0.96"/>
+  <layer n="0" ratio="0.902">
+   <waveform src="triangle" ratio="0.681" pitch="0.985"/>
+   <waveform src="sawtooth" processing="mix" ratio="0.472" pitch="1.9"/>
+   <waveform src="pink-noise" processing="add"/>
    <waveform src="sine" processing="modulate" pitch="17.7"/>
   </layer>
   <layer n="1">
    <waveform src="square" pitch="0.9"/>
    <waveform src="white-noise" processing="add" ratio="0.752" pitch="0.12"/>
    <waveform src="sawtooth" processing="add" ratio="0.347" pitch="0.707"/>
-   <waveform src="sine" processing="modulate" ratio="0.752" pitch="11.9"/>
+   <waveform src="sine" processing="modulate" pitch="11.9"/>
   </layer>
  </sound>
 
- <emitter pan="0.31" looping="true">
+ <emitter gain="2.42" pan="0.31" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">2.85</param>

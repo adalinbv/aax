@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Short Whistle" bank="0" program="0" key="71">
+ <info name="Short Whistle" bank="0" key="71">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="1" frequency="349.228" duration="0.3">
+ <sound mode="1" gain="0.422" frequency="349.228" duration="0.3">
   <layer n="0">
    <waveform src="white-noise"/>
    <filter type="frequency" src="24db">
@@ -63,7 +63,7 @@
     <param n="0">0.0</param>
     <param n="1">50.0</param>
     <param n="2">0.4</param>
-    <param n="3">0.5</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

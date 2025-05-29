@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Pan Flute" bank="0" program="91">
+ <info name="Pan Flute" bank="0" program="92">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -27,15 +27,15 @@
    <waveform src="sine" processing="add" ratio="0.311" pitch="2.4938"/>
    <waveform src="pure-sine" processing="add" ratio="0.455" pitch="1.4917"/>
    <waveform src="pink-noise" processing="add" ratio="0.25"/>
-   <waveform src="pure-sine" processing="modulate" ratio="0.909" pitch="0.5"/>
+   <waveform src="pure-sine" processing="modulate" pitch="0.5"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="3.7" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.08">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="20.0" max="10.0" tune="0.0111">0.0468</param>
+    <param n="1" type="msec" min="80.0" max="35.0" tune="0.0187">0.103</param>
     <param n="2">0.303</param>
     <param n="3">0.125</param>
    </slot>
@@ -47,7 +47,7 @@
    </slot>
    <slot n="2">
     <param n="0">0.515</param>
-    <param n="1">0.165</param>
+    <param n="1" type="msec" min="616.0" max="504.0" tune="0.124">0.916</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

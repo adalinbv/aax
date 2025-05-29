@@ -21,17 +21,17 @@
  </info>
 
  <sound mode="1" frequency="13.75" duration="0.5">
-  <layer n="0" ratio="0.882">
+  <layer n="0">
    <waveform src="white-noise" ratio="0.4" pitch="0.25"/>
    <waveform src="sine" processing="add" voices="5"/>
   </layer>
-  <layer n="1" ratio="0.75" voices="3">
+  <layer n="1" ratio="0.85" voices="3">
    <waveform src="triangle" ratio="0.962"/>
    <waveform src="sine" processing="add" pitch="0.7"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="4.12" looping="true">
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.95</param>
@@ -81,7 +81,7 @@
     <param n="0">0.95</param>
     <param n="1">0.01</param>
     <param n="2">0.0</param>
-    <param n="3">0.15</param>
+    <param n="3" type="msec">17.5</param>
    </slot>
    <slot n="1">
     <param n="0">20.0</param>

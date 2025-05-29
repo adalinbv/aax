@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Synth Brass 4" bank="0,40" program="63">
+ <info name="Synth Brass 4" bank="0,40" program="64">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -47,7 +47,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="5.75" looping="true">
   <filter type="dynamic-layer" src="timed|exponential">
    <slot n="0">
     <param n="0">0.0</param>
@@ -67,7 +67,7 @@
     <param n="0">0.877</param>
     <param n="1">inf</param>
     <param n="2">0.877</param>
-    <param n="3">0.1</param>
+    <param n="3" type="msec" min="506.0" max="414.0" tune="0.0601">0.614</param>
    </slot>
   </filter>
  </emitter>

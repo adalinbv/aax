@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Electric Snare 2" bank="1" program="118">
+ <info name="Electric Snare 2" bank="1" program="119">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="233.082" duration="0.5">
+ <sound frequency="220" duration="0.5">
   <layer n="0">
    <waveform src="sine" ratio="0.375" pitch="1.18"/>
    <waveform src="sine" processing="add"/>
@@ -28,7 +28,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="2.76" looping="true">
   <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">1.7</param>
@@ -46,7 +46,7 @@
   <filter type="timed-gain" src="envelope" release-time="0.03">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec">1.8</param>
+    <param n="1" type="msec" min="5.0" max="2.0" tune="0.0015">0.00723</param>
     <param n="2">1.0</param>
     <param n="3">1.15</param>
    </slot>

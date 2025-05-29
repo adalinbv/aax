@@ -20,14 +20,14 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="880" duration="0.3">
+ <sound gain="0.355" frequency="880" duration="0.3">
   <layer n="0">
    <waveform src="white-noise"/>
    <filter type="frequency" src="48db">
     <slot n="0">
      <param n="0">3300.0</param>
      <param n="1">0.0</param>
-     <param n="2">2.0</param>
+     <param n="2">1.0</param>
      <param n="3">1.5</param>
     </slot>
    </filter>
@@ -46,7 +46,7 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.01</param>
+    <param n="1" type="msec">1.5</param>
     <param n="2">1.0</param>
     <param n="3">0.01</param>
    </slot>

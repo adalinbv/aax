@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="1567.98" duration="0.3">
+ <sound gain="0.355" frequency="1567.98" duration="0.3">
   <layer n="0">
    <waveform src="white-noise"/>
    <filter type="frequency" src="48db">

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Fretless Bass (Smooth)" bank="0,97" program="35">
+ <info name="Fretless Bass (Smooth)" bank="0,97" program="36">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -26,11 +26,11 @@
    <waveform src="square"/>
    <waveform src="sawtooth" processing="mix" ratio="0.43"/>
    <waveform src="triangle" processing="add" ratio="0.172" pitch="3.0"/>
-   <waveform src="sine" processing="modulate" ratio="0.526" pitch="2.0"/>
+   <waveform src="sine" processing="modulate" pitch="2.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="4.59" looping="true">
   <filter type="timed-gain" release-time="0.2">
    <slot n="0">
     <param n="0">0.0</param>

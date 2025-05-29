@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Chinese Cymbal" bank="0" program="0" key="52">
+ <info name="Chinese Cymbal" bank="0" key="52">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,26 +20,26 @@
   <sound version="1.1"/>
  </info>
 
- <sound mode="2" frequency="277.183" duration="0.3">
+ <sound mode="2" gain="0.424" frequency="277.183" duration="0.3">
   <layer n="0" pitch="0.75">
-   <waveform src="sawtooth" ratio="0.737" pitch="1.297"/>
+   <waveform src="sawtooth" pitch="1.297"/>
    <waveform src="square" processing="modulate" pitch="2.5"/>
-   <waveform src="white-noise" processing="add" ratio="0.237" pitch="0.215"/>
+   <waveform src="white-noise" processing="add" ratio="0.322" pitch="0.215"/>
    <waveform src="square" processing="modulate" pitch="7.5"/>
    <filter type="frequency">
     <slot n="0">
      <param n="0">850.0</param>
-     <param n="1">0.6</param>
-     <param n="2">1.6</param>
+     <param n="1">0.375</param>
+     <param n="2">1.0</param>
      <param n="3">7.0</param>
     </slot>
    </filter>
   </layer>
-  <layer n="1" ratio="0.7">
+  <layer n="1" ratio="0.95">
    <waveform src="square" pitch="0.9"/>
    <waveform src="white-noise" processing="add" ratio="0.752" pitch="0.12"/>
    <waveform src="sawtooth" processing="add" ratio="0.347" pitch="0.707"/>
-   <waveform src="sine" processing="modulate" ratio="0.752" pitch="6.9"/>
+   <waveform src="sine" processing="modulate" pitch="6.9"/>
    <filter type="equalizer">
     <slot n="0">
      <param n="0">3500.0</param>

@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Tinkle Bells" bank="0" program="112">
+ <info name="Tinkle Bells" bank="0" program="113">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -20,7 +20,7 @@
   <sound version="1.1"/>
  </info>
 
- <sound frequency="880" duration="0.1">
+ <sound gain="0.511" frequency="880" duration="0.1">
   <layer n="0">
    <waveform src="triangle" ratio="0.861"/>
    <waveform src="square" processing="add" pitch="3.01"/>

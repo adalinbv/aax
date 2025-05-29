@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Effects (Brightness, Tradionional)" bank="127" program="35">
+ <info name="Effects (Brightness, Tradionional)" bank="127" program="36">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -31,7 +31,7 @@
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="3.6" looping="true">
   <filter type="dynamic-layer" src="inverse-timed|exponential">
    <slot n="0">
     <param n="0">0.0</param>
@@ -51,7 +51,7 @@
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1" type="msec" min="10.0" max="5.0" tune="0.00208">0.0125</param>
+    <param n="1" type="msec" min="55.0" max="8.0" tune="0.0506">0.137</param>
     <param n="2">0.412</param>
     <param n="3">0.025</param>
    </slot>

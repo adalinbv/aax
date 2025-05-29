@@ -11,7 +11,7 @@
 
 <aeonwave>
 
- <info name="Acoustic Guitar (Nylon)" bank="0" program="24">
+ <info name="Acoustic Guitar (Nylon)" bank="0" program="25">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2025" by="Adalin B.V."/>
   <copyright from="2017" until="2025" by="Erik Hofman"/>
@@ -24,12 +24,12 @@
  <sound frequency="110" duration="0.1">
   <layer n="0">
    <waveform src="square"/>
-   <waveform src="triangle" processing="modulate" ratio="0.431" pitch="2.999"/>
+   <waveform src="triangle" processing="modulate" pitch="2.999"/>
    <waveform src="sawtooth" processing="add" ratio="0.0147" pitch="5.0"/>
   </layer>
  </sound>
 
- <emitter looping="true">
+ <emitter gain="6.06" looping="true">
   <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
     <param n="0">0.0</param>
