@@ -130,7 +130,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
    sptr = drbi->mix(scratch, drb, srb, ep2d, pitch, &offs, &dno_samples, history);
    if (sptr == NULL || dno_samples == 0)
    {
-      if (!dno_samples || (srbi->playing == 0 && srbi->stopped == 1)) {
+      if (!dno_samples || (!srbi->playing && srbi->stopped)) {
          return -1;
       } else {
          return 0;
@@ -141,13 +141,13 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
    genv = _FILTER_GET_DATA(ep2d, TIMED_GAIN_FILTER);
    if (!genv)
    {
-      if (srbi->playing == 0 && srbi->stopped == 1)
+      if (!srbi->playing && srbi->stopped)
       {
          /* the ringbuffer was already flagged as stopped */
          /* but sptr still needs to get mixed             */
          ret = -1;
       }
-      else if (srbi->stopped == 1)
+      else if (srbi->stopped)
       {
          /*
           * Distance delay induced stopping of playback
@@ -266,7 +266,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const void *r
                   gain, svol, evol);
    }
 
-   if (ret >= -1 && drbi->playing == 0 && drbi->stopped == 1) {
+   if (ret >= -1 && !drbi->playing && drbi->stopped) {
       ret = 0;
    }
 

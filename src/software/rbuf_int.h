@@ -156,7 +156,7 @@ typedef struct _aaxRingBufferData_t
 
     unsigned int loop_max;
     unsigned int loop_no;
-    bool loop_mode;
+    int loop_mode;
     bool sampled_release;
 
     bool looping;

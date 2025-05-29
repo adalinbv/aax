@@ -105,9 +105,9 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
           */
          rbd->ref_counter = 1;
 
-         rbi->playing = 0;
-         rbi->stopped = 1;
-         rbi->streaming = 0;
+         rbi->playing = false;
+         rbi->stopped = true;
+         rbi->streaming = false;
          rbi->gain_agc = 1.0f;
          rbi->pitch_norm = 1.0;
          rbi->volume_min = 0.0f;
@@ -369,9 +369,9 @@ _aaxRingBufferReference(_aaxRingBuffer *ringbuffer)
       memcpy(rbi, ringbuffer->handle, sizeof(_aaxRingBufferData));
 
       rbi->sample->ref_counter++;
-      rbi->playing = 0;
-      rbi->stopped = 1;
-      rbi->streaming = 0;
+      rbi->playing = false;
+      rbi->stopped = true;
+      rbi->streaming = false;
       rbi->elapsed_sec = 0.0f;
       rbi->curr_pos_sec = 0.0;
       rbi->curr_sample = 0;
@@ -615,20 +615,20 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
       }
       else
       {
-         rbi->playing = 0;
-         rbi->stopped = 1;
-         rbi->streaming = 0;
+         rbi->playing = false;
+         rbi->stopped = true;
+         rbi->streaming = false;
       }
       break;
    case RB_STARTED:
-      rbi->playing = 1;
-      rbi->stopped = 0;
-      rbi->streaming = 0;
+      rbi->playing = true;
+      rbi->stopped = false;
+      rbi->streaming = false;
       break;
    case RB_REWINDED:
       rbd = rbi->sample;
-      rbi->playing = 0;
-      rbi->stopped = 0;
+      rbi->playing = false;
+      rbi->stopped = false;
       rbi->loop_no = 0;
       rbi->looping = rbi->loop_mode;
       if (!rbi->looping || rbd->loop_start_sec ||
@@ -646,9 +646,9 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
       rbi->looping = 0;
       break;
    case RB_STARTED_STREAMING:
-      rbi->playing = 1;
-      rbi->stopped = 0;
-      rbi->streaming = 1;
+      rbi->playing = true;
+      rbi->stopped = false;
+      rbi->streaming = true;
       break;
    default:
      break;
@@ -730,8 +730,8 @@ _aaxRingBufferSetParamd(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, FLOA
       if (fval >= (rbd->duration_sec-eps))
       {
          fval = rbd->duration_sec;
-//       rbi->playing = 0;
-         rbi->stopped = 1;
+//       rbi->playing = false;
+         rbi->stopped = true;
       }
       rbi->curr_pos_sec = fval;
       rbi->curr_sample = floorf(fval*rbd->frequency_hz);
@@ -961,7 +961,8 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       rv = true;
       break;
    case RB_LOOPING:
-      rbi->looping = rbi->loop_mode = val ? true : false;
+      rbi->loop_mode = val ? true : false;
+      rbi->looping = rbi->loop_mode;
       rbi->loop_max = (val > true) ? val : 0;
       rv = true;
       break;
@@ -1244,7 +1245,7 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       rv = rbd->dde_samples;
       break;
    case RB_IS_PLAYING:
-      rv = (rbi->playing == 0 && rbi->stopped == 1) ? false : true;
+      rv = (!rbi->playing && rbi->stopped) ? false : true;
       break;
    case RB_IS_MIXER_BUFFER:
       rv = (rbd->mixer_fmt != false) ? true : false;
