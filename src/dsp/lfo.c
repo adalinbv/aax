@@ -754,8 +754,10 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, bool stopped, float *velocity, _aaxEnvelo
 
       rv = _MAX(env->value, -1e-2f);
 
-      if (stage < 2) {
+      if (stage < 2) // attack-decay phase
+      {
          rv *= *velocity;
+         if (stage < 1) stopped = false; // do not stop before the release phase
       }
 
       if (stage <= env->max_stages)
