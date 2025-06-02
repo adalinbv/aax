@@ -287,6 +287,7 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
    case AAX_TRIANGLE:
    case AAX_CYCLOID:
    case AAX_IMPULSE:
+   case AAX_PULSE:
       if (rv)
       {
          const __m128 one = _mm_set1_ps(1.0f);

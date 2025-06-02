@@ -440,6 +440,7 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
    case AAX_TRIANGLE:
    case AAX_CYCLOID:
    case AAX_IMPULSE:
+   case AAX_PULSE:
       if (rv)
       {
          static const float fact[8] = { 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f };

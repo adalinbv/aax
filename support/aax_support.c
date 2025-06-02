@@ -801,6 +801,8 @@ _aaxGetSourceTypeByName(const char *wave, bool timed)
                rv |= AAX_SQUARE;
             } else if (!strncasecmp(name, "impulse", len)) {
                rv |= AAX_IMPULSE;
+            } else if (!strncasecmp(name, "pulse", len)) {
+               rv |= AAX_PULSE;
             } else if (!strncasecmp(name, "sawtooth", len)) {
                rv |= AAX_SAWTOOTH;
             } else if (!strncasecmp(name, "cycloid", len)) {
@@ -986,6 +988,9 @@ _aaxGetSourceNameByType(enum aaxSourceType type, enum aaxTypeName name)
       break;
    case AAX_SQUARE:
       SRC_ADD(p, l, m, "square");
+      break;
+   case AAX_PULSE:
+      SRC_ADD(p, l, m, "pulse");
       break;
    case AAX_TRIANGLE:
       SRC_ADD(p, l, m, "triangle");

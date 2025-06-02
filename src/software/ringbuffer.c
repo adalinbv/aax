@@ -1331,6 +1331,7 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, _data_t *scratch, enum aaxSour
       case AAX_SINE:
       case AAX_CYCLOID:
       case AAX_IMPULSE:
+      case AAX_PULSE:
          _bufferMixWaveform(ptr, scratch, type, f, no_samples,
                             ratio, phase, modulate, v0, limiter);
          rv = true;

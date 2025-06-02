@@ -34,6 +34,7 @@ static inline float _analog_triangle(float);
 static inline float _analog_sin(float);
 static inline float _analog_cycloid(float);
 static inline float _analog_impulse(float);
+static inline float _analog_pulse(float);
 static inline float _cycloid(float);
 
 _aaxLFOData*
@@ -150,6 +151,9 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
          break;
       case AAX_IMPULSE:
          lfo->get = _aaxLFOGetImpulse;
+         break;
+      case AAX_PULSE:
+         lfo->get = _aaxLFOGetPulse;
          break;
       case AAX_RANDOMNESS:
       case AAX_RANDOM_SELECT:
@@ -490,11 +494,44 @@ _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
       lfo->compression[track] = 1.0f-rv;
 
       if (lfo->state & AAX_PURE_WAVEFORM) {
-         rv = lfo->convert((step >= 0.0f) ? 0.0f : 1.0f, lfo);
+         rv = lfo->convert((step >= 0.05f) ? 0.0f : 1.0f, lfo);
       } else {
          rv = lfo->convert(_analog_impulse(rv), lfo);
       }
 
+      lfo->value[track] += step;
+      if (((lfo->value[track] <= lfo->min) && (step < 0))
+          || ((lfo->value[track] >= lfo->max) && (step > 0)))
+      {
+         lfo->step[track] *= -1.0f;
+         lfo->value[track] -= step;
+      }
+   }
+   return rv;
+}
+
+float    
+_aaxLFOGetPulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
+{        
+   _aaxLFOData* lfo = (_aaxLFOData*)data;
+   float rv = 1.0f; 
+   if (lfo)
+   {
+      float max = (lfo->max - lfo->min);
+      float step = lfo->step[track];
+      
+      assert(max);
+         
+      rv = (lfo->value[track] - lfo->min)/max;
+      rv = _aaxLFODelay(lfo, rv);
+      lfo->compression[track] = 1.0f-rv;
+         
+      if (lfo->state & AAX_PURE_WAVEFORM) {
+         rv = lfo->convert((step >= 0.5f) ? 0.0f : 1.0f, lfo);
+      } else {
+         rv = lfo->convert(_analog_pulse(rv), lfo);
+      }
+         
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
           || ((lfo->value[track] >= lfo->max) && (step > 0)))
@@ -969,5 +1006,12 @@ _analog_impulse(float x)
 {
    float y = 2.0f*GMATH_2PI*(1.0f-x);
    return cos(atan(y*y));
+}
+
+static float
+_analog_pulse(float x)
+{
+   float y = 1.227f*fmodf(1.0f-x, 1.0f);
+   return 0.5f-0.5f*cosf(powf(y,9.0f));
 }
 

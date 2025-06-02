@@ -125,6 +125,14 @@ _bufferGenerateWaveform(float32_ptr rv, size_t no_samples, float freq, float pha
          }
          while (--i);
          break;
+      case AAX_PULSE:
+         do
+         {
+            *ptr++ = (s >= 0.5f) ? ngain : -ngain;
+            if ((s += dt) >= 1.0f) s -= 2.0f;
+         }
+         while (--i);
+         break;
       default:
          break;
       }
@@ -251,7 +259,8 @@ static float _gains_v0[AAX_MAX_WAVE][2] = {
   { 0.9f,  1.0f }, // AAX_TRIANGLE,  AAX_PURE_TRIANGLE
   { 1.0f,  1.0f }, // AAX_SINE,      AAX_PURE_SINE
   { 1.0f,  1.0f }, // AAX_CYCLOID,   AAX_PURE_CYCLOID
-  { 1.1f, 1.f/16.f } // AAX_IMPULSE, AAX_PURE_IMPULSE
+  { 1.1f, 1.f/16.f }, // AAX_IMPULSE, AAX_PURE_IMPULSE
+  { 0.95f, 1.0f }  // AAX_PULSE, AAX_PURE_PULSE
 };
 
 // Volume matched gains for AAXS info block version >= 0.1
@@ -261,7 +270,8 @@ static float _gains[AAX_MAX_WAVE][2] = {
   { 1.1f,  1.2f }, // AAX_TRIANGLE, AAX_PURE_TRIANGLE
   { 1.0f,  1.1f }, // AAX_SINE,     AAX_PURE_SINE
   { 0.95f, 0.9f }, // AAX_CYCLOID,  AAX_PURE_CYCLOID
-  { 1.6f,  5.2f }  // AAX_IMPULSE,  AAX_PURE_IMPULSE
+  { 1.6f,  5.2f }, // AAX_IMPULSE,  AAX_PURE_IMPULSE
+  { 1.6f,  5.2f }  // AAX_PULSE,  AAX_PURE_PULSE
 };
 
 ALIGN float _harmonic_phases[AAX_MAX_WAVE][2*MAX_HARMONICS] =
@@ -302,6 +312,13 @@ ALIGN float _harmonic_phases[AAX_MAX_WAVE][2*MAX_HARMONICS] =
   },
 
   /* AAX_IMPULSE */
+  { .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
+    .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f
+  },
+
+  /* AAX_PULSE */
   { .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
     .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
     .0f, .0f, .0f, .0f, .0f, .0f, .0f, .0f,
@@ -355,7 +372,13 @@ ALIGN float _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS] =
     1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
     1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
     1.f/16.f, 1.f/16.f
-  }
+  },
+
+  /* AAX_PULSE */
+  { 1.f/2.221f, 1.f/3.141f, 1.f/6.663f, 0.0f, -1.f/11.11f, -1.f/9.425f,
+    01.f/15.56f, 0.0f, 1/20.0f, 1.f/15.69f, 1.f/24.33f, 0.0f, -1.f/28.82f,
+    -1.f/21.98f, -1.f/33.11f, 0.0f
+  },
 };
 
 static void

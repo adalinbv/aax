@@ -34,6 +34,7 @@ _convert_fn _exp_distortion;
 typedef float _aaxLFOGetFn(void *, void*, const void*, unsigned, size_t);
 
 _aaxLFOGetFn _aaxLFOGetSine;
+_aaxLFOGetFn _aaxLFOGetPulse;
 _aaxLFOGetFn _aaxLFOGetSquare;
 _aaxLFOGetFn _aaxLFOGetImpulse;
 _aaxLFOGetFn _aaxLFOGetCycloid;

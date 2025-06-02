@@ -1057,7 +1057,8 @@ static enum aaxSourceType _aaxWaveformCvt[2][AAX_LAST_WAVE+1][3] =
       { AAX_TRIANGLE,       AAX_TRIANGLE,           AAX_PURE_TRIANGLE },
       { AAX_SINE,           AAX_SINE,               AAX_PURE_TRIANGLE },
       { AAX_CYCLOID,        AAX_SAWTOOTH,           AAX_PURE_SAWTOOTH },
-      { AAX_IMPULSE,        AAX_SAWTOOTH,           AAX_PURE_IMPULSE  }
+      { AAX_IMPULSE,        AAX_SAWTOOTH,           AAX_PURE_IMPULSE  },
+      { AAX_PULSE,          AAX_SQUARE,             AAX_PURE_SQUARE   }
    },
    { // AAX_PURE_WAVEFORM
       { AAX_WAVE_NONE,      AAX_WAVE_NONE,          AAX_WAVE_NONE     },
@@ -1067,7 +1068,8 @@ static enum aaxSourceType _aaxWaveformCvt[2][AAX_LAST_WAVE+1][3] =
       { AAX_PURE_TRIANGLE,  AAX_TRIANGLE,           AAX_PURE_TRIANGLE },
       { AAX_PURE_SINE,      AAX_SINE,               AAX_PURE_TRIANGLE },
       { AAX_PURE_CYCLOID,   AAX_SAWTOOTH,           AAX_PURE_SAWTOOTH },
-      { AAX_PURE_IMPULSE,   AAX_SAWTOOTH,           AAX_PURE_IMPULSE  }
+      { AAX_PURE_IMPULSE,   AAX_SAWTOOTH,           AAX_PURE_IMPULSE  },
+      { AAX_PURE_PULSE,     AAX_SAWTOOTH,           AAX_PURE_SQUARE   }
    }
 };
 

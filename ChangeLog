@@ -1,3 +1,12 @@
+* Mon Jun 02 2025 - tech@adalin.org
+- AeonWave (4.1.1) stable; urgency=medium
+
+ * Add a 25% duty cycle pulse wave AAX_PULSE, and a 75% when inverted.
+ * Do not stop the emitter before the release stage of the timed gain filter.
+
+-- Erik Hofman <tech@adalin.org>  Mon 02 Jun 2025 13:58:37 + 0100
+
+
 * Fri Feb 28 2025 - tech@adalin.org
 - AeonWave (4.1.0) stable; urgency=medium
 

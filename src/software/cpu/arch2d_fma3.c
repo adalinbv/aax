@@ -711,6 +711,7 @@ _aax_generate_waveform_fma3(float32_ptr rv, size_t no_samples, float freq, float
    case AAX_TRIANGLE:
    case AAX_CYCLOID:
    case AAX_IMPULSE:
+   case AAX_PULSE:
       if (rv)
       {
          const __m256 one = _mm256_set1_ps(1.0f);
