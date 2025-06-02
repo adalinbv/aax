@@ -700,10 +700,10 @@ aaxGetMIDIModulationNameByType(enum aaxMIDIModulationMode mode)
    char *p = rv;
    char m = 0;
 
-   if (mode & AAX_MIDI_PITCH_CONTROL) {
+   if (mode & AAX_MIDI_GAIN_CONTROL) {
       SRC_ADD(p, l, m, "gain");
    }
-   if (mode & AAX_MIDI_GAIN_CONTROL) {
+   if (mode & AAX_MIDI_PITCH_CONTROL) {
       SRC_ADD(p, l, m, "pitch");
    }
    if (mode & AAX_MIDI_FILTER_CONTROL) {
