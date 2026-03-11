@@ -78,7 +78,7 @@ int
 is_nan64(double x)
 {
 #if HAVE_ISNAN
-   return is_nan(x);
+   return isnan(x);
 #else
    volatile double temp = x;
    return (temp != x) ? 1 : 0;
@@ -135,7 +135,7 @@ is_inf(float x)
 int
 detect_inf_vec3(float vec[3])
 {
-   return !(is_inf(vec[0]) || is_inf(vec[1]) || is_inf(vec[2]));
+   return (is_inf(vec[0]) || is_inf(vec[1]) || is_inf(vec[2]));
 }
 
 int
