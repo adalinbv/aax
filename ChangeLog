@@ -1,3 +1,11 @@
+* Wed Mar 11 2026 - tech@adalin.org
+- AeonWave (4.1.0) stable; urgency=medium
+ * Fix PipeWire 14+
+ * Fixes and code improvements to most files in the base directory.
+
+-- Erik Hofman <tech@adalin.org>  Wed 11 Mar 2026 14:09:31 + 0100
+
+
 * Fri Feb 28 2025 - tech@adalin.org
 - AeonWave (4.1.0) stable; urgency=medium
 
