@@ -88,9 +88,7 @@ _aaxThreadSetPriority(_aaxThread *t, int prio)
    }
 
    SetThreadPriority(t, new_priority);
-   if (!rv) {
-      rv = GetLastError();
-   }
+   rv = GetLastError();
 
    return rv;
 }
@@ -488,34 +486,28 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
       _aaxMutex *mutex = (_aaxMutex *)signal->mutex;
       DWORD hr;
 
-      if (timeout > 0.0f)	
+      timeout *= 1000.0f;		/* from seconds to ms */
+      signal->waiting = AAX_TRUE;
+      do
       {
-         timeout *= 1000.0f;		/* from seconds to ms */
-         signal->waiting = AAX_TRUE;
-         do
-         {
-            _aaxMutexUnLock(mutex);
-            hr = WaitForSingleObject(signal->condition, (DWORD)floorf(timeout));
-            _aaxMutexLock(mutex);
-         }
-         while (signal->waiting == AAX_TRUE);
+         _aaxMutexUnLock(mutex);
+         hr = WaitForSingleObject(signal->condition, (DWORD)floorf(timeout));
+         _aaxMutexLock(mutex);
+      }
+      while (signal->waiting == AAX_TRUE);
 
-         switch (hr)
-         {
-         case WAIT_TIMEOUT:
-            rv = AAX_TIMEOUT;
-            break;
-         case WAIT_OBJECT_0:
-            signal->triggered--;
-            rv = AAX_TRUE;
-            break;
-         default:
-            rv = AAX_FALSE;
-            break;
-         }
-      } else {		/* timeout */
-         signal->triggered--;
+      switch (hr)
+      {
+      case WAIT_TIMEOUT:
          rv = AAX_TIMEOUT;
+         break;
+      case WAIT_OBJECT_0:
+         signal->triggered--;
+         rv = AAX_TRUE;
+         break;
+      default:
+         rv = AAX_FALSE;
+         break;
       }
    }
    else if (signal->triggered > 0)
