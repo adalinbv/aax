@@ -423,6 +423,9 @@ _aaxMutexCreate(_aaxMutex *m)
          int status = mtx_init(&m->mutex, mtx_plain);
          if (status == thrd_success) {
             m->status = AAX_THREAD_INITIALIZED;
+         } else {
+            free(m);
+            m = NULL;
          }
       }
    }
@@ -440,9 +443,12 @@ _aaxMutexCreateDebug(_aaxMutex *m, const char *name, const char *fn)
          int status = mtx_init(&m->mutex, mtx_timed|mtx_recursive);
          if (status == thrd_success) {
             m->status = AAX_THREAD_INITIALIZED;
+            m->name = (char *)name;
+            m->function = fn;
+         } else {
+            free(m);
+            m = NULL;
          }
-         m->name = (char *)name;
-         m->function = fn;
       }
    }
 
@@ -558,15 +564,18 @@ _aaxMutexLockTimed(_aaxMutex *m, float dt)
    if (m)
    {
       struct timespec to;
+      long dt_sec = (long)dt;
+      long dt_nsec = (long)((dt - dt_sec) * 1e9f);
 
 #ifdef __MINGW32__
       clock_gettime(CLOCK_REALTIME, &to);
 #else
       timespec_get(&to, TIME_UTC);
 #endif
-      to.tv_nsec += dt*1e9f;
-      if (to.tv_nsec >= 1000000000LL) {
-         to.tv_nsec -= 1000000000LL;
+      to.tv_sec  += dt_sec;
+      to.tv_nsec += dt_nsec;
+      if (to.tv_nsec >= 1000000000L) {
+         to.tv_nsec -= 1000000000L;
          to.tv_sec++;
       }
 
@@ -648,6 +657,15 @@ _aaxSignalInit(_aaxSignal *signal)
       rv = cnd_init(signal->condition);
       if (rv == thrd_success) {
          signal->mutex = _aaxMutexCreate(signal->mutex);
+         if (!signal->mutex) {
+            cnd_destroy(signal->condition);
+            free(signal->condition);
+            signal->condition = NULL;
+            rv = thrd_error;
+         }
+      } else {
+         free(signal->condition);
+         signal->condition = NULL;
       }
    }
 
@@ -715,14 +733,18 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float dt)
       _aaxMutex *m = signal->mutex;
       struct timespec to;
 
+      long dt_sec = (long)dt;
+      long dt_nsec = (long)((dt - (float)dt_sec) * 1e9f);
+
 #ifdef __MINGW32__
       clock_gettime(CLOCK_REALTIME, &to);
 #else
       timespec_get(&to, TIME_UTC);
 #endif
-      to.tv_nsec += dt*1e9f;
-      if (to.tv_nsec >= 1000000000LL) {
-         to.tv_nsec -= 1000000000LL;
+      to.tv_sec  += dt_sec;
+      to.tv_nsec += dt_nsec;
+      if (to.tv_nsec >= 1000000000L) {
+         to.tv_nsec -= 1000000000L;
          to.tv_sec++;
       }
 
@@ -762,11 +784,11 @@ _aaxSignalTrigger(_aaxSignal *signal)
    _aaxMutexLock(signal->mutex);
    if (!signal->triggered)
    {
-      /* signaling a condition which isn't waiting gets lost */
-      /* try to prevent this situation anyhow.               */
       signal->triggered = 1;
-      signal->waiting = false;
       rv = cnd_signal(signal->condition);
+      /* Clear waiting only after waking the waiter, under the lock,
+       * so the waiter's loop condition is updated atomically. */
+      signal->waiting = false;
    }
    _aaxMutexUnLock(signal->mutex);
 
