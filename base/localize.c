@@ -174,7 +174,7 @@ _aaxStringConv(const iconv_t cd, const char *inbuf, size_t inbytesleft,
     {
         if (outbytesleft > inbytesleft) outbytesleft = inbytesleft;
         memcpy(outbuf, inbuf, outbytesleft);
-        outbuf[inbytesleft] = 0;
+        outbuf[outbytesleft] = 0;
     }
     return rv;
 }
