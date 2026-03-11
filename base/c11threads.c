@@ -107,7 +107,7 @@ thrd_yield(void)
 void
 thrd_exit(int res)
 {
-// TODO
+    ExitThread((DWORD)res);
 }
 
 int
@@ -160,24 +160,29 @@ mtx_init(mtx_t *mtx, int type)
 int
 mtx_lock(mtx_t *mtx)
 {
-    if (mtx->type & mtx_recursive) {
-        AcquireSRWLockShared(&mtx->mtx);
-    } else {
-        AcquireSRWLockExclusive(&mtx->mtx);
-    }
+    AcquireSRWLockExclusive(&mtx->mtx);
     return thrd_success;
 }
 
 int
 mtx_timedlock(mtx_t *restrict mtx, const struct timespec *restrict ts)
 {
-    int dwMilliseconds;
     ULONG Flags;
     int res;
+    DWORD dwMilliseconds;
 
-    dwMilliseconds = 1000*ts->tv_sec + ts->tv_nsec/1000000;
+    /* ts is an absolute time; compute milliseconds remaining from now */
+    struct timespec now;
+    timespec_get(&now, TIME_UTC);
+    long long diff_ms = ((long long)(ts->tv_sec  - now.tv_sec)  * 1000)
+                      + ((long long)(ts->tv_nsec - now.tv_nsec) / 1000000);
+    if (diff_ms <= 0) {
+        return thrd_timedout;
+    }
+    dwMilliseconds = (DWORD)diff_ms;
+
     Flags = (mtx->type & mtx_recursive)? CONDITION_VARIABLE_LOCKMODE_SHARED : 0;
-    res = SleepConditionVariableSRW(&mtx->cond,&mtx->mtx, dwMilliseconds, Flags);
+    res = SleepConditionVariableSRW(&mtx->cond, &mtx->mtx, dwMilliseconds, Flags);
     switch(res)
     {
     case 0:
@@ -195,24 +200,13 @@ mtx_timedlock(mtx_t *restrict mtx, const struct timespec *restrict ts)
 int
 mtx_trylock(mtx_t *mtx)
 {
-    int res;
-
-    if (mtx->type & mtx_recursive) {
-        res = TryAcquireSRWLockShared(&mtx->mtx) ? thrd_success : thrd_busy;
-    } else {
-        res = TryAcquireSRWLockExclusive(&mtx->mtx) ? thrd_success : thrd_busy;
-    }
-    return res;
+    return TryAcquireSRWLockExclusive(&mtx->mtx) ? thrd_success : thrd_busy;
 }
 
 int
 mtx_unlock(mtx_t *mtx)
 {
-    if (mtx->type & mtx_recursive) {
-        ReleaseSRWLockShared(&mtx->mtx);
-    } else {
-        ReleaseSRWLockExclusive(&mtx->mtx);
-    }
+    ReleaseSRWLockExclusive(&mtx->mtx);
     return thrd_success;
 }
 
@@ -274,11 +268,20 @@ int
 cnd_timedwait(cnd_t *restrict cond, mtx_t *restrict mtx,
               const struct timespec *restrict ts)
 {
-    int dwMilliseconds;
     ULONG Flags;
     int res;
+    DWORD dwMilliseconds;
 
-    dwMilliseconds = 1000*ts->tv_sec + ts->tv_nsec/1000000;
+    /* ts is an absolute time; compute milliseconds remaining from now */
+    struct timespec now;
+    timespec_get(&now, TIME_UTC);
+    long long diff_ms = ((long long)(ts->tv_sec  - now.tv_sec)  * 1000)
+                      + ((long long)(ts->tv_nsec - now.tv_nsec) / 1000000);
+    if (diff_ms <= 0) {
+        return thrd_timedout;
+    }
+    dwMilliseconds = (DWORD)diff_ms;
+
     Flags = (mtx->type & mtx_recursive)? CONDITION_VARIABLE_LOCKMODE_SHARED : 0;
     res = SleepConditionVariableSRW(cond, &mtx->mtx, dwMilliseconds, Flags);
 
