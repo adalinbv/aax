@@ -127,7 +127,6 @@ _aaxTimerCreate()
       if (rv)
       {
          DWORD_PTR threadMask = SetThreadAffinityMask(GetCurrentThread(), 0);
-         threadMask = SetThreadAffinityMask(GetCurrentThread(), 0);
          QueryPerformanceCounter(&rv->timerCount);
          QueryPerformanceCounter(&rv->timerOverhead);
          SetThreadAffinityMask(GetCurrentThread(), threadMask);
