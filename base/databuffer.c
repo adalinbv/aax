@@ -71,6 +71,7 @@ _aaxDataCreate(unsigned char no_buffers, size_t size, unsigned int blocksize)
          }
          else
          {
+            free(rv->data);
             free(rv);
             rv = NULL;
          }
@@ -237,7 +238,7 @@ _aaxDataMoveData(_data_t* src, unsigned char src_no, _data_t* dst, unsigned char
    assert(dst->no_buffers > dst_no);
 
    if (src->no_buffers > src_no && dst->no_buffers > dst_no &&
-       src->blocksize < size    && dst->blocksize < size)
+       src->blocksize <= size    && dst->blocksize <= size)
    {
       rv = _MIN((size/src->blocksize)*src->blocksize, src->offset[src_no]);
       if (rv > (dst->size - dst->offset[dst_no])) {
