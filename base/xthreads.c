@@ -402,9 +402,7 @@ _aaxThreadSetPriority(_aaxThread *t, int prio)
    }
 
    SetThreadPriority(t, new_priority);
-   if (!rv) {
-      rv = GetLastError();
-   }
+   rv = GetLastError();
 #else
 # pragma waring implement me
 #endif
@@ -525,9 +523,9 @@ _aaxMutexLockDebug(_aaxMutex *m, char *file, int line)
             abort();
          }
          else if (res == thrd_error) {
-            printf("mutex lock error %i in %s line %i\n", r, file, line);
+            printf("mutex lock error %i in %s line %i\n", res, file, line);
          } else if (res == thrd_nomem) {
-            printf("out of memory error %i in %s line %i\n", r, file, line);
+            printf("out of memory error %i in %s line %i\n", res, file, line);
          }
 
 #ifdef __LINUX__
