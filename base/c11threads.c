@@ -20,22 +20,28 @@ static DWORD WINAPI
 _callback_handler(LPVOID t)
 {
     struct callback_data *thread = t;
-    return thread->callback_fn(thread->data);
+    DWORD result = thread->callback_fn(thread->data);
+    free(thread);
+    return result;
 }
 
 int
 thrd_create(thrd_t *thr, thrd_start_t func, void *arg)
 {
-    struct callback_data cb;
+    struct callback_data *cb = malloc(sizeof(struct callback_data));
     int res = thrd_error;
 
-    cb.callback_fn = func;
-    cb.data = arg;
-    *thr = CreateThread(NULL, 0, _callback_handler, &cb, 0, NULL);
+    if (!cb) return thrd_nomem;
+
+    cb->callback_fn = func;
+    cb->data = arg;
+    *thr = CreateThread(NULL, 0, _callback_handler, cb, 0, NULL);
     if (*thr) res = thrd_success;
     else if (GetLastError() == ERROR_NOT_ENOUGH_MEMORY) res = thrd_nomem;
     else res = thrd_error;
- 
+
+    if (res != thrd_success) free(cb);
+
     return res;
 }
 
@@ -65,7 +71,7 @@ thrd_sleep(const struct timespec *ts, struct timespec *tsr)
 
         QueryPerformanceFrequency(&freq);
         QueryPerformanceCounter(&start);
-        res = WaitForSingleObject(GetCurrentThread(), dwMilliseconds);
+        res = SleepEx(dwMilliseconds, TRUE);
         QueryPerformanceCounter(&end);
 
         // return the remaining time on interruption.
@@ -75,17 +81,15 @@ thrd_sleep(const struct timespec *ts, struct timespec *tsr)
         tsr->tv_nsec = dt*1e9f;
     }
     else {
-        res = WaitForSingleObject(GetCurrentThread(), dwMilliseconds);
+        res = SleepEx(dwMilliseconds, TRUE);
     }
 
     switch (res)
     {
-    case WAIT_OBJECT_0:
+    case 0:
         res = 0;
         break;
-    case WAIT_TIMEOUT:
-    case WAIT_ABANDONED:
-    case WAIT_FAILED:
+    case WAIT_IO_COMPLETION:
     default:
         res = -1;
         break;
@@ -147,15 +151,10 @@ thrd_join(thrd_t thr, int *result)
 int
 mtx_init(mtx_t *mtx, int type)
 {
-    mtx_t* mutex = malloc(sizeof(mtx_t));
-    if (mutex)
-    {
-        mutex->type = type;
-        InitializeSRWLock(&mutex->mtx);
-        InitializeConditionVariable(&mutex->cond);
-        return thrd_success;
-    }
-    return thrd_error;
+    mtx->type = type;
+    InitializeSRWLock(&mtx->mtx);
+    InitializeConditionVariable(&mtx->cond);
+    return thrd_success;
 }
 
 int
@@ -227,7 +226,7 @@ mtx_destroy(mtx_t *mtx)
 void
 call_once(once_flag* flag, void (*func)(void))
 {
-    if (atomic_fetch_add(flag, 1) == 1) {
+    if (atomic_fetch_add(flag, 1) == 0) {
         func ();
     } else {
         atomic_fetch_sub(flag, 1);
