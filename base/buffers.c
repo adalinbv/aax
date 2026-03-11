@@ -109,14 +109,23 @@ _intBufCreateNormal(_intBuffers **buffer, unsigned int id)
 # else
                 _aaxMutexCreate(0);
 # endif
+            if (!(*buffer)->mutex)
+            {
+                free((*buffer)->data);
+                free(*buffer);
+                *buffer = 0;
+            }
+            else
 #endif
-            (*buffer)->lock_ctr = 0;
-            (*buffer)->start = 0;
-            (*buffer)->first_free = 0;		/* relative to start */
-            (*buffer)->num_allocated = 0;	/* relative to start */
-            (*buffer)->max_allocations = num;	/* absolute          */
-            (*buffer)->id = id;
-            rv = 0;
+            {
+                (*buffer)->lock_ctr = 0;
+                (*buffer)->start = 0;
+                (*buffer)->first_free = 0;      /* relative to start */
+                (*buffer)->num_allocated = 0;   /* relative to start */
+                (*buffer)->max_allocations = num; /* absolute         */
+                (*buffer)->id = id;
+                rv = 0;
+            }
         }
         else
         {
@@ -135,15 +144,15 @@ _intBufDestroyDataNoLock(_intBufferData *ptr)
 
     assert(ptr);
 
-    if ((rv = --ptr->reference_ctr) == 0)
+    rv = (int)--ptr->reference_ctr;
+    if (rv == 0)
     {
 #ifndef _AL_NOTHREADS
         _aaxMutexDestroy(ptr->mutex);
 #endif
         free(ptr);
+        rv = -1;   /* sentinel: object was freed */
     }
-
-    if (!rv) rv = UINT_MAX;
 
     return rv;
 }
@@ -175,6 +184,11 @@ _intBufAddDataNormal(_intBuffers *buffer, unsigned int id, const void *data, cha
 # else
                 _aaxMutexCreate(0);
 # endif
+            if (!b->mutex)
+            {
+                free(b);
+                return UINT_MAX;
+            }
 #endif
             b->reference_ctr = 1;
             b->ptr = data;
@@ -191,8 +205,8 @@ _intBufAddDataNormal(_intBuffers *buffer, unsigned int id, const void *data, cha
             buffer->data[pos] = b;
             buffer->num_allocated++;
 
-            assert(pos+1 < buffer->max_allocations);
-            if (buffer->data[++pos] != 0)
+            assert(pos < buffer->max_allocations);
+            if ((pos+1) < buffer->max_allocations && buffer->data[++pos] != 0)
             {
                 unsigned int i, max = buffer->max_allocations - buffer->start;
                 for(i=buffer->first_free; i<max; i++)
@@ -252,7 +266,7 @@ _intBufAddReference(_intBuffers *buffer, unsigned int id,
 
             buffer->num_allocated++;
             buffer->data[buffer->start+buffer->first_free] = b;
-            rv = buffer->first_free;
+            rv = buffer->first_free++;   /* advance past the slot we just filled */
 
             num = buffer->max_allocations - buffer->start;
             for(i=buffer->first_free; i<num; i++)
@@ -332,14 +346,14 @@ _intBufGetNormal(_intBuffers *buffer, unsigned int id, unsigned int n, char lock
 
     n += buffer->start;
 
+    assert(n < buffer->max_allocations);
+    assert(buffer->data != 0);
+
 #ifndef _AL_NOTHREADS
     if (!locked && buffer->data[n] != NULL) {
         _aaxMutexLock(buffer->data[n]->mutex);
     }
 #endif
-
-    assert(n < buffer->max_allocations);
-    assert(buffer->data != 0);
 
     return buffer->data[n];
 }
@@ -862,7 +876,7 @@ __intBufFreeSpace(_intBuffers *buffer, int id, char locked)
     max = buffer->max_allocations;
 
     assert((start+num) <= max);
-    if (((start+num+1) == max) || ((start+buffer->first_free+1) == max))
+    if (((start+num+1) >= max) || ((start+buffer->first_free+1) >= max))
     {
         _intBufferData **ptr = buffer->data;
 
