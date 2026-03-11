@@ -182,42 +182,42 @@ typedef struct
 
 } _driver_t;
 
-#undef DECL_FUNCTION
-#define DECL_FUNCTION(f) static __typeof__(f) * p##f
-DECL_FUNCTION(pw_init);
-DECL_FUNCTION(pw_thread_loop_new);
-DECL_FUNCTION(pw_thread_loop_destroy);
-DECL_FUNCTION(pw_thread_loop_stop);
-DECL_FUNCTION(pw_thread_loop_get_loop);
-DECL_FUNCTION(pw_thread_loop_lock);
-DECL_FUNCTION(pw_thread_loop_unlock);
-DECL_FUNCTION(pw_thread_loop_signal);
-DECL_FUNCTION(pw_thread_loop_wait);
-DECL_FUNCTION(pw_thread_loop_start);
-DECL_FUNCTION(pw_context_new);
-DECL_FUNCTION(pw_context_destroy);
-DECL_FUNCTION(pw_context_connect);
-DECL_FUNCTION(pw_proxy_add_object_listener);
-DECL_FUNCTION(pw_proxy_get_user_data);
-DECL_FUNCTION(pw_proxy_destroy);
-DECL_FUNCTION(pw_core_disconnect);
-DECL_FUNCTION(pw_stream_new_simple);
-DECL_FUNCTION(pw_stream_destroy);
-DECL_FUNCTION(pw_stream_connect);
-DECL_FUNCTION(pw_stream_set_active);
-DECL_FUNCTION(pw_stream_get_state);
-DECL_FUNCTION(pw_stream_dequeue_buffer);
-DECL_FUNCTION(pw_stream_queue_buffer);
-DECL_FUNCTION(pw_stream_get_control);
-DECL_FUNCTION(pw_stream_set_control);
-DECL_FUNCTION(pw_stream_update_properties);
-DECL_FUNCTION(pw_properties_new);
-DECL_FUNCTION(pw_properties_get);
-DECL_FUNCTION(pw_properties_set);
-DECL_FUNCTION(pw_properties_setf);
-DECL_FUNCTION(pw_get_library_version);
-DECL_FUNCTION(pw_get_application_name);
-DECL_FUNCTION(pw_get_prgname);
+#undef DECL_STATIC_FUNCTION
+#define DECL_STATIC_FUNCTION(f) static __typeof__(f) * p##f
+DECL_STATIC_FUNCTION(pw_init);
+DECL_STATIC_FUNCTION(pw_thread_loop_new);
+DECL_STATIC_FUNCTION(pw_thread_loop_destroy);
+DECL_STATIC_FUNCTION(pw_thread_loop_stop);
+DECL_STATIC_FUNCTION(pw_thread_loop_get_loop);
+DECL_STATIC_FUNCTION(pw_thread_loop_lock);
+DECL_STATIC_FUNCTION(pw_thread_loop_unlock);
+DECL_STATIC_FUNCTION(pw_thread_loop_signal);
+DECL_STATIC_FUNCTION(pw_thread_loop_wait);
+DECL_STATIC_FUNCTION(pw_thread_loop_start);
+DECL_STATIC_FUNCTION(pw_context_new);
+DECL_STATIC_FUNCTION(pw_context_destroy);
+DECL_STATIC_FUNCTION(pw_context_connect);
+DECL_STATIC_FUNCTION(pw_proxy_add_object_listener);
+DECL_STATIC_FUNCTION(pw_proxy_get_user_data);
+DECL_STATIC_FUNCTION(pw_proxy_destroy);
+DECL_STATIC_FUNCTION(pw_core_disconnect);
+DECL_STATIC_FUNCTION(pw_stream_new_simple);
+DECL_STATIC_FUNCTION(pw_stream_destroy);
+DECL_STATIC_FUNCTION(pw_stream_connect);
+DECL_STATIC_FUNCTION(pw_stream_set_active);
+DECL_STATIC_FUNCTION(pw_stream_get_state);
+DECL_STATIC_FUNCTION(pw_stream_dequeue_buffer);
+DECL_STATIC_FUNCTION(pw_stream_queue_buffer);
+DECL_STATIC_FUNCTION(pw_stream_get_control);
+DECL_STATIC_FUNCTION(pw_stream_set_control);
+DECL_STATIC_FUNCTION(pw_stream_update_properties);
+DECL_STATIC_FUNCTION(pw_properties_new);
+DECL_STATIC_FUNCTION(pw_properties_get);
+DECL_STATIC_FUNCTION(pw_properties_set);
+DECL_STATIC_FUNCTION(pw_properties_setf);
+DECL_STATIC_FUNCTION(pw_get_library_version);
+DECL_STATIC_FUNCTION(pw_get_application_name);
+DECL_STATIC_FUNCTION(pw_get_prgname);
 
 static int _aaxPipeWireAudioStreamConnect(_driver_t*, enum pw_stream_flags, const char **error);
 static float _pipewire_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, uint32_t, unsigned int, float);
@@ -352,7 +352,7 @@ _aaxPipeWireDriverNewHandle(enum aaxRenderMode mode)
       handle->spec.rate = DEFAULT_OUTPUT_RATE;
       handle->spec.format = is_bigendian() ? SPA_AUDIO_FORMAT_S16_BE
                                            : SPA_AUDIO_FORMAT_S16_LE;
-      memcpy(handle->spec.position, channel_map, sizeof(channel_map));
+      _aax_memcpy(handle->spec.position, channel_map, sizeof(channel_map));
 
       handle->format = _aaxPipeWireGetFormat(handle->spec.format);
       handle->bits_sample = aaxGetBitsPerSample(handle->format);
@@ -1648,7 +1648,7 @@ node_event_info(void *object, const struct pw_node_info *info)
 
       /* Need to parse the parameters to get the sample rate */
       for (i = 0; i < info->n_params; ++i) {
-         pw_node_enum_params(node->proxy, 0, info->params[i].id, 0, 0, NULL);
+         pw_node_enum_params((struct pw_node*)node->proxy, 0, info->params[i].id, 0, 0, NULL);
       }
 
       hotplug_core_sync(node);
@@ -1923,7 +1923,7 @@ driver_list_add(char description[MAX_DEVICES_LIST], char *name)
       size_t slen = strlen(name);
       if (avail >= slen)
       {
-         memcpy(ptr, name, slen);
+         _aax_memcpy(ptr, name, slen);
          ptr += slen;
          *ptr++ = '\0';
          *ptr = '\0';
