@@ -72,7 +72,7 @@ _aax_calloc_aligned(char **start, size_t offs, size_t num, size_t size)
 {
 #if !BYTE_ALIGN
 
-   char *rv = calloc(num, offs+num*size);
+   char *rv = calloc(1, offs+num*size);
    *start = rv+offs;
    return rv;
 #else
@@ -169,7 +169,7 @@ writestr(uint8_t **ptr, const char *s, size_t slen, size_t *buflen)
          *ch++ = (uint8_t)*s++;
       }
       *ptr = ch;
-      buflen -= slen;
+      *buflen -= slen;
    }
 }
 
@@ -322,7 +322,7 @@ uint8_t
 read8(uint8_t **ptr, size_t *buflen)
 {
    uint8_t u8 = 0;
-   if (*buflen > 1)
+   if (*buflen >= 1)
    {
       uint8_t *ch = *ptr;
       u8 = *ch++;
@@ -336,7 +336,7 @@ uint16_t
 read16le(uint8_t **ptr, size_t *buflen)
 {
    uint16_t u16 = 0;
-   if (*buflen > 2)
+   if (*buflen >= 2)
    {
       uint8_t *ch = *ptr;
       u16 = (uint64_t)*ch++;
@@ -351,7 +351,7 @@ uint32_t
 read32le(uint8_t **ptr, size_t *buflen)
 {
    uint32_t u32 = 0;
-   if (*buflen > 4)
+   if (*buflen >= 4)
    {
       uint8_t *ch = *ptr;
       u32 = (uint64_t)*ch++;
@@ -368,7 +368,7 @@ uint64_t
 read64le(uint8_t **ptr, size_t *buflen)
 {
    uint64_t u64 = 0;
-   if (*buflen > 8)
+   if (*buflen >= 8)
    {
       uint8_t *ch = *ptr;
       u64 = (uint64_t)*ch++;
@@ -410,7 +410,7 @@ uint16_t
 read16be(uint8_t **ptr, size_t *buflen)
 {
    uint16_t u16 = 0;
-   if (*buflen > 2)
+   if (*buflen >= 2)
    {
       uint8_t *ch = *ptr;
       u16 = (uint64_t)*ch++ << 8;
@@ -425,7 +425,7 @@ uint32_t
 read32be(uint8_t **ptr, size_t *buflen)
 {
    uint32_t u32 = 0;
-   if (*buflen > 4)
+   if (*buflen >= 4)
    {
       uint8_t *ch = *ptr;
       u32 = (uint64_t)*ch++ << 24;
@@ -442,7 +442,7 @@ uint64_t
 read64be(uint8_t **ptr, size_t *buflen)
 {
    uint64_t u64 = 0;
-   if (*buflen > 8)
+   if (*buflen >= 8)
    {
       uint8_t *ch = *ptr;
       u64 = (uint64_t)*ch++ << 56;
@@ -505,8 +505,6 @@ readpstr(uint8_t **ptr, char *buf, size_t len, size_t *buflen)
    size_t max = _MIN(len, *buflen);
    uint8_t *ch = *ptr;
    uint8_t i;
-
-   buf[*buflen] = '\0';
 
    i = *ch++;
    max = _MIN(i, max);
@@ -596,7 +594,7 @@ strreplace(char *dst, const char *src)
       else rv = dst;
 
       if (rv) {
-         memcpy(rv, src, slen);
+         memcpy(rv, src, slen+1);
       }
    }
    else {
