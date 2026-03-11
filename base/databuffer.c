@@ -242,8 +242,11 @@ _aaxDataMoveData(_data_t* src, unsigned char src_no, _data_t* dst, unsigned char
    {
       rv = _MIN((size/src->blocksize)*src->blocksize, src->offset[src_no]);
       if (rv > (dst->size - dst->offset[dst_no])) {
-         rv = dst->size - dst->offset[dst_no];
+         rv = (dst->size - dst->offset[dst_no]);
+         rv = (rv/dst->blocksize)*dst->blocksize;
       }
+
+      if (!rv) return 0;
 
       memcpy(dst->data[dst_no]+dst->offset[dst_no], src->data[src_no], rv);
 
@@ -305,7 +308,7 @@ _aaxDataSetOffset(_data_t *buf, unsigned char buffer_no, size_t offs)
       }
       else
       {
-         rv = buf->size - (buf->offset[buffer_no] + offs);
+         rv = (ssize_t)buf->size - (ssize_t)(buf->offset[buffer_no] + offs);
          buf->offset[buffer_no] = buf->size;
       }
    }
@@ -327,7 +330,7 @@ _aaxDataIncreaseOffset(_data_t *buf, unsigned char buffer_no, size_t offs)
       }
       else
       {
-         rv = buf->size - (buf->offset[buffer_no] + offs);
+         rv = (ssize_t)buf->size - (ssize_t)(buf->offset[buffer_no] + offs);
          buf->offset[buffer_no] = buf->size;
       }
    }
